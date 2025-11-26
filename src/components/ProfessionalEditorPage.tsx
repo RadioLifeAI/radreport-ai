@@ -15,6 +15,7 @@ import { supabaseService } from '@/services/SupabaseService'
 import { toast } from 'sonner'
 import { Editor } from '@tiptap/react'
 import { useTheme } from 'next-themes'
+import EditorAIButton from '@/components/editor/EditorAIButton'
 
 interface ProfessionalEditorPageProps {
   onGenerateConclusion?: (conclusion?: string) => void
@@ -36,6 +37,13 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
   const [selectedTemplate, setSelectedTemplate] = useState('Template do exame')
   const [selectedMacro, setSelectedMacro] = useState('Frases rápidas')
   const [speechAIActivated, setSpeechAIActivated] = useState(false)
+
+  // Refs para gestão de ditado em tempo real com âncora dinâmica
+  const dictAnchorRef = useRef<number | null>(null)
+  const dictInterimLengthRef = useRef(0)
+  const dictConfirmedLengthRef = useRef(0)
+  const dictProgUpdateRef = useRef(false)
+  const dictCapitalizedRef = useRef(false)
 
   // Template hook
   const {
@@ -331,7 +339,28 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
     setMacroDropdownVisible(false)
   }, [editorInstance, hookApplyFrase, findDocumentSections, replaceConclusionText, setFraseSearchTerm])
 
-  // Voice command mapping
+  // Função para verificar se deve capitalizar
+  const shouldCapitalize = useCallback((editor: Editor, pos: number): boolean => {
+    if (pos === 0) return true
+    const textBefore = editor.state.doc.textBetween(Math.max(0, pos - 3), pos)
+    return /[.!?]\s*$/.test(textBefore) || /^\s*$/.test(textBefore)
+  }, [])
+
+  // Função para deletar última palavra
+  const deleteLastWord = useCallback(() => {
+    if (!editorInstance) return
+    const { state } = editorInstance
+    const { selection } = state
+    const { from } = selection
+    const textBefore = state.doc.textBetween(0, from)
+    const match = textBefore.match(/\S+\s*$/)
+    if (match) {
+      const deleteFrom = from - match[0].length
+      editorInstance.commands.deleteRange({ from: deleteFrom, to: from })
+    }
+  }, [editorInstance])
+
+  // Voice command mapping expandido
   const replaceVoiceCommands = (text: string): string => {
     const commands: { [key: string]: string } = {
       'ponto final': '.',
@@ -343,6 +372,8 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
       'ponto e virgula': ';',
       'interrogação': '?',
       'exclamação': '!',
+      'reticências': '...',
+      'reticencias': '...',
       'nova linha': '\n',
       'parágrafo': '\n\n',
       'paragrafo': '\n\n',
@@ -360,21 +391,196 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
       processedText = processedText.replace(regex, symbol)
     }
 
+    // Normalizar espaços em torno de pontuação
+    processedText = processedText.replace(/\s+([.,;:!?])/g, '$1')
+    processedText = processedText.replace(/([.,;:!?])(?!\s|$)/g, '$1 ')
+
     return processedText
   }
 
-  // Handle voice text
+  // Handle interim transcript
+  const handleInterimTranscript = useCallback((text: string) => {
+    if (!editorInstance) return
+    
+    const { state } = editorInstance
+    const { selection } = state
+    
+    // Inicializar âncora se primeira inserção
+    if (dictAnchorRef.current === null) {
+      dictAnchorRef.current = selection.from
+      dictConfirmedLengthRef.current = 0
+      dictCapitalizedRef.current = shouldCapitalize(editorInstance, selection.from)
+      
+      // Remover espaços iniciais na nova âncora
+      const textBefore = state.doc.textBetween(Math.max(0, selection.from - 10), selection.from)
+      if (/\s+$/.test(textBefore)) {
+        const spacesLength = textBefore.match(/\s+$/)?.[0].length || 0
+        editorInstance.commands.deleteRange({
+          from: selection.from - spacesLength,
+          to: selection.from
+        })
+        dictAnchorRef.current = selection.from - spacesLength
+      }
+    }
+    
+    const basePos = dictAnchorRef.current
+    const processedText = replaceVoiceCommands(text)
+    
+    // Aplicar capitalização se necessário
+    let finalText = processedText
+    if (dictCapitalizedRef.current && finalText.length > 0) {
+      finalText = finalText.charAt(0).toUpperCase() + finalText.slice(1)
+    }
+    
+    // Remover texto provisório anterior
+    if (dictInterimLengthRef.current > 0) {
+      dictProgUpdateRef.current = true
+      editorInstance.commands.deleteRange({
+        from: basePos,
+        to: basePos + dictInterimLengthRef.current
+      })
+    }
+    
+    // Inserir novo texto provisório
+    dictProgUpdateRef.current = true
+    editorInstance.commands.insertContentAt(basePos, finalText)
+    dictInterimLengthRef.current = finalText.length
+  }, [editorInstance, shouldCapitalize])
+
+  // Handle final transcript
+  const handleFinalTranscript = useCallback((text: string) => {
+    if (!editorInstance) return
+    
+    if (dictAnchorRef.current === null) {
+      // Sem âncora ativa, inserir diretamente
+      const processedText = replaceVoiceCommands(text)
+      editorInstance.commands.insertContent(processedText + ' ')
+      return
+    }
+    
+    const basePos = dictAnchorRef.current
+    const processedText = replaceVoiceCommands(text)
+    
+    // Aplicar capitalização se necessário
+    let finalText = processedText
+    if (dictCapitalizedRef.current && finalText.length > 0) {
+      finalText = finalText.charAt(0).toUpperCase() + finalText.slice(1)
+      dictCapitalizedRef.current = false
+    }
+    
+    // Remover provisório
+    if (dictInterimLengthRef.current > 0) {
+      dictProgUpdateRef.current = true
+      editorInstance.commands.deleteRange({
+        from: basePos,
+        to: basePos + dictInterimLengthRef.current
+      })
+      dictInterimLengthRef.current = 0
+    }
+    
+    // Calcular delta (novo texto - já confirmado)
+    const delta = finalText.slice(dictConfirmedLengthRef.current)
+    if (delta.length > 0) {
+      dictProgUpdateRef.current = true
+      const insertPos = basePos + dictConfirmedLengthRef.current
+      editorInstance.commands.insertContentAt(insertPos, delta)
+      dictConfirmedLengthRef.current = finalText.length
+    }
+    
+    // Detectar pausa: se não termina com pontuação, inserir ponto + quebra
+    const endsWithPunctuation = /[.!?,;:\s]$/.test(finalText)
+    if (!endsWithPunctuation) {
+      dictProgUpdateRef.current = true
+      editorInstance.chain()
+        .insertContentAt(basePos + dictConfirmedLengthRef.current, '.')
+        .insertContent({ type: 'hardBreak' })
+        .run()
+      dictCapitalizedRef.current = true
+      dictConfirmedLengthRef.current += 1
+    }
+  }, [editorInstance])
+
+  // Configurar callbacks de voz no mount
+  useEffect(() => {
+    const speechService = getSpeechRecognitionService()
+    
+    speechService.setOnResult((result) => {
+      if (result.isFinal) {
+        handleFinalTranscript(result.transcript)
+      } else {
+        handleInterimTranscript(result.transcript)
+      }
+    })
+    
+    speechService.setOnEnd((reason) => {
+      if (reason === 'user') {
+        // Reset âncora ao parar manualmente
+        dictAnchorRef.current = null
+        dictInterimLengthRef.current = 0
+        dictConfirmedLengthRef.current = 0
+        dictCapitalizedRef.current = false
+      }
+    })
+    
+    return () => {
+      speechService.stopListening()
+    }
+  }, [handleInterimTranscript, handleFinalTranscript])
+
+  // Monitorar movimento de cursor para reset de âncora
+  useEffect(() => {
+    if (!editorInstance) return
+    
+    const handleSelectionUpdate = () => {
+      if (dictProgUpdateRef.current) {
+        dictProgUpdateRef.current = false
+        return
+      }
+      
+      // Usuário moveu cursor manualmente
+      const { state } = editorInstance
+      const { selection } = state
+      const currentPos = selection.from
+      
+      if (dictAnchorRef.current !== null && 
+          (currentPos < dictAnchorRef.current || 
+           currentPos > dictAnchorRef.current + dictConfirmedLengthRef.current + dictInterimLengthRef.current)) {
+        // Reset âncora
+        dictAnchorRef.current = null
+        dictInterimLengthRef.current = 0
+        dictConfirmedLengthRef.current = 0
+      }
+    }
+    
+    editorInstance.on('selectionUpdate', handleSelectionUpdate)
+    return () => {
+      editorInstance.off('selectionUpdate', handleSelectionUpdate)
+    }
+  }, [editorInstance])
+
+  // Handle voice text (fallback para compatibilidade)
   const onVoiceText = useCallback((text: string) => {
     if (!editorInstance) return
-
     const processedText = replaceVoiceCommands(text)
     editorInstance.commands.insertContent(processedText + ' ')
   }, [editorInstance])
 
   // Handle voice command
   const onVoiceCommand = useCallback((cmd: any) => {
-    console.log('Voice command:', cmd)
-  }, [])
+    if (!editorInstance) return
+    
+    const action = cmd?.action?.toLowerCase() || ''
+    
+    if (action.includes('apagar') || action.includes('deletar')) {
+      deleteLastWord()
+    } else if (action.includes('desfaz')) {
+      editorInstance.commands.undo()
+    } else if (action.includes('refaz')) {
+      editorInstance.commands.redo()
+    } else {
+      console.log('Voice command:', cmd)
+    }
+  }, [editorInstance, deleteLastWord])
 
   return (
     <div className="h-screen flex flex-col bg-background">
@@ -657,19 +863,7 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
               <div>
                 <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-3">Assistente IA</h3>
                 <div className="space-y-2">
-                  <button
-                    className="w-full flex items-center gap-2 p-3 bg-card border border-border/40 rounded-lg hover:bg-cyan-500/20 transition-colors group"
-                  >
-                    <Sparkles size={18} className="text-cyan-400 group-hover:text-cyan-300" />
-                    <span className="text-sm">IA Sugerir</span>
-                  </button>
-
-                  <button
-                    className="w-full flex items-center gap-2 p-3 bg-card border border-border/40 rounded-lg hover:bg-indigo-500/20 transition-colors group"
-                  >
-                    <Sparkles size={18} className="text-indigo-400 group-hover:text-indigo-300" />
-                    <span className="text-sm">Conclusão IA</span>
-                  </button>
+                  <EditorAIButton editor={editorInstance} />
                 </div>
               </div>
 
