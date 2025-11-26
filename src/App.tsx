@@ -9,6 +9,7 @@ import SignUp from "./pages/SignUp";
 import Editor from "./pages/Editor";
 import AuthCallback from "./pages/AuthCallback";
 import NotFound from "./pages/NotFound";
+import EditorTest from "./components/editor/EditorTest";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/editor" element={<Editor />} />
+          <Route path="/editor-test" element={<EditorTest />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
