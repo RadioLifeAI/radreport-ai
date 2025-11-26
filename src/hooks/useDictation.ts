@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Editor } from '@tiptap/react'
 import { getSpeechRecognitionService, SpeechRecognitionService } from '@/services/SpeechRecognitionService'
 
@@ -17,6 +17,9 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   const [isActive, setIsActive] = useState(false)
   const [status, setStatus] = useState<'idle' | 'waiting' | 'listening'>('idle')
 
+  // Ref para o editor (evita closures stale)
+  const editorRef = useRef<Editor | null>(null)
+
   // Refs para gerenciamento de âncora dinâmica
   const dictAnchorRef = useRef<number | null>(null)
   const dictInterimLengthRef = useRef(0)
@@ -26,6 +29,11 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
 
   // Ref para o serviço de reconhecimento de voz
   const speechServiceRef = useRef<SpeechRecognitionService | null>(null)
+
+  // Sincronizar ref do editor sempre que mudar
+  useEffect(() => {
+    editorRef.current = editor
+  }, [editor])
 
   /**
    * Verifica se deve capitalizar o próximo caractere
@@ -108,11 +116,12 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
    * Processa transcrição provisória (interim)
    * Mostra texto em tempo real enquanto o usuário fala
    */
-  const handleInterimTranscript = (transcript: string) => {
-    console.log('📝 Interim transcript:', transcript)
-    if (!editor || !transcript.trim()) return
+  const handleInterimTranscript = useCallback((transcript: string) => {
+    const currentEditor = editorRef.current
+    console.log('📝 Interim transcript:', transcript, 'hasEditor:', !!currentEditor)
+    if (!currentEditor || !transcript.trim()) return
 
-    const currentPos = editor.state.selection.from
+    const currentPos = currentEditor.state.selection.from
 
     // Estabelecer âncora na primeira transcrição provisória
     if (dictAnchorRef.current === null) {
@@ -130,7 +139,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     // Aplicar capitalização no primeiro caractere se necessário
     let finalText = processedText
     if (!dictCapitalizedRef.current && processedText.length > 0) {
-      if (shouldCapitalize(editor, anchor)) {
+      if (shouldCapitalize(currentEditor, anchor)) {
         finalText = processedText.charAt(0).toUpperCase() + processedText.slice(1)
         dictCapitalizedRef.current = true
       }
@@ -139,7 +148,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     // Remover texto provisório anterior
     const provisionalLength = dictInterimLengthRef.current
     if (provisionalLength > 0) {
-      editor.commands.deleteRange({ 
+      currentEditor.commands.deleteRange({ 
         from: anchor, 
         to: anchor + provisionalLength 
       })
@@ -147,20 +156,21 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
 
     // Inserir novo texto provisório
     console.log('✏️ Inserting interim text:', finalText)
-    editor.commands.insertContentAt(anchor, finalText, { updateSelection: false })
+    currentEditor.commands.insertContentAt(anchor, finalText, { updateSelection: false })
     dictInterimLengthRef.current = finalText.length
-  }
+  }, [])
 
   /**
    * Processa transcrição final confirmada
    * Confirma apenas o delta (texto novo) para evitar duplicação
    * Agora verifica comandos do voiceCommandsConfig
    */
-  const handleFinalTranscript = (transcript: string) => {
-    console.log('✅ Final transcript:', transcript)
-    if (!editor || !transcript.trim()) return
+  const handleFinalTranscript = useCallback((transcript: string) => {
+    const currentEditor = editorRef.current
+    console.log('✅ Final transcript:', transcript, 'hasEditor:', !!currentEditor)
+    if (!currentEditor || !transcript.trim()) return
 
-    const currentPos = editor.state.selection.from
+    const currentPos = currentEditor.state.selection.from
 
     // Se não há âncora, inserir normalmente
     if (dictAnchorRef.current === null) {
@@ -189,40 +199,40 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       if (lowerDelta.includes(cmd.command)) {
         switch (cmd.action) {
           case 'delete_word':
-            deleteLastWord(editor)
-            dictAnchorRef.current = editor.state.selection.from
+            deleteLastWord(currentEditor)
+            dictAnchorRef.current = currentEditor.state.selection.from
             dictConfirmedLengthRef.current = 0
             dictInterimLengthRef.current = 0
             dictCapitalizedRef.current = false
             return
           case 'undo':
-            editor.commands.undo()
+            currentEditor.commands.undo()
             dictAnchorRef.current = null
             dictConfirmedLengthRef.current = 0
             dictInterimLengthRef.current = 0
             dictCapitalizedRef.current = false
             return
           case 'redo':
-            editor.commands.redo()
+            currentEditor.commands.redo()
             dictAnchorRef.current = null
             dictConfirmedLengthRef.current = 0
             dictInterimLengthRef.current = 0
             dictCapitalizedRef.current = false
             return
           case 'toggle_bold':
-            editor.commands.toggleBold()
+            currentEditor.commands.toggleBold()
             return
           case 'toggle_italic':
-            editor.commands.toggleItalic()
+            currentEditor.commands.toggleItalic()
             return
           case 'toggle_underline':
-            editor.commands.toggleUnderline()
+            currentEditor.commands.toggleUnderline()
             return
           case 'clear_all':
-            editor.commands.clearContent()
+            currentEditor.commands.clearContent()
             return
           case 'select_all':
-            editor.commands.selectAll()
+            currentEditor.commands.selectAll()
             return
         }
       }
@@ -235,7 +245,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     let finalText = processedText
     if (!dictCapitalizedRef.current && processedText.length > 0) {
       const insertPos = anchor + confirmedLength
-      if (shouldCapitalize(editor, insertPos)) {
+      if (shouldCapitalize(currentEditor, insertPos)) {
         finalText = processedText.charAt(0).toUpperCase() + processedText.slice(1)
         dictCapitalizedRef.current = true
       }
@@ -244,7 +254,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     // Remover texto provisório anterior
     const provisionalLength = dictInterimLengthRef.current
     if (provisionalLength > 0) {
-      editor.commands.deleteRange({ 
+      currentEditor.commands.deleteRange({ 
         from: anchor, 
         to: anchor + provisionalLength 
       })
@@ -252,7 +262,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
 
     // Inserir delta confirmado
     const insertPos = anchor + confirmedLength
-    editor.commands.insertContentAt(insertPos, finalText, { updateSelection: false })
+    currentEditor.commands.insertContentAt(insertPos, finalText, { updateSelection: false })
     
     // Atualizar contadores
     dictConfirmedLengthRef.current += finalText.length
@@ -262,7 +272,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     if (!hasCommand && /[.!?]\s*$/.test(finalText.trim())) {
       // Inserir quebra de linha e resetar âncora
       setTimeout(() => {
-        editor.commands.insertContentAt(
+        currentEditor.commands.insertContentAt(
           anchor + dictConfirmedLengthRef.current, 
           '\n', 
           { updateSelection: false }
@@ -272,13 +282,17 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
         dictCapitalizedRef.current = false
       }, 100)
     }
-  }
+  }, [])
 
   /**
    * Inicia o ditado por voz com captura de audio stream
    */
-  const startDictation = async (): Promise<MediaStream | null> => {
-    if (!editor || !speechServiceRef.current) return null
+  const startDictation = useCallback(async (): Promise<MediaStream | null> => {
+    const currentEditor = editorRef.current
+    if (!currentEditor || !speechServiceRef.current) {
+      console.error('❌ Cannot start dictation: editor or speechService not ready')
+      return null
+    }
 
     console.log('🎤 Starting dictation with audio capture...')
     
@@ -297,7 +311,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     
     console.error('✗ Failed to start dictation')
     return null
-  }
+  }, [])
 
   /**
    * Para o ditado por voz
@@ -320,8 +334,6 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
    * Inicializa serviço de reconhecimento de voz e configura callbacks
    */
   useEffect(() => {
-    if (!editor) return
-
     const speechService = getSpeechRecognitionService()
     speechServiceRef.current = speechService
 
@@ -330,11 +342,12 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       console.log('🔊 Status changed:', status)
       setStatus(status)
     }
+    
     const resultCallback = (result: { transcript: string; isFinal: boolean; alternatives?: string[] }) => {
       console.log('🎯 Result received:', { 
         transcript: result.transcript, 
         isFinal: result.isFinal,
-        hasEditor: !!editor 
+        hasEditor: !!editorRef.current 
       })
       if (result.isFinal) {
         handleFinalTranscript(result.transcript)
@@ -354,18 +367,19 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       speechService.removeOnResult(resultCallback)
       speechService.stopListening()
     }
-  }, [editor])
+  }, [handleInterimTranscript, handleFinalTranscript])
 
   /**
    * Monitora mudanças de seleção para resetar âncora quando necessário
    */
   useEffect(() => {
-    if (!editor) return
+    const currentEditor = editorRef.current
+    if (!currentEditor) return
 
     const handleSelectionUpdate = () => {
       // Se seleção mudou por comando (não por ditado), resetar âncora
       if (!isUpdatingSelectionRef.current) {
-        const { from, to } = editor.state.selection
+        const { from, to } = currentEditor.state.selection
         if (from !== to || (dictAnchorRef.current !== null && from !== dictAnchorRef.current + dictConfirmedLengthRef.current)) {
           dictAnchorRef.current = null
           dictConfirmedLengthRef.current = 0
@@ -375,10 +389,10 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       }
     }
 
-    editor.on('selectionUpdate', handleSelectionUpdate)
+    currentEditor.on('selectionUpdate', handleSelectionUpdate)
 
     return () => {
-      editor.off('selectionUpdate', handleSelectionUpdate)
+      currentEditor.off('selectionUpdate', handleSelectionUpdate)
     }
   }, [editor])
 
