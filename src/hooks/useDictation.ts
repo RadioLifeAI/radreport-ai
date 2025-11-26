@@ -308,21 +308,24 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     const speechService = getSpeechRecognitionService()
     speechServiceRef.current = speechService
 
-    // Configurar callback de status
-    speechService.setOnStatus(setStatus)
-
-    // Configurar callback de resultado detalhado
-    speechService.setOnResultDetailed((result) => {
+    // Configurar callbacks
+    const statusCallback = (status: 'idle' | 'waiting' | 'listening') => setStatus(status)
+    const resultCallback = (result: { transcript: string; isFinal: boolean; alternatives?: string[] }) => {
       if (result.isFinal) {
         handleFinalTranscript(result.transcript)
       } else {
         handleInterimTranscript(result.transcript)
       }
-    })
+    }
+
+    speechService.setOnStatus(statusCallback)
+    speechService.setOnResult(resultCallback)
 
     return () => {
+      // Remover apenas callbacks deste hook, não destruir singleton
+      speechService.removeOnStatus(statusCallback)
+      speechService.removeOnResult(resultCallback)
       speechService.stopListening()
-      speechService.destroy()
     }
   }, [editor])
 

@@ -61,12 +61,55 @@ export default function EditorAIButton({ editor }: { editor: Editor | null }){
     } finally { setLoading(false) }
   }
 
+  async function classifyRADS(){
+    if (!editor) return
+    setLoading(true)
+    try{
+      const findingsHtml = editor.getHTML()
+      const examTitle = modalidade || 'Exame'
+      const { data, error } = await supabase.functions.invoke('ai-rads-classification', {
+        body: { findingsHtml, examTitle, modality: modalidade, user_id: user?.id }
+      })
+      if (error) throw error
+      if (data?.replacement) {
+        // Inserir classificação RADS na conclusão
+        insertConclusion(editor, data.replacement)
+        toast.success('Classificação RADS gerada com sucesso')
+      }
+    } catch (e) {
+      console.error('Erro ao classificar RADS:', e)
+      toast.error('Erro ao classificar RADS')
+    } finally { setLoading(false) }
+  }
+
   return (
-    <div style={{ display:'inline-flex', gap:8 }}>
-      <button className="btn btn-toolbar" onClick={suggest} disabled={loading} title="Ctrl+J">
-        {loading? 'IA…' : 'IA Sugerir'}
+    <div className="space-y-2">
+      <button 
+        className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-card border border-border/40 rounded-lg hover:bg-muted/50 transition-colors" 
+        onClick={suggest} 
+        disabled={loading}
+        title="IA Sugerir melhorias no texto"
+      >
+        <span className="text-sm">{loading ? 'Processando...' : 'IA Sugerir'}</span>
       </button>
-      <button className="btn btn-toolbar" onClick={generateConclusion} disabled={loading} title="Ctrl+Shift+J">Conclusão IA</button>
+      
+      <button 
+        className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-card border border-border/40 rounded-lg hover:bg-muted/50 transition-colors" 
+        onClick={generateConclusion} 
+        disabled={loading}
+        title="Gerar conclusão automaticamente"
+      >
+        <span className="text-sm">Conclusão IA</span>
+      </button>
+
+      <button 
+        className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-card border border-border/40 rounded-lg hover:bg-muted/50 transition-colors" 
+        onClick={classifyRADS} 
+        disabled={loading}
+        title="Classificar achados usando sistema RADS"
+      >
+        <span className="text-sm">Classificar RADS</span>
+      </button>
     </div>
   )
 }
