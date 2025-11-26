@@ -16,10 +16,9 @@ import {
   AlignCenter,
   AlignRight,
   AlignJustify,
-  Link,
-  Image,
   CheckSquare,
 } from 'lucide-react'
+import { ThemeToggle } from './ThemeToggle'
 
 interface EditorToolbarProps {
   editor: Editor
@@ -27,7 +26,7 @@ interface EditorToolbarProps {
 
 export function EditorToolbar({ editor }: EditorToolbarProps) {
   return (
-    <div className="border-b border-border bg-muted/30 p-2 flex flex-wrap gap-1">
+    <div className="border-b border-border bg-muted/30 p-2 flex flex-wrap gap-1 items-center">
       {/* Text Formatting */}
       <Button
         size="sm"
@@ -171,6 +170,12 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
       >
         <Redo className="h-4 w-4" />
       </Button>
+
+      {/* Spacer to push theme toggle to the right */}
+      <div className="flex-1" />
+
+      {/* Theme Toggle */}
+      <ThemeToggle />
     </div>
   )
 }
