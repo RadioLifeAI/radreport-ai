@@ -492,7 +492,6 @@ export class SpeechRecognitionService {
     }
     if (this.recognition && typeof (config as any).maxAlternatives === 'number') {
       try {
-        // @ts-expect-error: propriedade existe na API Web Speech
         this.recognition.maxAlternatives = (config as any).maxAlternatives;
       } catch {}
     }
@@ -708,6 +707,11 @@ declare global {
     onerror?: (e: any) => void
     onend?: (e: any) => void
   }
-  interface SpeechRecognitionAlternative { transcript: string; confidence?: number }
-  interface SpeechRecognitionResult extends Array<SpeechRecognitionAlternative> { isFinal: boolean }
+  interface SpeechRecognitionAlternative { 
+    readonly transcript: string
+    readonly confidence: number 
+  }
+  interface SpeechRecognitionResult extends Array<SpeechRecognitionAlternative> { 
+    readonly isFinal: boolean 
+  }
 }
