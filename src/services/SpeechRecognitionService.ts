@@ -16,7 +16,6 @@ export class SpeechRecognitionService {
   private isListening = false;
   private keepAlive = false;
   private userStopped = false;
-  private finalTranscript = '';
   private currentStream: MediaStream | null = null;
   private commandCallbacks = new Map<string, (text: string) => void>();
   private aiCommandCallbacks = new Map<string, (transcript: string, context?: any) => Promise<void>>();
@@ -76,34 +75,29 @@ export class SpeechRecognitionService {
 
     this.recognition.onresult = (event) => {
       const results = event.results;
-      let interimTranscript = '';
+      
+      // Processar apenas novos resultados (começando do resultIndex)
       for (let i = event.resultIndex; i < results.length; ++i) {
         const res = results[i];
-        const text = res[0].transcript;
-        if (res.isFinal) {
-          this.finalTranscript += text;
-        } else {
-          interimTranscript += text;
-        }
+        const transcript = res[0].transcript;
+        const isFinal = res.isFinal;
+        
+        const alternatives = Array.from(res).map((alt: SpeechRecognitionAlternative) => alt.transcript);
+        
+        console.log('🎙️ SpeechService onresult:', { 
+          transcript, 
+          isFinal,
+          resultIndex: i,
+          callbackCount: this.onResultDetailedCallbacks.length 
+        })
+
+        // Enviar apenas o texto deste resultado, não acumulado
+        this.onResultDetailedCallbacks.forEach(cb => cb({
+          transcript,
+          isFinal,
+          alternatives
+        }));
       }
-
-      const lastIsFinal = results[results.length - 1]?.isFinal === true;
-
-      const lastRes: SpeechRecognitionResult | undefined = results[results.length - 1];
-      const alternatives = lastRes ? Array.from(lastRes).map(a => a.transcript) : undefined;
-
-      const transcript = lastIsFinal ? this.finalTranscript : interimTranscript
-      console.log('🎙️ SpeechService onresult:', { 
-        transcript, 
-        isFinal: lastIsFinal,
-        callbackCount: this.onResultDetailedCallbacks.length 
-      })
-
-      this.onResultDetailedCallbacks.forEach(cb => cb({
-        transcript,
-        isFinal: lastIsFinal,
-        alternatives
-      }));
     };
 
     this.recognition.onerror = (event) => {
@@ -173,7 +167,6 @@ export class SpeechRecognitionService {
     try {
       this.keepAlive = true;
       this.userStopped = false;
-      this.finalTranscript = '';
       const docLang = (typeof document !== 'undefined' && document.documentElement && document.documentElement.lang) ? document.documentElement.lang : undefined;
       const langToUse = this.config.lang || docLang || 'pt-BR';
       this.recognition!.lang = langToUse;
