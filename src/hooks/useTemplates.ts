@@ -48,9 +48,8 @@ export function useTemplates(): UseTemplatesReturn {
   const [selectedModality, setSelectedModality] = useState('')
   const [favorites, setFavorites] = useState<string[]>([])
   
-  // Report store integration - to be implemented
-  const setContent = (content: string) => console.log('setContent:', content)
-  const setModalidade = (mod: string) => console.log('setModalidade:', mod)
+  // Report store integration
+  const { setContent, setModalidade } = useReportStore()
 
   // Carregar favoritos do localStorage
   useEffect(() => {
