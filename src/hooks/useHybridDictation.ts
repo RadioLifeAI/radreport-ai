@@ -13,13 +13,64 @@ interface UseHybridDictationReturn {
 }
 
 /**
- * Hook híbrido que combina Web Speech API (feedback rápido) 
- * com Whisper (precisão em termos médicos PT-BR)
+ * Hook híbrido otimizado que combina:
+ * - Web Speech API (feedback instantâneo)
+ * - Whisper (confirmação apenas de segmentos curtos com VAD)
+ * 
+ * Otimizações de custo:
+ * - Envia apenas segmentos de 0.5-5s para Whisper (evita áudio longo)
+ * - Usa VAD para filtrar silêncios
+ * - Throttling de 500ms entre requisições
+ * - Só usa Whisper quando necessário
  */
 export function useHybridDictation(editor: Editor | null): UseHybridDictationReturn {
   const webSpeech = useDictation(editor)
   const [isRecording, setIsRecording] = useState(false)
   const recorderRef = useRef<VoiceCommandRecordingService | null>(null)
+  const lastWhisperCallRef = useRef<number>(0)
+  const isProcessingWhisperRef = useRef<boolean>(false)
+  
+  const processWhisperSegment = useCallback(async (blob: Blob, duration: number) => {
+    // Validação de duração para reduzir custos
+    if (duration < 0.5 || duration > 5.0) {
+      console.log(`Skipping Whisper: duration ${duration}s out of range (0.5-5s)`)
+      return
+    }
+    
+    // Throttling: evitar múltiplas chamadas simultâneas
+    const now = Date.now()
+    if (now - lastWhisperCallRef.current < 500) {
+      console.log('Throttling Whisper call')
+      return
+    }
+    
+    if (isProcessingWhisperRef.current) {
+      console.log('Whisper already processing, skipping')
+      return
+    }
+    
+    try {
+      isProcessingWhisperRef.current = true
+      lastWhisperCallRef.current = now
+      
+      console.log(`Sending ${duration.toFixed(2)}s audio to Whisper for medical term validation`)
+      
+      const result = await whisperService.transcribe(blob)
+      
+      // Usar apenas se Whisper retornou algo válido
+      if (result.text && result.text.trim().length > 0) {
+        console.log('✓ Whisper validated:', result.text)
+        
+        // Aqui você pode implementar lógica de comparação/correção
+        // com a transcrição do Web Speech se necessário
+        // Por enquanto apenas logamos para validação
+      }
+    } catch (error) {
+      console.error('Whisper transcription error:', error)
+    } finally {
+      isProcessingWhisperRef.current = false
+    }
+  }, [])
   
   const startHybridDictation = useCallback(async () => {
     if (!editor) return
@@ -27,48 +78,39 @@ export function useHybridDictation(editor: Editor | null): UseHybridDictationRet
     // Iniciar Web Speech para feedback imediato
     webSpeech.startDictation()
     
-    // Iniciar gravação paralela para Whisper
+    // Iniciar gravação com VAD para segmentos curtos
     try {
       recorderRef.current = new VoiceCommandRecordingService({
-        maxDuration: 30,
+        maxDuration: 5, // Máximo 5s por segmento (reduzir custos)
+        audioBitsPerSecond: 32000, // Qualidade menor = arquivo menor = custo menor
         onStop: async (blob) => {
-          // Enviar para Whisper para confirmação
-          try {
-            const result = await whisperService.transcribe(blob)
-            
-            // Usar transcrição do Whisper se for confiável
-            if (result.text && result.confidence && result.confidence > 0.85) {
-              // Inserir texto confirmado pelo Whisper
-              // (pode substituir ou complementar a transcrição do Web Speech)
-              console.log('Whisper confirmation:', result.text)
-            }
-          } catch (error) {
-            console.error('Whisper transcription error:', error)
-          }
+          console.log('VAD detected pause, stopping segment')
         }
       })
       
       await recorderRef.current.startCommandRecording(async (blob, duration) => {
-        if (duration > 0.5) {
-          // Auto-confirmar segmento após pausa
-          console.log('Audio segment recorded:', duration, 'seconds')
-        }
+        // Enviar apenas segmentos de fala válidos para Whisper
+        await processWhisperSegment(blob, duration)
       })
       
       setIsRecording(true)
     } catch (error) {
       console.error('Failed to start hybrid dictation:', error)
     }
-  }, [editor, webSpeech])
+  }, [editor, webSpeech, processWhisperSegment])
   
   const stopHybridDictation = useCallback(async () => {
     // Parar Web Speech
     webSpeech.stopDictation()
     
-    // Parar gravação
+    // Parar gravação e processar último segmento
     if (recorderRef.current?.isRecording()) {
       await recorderRef.current.stopRecording()
     }
+    
+    // Reset flags
+    isProcessingWhisperRef.current = false
+    lastWhisperCallRef.current = 0
     
     setIsRecording(false)
   }, [webSpeech])
