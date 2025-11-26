@@ -18,6 +18,7 @@ import { TextStyle } from "@tiptap/extension-text-style"
 import Placeholder from "@tiptap/extension-placeholder"
 import Link from "@tiptap/extension-link"
 import Underline from "@tiptap/extension-underline"
+import { RadiologySpellChecker, FontSize } from "@/extensions"
 
 // --- UI Primitives ---
 import { Button } from "@/components/tiptap-ui-primitive/button"
@@ -185,6 +186,7 @@ export function SimpleEditor({
       Gapcursor,
       Placeholder.configure({ placeholder }),
       TextStyle,
+      FontSize,
       Underline,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       TaskList,
@@ -198,6 +200,7 @@ export function SimpleEditor({
       }),
       Superscript,
       Subscript,
+      RadiologySpellChecker,
     ],
     content: externalContent || '',
     onUpdate: ({ editor }) => {

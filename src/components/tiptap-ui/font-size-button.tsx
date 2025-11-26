@@ -36,7 +36,7 @@ export function FontSizeButton() {
         {fontSizes.map((size) => (
           <DropdownMenuItem
             key={size.value}
-            onClick={() => editor.chain().focus().setMark('textStyle', { fontSize: size.value }).run()}
+            onClick={() => editor.chain().focus().setFontSize(size.value).run()}
           >
             <span style={{ fontSize: size.value }}>{size.label}</span>
           </DropdownMenuItem>
