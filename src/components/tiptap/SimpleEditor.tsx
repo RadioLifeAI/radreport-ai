@@ -62,7 +62,7 @@ export function SimpleEditor({
     content,
     editorProps: {
       attributes: {
-        class: 'tiptap prose prose-invert max-w-none focus:outline-none min-h-[400px] p-4',
+        class: 'tiptap prose prose-slate dark:prose-invert max-w-none focus:outline-none min-h-[400px] p-4',
       },
     },
     onUpdate: ({ editor }) => {
@@ -76,7 +76,7 @@ export function SimpleEditor({
   }
 
   return (
-    <div className="border border-border rounded-lg overflow-hidden bg-background/50 backdrop-blur-sm">
+    <div className="border border-border rounded-lg overflow-hidden bg-background">
       <EditorToolbar editor={editor} />
       <div className="px-4 py-2">
         <EditorContent editor={editor} />

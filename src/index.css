@@ -6,53 +6,53 @@
 
 @layer base {
   :root {
-    /* Core Medical Dark Theme */
-    --background: 220 26% 8%;
-    --foreground: 210 40% 98%;
-    --bg: 220 26% 8%;
-    --text: 210 40% 98%;
+    /* Light Theme - Tema Claro Profissional Médico */
+    --background: 0 0% 100%;
+    --foreground: 220 26% 14%;
+    --bg: 0 0% 100%;
+    --text: 220 26% 14%;
     
-    --card: 220 20% 12%;
-    --card-foreground: 210 40% 98%;
+    --card: 0 0% 98%;
+    --card-foreground: 220 26% 14%;
     
-    --popover: 220 20% 12%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 26% 14%;
     
     /* Medical Cyan/Indigo Accent System */
-    --primary: 189 94% 43%;
-    --primary-foreground: 220 26% 8%;
+    --primary: 189 94% 35%;
+    --primary-foreground: 0 0% 100%;
     
     --secondary: 231 48% 48%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary-foreground: 0 0% 100%;
     
-    --muted: 215 20.2% 65.1%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
     
-    --accent: 189 94% 43%;
-    --accent-foreground: 220 26% 8%;
+    --accent: 189 94% 35%;
+    --accent-foreground: 0 0% 100%;
     
-    --destructive: 0 62.8% 50.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
     
-    --border: 217 25% 20%;
-    --input: 217 25% 20%;
-    --ring: 189 94% 43%;
-    --divider: 217 25% 20%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 189 94% 35%;
+    --divider: 220 13% 91%;
     
     --radius: 0.75rem;
     
     /* Medical Gradients */
-    --gradient-medical: linear-gradient(135deg, hsl(189 94% 43%) 0%, hsl(231 48% 48%) 100%);
-    --gradient-subtle: linear-gradient(180deg, hsl(220 26% 8%) 0%, hsl(220 20% 12%) 100%);
-    --gradient-hero: linear-gradient(135deg, hsl(220 26% 8%) 0%, hsl(231 48% 15%) 50%, hsl(189 94% 15%) 100%);
+    --gradient-medical: linear-gradient(135deg, hsl(189 94% 35%) 0%, hsl(231 48% 48%) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(220 14% 96%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(231 48% 95%) 50%, hsl(189 94% 95%) 100%);
     
     /* Glassmorphism */
-    --glass-bg: hsla(220, 20%, 12%, 0.4);
-    --glass-border: hsla(189, 94%, 43%, 0.2);
+    --glass-bg: hsla(0, 0%, 100%, 0.8);
+    --glass-border: hsla(189, 94%, 35%, 0.2);
     
     /* Shadows */
-    --shadow-glow: 0 0 40px hsla(189, 94%, 43%, 0.3);
-    --shadow-elegant: 0 10px 30px -10px hsla(0, 0%, 0%, 0.5);
+    --shadow-glow: 0 0 40px hsla(189, 94%, 35%, 0.15);
+    --shadow-elegant: 0 10px 30px -10px hsla(0, 0%, 0%, 0.1);
     
     /* Typography Scale */
     --fs-xs: 0.75rem;
@@ -66,14 +66,14 @@
     --fs-xxl: 3rem;
     
     /* Sidebar */
-    --sidebar-background: 220 20% 12%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 189 94% 43%;
-    --sidebar-primary-foreground: 220 26% 8%;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 220 26% 14%;
+    --sidebar-primary: 189 94% 35%;
+    --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 231 48% 48%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217 25% 20%;
-    --sidebar-ring: 189 94% 43%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 189 94% 35%;
     
     /* Z-index Scale */
     --z-base: 1;
@@ -88,8 +88,11 @@
   }
 
   .dark {
+    /* Dark Theme - Tema Escuro Médico Profissional */
     --background: 220 26% 8%;
     --foreground: 210 40% 98%;
+    --bg: 220 26% 8%;
+    --text: 210 40% 98%;
     
     --card: 220 20% 12%;
     --card-foreground: 210 40% 98%;
@@ -115,6 +118,20 @@
     --border: 217 25% 20%;
     --input: 217 25% 20%;
     --ring: 189 94% 43%;
+    --divider: 217 25% 20%;
+    
+    /* Medical Gradients */
+    --gradient-medical: linear-gradient(135deg, hsl(189 94% 43%) 0%, hsl(231 48% 48%) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(220 26% 8%) 0%, hsl(220 20% 12%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(220 26% 8%) 0%, hsl(231 48% 15%) 50%, hsl(189 94% 15%) 100%);
+    
+    /* Glassmorphism */
+    --glass-bg: hsla(220, 20%, 12%, 0.4);
+    --glass-border: hsla(189, 94%, 43%, 0.2);
+    
+    /* Shadows */
+    --shadow-glow: 0 0 40px hsla(189, 94%, 43%, 0.3);
+    --shadow-elegant: 0 10px 30px -10px hsla(0, 0%, 0%, 0.5);
     
     --sidebar-background: 220 20% 12%;
     --sidebar-foreground: 210 40% 98%;
@@ -211,9 +228,9 @@
     z-index: var(--z-modal);
   }
 
-  /* TipTap Editor Styles - Medical Dark Theme */
+  /* TipTap Editor Styles - Dual Theme Support */
   .tiptap {
-    @apply prose prose-invert max-w-none;
+    @apply prose prose-slate dark:prose-invert max-w-none;
     @apply focus:outline-none;
     @apply min-h-[400px];
   }
@@ -255,8 +272,8 @@
 
   .tiptap mark {
     @apply px-1 rounded;
-    background-color: hsl(var(--primary) / 0.3);
-    color: hsl(var(--primary-foreground));
+    @apply bg-yellow-200 dark:bg-yellow-500/30;
+    @apply text-yellow-900 dark:text-yellow-200;
   }
 
   /* Links */
