@@ -1,45 +1,107 @@
 import { Editor } from '@tiptap/react'
 
-export function insertSuggestion(editor: Editor, text: string) {
-  if (!editor) return
-  
-  editor.chain().focus().insertContent(text).run()
+// Opções padrão para parsing consistente
+const DEFAULT_PARSE_OPTIONS = {
+  preserveWhitespace: 'full' as const,
 }
 
-export function insertConclusion(editor: Editor, html: string) {
+/**
+ * Substitui todo o conteúdo do editor (usado para templates)
+ */
+export function applyTemplate(editor: Editor, html: string) {
   if (!editor) return
   
-  // Aceitar HTML estruturado (com <h3> e <p>)
-  editor.chain().focus().insertContent(html).run()
+  editor.commands.setContent(html, {
+    emitUpdate: true,
+    parseOptions: DEFAULT_PARSE_OPTIONS,
+  })
 }
 
-export function replaceSelection(editor: Editor, text: string) {
+/**
+ * Insere conteúdo na posição atual do cursor
+ * @param shouldFocus - Se deve focar o editor (default: true)
+ */
+export function insertContent(editor: Editor, content: string, shouldFocus = true) {
+  if (!editor) return
+  
+  if (shouldFocus) {
+    editor.chain().focus().insertContent(content, {
+      parseOptions: DEFAULT_PARSE_OPTIONS,
+    }).run()
+  } else {
+    editor.commands.insertContent(content, {
+      parseOptions: DEFAULT_PARSE_OPTIONS,
+    })
+  }
+}
+
+/**
+ * Insere conteúdo em posição específica ou substitui range
+ */
+export function insertContentAt(
+  editor: Editor, 
+  position: number | { from: number; to: number }, 
+  content: string
+) {
+  if (!editor) return
+  
+  editor.commands.insertContentAt(position, content, {
+    updateSelection: true,
+    parseOptions: DEFAULT_PARSE_OPTIONS,
+  })
+}
+
+/**
+ * Substitui a seleção atual com novo conteúdo
+ */
+export function replaceSelection(editor: Editor, content: string) {
   if (!editor) return
   
   const { from, to } = editor.state.selection
-  editor.chain().focus().deleteRange({ from, to }).insertContent(text).run()
+  
+  if (from === to) {
+    // Sem seleção, apenas inserir
+    insertContent(editor, content)
+  } else {
+    // Com seleção, substituir usando insertContentAt
+    insertContentAt(editor, { from, to }, content)
+  }
 }
 
-export function insertAtCursor(editor: Editor, content: string) {
+/**
+ * Insere texto de voz com normalização de espaços
+ */
+export function voiceInsert(editor: Editor, text: string) {
   if (!editor) return
+  
+  const trimmedText = text.trim()
+  if (!trimmedText) return
+  
+  // Adicionar espaço apenas se não termina com pontuação
+  const needsSpace = !/[.!?,;:\s]$/.test(trimmedText)
+  const content = trimmedText + (needsSpace ? ' ' : '')
   
   editor.chain().focus().insertContent(content).run()
 }
 
-export function applyTemplate(editor: Editor, html: string) {
+/**
+ * Insere conclusão estruturada (aceita HTML)
+ */
+export function insertConclusion(editor: Editor, html: string) {
   if (!editor) return
   
-  editor.commands.setContent(html)
+  editor.chain().focus().insertContent(html, {
+    parseOptions: DEFAULT_PARSE_OPTIONS,
+  }).run()
 }
 
-export function voiceInsert(editor: Editor, text: string) {
-  if (!editor) return
-  
-  editor.chain().focus().insertContent(text + ' ').run()
+/**
+ * Insere sugestão de IA
+ */
+export function insertSuggestion(editor: Editor, text: string) {
+  insertContent(editor, text, true)
 }
 
-export function expandCurrentSentence(editor: Editor, text: string) {
-  if (!editor) return
-  
-  editor.chain().focus().insertContent(text).run()
-}
+// Aliases para compatibilidade
+export const insertAtCursor = insertContent
+export const expandCurrentSentence = insertContent
