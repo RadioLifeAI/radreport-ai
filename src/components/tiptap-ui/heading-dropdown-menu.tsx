@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { type Editor } from '@tiptap/react'
+import { EditorContext } from '@tiptap/react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -10,13 +10,15 @@ import {
 import { ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-export interface HeadingDropdownMenuProps {
-  editor: Editor
-}
+export interface HeadingDropdownMenuProps {}
 
 type Level = 1 | 2 | 3
 
-export function HeadingDropdownMenu({ editor }: HeadingDropdownMenuProps) {
+export function HeadingDropdownMenu({}: HeadingDropdownMenuProps = {}) {
+  const context = React.useContext(EditorContext)
+  const editor = context?.editor
+
+  if (!editor) return null
   const getCurrentHeading = () => {
     for (const level of [1, 2, 3] as Level[]) {
       if (editor.isActive('heading', { level })) {

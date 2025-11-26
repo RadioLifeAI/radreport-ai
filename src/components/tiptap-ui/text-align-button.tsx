@@ -1,12 +1,9 @@
 import * as React from 'react'
-import { type Editor } from '@tiptap/react'
-import { Button } from '@/components/ui/button'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { cn } from '@/lib/utils'
+import { EditorContext } from '@tiptap/react'
+import { Button } from '@/components/tiptap-ui-primitive/button'
 import { AlignLeft, AlignCenter, AlignRight, AlignJustify } from 'lucide-react'
 
 export interface TextAlignButtonProps {
-  editor: Editor
   alignment: 'left' | 'center' | 'right' | 'justify'
 }
 
@@ -24,7 +21,11 @@ const alignmentLabels = {
   justify: 'Align Justify',
 }
 
-export function TextAlignButton({ editor, alignment }: TextAlignButtonProps) {
+export function TextAlignButton({ alignment }: TextAlignButtonProps) {
+  const context = React.useContext(EditorContext)
+  const editor = context?.editor
+
+  if (!editor) return null
   const Icon = alignmentIcons[alignment]
   const label = alignmentLabels[alignment]
 
@@ -36,24 +37,13 @@ export function TextAlignButton({ editor, alignment }: TextAlignButtonProps) {
   }
 
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleClick}
-          disabled={!canSetAlignment}
-          className={cn(
-            'h-8 w-8',
-            isActive && 'bg-accent text-accent-foreground'
-          )}
-        >
-          <Icon className="h-4 w-4" />
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent>
-        <p>{label}</p>
-      </TooltipContent>
-    </Tooltip>
+    <Button
+      data-style="ghost"
+      data-active={isActive}
+      onClick={handleClick}
+      disabled={!canSetAlignment}
+    >
+      <Icon className="h-4 w-4" />
+    </Button>
   )
 }

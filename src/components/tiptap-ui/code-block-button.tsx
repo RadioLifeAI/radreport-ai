@@ -1,15 +1,15 @@
 import * as React from 'react'
-import { type Editor } from '@tiptap/react'
-import { Button } from '@/components/ui/button'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { cn } from '@/lib/utils'
+import { EditorContext } from '@tiptap/react'
+import { Button } from '@/components/tiptap-ui-primitive/button'
 import { FileCode } from 'lucide-react'
 
-export interface CodeBlockButtonProps {
-  editor: Editor
-}
+export interface CodeBlockButtonProps {}
 
-export function CodeBlockButton({ editor }: CodeBlockButtonProps) {
+export function CodeBlockButton({}: CodeBlockButtonProps = {}) {
+  const context = React.useContext(EditorContext)
+  const editor = context?.editor
+
+  if (!editor) return null
   const isActive = editor.isActive('codeBlock')
   const canToggle = editor.can().toggleCodeBlock()
 
@@ -18,24 +18,13 @@ export function CodeBlockButton({ editor }: CodeBlockButtonProps) {
   }
 
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleClick}
-          disabled={!canToggle}
-          className={cn(
-            'h-8 w-8',
-            isActive && 'bg-accent text-accent-foreground'
-          )}
-        >
-          <FileCode className="h-4 w-4" />
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent>
-        <p>Code Block</p>
-      </TooltipContent>
-    </Tooltip>
+    <Button
+      data-style="ghost"
+      data-active={isActive}
+      onClick={handleClick}
+      disabled={!canToggle}
+    >
+      <FileCode className="h-4 w-4" />
+    </Button>
   )
 }

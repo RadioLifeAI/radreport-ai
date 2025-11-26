@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { type Editor } from '@tiptap/react'
+import { EditorContext } from '@tiptap/react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -12,11 +12,13 @@ import { LinkIcon } from '@/components/tiptap-icons/link-icon'
 import { Link2Off } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-export interface LinkPopoverProps {
-  editor: Editor
-}
+export interface LinkPopoverProps {}
 
-export function LinkPopover({ editor }: LinkPopoverProps) {
+export function LinkPopover({}: LinkPopoverProps = {}) {
+  const context = React.useContext(EditorContext)
+  const editor = context?.editor
+
+  if (!editor) return null
   const [url, setUrl] = React.useState('')
   const [open, setOpen] = React.useState(false)
 
