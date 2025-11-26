@@ -375,12 +375,10 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
           isVoiceActive={isVoiceActive}
           voiceStatus={voiceStatus}
           onVoiceStart={async () => {
-            const { getSpeechRecognitionService } = await import('@/services/SpeechRecognitionService')
-            const result = await getSpeechRecognitionService().startListeningWithAudio()
-            if (result.stream) {
-              setMediaStream(result.stream)
+            const stream = await startDictation()
+            if (stream) {
+              setMediaStream(stream)
             }
-            startDictation()
           }}
           onVoiceStop={() => {
             stopDictation()

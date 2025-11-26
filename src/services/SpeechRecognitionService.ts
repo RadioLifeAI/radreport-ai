@@ -49,6 +49,7 @@ export class SpeechRecognitionService {
     if (!this.recognition) return;
 
     this.recognition.onstart = () => {
+      console.log('✅ Recognition started successfully')
       this.isListening = true;
       this.onStatusCallbacks.forEach(cb => cb('waiting'));
     };
@@ -91,8 +92,15 @@ export class SpeechRecognitionService {
       const lastRes: SpeechRecognitionResult | undefined = results[results.length - 1];
       const alternatives = lastRes ? Array.from(lastRes).map(a => a.transcript) : undefined;
 
+      const transcript = lastIsFinal ? this.finalTranscript : interimTranscript
+      console.log('🎙️ SpeechService onresult:', { 
+        transcript, 
+        isFinal: lastIsFinal,
+        callbackCount: this.onResultDetailedCallbacks.length 
+      })
+
       this.onResultDetailedCallbacks.forEach(cb => cb({
-        transcript: lastIsFinal ? this.finalTranscript : interimTranscript,
+        transcript,
         isFinal: lastIsFinal,
         alternatives
       }));
@@ -148,8 +156,12 @@ export class SpeechRecognitionService {
   }
 
   public startListening(): boolean {
+    console.log('🎤 SpeechService.startListening() called, isListening:', this.isListening)
     // Já está ouvindo: não trate como erro
-    if (this.isListening) return true;
+    if (this.isListening) {
+      console.log('⚠️ Already listening, returning true')
+      return true
+    }
     if (!this.recognition) {
       try {
         this.initializeRecognition();
@@ -165,6 +177,7 @@ export class SpeechRecognitionService {
       const docLang = (typeof document !== 'undefined' && document.documentElement && document.documentElement.lang) ? document.documentElement.lang : undefined;
       const langToUse = this.config.lang || docLang || 'pt-BR';
       this.recognition!.lang = langToUse;
+      console.log('🚀 Starting recognition with lang:', langToUse)
       this.recognition!.start();
       this.isListening = true;
       return true;
