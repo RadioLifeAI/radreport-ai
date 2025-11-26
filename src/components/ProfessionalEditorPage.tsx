@@ -27,6 +27,7 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
   const { theme, setTheme } = useTheme()
   
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [rightSidebarCollapsed, setRightSidebarCollapsed] = useState(false)
   const [dropdownVisible, setDropdownVisible] = useState(false)
   const [macroDropdownVisible, setMacroDropdownVisible] = useState(false)
   const [frasesPopoverOpen, setFrasesPopoverOpen] = useState(false)
@@ -546,7 +547,7 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
         {/* Collapse Button */}
         <button
           onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-          className="absolute left-0 top-20 z-40 bg-card border border-border/40 rounded-r-lg p-1 hover:bg-muted transition-colors"
+          className={`absolute left-0 top-20 z-40 bg-card border border-border/40 rounded-r-lg p-1 hover:bg-muted transition-colors ${sidebarCollapsed ? '' : 'left-64'}`}
           title={sidebarCollapsed ? "Expandir sidebar" : "Colapsar sidebar"}
         >
           <ChevronLeft size={16} className={`transition-transform ${sidebarCollapsed ? 'rotate-180' : ''}`} />
@@ -572,49 +573,7 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
             </div>
           </div>
 
-          {/* Right Floating Toolbar */}
-          <div className="absolute right-4 top-20 flex flex-col gap-2 z-30">
-            <button
-              onClick={() => setFrasesPopoverOpen(!frasesPopoverOpen)}
-              className="p-3 bg-card border border-border/40 rounded-lg hover:bg-muted transition-all shadow-lg hover:scale-105"
-              title="Frases rápidas"
-            >
-              <FileText size={20} />
-            </button>
-
-            <button
-              className="p-3 bg-card border border-border/40 rounded-lg hover:bg-muted transition-all shadow-lg hover:scale-105"
-              title="Histórico de versões"
-            >
-              <History size={20} />
-            </button>
-
-            <div className="h-px bg-border/40 my-1" />
-
-            <VoiceButton 
-              onText={onVoiceText}
-              onCommand={onVoiceCommand}
-              onAIActivate={() => setSpeechAIActivated(true)}
-            />
-
-            <SpeechStatusPanel />
-
-            <div className="h-px bg-border/40 my-1" />
-
-            <button
-              className="p-3 bg-card border border-border/40 rounded-lg hover:bg-cyan-500/20 transition-all shadow-lg hover:scale-105 group"
-              title="IA Sugerir"
-            >
-              <Sparkles size={20} className="text-cyan-400 group-hover:text-cyan-300" />
-            </button>
-
-            <button
-              className="p-3 bg-card border border-border/40 rounded-lg hover:bg-indigo-500/20 transition-all shadow-lg hover:scale-105 group"
-              title="Conclusão IA"
-            >
-              <Sparkles size={20} className="text-indigo-400 group-hover:text-indigo-300" />
-            </button>
-          </div>
+          {/* Right Floating Toolbar - REMOVED - Now part of right sidebar */}
 
           {/* Footer Action Bar */}
           <div className="h-16 border-t border-border/40 bg-card/95 backdrop-blur-sm flex items-center justify-between px-6">
@@ -655,6 +614,78 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
             </div>
           </div>
         </main>
+
+        {/* Right Collapse Button */}
+        <button
+          onClick={() => setRightSidebarCollapsed(!rightSidebarCollapsed)}
+          className={`absolute right-0 top-20 z-40 bg-card border border-border/40 rounded-l-lg p-1 hover:bg-muted transition-colors ${rightSidebarCollapsed ? '' : 'right-64'}`}
+          title={rightSidebarCollapsed ? "Expandir painel de controles" : "Colapsar painel de controles"}
+        >
+          <ChevronLeft size={16} className={`transition-transform ${rightSidebarCollapsed ? '' : 'rotate-180'}`} />
+        </button>
+
+        {/* Right Sidebar - AI & Voice Controls */}
+        {!rightSidebarCollapsed && (
+          <aside className="w-64 border-l border-border/40 bg-card/50 backdrop-blur-sm overflow-y-auto">
+            <div className="p-4 space-y-6">
+              {/* Frases Section */}
+              <div>
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-3">Ações Rápidas</h3>
+                <button
+                  onClick={() => setFrasesPopoverOpen(!frasesPopoverOpen)}
+                  className="w-full flex items-center gap-2 p-3 bg-card border border-border/40 rounded-lg hover:bg-muted/50 transition-colors"
+                >
+                  <FileText size={18} />
+                  <span className="text-sm">Frases rápidas</span>
+                </button>
+              </div>
+
+              {/* Voice Controls Section */}
+              <div>
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-3">Controles de Voz</h3>
+                <div className="space-y-2">
+                  <VoiceButton 
+                    onText={onVoiceText}
+                    onCommand={onVoiceCommand}
+                    onAIActivate={() => setSpeechAIActivated(true)}
+                  />
+                  <SpeechStatusPanel />
+                </div>
+              </div>
+
+              {/* AI Assistant Section */}
+              <div>
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-3">Assistente IA</h3>
+                <div className="space-y-2">
+                  <button
+                    className="w-full flex items-center gap-2 p-3 bg-card border border-border/40 rounded-lg hover:bg-cyan-500/20 transition-colors group"
+                  >
+                    <Sparkles size={18} className="text-cyan-400 group-hover:text-cyan-300" />
+                    <span className="text-sm">IA Sugerir</span>
+                  </button>
+
+                  <button
+                    className="w-full flex items-center gap-2 p-3 bg-card border border-border/40 rounded-lg hover:bg-indigo-500/20 transition-colors group"
+                  >
+                    <Sparkles size={18} className="text-indigo-400 group-hover:text-indigo-300" />
+                    <span className="text-sm">Conclusão IA</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* History Section */}
+              <div>
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-3">Histórico</h3>
+                <button
+                  className="w-full flex items-center gap-2 p-3 bg-card border border-border/40 rounded-lg hover:bg-muted/50 transition-colors"
+                >
+                  <History size={18} />
+                  <span className="text-sm">Ver histórico</span>
+                </button>
+              </div>
+            </div>
+          </aside>
+        )}
       </div>
     </div>
   )
