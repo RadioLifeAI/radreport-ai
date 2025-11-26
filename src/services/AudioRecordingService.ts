@@ -353,7 +353,7 @@ export class VoiceCommandRecordingService extends AudioRecordingService {
     const checkAudioLevel = () => {
       if (!this.isRecording()) return;
 
-      this.analyser!.getByteFrequencyData(this.dataArray!);
+      this.analyser!.getByteFrequencyData(this.dataArray! as Uint8Array<ArrayBuffer>);
       
       // Calculate average volume
       const average = this.dataArray!.reduce((sum, value) => sum + value, 0) / this.dataArray!.length;
