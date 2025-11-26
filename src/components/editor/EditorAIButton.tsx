@@ -5,7 +5,7 @@ import { insertSuggestion, insertConclusion } from '@/editor/commands'
 import { useAuth } from '@/hooks/useAuth'
 
 export default function EditorAIButton({ editor }: { editor: Editor | null }){
-  const { modalidade = 'TC' } = { modalidade: 'TC' } // Stub until store is implemented
+  const { modalidade } = useReportStore()
   const [loading, setLoading] = useState(false)
   const { user } = useAuth()
 
@@ -14,7 +14,7 @@ export default function EditorAIButton({ editor }: { editor: Editor | null }){
     setLoading(true)
     try{
       const fullReport = editor.getHTML()
-      const res = await fetch('/functions/v1/ai-suggestion-review', {
+      const res = await fetch('https://pmmqidqmdudblyssvdeg.supabase.co/functions/v1/ai-suggestion-review', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fullReport, userId: user?.id }),
@@ -49,7 +49,7 @@ export default function EditorAIButton({ editor }: { editor: Editor | null }){
     try{
       const findingsHtml = editor.getHTML()
       const examTitle = modalidade || 'Exame'
-      const res = await fetch('/functions/v1/ai-generate-conclusion', {
+      const res = await fetch('https://pmmqidqmdudblyssvdeg.supabase.co/functions/v1/ai-generate-conclusion', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ findingsHtml, examTitle, modality: modalidade, user_id: user?.id })

@@ -21,7 +21,7 @@ interface ProfessionalEditorPageProps {
 
 export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEditorPageProps) {
   const navigate = useNavigate()
-  const { user, logout } = useAuth()
+  const { logout } = useAuth()
   const { content, setContent, modalidade, setModalidade } = useReportStore()
   
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)

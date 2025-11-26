@@ -291,9 +291,9 @@ export function useTemplates(): UseTemplatesReturn {
   const applyTemplate = useCallback((template: Template) => {
     setModalidade(template.modalidade)
     
-    // Formatar técnica usando a função específica
+    // Formatar técnica usando a função específica (já inclui <h3>Técnica</h3>)
     const tecnicaTexto = formatarTecnica(template.conteudo.tecnica)
-    const tecnicaHtml = tecnicaTexto ? `<h3>Técnica</h3>${formatarAchadosParagrafos(tecnicaTexto)}` : ''
+    const tecnicaHtml = tecnicaTexto ? formatarAchadosParagrafos(tecnicaTexto) : ''
     
     // Detectar se são achados médicos complexos e usar formatação apropriada
     const achadosTexto = template.conteudo.achados
@@ -325,7 +325,7 @@ export function useTemplates(): UseTemplatesReturn {
         ? { ...t, usageCount: (t.usageCount || 0) + 1, lastUsed: new Date().toISOString() }
         : t
     ))
-  }, [setContent, setModalidade, formatarTecnica, formatarAchadosParagrafos, formatarAchadosMedicos])
+  }, [setContent, setModalidade])
 
   // Gerenciar favoritos
   const addToFavorites = useCallback((templateId: string) => {

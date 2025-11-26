@@ -28,12 +28,7 @@ export function EditorFooter({ editor, onRestart, onCopy }: EditorFooterProps) {
         </button>
 
         <button
-          onClick={async () => {
-            const success = await onCopy()
-            if (success) {
-              // Parent component handles toast notification
-            }
-          }}
+          onClick={onCopy}
           className="flex items-center gap-2 px-6 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-indigo-500 hover:from-cyan-400 hover:to-indigo-400 transition-all shadow-lg hover:scale-105"
         >
           <Sparkles size={18} />
