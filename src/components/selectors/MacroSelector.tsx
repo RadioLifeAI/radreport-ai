@@ -130,102 +130,100 @@ export const MacroSelector: React.FC<MacroSelectorProps> = ({
   }
 
   return (
-    <div className={`template-selector-integrated ${theme}`}>
-      <div className="template-input-container">
-        <input
-          type="text"
-          placeholder="Buscar frases..."
-          value={searchTerm}
-          onChange={(e) => onMacroSearch(e.target.value)}
-          onFocus={() => setDropdownVisible(true)}
-          className="template-input"
-        />
-        <button 
-          onClick={() => setDropdownVisible(!dropdownVisible)}
-          className="template-dropdown-toggle"
-        >
-          <ChevronDown size={16} />
-        </button>
-      </div>
+    <div className="relative">
+      <input
+        type="text"
+        placeholder="Buscar frases..."
+        value={searchTerm}
+        onChange={(e) => onMacroSearch(e.target.value)}
+        onFocus={() => setDropdownVisible(true)}
+        className="w-64 px-3 py-1.5 bg-background/50 border border-border/40 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
+      />
 
       {dropdownVisible && (
-        <div className="template-dropdown-list">
-          {/* Modality Filter Chips - Identico ao TemplateSelector */}
-          <div className="modality-chips">
-            {modalities.map(modality => (
-              <button
-                key={modality}
-                onClick={() => onModalityClick(modality)}
-                className={`modality-chip ${selectedModality === modality ? 'active' : ''}`}
-              >
-                {modality}
-              </button>
-            ))}
+        <>
+          <div 
+            className="fixed inset-0 z-40" 
+            onClick={() => setDropdownVisible(false)}
+          />
+          <div className="absolute top-full left-0 mt-2 w-96 max-h-[600px] bg-card border border-border/40 rounded-xl shadow-2xl overflow-hidden z-50">
+            {/* Modality Tabs */}
+            <div className="flex items-center gap-1 p-2 border-b border-border/40 bg-muted/30">
+              {modalities.map(modality => (
+                <button
+                  key={modality}
+                  onClick={() => onModalityClick(modality)}
+                  className={`px-3 py-1 text-xs font-medium rounded-lg transition-all ${
+                    selectedModality === modality 
+                      ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/40' 
+                      : 'hover:bg-muted text-muted-foreground'
+                  }`}
+                >
+                  {modality}
+                </button>
+              ))}
+            </div>
+
+            <div className="overflow-y-auto max-h-[520px]">
+
+              {/* Content based on loading/error states */}
+              {loading && (
+                <div className="p-4 text-center text-sm text-muted-foreground">Carregando frases...</div>
+              )}
+
+              {error && (
+                <div className="p-4 text-center text-sm text-destructive">Erro: {error}</div>
+              )}
+
+              {!loading && !error && filteredMacros.length === 0 && searchTerm && (
+                <div className="p-4 text-center text-sm text-muted-foreground">Nenhuma frase encontrada</div>
+              )}
+
+              {!loading && !error && filteredMacros.length > 0 && (
+                <>
+                  {searchTerm && (
+                    <MacroSection 
+                      title="Resultados da Busca" 
+                      macros={filteredMacros} 
+                    />
+                  )}
+
+                  {!searchTerm && filteredMacros.filter(m => isFavorite(m.id)).length > 0 && (
+                    <MacroSection 
+                      title="Favoritos" 
+                      macros={filteredMacros.filter(m => isFavorite(m.id))}
+                      isFavoriteMacro={true}
+                    />
+                  )}
+
+                  {!searchTerm && filteredMacros.filter(m => recentMacros.some(rm => rm.id === m.id)).length > 0 && (
+                    <MacroSection 
+                      title="Recentes" 
+                      macros={filteredMacros.filter(m => recentMacros.some(rm => rm.id === m.id))}
+                      isRecent={true}
+                    />
+                  )}
+                  
+                  {!searchTerm && (
+                    <MacroSection 
+                      title="Todas as Frases" 
+                      macros={filteredMacros.filter(m => 
+                        !recentMacros.some(rm => rm.id === m.id) && 
+                        !isFavorite(m.id)
+                      )} 
+                    />
+                  )}
+                </>
+              )}
+
+              <div className="p-2 border-t border-border/40">
+                <button className="w-full px-3 py-2 text-xs text-indigo-400 hover:bg-indigo-500/10 rounded-lg transition-colors">
+                  Busca Avançada
+                </button>
+              </div>
+            </div>
           </div>
-
-          <div className="template-divider"></div>
-
-          {/* Content based on loading/error states */}
-          {loading && (
-            <div className="template-loading">Carregando frases...</div>
-          )}
-
-          {error && (
-            <div className="template-error">Erro ao carregar frases: {error}</div>
-          )}
-
-          {!loading && !error && filteredMacros.length === 0 && searchTerm && (
-            <div className="template-empty">Nenhuma frase encontrada para "{searchTerm}"</div>
-          )}
-
-          {!loading && !error && filteredMacros.length > 0 && (
-            <>
-              {/* Search Results */}
-              {searchTerm && (
-                <MacroSection 
-                  title="Resultados da Busca" 
-                  macros={filteredMacros} 
-                />
-              )}
-
-              {/* Favorites Section */}
-              {!searchTerm && filteredMacros.filter(m => isFavorite(m.id)).length > 0 && (
-                <MacroSection 
-                  title="Favoritos" 
-                  macros={filteredMacros.filter(m => isFavorite(m.id))}
-                  isFavoriteMacro={true}
-                />
-              )}
-
-              {/* Recent Section */}
-              {!searchTerm && filteredMacros.filter(m => recentMacros.some(rm => rm.id === m.id)).length > 0 && (
-                <MacroSection 
-                  title="Recentes" 
-                  macros={filteredMacros.filter(m => recentMacros.some(rm => rm.id === m.id))}
-                  isRecent={true}
-                />
-              )}
-              
-              {/* All Macros */}
-              {!searchTerm && (
-                <MacroSection 
-                  title="Todas as Frases" 
-                  macros={filteredMacros.filter(m => 
-                    !recentMacros.some(rm => rm.id === m.id) && 
-                    !isFavorite(m.id)
-                  )} 
-                />
-              )}
-            </>
-          )}
-
-          {/* Advanced Search Button */}
-          <div className="template-footer">
-            <button className="advanced-search-button">
-              Busca Avançada
-            </button>
-          </div>
-        </div>
+        </>
       )}
     </div>
   )

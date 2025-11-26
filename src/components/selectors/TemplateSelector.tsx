@@ -103,100 +103,100 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   }
 
   return (
-    <div className={`template-selector-integrated ${theme}`}>
-      <div className="template-input-container">
-        <input
-          type="text"
-          placeholder="Buscar modelos"
-          value={searchTerm}
-          onChange={(e) => onTemplateSearch(e.target.value)}
-          onFocus={() => setDropdownVisible(true)}
-          className="template-input"
-        />
-        <button 
-          onClick={() => setDropdownVisible(!dropdownVisible)}
-          className="template-dropdown-toggle"
-        >
-          <ChevronDown size={16} />
-        </button>
-      </div>
+    <div className="relative">
+      <input
+        type="text"
+        placeholder="Buscar modelos..."
+        value={searchTerm}
+        onChange={(e) => onTemplateSearch(e.target.value)}
+        onFocus={() => setDropdownVisible(true)}
+        className="w-64 px-3 py-1.5 bg-background/50 border border-border/40 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all"
+      />
 
       {dropdownVisible && (
-        <div className="template-dropdown-list">
-          {/* Modality Filter Chips */}
-          <div className="modality-chips">
-            {modalities.map(modality => (
-              <button
-                key={modality}
-                onClick={() => onModalityClick(modality)}
-                className={`modality-chip ${selectedModality === modality ? 'active' : ''}`}
-              >
-                {modality}
-              </button>
-            ))}
+        <>
+          <div 
+            className="fixed inset-0 z-40" 
+            onClick={() => setDropdownVisible(false)}
+          />
+          <div className="absolute top-full left-0 mt-2 w-96 max-h-[600px] bg-card border border-border/40 rounded-xl shadow-2xl overflow-hidden z-50">
+            {/* Modality Tabs */}
+            <div className="flex items-center gap-1 p-2 border-b border-border/40 bg-muted/30">
+              {modalities.map(modality => (
+                <button
+                  key={modality}
+                  onClick={() => onModalityClick(modality)}
+                  className={`px-3 py-1 text-xs font-medium rounded-lg transition-all ${
+                    selectedModality === modality 
+                      ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40' 
+                      : 'hover:bg-muted text-muted-foreground'
+                  }`}
+                >
+                  {modality}
+                </button>
+              ))}
+            </div>
+
+            <div className="overflow-y-auto max-h-[520px]">
+
+              {/* Content based on loading/error states */}
+              {loading && (
+                <div className="p-4 text-center text-sm text-muted-foreground">Carregando templates...</div>
+              )}
+
+              {error && (
+                <div className="p-4 text-center text-sm text-destructive">Erro: {error}</div>
+              )}
+
+              {!loading && !error && filteredTemplates.length === 0 && searchTerm && (
+                <div className="p-4 text-center text-sm text-muted-foreground">Nenhum template encontrado</div>
+              )}
+
+              {!loading && !error && filteredTemplates.length > 0 && (
+                <>
+                  {searchTerm && (
+                    <TemplateSection 
+                      title="Resultados da Busca" 
+                      templates={filteredTemplates} 
+                    />
+                  )}
+
+                  {!searchTerm && filteredTemplates.filter(t => isFavorite(t.id)).length > 0 && (
+                    <TemplateSection 
+                      title="Favoritos" 
+                      templates={filteredTemplates.filter(t => isFavorite(t.id))}
+                      isFavoriteTemplate={true}
+                    />
+                  )}
+
+                  {!searchTerm && filteredTemplates.filter(t => recentTemplates.some(rt => rt.id === t.id)).length > 0 && (
+                    <TemplateSection 
+                      title="Recentes" 
+                      templates={filteredTemplates.filter(t => recentTemplates.some(rt => rt.id === t.id))}
+                      isRecent={true}
+                    />
+                  )}
+
+                  {!searchTerm && (
+                    <TemplateSection 
+                      title="Todos os Templates" 
+                      templates={filteredTemplates.filter(t => 
+                        !recentTemplates.some(rt => rt.id === t.id) && 
+                        !isFavorite(t.id)
+                      )} 
+                    />
+                  )}
+                </>
+              )}
+
+              <div className="p-2 border-t border-border/40">
+                <button className="w-full px-3 py-2 text-xs text-cyan-400 hover:bg-cyan-500/10 rounded-lg transition-colors">
+                  Busca Avançada
+                </button>
+              </div>
+            </div>
           </div>
-
-          {/* Content based on loading/error states */}
-          {loading && (
-            <div className="template-loading">Carregando templates...</div>
-          )}
-
-          {error && (
-            <div className="template-error">Erro ao carregar templates: {error}</div>
-          )}
-
-          {!loading && !error && filteredTemplates.length === 0 && searchTerm && (
-            <div className="template-empty">Nenhum template encontrado para "{searchTerm}"</div>
-          )}
-
-          {!loading && !error && filteredTemplates.length > 0 && (
-            <>
-              {/* Search Results */}
-              {searchTerm && (
-                <TemplateSection 
-                  title="Resultados da Busca" 
-                  templates={filteredTemplates} 
-                />
-              )}
-
-              {/* Favorites Section */}
-              {!searchTerm && filteredTemplates.filter(t => isFavorite(t.id)).length > 0 && (
-                <TemplateSection 
-                  title="Favoritos" 
-                  templates={filteredTemplates.filter(t => isFavorite(t.id))}
-                  isFavoriteTemplate={true}
-                />
-              )}
-
-              {/* Recent Section */}
-              {!searchTerm && filteredTemplates.filter(t => recentTemplates.some(rt => rt.id === t.id)).length > 0 && (
-                <TemplateSection 
-                  title="Recentes" 
-                  templates={filteredTemplates.filter(t => recentTemplates.some(rt => rt.id === t.id))}
-                  isRecent={true}
-                />
-              )}
-
-              {/* All Templates */}
-              {!searchTerm && (
-                <TemplateSection 
-                  title="Todos os Templates" 
-                  templates={filteredTemplates.filter(t => 
-                    !recentTemplates.some(rt => rt.id === t.id) && 
-                    !isFavorite(t.id)
-                  )} 
-                />
-              )}
-            </>
-          )}
-
-          {/* Advanced Search Button */}
-          <div className="template-footer">
-            <button className="advanced-search-button">
-              Busca Avançada
-            </button>
-          </div>
-        </div>
+        </>
       )}
     </div>
   )

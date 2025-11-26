@@ -3,7 +3,7 @@ import { useReportStore } from '@/store'
 import { useTemplates } from '@/hooks/useTemplates'
 import { useFrasesModelo } from '@/hooks/useFrasesModelo'
 import { useAuth } from '@/hooks/useAuth'
-import { Star, FileText, Settings, Mic, Sparkles, LogOut, Copy, RotateCcw, Menu, X } from 'lucide-react'
+import { Star, FileText, Settings, Sparkles, Copy, RotateCcw, ChevronLeft, Moon, Sun, History, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import VoiceButton from '@/components/voice/VoiceButton'
 import { getSpeechRecognitionService } from '@/services/SpeechRecognitionService'
@@ -14,6 +14,7 @@ import { SimpleEditor } from '@/components/tiptap-templates/simple/simple-editor
 import { supabaseService } from '@/services/SupabaseService'
 import { toast } from 'sonner'
 import { Editor } from '@tiptap/react'
+import { useTheme } from 'next-themes'
 
 interface ProfessionalEditorPageProps {
   onGenerateConclusion?: (conclusion?: string) => void
@@ -23,10 +24,12 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
   const navigate = useNavigate()
   const { user, logout } = useAuth()
   const { content, setContent, modalidade, setModalidade } = useReportStore()
+  const { theme, setTheme } = useTheme()
   
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [dropdownVisible, setDropdownVisible] = useState(false)
   const [macroDropdownVisible, setMacroDropdownVisible] = useState(false)
+  const [frasesPopoverOpen, setFrasesPopoverOpen] = useState(false)
   const [characterCount, setCharacterCount] = useState(0)
   const [editorInstance, setEditorInstance] = useState<Editor | null>(null)
   const [selectedTemplate, setSelectedTemplate] = useState('Template do exame')
@@ -375,158 +378,280 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
   return (
     <div className="h-screen flex flex-col bg-background">
       {/* Header */}
-      <header className="h-16 border-b border-border/40 bg-card flex items-center justify-between px-6">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            className="p-2 hover:bg-muted rounded-lg transition-colors"
-          >
-            {sidebarCollapsed ? <Menu size={20} /> : <X size={20} />}
-          </button>
-          
+      <header className="h-14 border-b border-border/40 bg-card/95 backdrop-blur-sm flex items-center justify-between px-6 z-50">
+        <div className="flex items-center gap-6">
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
             <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-cyan-400/80 to-indigo-500/60 shadow-glow" />
-            <span className="font-bold text-xl">RadReport</span>
+            <span className="font-bold text-xl gradient-text-medical">RadReport</span>
+          </div>
+
+          {/* Template Selector in Header */}
+          <div className="relative">
+            <TemplateSelector
+              selectedTemplate={selectedTemplate}
+              searchTerm={searchTerm}
+              onTemplateSearch={(term) => {
+                setSearchTerm(term)
+                setSelectedTemplate(term)
+              }}
+              onTemplateSelect={handleTemplateSelect}
+              onModalityClick={handleModalityClick}
+              onFavoriteToggle={(id) => {
+                if (isFavorite(id)) {
+                  removeFromFavorites(id)
+                } else {
+                  addToFavorites(id)
+                }
+              }}
+              dropdownVisible={dropdownVisible}
+              setDropdownVisible={setDropdownVisible}
+              templates={templates}
+              filteredTemplates={filteredTemplatesForDisplay}
+              recentTemplates={recentTemplates}
+              favoriteTemplates={favoriteTemplates}
+              loading={loading}
+              error={error}
+              selectedModality={hookSelectedModality}
+              isFavorite={isFavorite}
+              modalities={['RM', 'TC', 'USG', 'RX', 'MG']}
+            />
+          </div>
+
+          {/* Macro Selector in Header */}
+          <div className="relative">
+            <MacroSelector
+              selectedMacro={selectedMacro}
+              searchTerm={fraseSearchTerm}
+              onMacroSearch={(term) => {
+                setFraseSearchTerm(term)
+                setSelectedMacro(term)
+              }}
+              onMacroSelect={handleFraseSelect}
+              onCategoryClick={setFraseSelectedCategory}
+              onModalityClick={setFraseSelectedModality}
+              onFavoriteToggle={(id) => {
+                if (isFraseFavorite(id)) {
+                  removeFraseFromFavorites(id)
+                } else {
+                  addFraseToFavorites(id)
+                }
+              }}
+              macros={frasesAsMacros}
+              filteredMacros={filteredFrasesAsMacros}
+              recentMacros={recentFrasesAsMacros}
+              favoriteMacros={favoriteFrasesAsMacros}
+              loading={frasesLoading}
+              error={frasesError}
+              selectedCategory={fraseSelectedCategory}
+              selectedModality={fraseSelectedModality}
+              isFavorite={isFraseFavorite}
+              dropdownVisible={macroDropdownVisible}
+              setDropdownVisible={setMacroDropdownVisible}
+              categories={fraseCategories}
+              modalities={['RM', 'TC', 'USG', 'RX', 'MG']}
+            />
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <span className="text-sm text-muted-foreground hidden sm:block">
-            {user?.email}
-          </span>
-          <button className="p-2 hover:bg-muted rounded-lg transition-colors">
-            <Settings size={20} />
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            className="p-2 hover:bg-muted rounded-lg transition-colors"
+            title="Toggle theme"
+          >
+            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
           </button>
           <button 
             onClick={logout}
-            className="p-2 hover:bg-destructive/20 text-destructive rounded-lg transition-colors"
+            className="p-2 hover:bg-muted rounded-lg transition-colors"
+            title="Sair"
           >
-            <LogOut size={20} />
+            <Settings size={18} />
           </button>
         </div>
       </header>
 
       <div className="flex-1 flex overflow-hidden">
-        {/* Sidebar */}
+        {/* Left Sidebar - Recent Lists */}
         {!sidebarCollapsed && (
-          <aside className="w-80 border-r border-border/40 bg-card p-4 overflow-y-auto">
-            <div className="space-y-4">
-              {/* Template Selector */}
-              <div className="relative">
-                <label className="block text-sm font-medium mb-2">Templates</label>
-                <TemplateSelector
-                  selectedTemplate={selectedTemplate}
-                  searchTerm={searchTerm}
-                  onTemplateSearch={(term) => {
-                    setSearchTerm(term)
-                    setSelectedTemplate(term)
-                  }}
-                  onTemplateSelect={handleTemplateSelect}
-                  onModalityClick={handleModalityClick}
-                  onFavoriteToggle={(id) => {
-                    if (isFavorite(id)) {
-                      removeFromFavorites(id)
-                    } else {
-                      addToFavorites(id)
-                    }
-                  }}
-                  dropdownVisible={dropdownVisible}
-                  setDropdownVisible={setDropdownVisible}
-                  templates={templates}
-                  filteredTemplates={filteredTemplatesForDisplay}
-                  recentTemplates={recentTemplates}
-                  favoriteTemplates={favoriteTemplates}
-                  loading={loading}
-                  error={error}
-                  selectedModality={hookSelectedModality}
-                  isFavorite={isFavorite}
-                  modalities={[]}
-                />
+          <aside className="w-64 border-r border-border/40 bg-card/50 backdrop-blur-sm overflow-y-auto">
+            <div className="p-4 space-y-6">
+              {/* Templates Recentes */}
+              <div>
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-3">Templates Recentes</h3>
+                <div className="space-y-1">
+                  {recentTemplates.slice(0, 5).map(template => (
+                    <button
+                      key={template.id}
+                      onClick={() => handleTemplateSelect(template)}
+                      className="w-full flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 transition-colors text-left group"
+                    >
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-400">
+                        {template.modalidade}
+                      </span>
+                      <span className="text-sm flex-1 truncate">{template.titulo}</span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          if (isFavorite(template.id)) {
+                            removeFromFavorites(template.id)
+                          } else {
+                            addToFavorites(template.id)
+                          }
+                        }}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Star size={14} className={isFavorite(template.id) ? 'fill-yellow-400 text-yellow-400' : ''} />
+                      </button>
+                    </button>
+                  ))}
+                </div>
               </div>
 
-              {/* Macro Selector */}
-              <div className="relative">
-                <label className="block text-sm font-medium mb-2">Frases Rápidas</label>
-                <MacroSelector
-                  selectedMacro={selectedMacro}
-                  searchTerm={fraseSearchTerm}
-                  onMacroSearch={(term) => {
-                    setFraseSearchTerm(term)
-                    setSelectedMacro(term)
-                  }}
-                  onMacroSelect={handleFraseSelect}
-                  onCategoryClick={(cat) => setFraseSelectedCategory(cat === fraseSelectedCategory ? '' : cat)}
-                  onModalityClick={(mod) => setFraseSelectedModality(mod === fraseSelectedModality ? '' : mod)}
-                  onFavoriteToggle={(id) => {
-                    if (isFraseFavorite(id)) {
-                      removeFraseFromFavorites(id)
-                    } else {
-                      addFraseToFavorites(id)
-                    }
-                  }}
-                  dropdownVisible={macroDropdownVisible}
-                  setDropdownVisible={setMacroDropdownVisible}
-                  macros={frasesAsMacros}
-                  filteredMacros={filteredFrasesAsMacros}
-                  recentMacros={recentFrasesAsMacros}
-                  favoriteMacros={favoriteFrasesAsMacros}
-                  loading={frasesLoading}
-                  error={frasesError}
-                  selectedCategory={fraseSelectedCategory}
-                  selectedModality={fraseSelectedModality}
-                  isFavorite={isFraseFavorite}
-                  categories={fraseCategories}
-                  modalities={fraseModalities}
-                />
+              {/* Frases Recentes */}
+              <div>
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-3">Frases Recentes</h3>
+                <div className="space-y-1">
+                  {recentFrasesAsMacros.slice(0, 5).map(frase => (
+                    <button
+                      key={frase.id}
+                      onClick={() => handleFraseSelect(frase)}
+                      className="w-full flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 transition-colors text-left group"
+                    >
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-400">
+                        {frase.modalidade_id || 'GERAL'}
+                      </span>
+                      <span className="text-sm flex-1 truncate">{frase.codigo}</span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          if (isFraseFavorite(frase.id)) {
+                            removeFraseFromFavorites(frase.id)
+                          } else {
+                            addFraseToFavorites(frase.id)
+                          }
+                        }}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Star size={14} className={isFraseFavorite(frase.id) ? 'fill-yellow-400 text-yellow-400' : ''} />
+                      </button>
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </aside>
         )}
 
+        {/* Collapse Button */}
+        <button
+          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+          className="absolute left-0 top-20 z-40 bg-card border border-border/40 rounded-r-lg p-1 hover:bg-muted transition-colors"
+          title={sidebarCollapsed ? "Expandir sidebar" : "Colapsar sidebar"}
+        >
+          <ChevronLeft size={16} className={`transition-transform ${sidebarCollapsed ? 'rotate-180' : ''}`} />
+        </button>
+
         {/* Main Editor Area */}
-        <main className="flex-1 flex flex-col overflow-hidden">
-          {/* Toolbar */}
-          <div className="h-14 border-b border-border/40 bg-card flex items-center gap-2 px-4">
-            <VoiceButton
+        <main className="flex-1 flex flex-col overflow-hidden relative">
+          {/* Editor Content */}
+          <div className="flex-1 overflow-y-auto p-6">
+            <SimpleEditor 
+              content={content}
+              onChange={(html) => setContent(html)}
+              onEditorReady={setEditorInstance}
+              onCharacterCount={setCharacterCount}
+              placeholder="Digite ou dite seu laudo radiológico..."
+            />
+            
+            {/* Character Count */}
+            <div className="mt-4 text-right">
+              <span className="text-xs text-muted-foreground">
+                {characterCount} caracteres
+              </span>
+            </div>
+          </div>
+
+          {/* Right Floating Toolbar */}
+          <div className="absolute right-4 top-20 flex flex-col gap-2 z-30">
+            <button
+              onClick={() => setFrasesPopoverOpen(!frasesPopoverOpen)}
+              className="p-3 bg-card border border-border/40 rounded-lg hover:bg-muted transition-all shadow-lg hover:scale-105"
+              title="Frases rápidas"
+            >
+              <FileText size={20} />
+            </button>
+
+            <button
+              className="p-3 bg-card border border-border/40 rounded-lg hover:bg-muted transition-all shadow-lg hover:scale-105"
+              title="Histórico de versões"
+            >
+              <History size={20} />
+            </button>
+
+            <div className="h-px bg-border/40 my-1" />
+
+            <VoiceButton 
               onText={onVoiceText}
               onCommand={onVoiceCommand}
               onAIActivate={() => setSpeechAIActivated(true)}
             />
+
             <SpeechStatusPanel />
-            
-            <div className="flex-1" />
-            
-            <button 
-              onClick={copyFormattedReport}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-muted transition-colors text-sm font-medium"
+
+            <div className="h-px bg-border/40 my-1" />
+
+            <button
+              className="p-3 bg-card border border-border/40 rounded-lg hover:bg-cyan-500/20 transition-all shadow-lg hover:scale-105 group"
+              title="IA Sugerir"
             >
-              <Copy size={18} />
-              <span className="hidden sm:inline">Copiar</span>
+              <Sparkles size={20} className="text-cyan-400 group-hover:text-cyan-300" />
             </button>
-            
-            <button 
-              onClick={() => setContent('')}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-muted transition-colors text-sm font-medium"
+
+            <button
+              className="p-3 bg-card border border-border/40 rounded-lg hover:bg-indigo-500/20 transition-all shadow-lg hover:scale-105 group"
+              title="Conclusão IA"
             >
-              <RotateCcw size={18} />
-              <span className="hidden sm:inline">Reiniciar</span>
+              <Sparkles size={20} className="text-indigo-400 group-hover:text-indigo-300" />
             </button>
           </div>
 
-          {/* Editor Content */}
-          <div className="flex-1 overflow-y-auto p-6">
-            <div className="max-w-5xl mx-auto">
-              <SimpleEditor
-                content={content}
-                onChange={setContent}
-                onEditorReady={setEditorInstance}
-                onCharacterCount={setCharacterCount}
-                placeholder="Digite ou dite seu laudo..."
-              />
-              
-              <div className="mt-4 text-sm text-muted-foreground text-right">
-                {characterCount} caracteres
-              </div>
+          {/* Footer Action Bar */}
+          <div className="h-16 border-t border-border/40 bg-card/95 backdrop-blur-sm flex items-center justify-between px-6">
+            <button
+              onClick={() => {
+                if (editorInstance) {
+                  editorInstance.commands.setContent('')
+                  toast.success('Laudo reiniciado')
+                }
+              }}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-muted transition-colors"
+            >
+              <RotateCcw size={18} />
+              <span className="text-sm">Reiniciar laudo</span>
+            </button>
+
+            <div className="flex items-center gap-3">
+              <button
+                onClick={copyFormattedReport}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-muted transition-colors"
+              >
+                <Copy size={18} />
+                <span className="text-sm">Copiar laudo</span>
+              </button>
+
+              <button
+                onClick={async () => {
+                  const success = await copyFormattedReport()
+                  if (success) {
+                    toast.success('Laudo copiado e salvo!')
+                  }
+                }}
+                className="flex items-center gap-2 px-6 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-indigo-500 hover:from-cyan-400 hover:to-indigo-400 transition-all shadow-lg hover:scale-105"
+              >
+                <Sparkles size={18} />
+                <span className="text-sm font-medium">Copiar e salvar</span>
+              </button>
             </div>
           </div>
         </main>
