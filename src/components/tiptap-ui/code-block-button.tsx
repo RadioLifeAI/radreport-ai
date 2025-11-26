@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { EditorContext } from '@tiptap/react'
 import { Button } from '@/components/tiptap-ui-primitive/button'
-import { FileCode } from 'lucide-react'
+import { CodeBlockIcon } from '@/components/tiptap-icons'
 
 export interface CodeBlockButtonProps {}
 
@@ -24,7 +24,7 @@ export function CodeBlockButton({}: CodeBlockButtonProps = {}) {
       onClick={handleClick}
       disabled={!canToggle}
     >
-      <FileCode className="h-4 w-4" />
+      <CodeBlockIcon className="h-4 w-4" />
     </Button>
   )
 }

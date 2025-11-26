@@ -2,7 +2,7 @@ import * as React from 'react'
 import { EditorContext } from '@tiptap/react'
 import { Button } from '@/components/tiptap-ui-primitive/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { Undo, Redo } from 'lucide-react'
+import { Undo2Icon, Redo2Icon } from '@/components/tiptap-icons'
 
 export interface UndoRedoButtonProps {
   action: 'undo' | 'redo'
@@ -13,7 +13,7 @@ export function UndoRedoButton({ action }: UndoRedoButtonProps) {
   const editor = context?.editor
 
   if (!editor) return null
-  const Icon = action === 'undo' ? Undo : Redo
+  const Icon = action === 'undo' ? Undo2Icon : Redo2Icon
   const label = action === 'undo' ? 'Undo' : 'Redo'
 
   const canPerformAction = action === 'undo' 

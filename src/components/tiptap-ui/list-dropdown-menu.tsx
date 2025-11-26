@@ -7,7 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { ChevronDown, List, ListOrdered, ListChecks } from 'lucide-react'
+import { ChevronDownIcon, ListIcon, ListOrderedIcon, ListTodoIcon } from '@/components/tiptap-icons'
 import { cn } from '@/lib/utils'
 
 export interface ListDropdownMenuProps {
@@ -17,17 +17,17 @@ export interface ListDropdownMenuProps {
 
 const listConfig = {
   bulletList: {
-    icon: List,
+    icon: ListIcon,
     label: 'Bullet List',
     command: (editor: any) => editor.chain().focus().toggleBulletList().run(),
   },
   orderedList: {
-    icon: ListOrdered,
+    icon: ListOrderedIcon,
     label: 'Ordered List',
     command: (editor: any) => editor.chain().focus().toggleOrderedList().run(),
   },
   taskList: {
-    icon: ListChecks,
+    icon: ListTodoIcon,
     label: 'Task List',
     command: (editor: any) => editor.chain().focus().toggleTaskList().run(),
   },
@@ -45,7 +45,7 @@ export function ListDropdownMenu({ types = ['bulletList', 'orderedList', 'taskLi
         return listConfig[type]
       }
     }
-    return { icon: List, label: 'List' }
+    return { icon: ListIcon, label: 'List' }
   }
 
   const current = getCurrentList()
@@ -56,7 +56,7 @@ export function ListDropdownMenu({ types = ['bulletList', 'orderedList', 'taskLi
       <DropdownMenuTrigger asChild>
         <Button data-style="ghost" data-active={types.some(type => editor.isActive(type))}>
           <Icon className="h-4 w-4" />
-          <ChevronDown className="h-3 w-3" />
+          <ChevronDownIcon className="h-3 w-3" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
