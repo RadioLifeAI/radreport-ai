@@ -63,7 +63,7 @@ export const SpeechAIComponent: React.FC<SpeechAIComponentProps> = ({
 
   // Service refs
   const speechService = useRef<SpeechRecognitionService | null>(null);
-  const whisperService = useRef<WhisperService | null>(null);
+  const whisperServiceRef = useRef<typeof whisperService | null>(null);
   const commandParser = useRef<MedicalCommandParser | null>(null);
   const voiceRecorder = useRef<VoiceCommandRecordingService | null>(null);
 
@@ -80,7 +80,7 @@ export const SpeechAIComponent: React.FC<SpeechAIComponentProps> = ({
 
       // Initialize services
       speechService.current = new SpeechRecognitionService();
-      whisperService.current = new WhisperService();
+      whisperServiceRef.current = whisperService;
       commandParser.current = new MedicalCommandParser();
       voiceRecorder.current = new VoiceCommandRecordingService({
         maxDuration: 10,
@@ -161,7 +161,7 @@ export const SpeechAIComponent: React.FC<SpeechAIComponentProps> = ({
   };
 
   const processVoiceCommand = useCallback(async (audioBlob: Blob, duration: number) => {
-    if (!whisperService.current || !commandParser.current) return;
+    if (!whisperServiceRef.current || !commandParser.current) return;
 
     setStatus(prev => ({ ...prev, isProcessing: true, error: null }));
 
@@ -178,12 +178,9 @@ export const SpeechAIComponent: React.FC<SpeechAIComponentProps> = ({
       }
 
       // Fallback to Whisper for higher accuracy
-      if (settings.useWhisperFallback && whisperService.current.isConfigured()) {
+      if (settings.useWhisperFallback && whisperServiceRef.current) {
         try {
-          const whisperResult = await whisperService.current.transcribeWithMedicalContext(
-            audioBlob,
-            status.lastTranscription
-          );
+          const whisperResult = await whisperServiceRef.current.transcribe(audioBlob);
           
           const whisperCommand = commandParser.current.parseCommand(whisperResult.text);
           
