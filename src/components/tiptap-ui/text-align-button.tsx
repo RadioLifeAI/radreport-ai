@@ -1,17 +1,17 @@
 import * as React from 'react'
 import { EditorContext } from '@tiptap/react'
 import { Button } from '@/components/tiptap-ui-primitive/button'
-import { AlignLeft, AlignCenter, AlignRight, AlignJustify } from 'lucide-react'
+import { AlignLeftIcon, AlignCenterIcon, AlignRightIcon, AlignJustifyIcon } from '@/components/tiptap-icons'
 
 export interface TextAlignButtonProps {
   alignment: 'left' | 'center' | 'right' | 'justify'
 }
 
 const alignmentIcons = {
-  left: AlignLeft,
-  center: AlignCenter,
-  right: AlignRight,
-  justify: AlignJustify,
+  left: AlignLeftIcon,
+  center: AlignCenterIcon,
+  right: AlignRightIcon,
+  justify: AlignJustifyIcon,
 }
 
 const alignmentLabels = {

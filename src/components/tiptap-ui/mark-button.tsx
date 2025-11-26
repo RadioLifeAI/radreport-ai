@@ -2,25 +2,25 @@ import * as React from 'react'
 import { EditorContext } from '@tiptap/react'
 import { Button } from '@/components/tiptap-ui-primitive/button'
 import { 
-  Bold, 
-  Italic, 
-  Underline as UnderlineIcon, 
-  Strikethrough, 
-  Code,
-  Subscript as SubscriptIcon,
-  Superscript as SuperscriptIcon
-} from 'lucide-react'
+  BoldIcon, 
+  ItalicIcon, 
+  UnderlineIcon, 
+  StrikeIcon, 
+  Code2Icon,
+  SubscriptIcon,
+  SuperscriptIcon
+} from '@/components/tiptap-icons'
 
 export interface MarkButtonProps {
   markType: 'bold' | 'italic' | 'underline' | 'strike' | 'code' | 'subscript' | 'superscript'
 }
 
 const markIcons = {
-  bold: Bold,
-  italic: Italic,
+  bold: BoldIcon,
+  italic: ItalicIcon,
   underline: UnderlineIcon,
-  strike: Strikethrough,
-  code: Code,
+  strike: StrikeIcon,
+  code: Code2Icon,
   subscript: SubscriptIcon,
   superscript: SuperscriptIcon,
 }

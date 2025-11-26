@@ -7,7 +7,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { ChevronDown, CaseSensitive } from 'lucide-react'
+import { CaseSensitive } from 'lucide-react'
+import { ChevronDownIcon } from '@/components/tiptap-icons'
 
 const fontFamilies = [
   { label: 'Sans Serif', value: 'Inter, sans-serif' },
@@ -26,7 +27,7 @@ export function FontFamilyButton() {
       <DropdownMenuTrigger asChild>
         <Button data-style="ghost">
           <CaseSensitive className="h-4 w-4" />
-          <ChevronDown className="h-3 w-3" />
+          <ChevronDownIcon className="h-3 w-3" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">

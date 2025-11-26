@@ -7,7 +7,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { ChevronDown, Type } from 'lucide-react'
+import { Type } from 'lucide-react'
+import { ChevronDownIcon } from '@/components/tiptap-icons'
 import { cn } from '@/lib/utils'
 
 const fontSizes = [
@@ -28,7 +29,7 @@ export function FontSizeButton() {
       <DropdownMenuTrigger asChild>
         <Button data-style="ghost">
           <Type className="h-4 w-4" />
-          <ChevronDown className="h-3 w-3" />
+          <ChevronDownIcon className="h-3 w-3" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">

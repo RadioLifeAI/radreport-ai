@@ -7,7 +7,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { HighlighterIcon } from '@/components/tiptap-icons/highlighter-icon'
+import { HighlighterIcon } from '@/components/tiptap-icons'
 import { Palette } from 'lucide-react'
 import { cn } from '@/lib/utils'
 

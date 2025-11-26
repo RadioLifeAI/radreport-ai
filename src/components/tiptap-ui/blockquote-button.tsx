@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { EditorContext } from '@tiptap/react'
 import { Button } from '@/components/tiptap-ui-primitive/button'
-import { Quote } from 'lucide-react'
+import { BlockquoteIcon } from '@/components/tiptap-icons'
 
 export interface BlockquoteButtonProps {}
 
@@ -24,7 +24,7 @@ export function BlockquoteButton({}: BlockquoteButtonProps = {}) {
       onClick={handleClick}
       disabled={!canToggle}
     >
-      <Quote className="h-4 w-4" />
+      <BlockquoteIcon className="h-4 w-4" />
     </Button>
   )
 }

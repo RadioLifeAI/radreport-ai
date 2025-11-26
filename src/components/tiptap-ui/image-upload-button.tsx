@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { EditorContext } from '@tiptap/react'
 import { Button } from '@/components/tiptap-ui-primitive/button'
-import { ImagePlus } from 'lucide-react'
+import { ImagePlusIcon } from '@/components/tiptap-icons'
 
 export interface ImageUploadButtonProps {}
 
@@ -39,7 +39,7 @@ export function ImageUploadButton({}: ImageUploadButtonProps = {}) {
         data-style="ghost"
         onClick={handleClick}
       >
-        <ImagePlus className="h-4 w-4" />
+        <ImagePlusIcon className="h-4 w-4" />
       </Button>
       <input
         ref={fileInputRef}

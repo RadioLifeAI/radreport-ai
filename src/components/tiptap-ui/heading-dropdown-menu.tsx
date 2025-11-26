@@ -7,7 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDownIcon } from '@/components/tiptap-icons'
 import { cn } from '@/lib/utils'
 
 export interface HeadingDropdownMenuProps {}
@@ -41,7 +41,7 @@ export function HeadingDropdownMenu({}: HeadingDropdownMenuProps = {}) {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="h-8 gap-1 px-2">
           <span className="text-sm">{getCurrentHeading()}</span>
-          <ChevronDown className="h-4 w-4 opacity-50" />
+          <ChevronDownIcon className="h-4 w-4 opacity-50" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
