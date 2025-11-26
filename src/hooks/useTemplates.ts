@@ -313,7 +313,7 @@ export function useTemplates(): UseTemplatesReturn {
             }
             // Se não terminar com ponto, adicionar ponto final
             return `<p>${linhaLimpa}.</p>`
-          }).join('\n')
+          }).join('')
         } else {
           // Para textos simples, juntar linhas relacionadas
           const paragrafos = []
@@ -339,7 +339,7 @@ export function useTemplates(): UseTemplatesReturn {
             paragrafos.push(paragrafoAtual)
           }
           
-          return paragrafos.map(paragrafo => `<p>${paragrafo}</p>`).join('\n')
+          return paragrafos.map(paragrafo => `<p>${paragrafo}</p>`).join('')
         }
       }
     }
@@ -352,7 +352,7 @@ export function useTemplates(): UseTemplatesReturn {
     
     // Se tiver múltiplas sentenças, criar parágrafos
     if (sentencas.length > 1) {
-      return sentencas.map(sentenca => `<p>${sentenca}</p>`).join('\n')
+      return sentencas.map(sentenca => `<p>${sentenca}</p>`).join('')
     }
     
     // Se for apenas um texto simples, retornar como parágrafo único
@@ -401,7 +401,7 @@ export function useTemplates(): UseTemplatesReturn {
         }
         // Se não termina com ponto, adicionar
         return `<p>${linhaLimpa}.</p>`
-      }).join('\n')
+      }).join('')
     }
     
     // Se não tem quebras de linha, usar a função geral
@@ -494,14 +494,15 @@ export function useTemplates(): UseTemplatesReturn {
     // Formatar adicionais com parágrafos separados
     const adicionaisHtml = template.conteudo.adicionais ? formatarAchadosParagrafos(template.conteudo.adicionais) : ''
     
-    const html = `
-      <h2>${template.titulo}</h2>
-      ${tecnicaHtml}
-      <h3>Achados</h3>
-      ${achadosHtml}
-      <h3>Impressão</h3>
-      ${impressaoHtml}
-      ${adicionaisHtml ? `<h3>Adicionais</h3>${adicionaisHtml}` : ''}`
+    const html = [
+      `<h2>${template.titulo}</h2>`,
+      tecnicaHtml,
+      `<h3>Achados</h3>`,
+      achadosHtml,
+      `<h3>Impressão</h3>`,
+      impressaoHtml,
+      adicionaisHtml ? `<h3>Adicionais</h3>${adicionaisHtml}` : ''
+    ].filter(Boolean).join('')
     
     setContent(html)
     
