@@ -210,4 +210,124 @@
   .z-modal {
     z-index: var(--z-modal);
   }
+
+  /* TipTap Editor Styles - Medical Dark Theme */
+  .tiptap {
+    @apply prose prose-invert max-w-none;
+    @apply focus:outline-none;
+    @apply min-h-[400px];
+  }
+
+  .tiptap p.is-editor-empty:first-child::before {
+    @apply text-muted-foreground pointer-events-none float-left h-0;
+    content: attr(data-placeholder);
+  }
+
+  /* Headings */
+  .tiptap h1 { 
+    @apply text-2xl font-bold mb-4;
+    color: hsl(var(--primary));
+  }
+
+  .tiptap h2 { 
+    @apply text-xl font-semibold mb-3;
+    color: hsl(var(--foreground));
+  }
+
+  .tiptap h3 { 
+    @apply text-lg font-medium mb-2;
+    color: hsl(var(--foreground));
+  }
+
+  /* Text Formatting */
+  .tiptap strong {
+    @apply font-bold;
+    color: hsl(var(--foreground));
+  }
+
+  .tiptap em {
+    @apply italic;
+  }
+
+  .tiptap u {
+    @apply underline;
+  }
+
+  .tiptap mark {
+    @apply px-1 rounded;
+    background-color: hsl(var(--primary) / 0.3);
+    color: hsl(var(--primary-foreground));
+  }
+
+  /* Links */
+  .tiptap a {
+    @apply underline;
+    color: hsl(var(--primary));
+  }
+
+  .tiptap a:hover {
+    color: hsl(var(--primary) / 0.8);
+  }
+
+  /* Lists */
+  .tiptap ul,
+  .tiptap ol {
+    @apply pl-6 space-y-2;
+  }
+
+  .tiptap ul[data-type="taskList"] {
+    @apply list-none pl-0;
+  }
+
+  .tiptap ul[data-type="taskList"] li {
+    @apply flex items-start gap-2;
+  }
+
+  .tiptap ul[data-type="taskList"] li > label {
+    @apply flex-shrink-0 mt-1;
+  }
+
+  .tiptap ul[data-type="taskList"] li > div {
+    @apply flex-1;
+  }
+
+  /* Blockquotes */
+  .tiptap blockquote {
+    @apply border-l-4 pl-4 py-2 my-4;
+    border-color: hsl(var(--primary));
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* Code */
+  .tiptap code {
+    @apply px-1.5 py-0.5 rounded text-sm;
+    background-color: hsl(var(--muted));
+    color: hsl(var(--foreground));
+  }
+
+  .tiptap pre {
+    @apply p-4 rounded-lg overflow-x-auto my-4;
+    background-color: hsl(var(--muted));
+  }
+
+  .tiptap pre code {
+    @apply p-0 bg-transparent;
+  }
+
+  /* Images */
+  .tiptap img {
+    @apply max-w-full h-auto rounded-lg my-4;
+  }
+
+  /* Horizontal Rule */
+  .tiptap hr {
+    @apply my-6;
+    border-color: hsl(var(--border));
+  }
+
+  /* Paragraphs */
+  .tiptap p {
+    @apply mb-4;
+    color: hsl(var(--foreground));
+  }
 }
