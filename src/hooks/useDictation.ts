@@ -5,7 +5,7 @@ import { getSpeechRecognitionService, SpeechRecognitionService } from '@/service
 interface UseDictationReturn {
   isActive: boolean
   status: 'idle' | 'waiting' | 'listening'
-  startDictation: () => void
+  startDictation: () => Promise<MediaStream | null>
   stopDictation: () => void
 }
 
@@ -109,6 +109,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
    * Mostra texto em tempo real enquanto o usuário fala
    */
   const handleInterimTranscript = (transcript: string) => {
+    console.log('📝 Interim transcript:', transcript)
     if (!editor || !transcript.trim()) return
 
     const currentPos = editor.state.selection.from
@@ -118,6 +119,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       dictAnchorRef.current = currentPos
       dictConfirmedLengthRef.current = 0
       dictCapitalizedRef.current = false
+      console.log('🎯 Anchor set at position:', currentPos)
     }
 
     const anchor = dictAnchorRef.current
@@ -144,6 +146,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     }
 
     // Inserir novo texto provisório
+    console.log('✏️ Inserting interim text:', finalText)
     editor.commands.insertContentAt(anchor, finalText, { updateSelection: false })
     dictInterimLengthRef.current = finalText.length
   }
@@ -154,6 +157,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
    * Agora verifica comandos do voiceCommandsConfig
    */
   const handleFinalTranscript = (transcript: string) => {
+    console.log('✅ Final transcript:', transcript)
     if (!editor || !transcript.trim()) return
 
     const currentPos = editor.state.selection.from
@@ -271,20 +275,28 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   }
 
   /**
-   * Inicia o ditado por voz
+   * Inicia o ditado por voz com captura de audio stream
    */
-  const startDictation = () => {
-    if (!editor || !speechServiceRef.current) return
+  const startDictation = async (): Promise<MediaStream | null> => {
+    if (!editor || !speechServiceRef.current) return null
 
-    const started = speechServiceRef.current.startListening()
-    if (started) {
+    console.log('🎤 Starting dictation with audio capture...')
+    
+    const result = await speechServiceRef.current.startListeningWithAudio()
+    if (result.started) {
       setIsActive(true)
       // Resetar âncoras
       dictAnchorRef.current = null
       dictConfirmedLengthRef.current = 0
       dictInterimLengthRef.current = 0
       dictCapitalizedRef.current = false
+      
+      console.log('✓ Dictation started successfully, stream:', !!result.stream)
+      return result.stream || null
     }
+    
+    console.error('✗ Failed to start dictation')
+    return null
   }
 
   /**
@@ -314,8 +326,16 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     speechServiceRef.current = speechService
 
     // Configurar callbacks
-    const statusCallback = (status: 'idle' | 'waiting' | 'listening') => setStatus(status)
+    const statusCallback = (status: 'idle' | 'waiting' | 'listening') => {
+      console.log('🔊 Status changed:', status)
+      setStatus(status)
+    }
     const resultCallback = (result: { transcript: string; isFinal: boolean; alternatives?: string[] }) => {
+      console.log('🎯 Result received:', { 
+        transcript: result.transcript, 
+        isFinal: result.isFinal,
+        hasEditor: !!editor 
+      })
       if (result.isFinal) {
         handleFinalTranscript(result.transcript)
       } else {
@@ -325,6 +345,8 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
 
     speechService.setOnStatus(statusCallback)
     speechService.setOnResult(resultCallback)
+    
+    console.log('✓ Voice callbacks configured for useDictation')
 
     return () => {
       // Remover apenas callbacks deste hook, não destruir singleton
