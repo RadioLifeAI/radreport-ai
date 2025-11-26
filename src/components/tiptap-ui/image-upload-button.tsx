@@ -1,14 +1,15 @@
 import * as React from 'react'
-import { type Editor } from '@tiptap/react'
-import { Button } from '@/components/ui/button'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { EditorContext } from '@tiptap/react'
+import { Button } from '@/components/tiptap-ui-primitive/button'
 import { ImagePlus } from 'lucide-react'
 
-export interface ImageUploadButtonProps {
-  editor: Editor
-}
+export interface ImageUploadButtonProps {}
 
-export function ImageUploadButton({ editor }: ImageUploadButtonProps) {
+export function ImageUploadButton({}: ImageUploadButtonProps = {}) {
+  const context = React.useContext(EditorContext)
+  const editor = context?.editor
+
+  if (!editor) return null
   const fileInputRef = React.useRef<HTMLInputElement>(null)
 
   const handleClick = () => {
@@ -34,21 +35,12 @@ export function ImageUploadButton({ editor }: ImageUploadButtonProps) {
 
   return (
     <>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleClick}
-            className="h-8 w-8"
-          >
-            <ImagePlus className="h-4 w-4" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>Upload Image</p>
-        </TooltipContent>
-      </Tooltip>
+      <Button
+        data-style="ghost"
+        onClick={handleClick}
+      >
+        <ImagePlus className="h-4 w-4" />
+      </Button>
       <input
         ref={fileInputRef}
         type="file"

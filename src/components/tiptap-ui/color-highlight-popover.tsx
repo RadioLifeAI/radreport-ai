@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { type Editor } from '@tiptap/react'
+import { EditorContext } from '@tiptap/react'
 import { Button } from '@/components/ui/button'
 import {
   Popover,
@@ -12,7 +12,6 @@ import { Palette } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export interface ColorHighlightPopoverProps {
-  editor: Editor
   type: 'color' | 'highlight'
 }
 
@@ -29,7 +28,11 @@ const colors = [
   { name: 'Pink', value: '#EC4899' },
 ]
 
-export function ColorHighlightPopover({ editor, type }: ColorHighlightPopoverProps) {
+export function ColorHighlightPopover({ type }: ColorHighlightPopoverProps) {
+  const context = React.useContext(EditorContext)
+  const editor = context?.editor
+
+  if (!editor) return null
   const Icon = type === 'color' ? Palette : HighlighterIcon
   const label = type === 'color' ? 'Text Color' : 'Highlight'
 

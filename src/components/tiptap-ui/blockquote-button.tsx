@@ -1,15 +1,15 @@
 import * as React from 'react'
-import { type Editor } from '@tiptap/react'
-import { Button } from '@/components/ui/button'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { cn } from '@/lib/utils'
+import { EditorContext } from '@tiptap/react'
+import { Button } from '@/components/tiptap-ui-primitive/button'
 import { Quote } from 'lucide-react'
 
-export interface BlockquoteButtonProps {
-  editor: Editor
-}
+export interface BlockquoteButtonProps {}
 
-export function BlockquoteButton({ editor }: BlockquoteButtonProps) {
+export function BlockquoteButton({}: BlockquoteButtonProps = {}) {
+  const context = React.useContext(EditorContext)
+  const editor = context?.editor
+
+  if (!editor) return null
   const isActive = editor.isActive('blockquote')
   const canToggle = editor.can().toggleBlockquote()
 
@@ -18,24 +18,13 @@ export function BlockquoteButton({ editor }: BlockquoteButtonProps) {
   }
 
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleClick}
-          disabled={!canToggle}
-          className={cn(
-            'h-8 w-8',
-            isActive && 'bg-accent text-accent-foreground'
-          )}
-        >
-          <Quote className="h-4 w-4" />
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent>
-        <p>Blockquote</p>
-      </TooltipContent>
-    </Tooltip>
+    <Button
+      data-style="ghost"
+      data-active={isActive}
+      onClick={handleClick}
+      disabled={!canToggle}
+    >
+      <Quote className="h-4 w-4" />
+    </Button>
   )
 }

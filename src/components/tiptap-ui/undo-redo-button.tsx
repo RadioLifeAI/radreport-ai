@@ -1,15 +1,18 @@
 import * as React from 'react'
-import { type Editor } from '@tiptap/react'
-import { Button } from '@/components/ui/button'
+import { EditorContext } from '@tiptap/react'
+import { Button } from '@/components/tiptap-ui-primitive/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { Undo, Redo } from 'lucide-react'
 
 export interface UndoRedoButtonProps {
-  editor: Editor
   action: 'undo' | 'redo'
 }
 
-export function UndoRedoButton({ editor, action }: UndoRedoButtonProps) {
+export function UndoRedoButton({ action }: UndoRedoButtonProps) {
+  const context = React.useContext(EditorContext)
+  const editor = context?.editor
+
+  if (!editor) return null
   const Icon = action === 'undo' ? Undo : Redo
   const label = action === 'undo' ? 'Undo' : 'Redo'
 
@@ -26,21 +29,12 @@ export function UndoRedoButton({ editor, action }: UndoRedoButtonProps) {
   }
 
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleClick}
-          disabled={!canPerformAction}
-          className="h-8 w-8"
-        >
-          <Icon className="h-4 w-4" />
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent>
-        <p>{label}</p>
-      </TooltipContent>
-    </Tooltip>
+    <Button
+      data-style="ghost"
+      onClick={handleClick}
+      disabled={!canPerformAction}
+    >
+      <Icon className="h-4 w-4" />
+    </Button>
   )
 }
