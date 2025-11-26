@@ -347,4 +347,54 @@
     @apply mb-4;
     color: hsl(var(--foreground));
   }
+
+  /* Template/Macro Selectors - Professional Dark Theme */
+  .template-section {
+    @apply py-2;
+  }
+
+  .template-section-title {
+    @apply text-xs font-semibold uppercase px-3 py-2 tracking-wider;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .template-list {
+    @apply space-y-0.5;
+  }
+
+  .template-item {
+    @apply flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-colors;
+  }
+
+  .template-item:hover {
+    background-color: hsl(var(--muted) / 0.5);
+  }
+
+  .template-modality-badge {
+    @apply text-[10px] font-bold px-2 py-0.5 rounded whitespace-nowrap min-w-[32px] text-center;
+    background-color: hsl(var(--primary) / 0.2);
+    color: hsl(var(--primary));
+  }
+
+  .template-title {
+    @apply flex-1 text-sm truncate;
+    color: hsl(var(--foreground));
+  }
+
+  .template-star {
+    @apply p-1 rounded transition-colors;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .template-star:hover {
+    background-color: hsl(var(--muted) / 0.5);
+  }
+
+  .template-star.favorited {
+    color: #fbbf24;
+  }
+
+  .template-star.favorited svg {
+    fill: #fbbf24;
+  }
 }
