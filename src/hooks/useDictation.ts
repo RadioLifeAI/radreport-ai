@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Editor } from '@tiptap/react'
-import { SpeechRecognitionService } from '@/services/SpeechRecognitionService'
-import { parseCommand } from '@/lib/commands'
+import { getSpeechRecognitionService, SpeechRecognitionService } from '@/services/SpeechRecognitionService'
 
 interface UseDictationReturn {
   isActive: boolean
@@ -306,7 +305,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   useEffect(() => {
     if (!editor) return
 
-    const speechService = new SpeechRecognitionService()
+    const speechService = getSpeechRecognitionService()
     speechServiceRef.current = speechService
 
     // Configurar callback de status

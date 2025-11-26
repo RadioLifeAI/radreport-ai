@@ -1,4 +1,4 @@
-import { Settings, Moon, Sun } from 'lucide-react'
+import { LogOut, Moon, Sun } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useTheme } from 'next-themes'
 import TemplateSelector from '@/components/selectors/TemplateSelector'
@@ -159,7 +159,7 @@ export function EditorHeader({
           className="p-2 hover:bg-muted rounded-lg transition-colors"
           title="Sair"
         >
-          <Settings size={18} />
+          <LogOut size={18} />
         </button>
       </div>
     </header>

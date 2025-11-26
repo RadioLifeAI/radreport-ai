@@ -265,7 +265,7 @@ export function useFrasesModelo() {
     frases,
     filteredFrases,
     recentFrases,
-    favoriteFrases,
+    favoriteFrases: frases.filter(f => favoriteFrases.includes(f.id)),
     loading,
     error,
     searchTerm,

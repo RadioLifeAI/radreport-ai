@@ -1,4 +1,4 @@
-import { Star, ChevronLeft } from 'lucide-react'
+import { ChevronLeft } from 'lucide-react'
 
 interface EditorLeftSidebarProps {
   collapsed: boolean
@@ -46,12 +46,12 @@ export function EditorLeftSidebar({
                   <div className="flex items-center justify-between">
                     <span className="text-sm truncate">{template.titulo}</span>
                     <span className={`text-[10px] px-2 py-0.5 rounded-full ${
-                      template.modalidade_codigo === 'RM' ? 'bg-purple-500/20 text-purple-300' :
-                      template.modalidade_codigo === 'TC' ? 'bg-blue-500/20 text-blue-300' :
-                      template.modalidade_codigo === 'USG' ? 'bg-green-500/20 text-green-300' :
+                      template.modalidade === 'RM' ? 'bg-purple-500/20 text-purple-300' :
+                      template.modalidade === 'TC' ? 'bg-blue-500/20 text-blue-300' :
+                      template.modalidade === 'USG' ? 'bg-green-500/20 text-green-300' :
                       'bg-gray-500/20 text-gray-300'
                     }`}>
-                      {template.modalidade_codigo}
+                      {template.modalidade}
                     </span>
                   </div>
                 </button>
@@ -71,14 +71,14 @@ export function EditorLeftSidebar({
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-sm truncate">{frase.codigo}</span>
-                    {frase.modalidade_codigo && (
+                    {frase.modalidade_id && (
                       <span className={`text-[10px] px-2 py-0.5 rounded-full ${
-                        frase.modalidade_codigo === 'RM' ? 'bg-purple-500/20 text-purple-300' :
-                        frase.modalidade_codigo === 'TC' ? 'bg-blue-500/20 text-blue-300' :
-                        frase.modalidade_codigo === 'USG' ? 'bg-green-500/20 text-green-300' :
+                        frase.modalidade_id === 'RM' ? 'bg-purple-500/20 text-purple-300' :
+                        frase.modalidade_id === 'TC' ? 'bg-blue-500/20 text-blue-300' :
+                        frase.modalidade_id === 'USG' ? 'bg-green-500/20 text-green-300' :
                         'bg-gray-500/20 text-gray-300'
                       }`}>
-                        {frase.modalidade_codigo}
+                        {frase.modalidade_id}
                       </span>
                     )}
                   </div>
