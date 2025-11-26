@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { supabaseService, Report, ReportVersion } from '../services/supabaseService'
+import { supabaseService, Report, ReportVersion } from '../services/SupabaseService'
 
 export interface UseSupabaseReportsReturn {
   reports: Report[]
