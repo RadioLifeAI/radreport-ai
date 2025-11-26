@@ -1,7 +1,12 @@
 import { Editor } from '@tiptap/react'
 
-// Opções padrão para parsing consistente
-const DEFAULT_PARSE_OPTIONS = {
+// Opções para templates: normalizar whitespace em HTML estruturado
+const TEMPLATE_PARSE_OPTIONS = {
+  preserveWhitespace: false as const,
+}
+
+// Opções para texto/ditado: preservar espaços exatamente como ditados
+const TEXT_PARSE_OPTIONS = {
   preserveWhitespace: 'full' as const,
 }
 
@@ -13,7 +18,7 @@ export function applyTemplate(editor: Editor, html: string) {
   
   editor.commands.setContent(html, {
     emitUpdate: true,
-    parseOptions: DEFAULT_PARSE_OPTIONS,
+    parseOptions: TEMPLATE_PARSE_OPTIONS, // Normalizar whitespace em templates
   })
 }
 
@@ -26,11 +31,11 @@ export function insertContent(editor: Editor, content: string, shouldFocus = tru
   
   if (shouldFocus) {
     editor.chain().focus().insertContent(content, {
-      parseOptions: DEFAULT_PARSE_OPTIONS,
+      parseOptions: TEXT_PARSE_OPTIONS, // Preservar espaços em texto/ditado
     }).run()
   } else {
     editor.commands.insertContent(content, {
-      parseOptions: DEFAULT_PARSE_OPTIONS,
+      parseOptions: TEXT_PARSE_OPTIONS, // Preservar espaços em texto/ditado
     })
   }
 }
@@ -47,7 +52,7 @@ export function insertContentAt(
   
   editor.commands.insertContentAt(position, content, {
     updateSelection: true,
-    parseOptions: DEFAULT_PARSE_OPTIONS,
+    parseOptions: TEXT_PARSE_OPTIONS, // Preservar espaços em texto/ditado
   })
 }
 
@@ -91,7 +96,7 @@ export function insertConclusion(editor: Editor, html: string) {
   if (!editor) return
   
   editor.chain().focus().insertContent(html, {
-    parseOptions: DEFAULT_PARSE_OPTIONS,
+    parseOptions: TEXT_PARSE_OPTIONS, // Preservar espaços em conclusões
   }).run()
 }
 
