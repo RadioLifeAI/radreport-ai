@@ -397,4 +397,21 @@
   .template-star.favorited svg {
     fill: #fbbf24;
   }
+
+  /* Responsividade Mobile/Tablet */
+  @media (max-width: 768px) {
+    .template-title {
+      @apply max-w-[180px];
+    }
+  }
+
+  @media (max-width: 640px) {
+    .template-title {
+      @apply max-w-[140px];
+    }
+    
+    .template-modality-badge {
+      @apply text-[9px] px-1.5 min-w-[28px];
+    }
+  }
 }

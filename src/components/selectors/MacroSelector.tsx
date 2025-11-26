@@ -137,7 +137,7 @@ export const MacroSelector: React.FC<MacroSelectorProps> = ({
         value={searchTerm}
         onChange={(e) => onMacroSearch(e.target.value)}
         onFocus={() => setDropdownVisible(true)}
-        className="w-64 px-3 py-1.5 bg-background/50 border border-border/40 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
+        className="w-80 md:w-96 px-3 py-1.5 bg-background/50 border border-border/40 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
       />
 
       {dropdownVisible && (
@@ -146,7 +146,7 @@ export const MacroSelector: React.FC<MacroSelectorProps> = ({
             className="fixed inset-0 z-40" 
             onClick={() => setDropdownVisible(false)}
           />
-          <div className="absolute top-full left-0 mt-2 w-96 max-h-[600px] bg-card border border-border/40 rounded-xl shadow-2xl overflow-hidden z-50">
+          <div className="absolute top-full left-0 mt-2 w-[520px] md:w-[580px] lg:w-[640px] max-h-[600px] bg-card border border-border/40 rounded-xl shadow-2xl overflow-hidden z-50">
             {/* Modality Tabs */}
             <div className="flex items-center gap-1 p-2 border-b border-border/40 bg-muted/30">
               {modalities.map(modality => (
