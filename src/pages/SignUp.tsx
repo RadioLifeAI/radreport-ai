@@ -50,8 +50,7 @@ export default function SignUp() {
     !name ||
     !email ||
     !password ||
-    !confirmPassword ||
-    !turnstileToken;
+    !confirmPassword;
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -60,12 +59,6 @@ export default function SignUp() {
     setLoading(true);
 
     try {
-      if (!turnstileToken) {
-        setErr('Por favor, complete a verificação de segurança.');
-        setLoading(false);
-        return;
-      }
-
       const sanitizedName = sanitizeInput(name);
       const sanitizedEmail = sanitizeInput(email);
 
@@ -170,10 +163,13 @@ export default function SignUp() {
               {confirmPasswordError && <p className="text-destructive text-sm mt-1">{confirmPasswordError}</p>}
             </div>
 
+            {/* Turnstile temporarily disabled */}
+            {/*
             <div>
               <TurnstileWidget onSuccess={setTurnstileToken} onError={setTurnstileError} />
               {turnstileError && <p className="text-destructive text-sm mt-1">{turnstileError}</p>}
             </div>
+            */}
 
             {err && (
               <div className="bg-destructive/20 border border-destructive/30 rounded-lg p-3 text-destructive text-sm">

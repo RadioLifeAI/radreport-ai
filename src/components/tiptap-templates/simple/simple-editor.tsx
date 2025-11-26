@@ -143,6 +143,8 @@ const MainToolbarContent = ({
 export interface SimpleEditorProps {
   content?: string
   onChange?: (content: string) => void
+  onEditorReady?: (editor: any) => void
+  onCharacterCount?: (count: number) => void
   placeholder?: string
   className?: string
 }
@@ -150,6 +152,8 @@ export interface SimpleEditorProps {
 export function SimpleEditor({ 
   content: externalContent, 
   onChange,
+  onEditorReady,
+  onCharacterCount,
   placeholder = "Start typing...",
   className
 }: SimpleEditorProps) {
@@ -205,6 +209,15 @@ export function SimpleEditor({
     content: externalContent || '',
     onUpdate: ({ editor }) => {
       onChange?.(editor.getHTML())
+      if (onCharacterCount) {
+        const text = editor.state.doc.textContent
+        onCharacterCount(text.length)
+      }
+    },
+    onCreate: ({ editor }) => {
+      if (onEditorReady) {
+        onEditorReady(editor)
+      }
     },
   })
 
