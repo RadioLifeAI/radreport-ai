@@ -3,6 +3,8 @@ import { Editor } from '@tiptap/react'
 import { useReportStore } from '@/store'
 import { insertSuggestion, insertConclusion } from '@/editor/commands'
 import { useAuth } from '@/hooks/useAuth'
+import { supabase } from '@/integrations/supabase/client'
+import { toast } from 'sonner'
 
 export default function EditorAIButton({ editor }: { editor: Editor | null }){
   const { modalidade } = useReportStore()
@@ -14,13 +16,11 @@ export default function EditorAIButton({ editor }: { editor: Editor | null }){
     setLoading(true)
     try{
       const fullReport = editor.getHTML()
-      const res = await fetch('https://pmmqidqmdudblyssvdeg.supabase.co/functions/v1/ai-suggestion-review', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fullReport, userId: user?.id }),
+      const { data, error } = await supabase.functions.invoke('ai-suggestion-review', {
+        body: { fullReport, userId: user?.id }
       })
-      if (!res.ok) throw new Error('Falha na sugestão IA')
-      const html = await res.text()
+      if (error) throw error
+      const html = data as string
       // Extrair <section id="improved"> e <section id="notes">
       const improvedMatch = html.match(/<section[^>]*id=["']improved["'][^>]*>([\s\S]*?)<\/section>/i)
       const notesMatch = html.match(/<section[^>]*id=["']notes["'][^>]*>([\s\S]*?)<\/section>/i)
@@ -39,7 +39,8 @@ export default function EditorAIButton({ editor }: { editor: Editor | null }){
         insertSuggestion(editor, notes)
       }
     } catch (e){
-      alert('Erro ao gerar sugestão IA')
+      console.error('Erro ao gerar sugestão IA:', e)
+      toast.error('Erro ao gerar sugestão IA')
     } finally { setLoading(false) }
   }
 
@@ -49,13 +50,14 @@ export default function EditorAIButton({ editor }: { editor: Editor | null }){
     try{
       const findingsHtml = editor.getHTML()
       const examTitle = modalidade || 'Exame'
-      const res = await fetch('https://pmmqidqmdudblyssvdeg.supabase.co/functions/v1/ai-generate-conclusion', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ findingsHtml, examTitle, modality: modalidade, user_id: user?.id })
+      const { data, error } = await supabase.functions.invoke('ai-generate-conclusion', {
+        body: { findingsHtml, examTitle, modality: modalidade, user_id: user?.id }
       })
-      const json = await res.json()
-      if (json?.replacement) insertConclusion(editor, json.replacement)
+      if (error) throw error
+      if (data?.replacement) insertConclusion(editor, data.replacement)
+    } catch (e) {
+      console.error('Erro ao gerar conclusão IA:', e)
+      toast.error('Erro ao gerar conclusão IA')
     } finally { setLoading(false) }
   }
 

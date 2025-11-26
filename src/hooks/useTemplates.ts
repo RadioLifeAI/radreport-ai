@@ -46,7 +46,7 @@ export function useTemplates(): UseTemplatesReturn {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
-  const [selectedModality, setSelectedModality] = useState('')
+  const [selectedModality, setSelectedModality] = useState<string | null>(null)
   const [favorites, setFavorites] = useState<string[]>([])
   
   // Report store integration

@@ -20,7 +20,6 @@ interface ProfessionalEditorPageProps {
 }
 
 export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEditorPageProps) {
-  const navigate = useNavigate()
   const { logout } = useAuth()
   const { content, setContent, modalidade, setModalidade } = useReportStore()
   
@@ -28,7 +27,6 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
   const [rightSidebarCollapsed, setRightSidebarCollapsed] = useState(false)
   const [dropdownVisible, setDropdownVisible] = useState(false)
   const [macroDropdownVisible, setMacroDropdownVisible] = useState(false)
-  const [frasesPopoverOpen, setFrasesPopoverOpen] = useState(false)
   const [characterCount, setCharacterCount] = useState(0)
   const [editorInstance, setEditorInstance] = useState<Editor | null>(null)
   const [selectedTemplate, setSelectedTemplate] = useState('Template do exame')
@@ -377,7 +375,6 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
           voiceStatus={voiceStatus}
           onVoiceStart={startDictation}
           onVoiceStop={stopDictation}
-          onFrasesClick={() => setFrasesPopoverOpen(!frasesPopoverOpen)}
         />
       </div>
     </div>
