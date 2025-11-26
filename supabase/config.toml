@@ -1,1 +1,16 @@
 project_id = "gxhbdbovixbptrjrcwbr"
+
+[functions.ai-generate-conclusion]
+verify_jwt = false
+
+[functions.ai-rads-classification]
+verify_jwt = false
+
+[functions.ai-suggestion-review]
+verify_jwt = false
+
+[functions.ai-voice-inline-edit]
+verify_jwt = false
+
+[functions.ai-inline-edit]
+verify_jwt = false
