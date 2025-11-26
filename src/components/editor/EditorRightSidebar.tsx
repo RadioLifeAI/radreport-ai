@@ -17,6 +17,7 @@ interface EditorRightSidebarProps {
   voiceStatus: 'idle' | 'listening' | 'waiting'
   onVoiceStart: () => void
   onVoiceStop: () => void
+  mediaStream?: MediaStream | null
 }
 
 export function EditorRightSidebar({
@@ -27,6 +28,7 @@ export function EditorRightSidebar({
   voiceStatus,
   onVoiceStart,
   onVoiceStop,
+  mediaStream,
 }: EditorRightSidebarProps) {
   const [frasesOpen, setFrasesOpen] = useState(false)
   const { recentFrases, favoriteFrases } = useFrasesModelo()
@@ -142,7 +144,7 @@ export function EditorRightSidebar({
                 onStart={onVoiceStart}
                 onStop={onVoiceStop}
               />
-              <SpeechStatusPanel />
+              <SpeechStatusPanel mediaStream={mediaStream} />
             </div>
           </div>
 
