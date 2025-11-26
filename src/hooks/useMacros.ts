@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { dataService } from '../services/DataService'
 import { supabaseService } from '../services/SupabaseService'
 
 export interface Macro {
@@ -49,14 +48,19 @@ export function useMacros() {
     
     try {
       // Try to get macros from Supabase
-      const { data, error: supabaseError } = await supabaseService.getMacros()
-      
-      if (supabaseError) {
-        throw supabaseError
-      }
+      const data = await supabaseService.getMacros()
       
       if (data && data.length > 0) {
-        const activeMacros = data.filter(macro => macro.ativo !== false)
+        // Transform FraseModelo to Macro
+        const transformedMacros: Macro[] = data.map((item: any) => ({
+          id: item.id,
+          titulo: item.codigo || 'Sem título',
+          frase: item.texto || '',
+          categoria: item.categoria || 'Geral',
+          ativo: item.ativa !== false
+        }))
+        
+        const activeMacros = transformedMacros.filter(macro => macro.ativo)
         setMacros(activeMacros)
         setFilteredMacros(activeMacros)
         
@@ -64,7 +68,7 @@ export function useMacros() {
         setRecentMacros(activeMacros.slice(0, 5))
         
         // Extract unique categories
-        const uniqueCategories = [...new Set(activeMacros.map(macro => macro.categoria))].filter(Boolean)
+        const uniqueCategories = [...new Set(activeMacros.map(macro => macro.categoria))].filter(Boolean) as string[]
         setCategories(uniqueCategories)
       } else {
         // Fallback: create some default macros if none exist

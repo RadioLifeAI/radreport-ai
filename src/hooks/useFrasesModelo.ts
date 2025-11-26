@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { dataService } from '../services/DataService'
 import { supabaseService } from '../services/SupabaseService'
 
 export interface FraseModelo {
@@ -78,11 +77,7 @@ export function useFrasesModelo() {
     setError(null)
     
     try {
-      const { data, error: supabaseError } = await supabaseService.getFrasesModelo()
-      
-      if (supabaseError) {
-        throw supabaseError
-      }
+      const data = await supabaseService.getFrasesModelo()
       
       // Transform data to match FraseModelo interface
       const transformedFrases: FraseModelo[] = data.map((item: any) => ({
@@ -177,7 +172,7 @@ export function useFrasesModelo() {
     let cancelled = false
     const h = setTimeout(async () => {
       try {
-        const raw = await supabaseService.searchFrasesModelo(term, selectedModality, selectedCategory)
+        const raw = await supabaseService.searchFrasesModelo(term)
         const mapped: FraseModelo[] = raw.map((item: any) => ({
           id: item.id,
           codigo: item.codigo,

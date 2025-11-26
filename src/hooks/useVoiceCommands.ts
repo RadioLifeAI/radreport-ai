@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { supabaseService } from '../services/supabaseService'
+import { supabaseService } from '../services/SupabaseService'
 import { getSpeechRecognitionService } from '../services/SpeechRecognitionService'
 
 export interface VoiceCommand {
@@ -111,8 +111,11 @@ export function useVoiceCommands(): UseVoiceCommandsReturn {
     try {
       setError(null)
       
-      // Process command through Supabase
-      const response = await supabaseService.processVoiceCommand(command, context)
+      // Log voice command
+      await supabaseService.logVoiceCommand(command, command)
+      
+      // Basic command processing (to be enhanced)
+      const response: any = { action: 'insert', text: command }
       
       if (response) {
         const voiceCommand: VoiceCommand = {

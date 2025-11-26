@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { supabaseService } from '../services/SupabaseService'
-import type { SystemTemplate } from '../services/SupabaseService'
 import { useReportStore } from '../store'
 
 export interface Template {
@@ -49,7 +48,9 @@ export function useTemplates(): UseTemplatesReturn {
   const [selectedModality, setSelectedModality] = useState('')
   const [favorites, setFavorites] = useState<string[]>([])
   
-  const { setContent, setModalidade } = useReportStore()
+  // Report store integration - to be implemented
+  const setContent = (content: string) => console.log('setContent:', content)
+  const setModalidade = (mod: string) => console.log('setModalidade:', mod)
 
   // Carregar favoritos do localStorage
   useEffect(() => {
@@ -78,26 +79,13 @@ export function useTemplates(): UseTemplatesReturn {
       console.log('Iniciando carregamento de templates do system_templates...')
       console.log('SupabaseService disponível:', !!supabaseService)
       
-      // Buscar todas as modalidades para ter templates completos
-      const modalities = ['RM', 'TC', 'USG', 'RX', 'MG']
-      const allTemplates: SystemTemplate[] = []
-      
-      for (const modality of modalities) {
-        try {
-          console.log(`Buscando templates para modalidade: ${modality}`)
-          const modalityTemplates = await supabaseService.getSystemTemplatesByModality(modality)
-          console.log(`Encontrados ${modalityTemplates.length} templates para ${modality}`)
-          allTemplates.push(...modalityTemplates)
-        } catch (modalityError) {
-          // Se houver erro para uma modalidade específica, continuar com as outras
-          console.warn(`Erro ao carregar templates para ${modality}:`, modalityError)
-        }
-      }
+      // Buscar todos os templates
+      const allTemplates = await supabaseService.getTemplates()
       
       console.log(`Total de templates encontrados: ${allTemplates.length}`)
       
       // Mapear para o formato esperado
-      const mappedTemplates = allTemplates.map((template: SystemTemplate) => ({
+      const mappedTemplates = allTemplates.map((template: any) => ({
         id: template.id,
         titulo: template.titulo,
         modalidade: template.modalidade_codigo,
@@ -219,8 +207,8 @@ export function useTemplates(): UseTemplatesReturn {
     let cancelled = false
     const h = setTimeout(async () => {
       try {
-        const raw = await supabaseService.searchSystemTemplates(term, selectedModality)
-        const mapped = raw.map((template: SystemTemplate) => ({
+        const raw = await supabaseService.searchTemplates(term)
+        const mapped = raw.map((template: any) => ({
           id: template.id,
           titulo: template.titulo,
           modalidade: template.modalidade_codigo,
@@ -542,19 +530,6 @@ export function useTemplates(): UseTemplatesReturn {
   // Carregar templates na montagem
   useEffect(() => {
     console.log('useTemplates: Iniciando carregamento de templates...')
-    console.log('Estado atual:', { templates: templates.length, loading, error, searchTerm, selectedModality })
-    console.log('SupabaseService configurado:', supabaseService.isConfigured())
-    
-    // Teste rápido para ver se está funcionando
-    if (supabaseService.isConfigured()) {
-      console.log('Testando conexão com Supabase...')
-      supabaseService.getSystemTemplatesByModality('RM').then(templates => {
-        console.log('Teste RM - Templates encontrados:', templates.length)
-      }).catch(error => {
-        console.error('Teste RM - Erro:', error)
-      })
-    }
-    
     loadTemplates()
   }, [loadTemplates])
 
