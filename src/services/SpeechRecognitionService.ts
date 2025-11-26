@@ -17,15 +17,10 @@ export class SpeechRecognitionService {
   private keepAlive = false;
   private userStopped = false;
   private finalTranscript = '';
-  private onResultDetailedCallback: ((result: { transcript: string; isFinal: boolean; alternatives?: string[] }) => void) | null = null;
   private commandCallbacks = new Map<string, (text: string) => void>();
-  private onResultCallback: ((transcript: string, isFinal: boolean) => void) | null = null;
-  private onErrorCallback: ((error: string) => void) | null = null;
   private aiCommandCallbacks = new Map<string, (transcript: string, context?: any) => Promise<void>>();
   private medicalCommandParser = new MedicalCommandParser();
-  private audioLevelCallback: ((level: number) => void) | null = null;
-  private onEndCallback: ((reason: 'auto'|'user') => void) | null = null;
-  private onStatusCallback: ((status: 'idle'|'waiting'|'listening') => void) | null = null;
+  private audioLevelCallbacks: Array<(level: number) => void> = [];
   private onStatusCallbacks: Array<(status: 'idle'|'waiting'|'listening') => void> = [];
   private onEndCallbacks: Array<(reason: 'auto'|'user') => void> = [];
   private onResultDetailedCallbacks: Array<(result: { transcript: string; isFinal: boolean; alternatives?: string[] }) => void> = [];
@@ -56,32 +51,26 @@ export class SpeechRecognitionService {
 
     this.recognition.onstart = () => {
       this.isListening = true;
-      if (this.onStatusCallback) this.onStatusCallback('waiting');
       this.onStatusCallbacks.forEach(cb => cb('waiting'));
     };
 
     this.recognition.onaudiostart = () => {
-      if (this.onStatusCallback) this.onStatusCallback('waiting');
       this.onStatusCallbacks.forEach(cb => cb('waiting'));
     };
 
     this.recognition.onsoundstart = () => {
-      if (this.onStatusCallback) this.onStatusCallback('listening');
       this.onStatusCallbacks.forEach(cb => cb('listening'));
     };
 
     this.recognition.onsoundend = () => {
-      if (this.onStatusCallback) this.onStatusCallback('waiting');
       this.onStatusCallbacks.forEach(cb => cb('waiting'));
     };
 
     this.recognition.onspeechstart = () => {
-      if (this.onStatusCallback) this.onStatusCallback('listening');
       this.onStatusCallbacks.forEach(cb => cb('listening'));
     };
 
     this.recognition.onspeechend = () => {
-      if (this.onStatusCallback) this.onStatusCallback('waiting');
       this.onStatusCallbacks.forEach(cb => cb('waiting'));
     };
 
@@ -103,22 +92,6 @@ export class SpeechRecognitionService {
       const lastRes: SpeechRecognitionResult | undefined = results[results.length - 1];
       const alternatives = lastRes ? Array.from(lastRes).map(a => a.transcript) : undefined;
 
-      if (this.onResultCallback) {
-        if (lastIsFinal) {
-          this.onResultCallback(this.finalTranscript, true);
-        } else {
-          this.onResultCallback(interimTranscript, false);
-        }
-      }
-
-      if (this.onResultDetailedCallback) {
-        this.onResultDetailedCallback({
-          transcript: lastIsFinal ? this.finalTranscript : interimTranscript,
-          isFinal: lastIsFinal,
-          alternatives
-        });
-      }
-
       this.onResultDetailedCallbacks.forEach(cb => cb({
         transcript: lastIsFinal ? this.finalTranscript : interimTranscript,
         isFinal: lastIsFinal,
@@ -132,37 +105,25 @@ export class SpeechRecognitionService {
 
     this.recognition.onerror = (event) => {
       console.error('Speech recognition error:', event.error);
-      if (this.onErrorCallback) {
-        this.onErrorCallback(event.error);
-      }
       this.onErrorCallbacks.forEach(cb => cb(event.error));
       this.handleError(event.error);
       if (event.error === 'not-allowed' || event.error === 'audio-capture') {
         this.keepAlive = false;
         this.userStopped = true;
         this.isListening = false;
-        if (this.onStatusCallback) this.onStatusCallback('idle');
         this.onStatusCallbacks.forEach(cb => cb('idle'));
       }
     };
 
     this.recognition.onend = () => {
       this.isListening = false;
-      if (this.onEndCallback) {
-        const reason: 'auto'|'user' = (this.keepAlive && !this.userStopped) ? 'auto' : 'user'
-        this.onEndCallback(reason);
-      }
-      {
-        const reason: 'auto'|'user' = (this.keepAlive && !this.userStopped) ? 'auto' : 'user'
-        this.onEndCallbacks.forEach(cb => cb(reason));
-      }
-      // Reiniciar automaticamente se desejado (longa pausa)
+      const reason: 'auto'|'user' = (this.keepAlive && !this.userStopped) ? 'auto' : 'user'
+      this.onEndCallbacks.forEach(cb => cb(reason));
+      
       if (this.keepAlive && !this.userStopped) {
         setTimeout(() => this.startListening(), 300);
-        if (this.onStatusCallback) this.onStatusCallback('waiting');
         this.onStatusCallbacks.forEach(cb => cb('waiting'));
       } else {
-        if (this.onStatusCallback) this.onStatusCallback('idle');
         this.onStatusCallbacks.forEach(cb => cb('idle'));
       }
     };
@@ -432,7 +393,7 @@ export class SpeechRecognitionService {
         this.recognition.stop();
       }
       this.isListening = false;
-      if (this.onStatusCallback) this.onStatusCallback('idle');
+      this.onStatusCallbacks.forEach(cb => cb('idle'));
       return true;
     } catch (error) {
       console.error('Failed to stop speech recognition:', error);
@@ -452,22 +413,58 @@ export class SpeechRecognitionService {
     this.aiCommandCallbacks.set(command, callback);
   }
 
-  public onResult(callback: (transcript: string, isFinal: boolean) => void) {
-    this.onResultCallback = callback;
-  }
-
-  public onError(callback: (error: string) => void) {
-    this.onErrorCallback = callback;
-  }
-
   public removeCommandCallback(command: string) {
     this.commandCallbacks.delete(command);
   }
 
+  public setOnAudioLevel(callback: (level: number) => void) {
+    this.audioLevelCallbacks.push(callback);
+  }
+
+  public removeOnAudioLevel(callback: (level: number) => void) {
+    this.audioLevelCallbacks = this.audioLevelCallbacks.filter(cb => cb !== callback);
+  }
+
+  public setOnStatus(callback: (status: 'idle'|'waiting'|'listening') => void) {
+    this.onStatusCallbacks.push(callback);
+  }
+
+  public removeOnStatus(callback: (status: 'idle'|'waiting'|'listening') => void) {
+    this.onStatusCallbacks = this.onStatusCallbacks.filter(cb => cb !== callback);
+  }
+
+  public setOnEnd(callback: (reason: 'auto'|'user') => void) {
+    this.onEndCallbacks.push(callback);
+  }
+
+  public removeOnEnd(callback: (reason: 'auto'|'user') => void) {
+    this.onEndCallbacks = this.onEndCallbacks.filter(cb => cb !== callback);
+  }
+
+  public setOnResult(callback: (result: { transcript: string; isFinal: boolean; alternatives?: string[] }) => void) {
+    this.onResultDetailedCallbacks.push(callback);
+  }
+
+  public removeOnResult(callback: (result: { transcript: string; isFinal: boolean; alternatives?: string[] }) => void) {
+    this.onResultDetailedCallbacks = this.onResultDetailedCallbacks.filter(cb => cb !== callback);
+  }
+
+  public setOnError(callback: (error: string) => void) {
+    this.onErrorCallbacks.push(callback);
+  }
+
+  public removeOnError(callback: (error: string) => void) {
+    this.onErrorCallbacks = this.onErrorCallbacks.filter(cb => cb !== callback);
+  }
+
   public clearAllCallbacks() {
     this.commandCallbacks.clear();
-    this.onResultCallback = null;
-    this.onErrorCallback = null;
+    this.aiCommandCallbacks.clear();
+    this.audioLevelCallbacks = [];
+    this.onStatusCallbacks = [];
+    this.onEndCallbacks = [];
+    this.onResultDetailedCallbacks = [];
+    this.onErrorCallbacks = [];
   }
 
   public destroy() {
@@ -495,36 +492,6 @@ export class SpeechRecognitionService {
         this.recognition.maxAlternatives = (config as any).maxAlternatives;
       } catch {}
     }
-  }
-
-  public setOnAudioLevel(callback: (level: number) => void) {
-    this.audioLevelCallback = callback;
-  }
-
-  public setOnEnd(callback: (reason: 'auto'|'user') => void) {
-    this.onEndCallback = callback;
-    this.onEndCallbacks.push(callback);
-  }
-
-  public setOnStatus(callback: (status: 'idle'|'waiting'|'listening') => void) {
-    this.onStatusCallback = callback;
-    this.onStatusCallbacks.push(callback);
-  }
-
-  public setOnResult(callback: (result: { transcript: string; isFinal: boolean }) => void) {
-    this.onResultCallback = (transcript: string, isFinal: boolean) => {
-      callback({ transcript, isFinal });
-    };
-  }
-
-  public setOnResultDetailed(callback: (result: { transcript: string; isFinal: boolean; alternatives?: string[] }) => void) {
-    this.onResultDetailedCallback = callback;
-    this.onResultDetailedCallbacks.push(callback);
-  }
-
-  public setOnError(callback: (error: string) => void) {
-    this.onErrorCallback = callback;
-    this.onErrorCallbacks.push(callback);
   }
 
   public integrateWithEditor(editor: any) {

@@ -71,16 +71,20 @@ export function EditorLeftSidebar({
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-sm truncate">{frase.codigo}</span>
-                    {frase.modalidade_id && (
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full ${
-                        frase.modalidade_id === 'RM' ? 'bg-purple-500/20 text-purple-300' :
-                        frase.modalidade_id === 'TC' ? 'bg-blue-500/20 text-blue-300' :
-                        frase.modalidade_id === 'USG' ? 'bg-green-500/20 text-green-300' :
-                        'bg-gray-500/20 text-gray-300'
-                      }`}>
-                        {frase.modalidade_id}
-                      </span>
-                    )}
+              {frase.modalidade_id && (() => {
+                const modalityMap = { 'US': 'USG', 'TC': 'TC', 'RM': 'RM', 'RX': 'RX', 'MM': 'MG' };
+                const modality = modalityMap[frase.modalidade_id as keyof typeof modalityMap] || frase.modalidade_id;
+                return (
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full ${
+                    modality === 'RM' ? 'bg-purple-500/20 text-purple-300' :
+                    modality === 'TC' ? 'bg-blue-500/20 text-blue-300' :
+                    modality === 'USG' ? 'bg-green-500/20 text-green-300' :
+                    'bg-gray-500/20 text-gray-300'
+                  }`}>
+                    {modality}
+                  </span>
+                );
+              })()}
                   </div>
                 </button>
               ))}

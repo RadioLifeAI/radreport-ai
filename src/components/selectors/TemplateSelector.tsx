@@ -23,7 +23,7 @@ export interface TemplateSelectorProps {
   loading: boolean
   error: string | null
   searchTerm: string
-  selectedModality: string
+  selectedModality: string | null
   isFavorite: (templateId: string) => boolean
   dropdownVisible: boolean
   setDropdownVisible: (visible: boolean) => void

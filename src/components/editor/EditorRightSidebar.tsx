@@ -1,8 +1,10 @@
-import { FileText, History, ChevronLeft } from 'lucide-react'
+import { FileText, History, ChevronLeft, MessageSquare } from 'lucide-react'
 import { Editor } from '@tiptap/react'
+import { useState } from 'react'
 import VoiceButton from '@/components/voice/VoiceButton'
 import SpeechStatusPanel from '@/components/voice/SpeechStatusPanel'
 import EditorAIButton from '@/components/editor/EditorAIButton'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 
 interface EditorRightSidebarProps {
   collapsed: boolean
@@ -12,7 +14,6 @@ interface EditorRightSidebarProps {
   voiceStatus: 'idle' | 'listening' | 'waiting'
   onVoiceStart: () => void
   onVoiceStop: () => void
-  onFrasesClick: () => void
 }
 
 export function EditorRightSidebar({
@@ -23,8 +24,9 @@ export function EditorRightSidebar({
   voiceStatus,
   onVoiceStart,
   onVoiceStop,
-  onFrasesClick,
 }: EditorRightSidebarProps) {
+  const [frasesOpen, setFrasesOpen] = useState(false)
+
   if (collapsed) {
     return (
       <button
@@ -52,13 +54,51 @@ export function EditorRightSidebar({
           {/* Frases Section */}
           <div>
             <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-3">Ações Rápidas</h3>
-            <button
-              onClick={onFrasesClick}
-              className="w-full flex items-center gap-2 p-3 bg-card border border-border/40 rounded-lg hover:bg-muted/50 transition-colors"
-            >
-              <FileText size={18} />
-              <span className="text-sm">Frases rápidas</span>
-            </button>
+            <Popover open={frasesOpen} onOpenChange={setFrasesOpen}>
+              <PopoverTrigger asChild>
+                <button className="w-full flex items-center gap-2 p-3 bg-card border border-border/40 rounded-lg hover:bg-muted/50 transition-colors">
+                  <MessageSquare size={18} />
+                  <span className="text-sm">Frases rápidas</span>
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64 p-2" side="left">
+                <div className="space-y-1">
+                  <button 
+                    onClick={() => {
+                      if (editor) {
+                        editor.chain().focus().insertContent('Normal sem particularidades. ').run()
+                        setFrasesOpen(false)
+                      }
+                    }}
+                    className="w-full px-2 py-1.5 text-xs hover:bg-muted rounded transition-colors text-left"
+                  >
+                    Normal sem particularidades
+                  </button>
+                  <button 
+                    onClick={() => {
+                      if (editor) {
+                        editor.chain().focus().insertContent('Sem alterações significativas. ').run()
+                        setFrasesOpen(false)
+                      }
+                    }}
+                    className="w-full px-2 py-1.5 text-xs hover:bg-muted rounded transition-colors text-left"
+                  >
+                    Sem alterações significativas
+                  </button>
+                  <button 
+                    onClick={() => {
+                      if (editor) {
+                        editor.chain().focus().insertContent('Dentro dos limites da normalidade. ').run()
+                        setFrasesOpen(false)
+                      }
+                    }}
+                    className="w-full px-2 py-1.5 text-xs hover:bg-muted rounded transition-colors text-left"
+                  >
+                    Dentro dos limites da normalidade
+                  </button>
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
 
           {/* Voice Controls Section */}
