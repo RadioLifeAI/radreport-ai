@@ -21,18 +21,10 @@ export function EditorFooter({ editor, onRestart, onCopy }: EditorFooterProps) {
       <div className="flex items-center gap-3">
         <button
           onClick={onCopy}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-muted transition-colors"
-        >
-          <Copy size={18} />
-          <span className="text-sm">Copiar laudo</span>
-        </button>
-
-        <button
-          onClick={onCopy}
           className="flex items-center gap-2 px-6 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-indigo-500 hover:from-cyan-400 hover:to-indigo-400 transition-all shadow-lg hover:scale-105"
         >
           <Sparkles size={18} />
-          <span className="text-sm font-medium">Copiar e salvar</span>
+          <span className="text-sm font-medium">Copiar laudo</span>
         </button>
       </div>
     </div>
