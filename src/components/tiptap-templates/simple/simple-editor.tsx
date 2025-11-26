@@ -221,12 +221,43 @@ export function SimpleEditor({
     },
   })
 
+  // Ref para controlar atualizações e evitar loops
+  const isUpdatingFromExternal = useRef(false)
+
+  // Função helper para normalizar HTML e evitar falsos positivos
+  const normalizeHTML = (html: string): string => {
+    return html.replace(/\s+/g, ' ').replace(/>\s+</g, '><').trim()
+  }
+
   // Sincronizar conteúdo externo com o editor
   useEffect(() => {
     if (editor && externalContent !== undefined) {
+      // Evitar loop de atualização
+      if (isUpdatingFromExternal.current) return
+      
       const currentContent = editor.getHTML()
-      if (currentContent !== externalContent) {
-        editor.commands.setContent(externalContent, { emitUpdate: false })
+      
+      // Comparação normalizada para evitar falsos positivos
+      if (normalizeHTML(currentContent) !== normalizeHTML(externalContent)) {
+        isUpdatingFromExternal.current = true
+        
+        // Salvar posição do cursor
+        const { from } = editor.state.selection
+        
+        editor.commands.setContent(externalContent, { 
+          emitUpdate: false,
+          parseOptions: {
+            preserveWhitespace: 'full',
+          },
+        })
+        
+        // Tentar restaurar posição do cursor
+        const maxPos = editor.state.doc.content.size
+        const safePos = Math.min(from, maxPos)
+        editor.commands.setTextSelection(safePos)
+        
+        // Resetar flag após atualização
+        isUpdatingFromExternal.current = false
       }
     }
   }, [editor, externalContent])
