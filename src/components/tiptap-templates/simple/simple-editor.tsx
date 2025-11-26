@@ -221,6 +221,16 @@ export function SimpleEditor({
     },
   })
 
+  // Sincronizar conteúdo externo com o editor
+  useEffect(() => {
+    if (editor && externalContent !== undefined) {
+      const currentContent = editor.getHTML()
+      if (currentContent !== externalContent) {
+        editor.commands.setContent(externalContent, { emitUpdate: false })
+      }
+    }
+  }, [editor, externalContent])
+
   const rect = useCursorVisibility({
     editor,
     overlayHeight: toolbarRef.current?.getBoundingClientRect().height ?? 0,
