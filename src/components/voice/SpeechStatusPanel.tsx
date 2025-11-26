@@ -1,31 +1,42 @@
 import React from 'react'
 import { getSpeechRecognitionService } from '@/services/SpeechRecognitionService'
+import { useAudioLevel } from '@/hooks/useAudioLevel'
 
-type Props = { className?: string }
+type Props = { 
+  className?: string
+  mediaStream?: MediaStream | null
+}
 
-export default function SpeechStatusPanel({ className }: Props){
-  const [level, setLevel] = React.useState(0)
+export default function SpeechStatusPanel({ className, mediaStream }: Props){
+  const { level, startAnalysis, stopAnalysis } = useAudioLevel()
   const [status, setStatus] = React.useState<'idle'|'listening'|'processing'|'error'>('idle')
   const [error, setError] = React.useState<string | null>(null)
 
   React.useEffect(() => {
     const svc = getSpeechRecognitionService()
     setStatus(svc.isCurrentlyListening() ? 'listening' : 'idle')
-    svc.setOnAudioLevel((l) => setLevel(l))
+    
     svc.setOnError((code) => {
       setError(code)
       setStatus('error')
     })
     svc.setOnEnd(() => {
       setStatus('idle')
-      setLevel(0)
       setError(null)
+      stopAnalysis()
     })
     svc.setOnResult((res) => {
       if (!res.isFinal) setStatus('processing')
       else setStatus('listening')
     })
-  }, [])
+  }, [stopAnalysis])
+  
+  React.useEffect(() => {
+    if (mediaStream) {
+      startAnalysis(mediaStream)
+    }
+    return () => stopAnalysis()
+  }, [mediaStream, startAnalysis, stopAnalysis])
 
   const meter = Array.from({ length: 3 }).map((_, i) => {
     const threshold = (i + 1) * 25

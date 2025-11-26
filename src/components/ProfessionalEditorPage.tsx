@@ -31,6 +31,7 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
   const [editorInstance, setEditorInstance] = useState<Editor | null>(null)
   const [selectedTemplate, setSelectedTemplate] = useState('Template do exame')
   const [selectedMacro, setSelectedMacro] = useState('Frases rápidas')
+  const [mediaStream, setMediaStream] = useState<MediaStream | null>(null)
 
   // Voice dictation hook - centralized voice logic
   const { isActive: isVoiceActive, status: voiceStatus, startDictation, stopDictation } = useDictation(editorInstance)
@@ -373,8 +374,19 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
           editor={editorInstance}
           isVoiceActive={isVoiceActive}
           voiceStatus={voiceStatus}
-          onVoiceStart={startDictation}
-          onVoiceStop={stopDictation}
+          onVoiceStart={async () => {
+            const { getSpeechRecognitionService } = await import('@/services/SpeechRecognitionService')
+            const result = await getSpeechRecognitionService().startListeningWithAudio()
+            if (result.stream) {
+              setMediaStream(result.stream)
+            }
+            startDictation()
+          }}
+          onVoiceStop={() => {
+            stopDictation()
+            setMediaStream(null)
+          }}
+          mediaStream={mediaStream}
         />
       </div>
     </div>

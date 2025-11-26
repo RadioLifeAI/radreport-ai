@@ -71,50 +71,35 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
 
   /**
    * Substitui comandos de voz por pontuação/símbolos correspondentes
-   * Ex: "ponto final" → ".", "vírgula" → ","
+   * Agora usa voiceCommandsConfig.ts como fonte única
    */
   const replaceVoiceCommands = (text: string): { text: string; hasCommand: boolean } => {
-    const commandMap: Record<string, string> = {
-      'ponto final': '.',
-      'ponto': '.',
-      'vírgula': ',',
-      'virgula': ',',
-      'ponto e vírgula': ';',
-      'ponto e virgula': ';',
-      'dois pontos': ':',
-      'ponto de interrogação': '?',
-      'interrogação': '?',
-      'ponto de exclamação': '!',
-      'exclamação': '!',
-      'abre parênteses': '(',
-      'abre parenteses': '(',
-      'fecha parênteses': ')',
-      'fecha parenteses': ')',
-      'travessão': '—',
-      'travessao': '—',
-      'hífen': '-',
-      'hifen': '-',
-      'reticências': '...',
-      'reticencias': '...',
-      'nova linha': '\n',
-      'novo parágrafo': '\n\n',
-      'novo paragrafo': '\n\n',
-    }
-
     let replaced = text
     let hasCommand = false
 
-    for (const [command, symbol] of Object.entries(commandMap)) {
-      const regex = new RegExp(`\\b${command}\\b`, 'gi')
-      if (regex.test(replaced)) {
-        replaced = replaced.replace(regex, symbol)
+    // Importar comandos de voz do config
+    const { VOICE_COMMANDS_CONFIG } = require('@/lib/voiceCommandsConfig')
+    
+    for (const cmd of VOICE_COMMANDS_CONFIG) {
+      // Apenas comandos de inserção de texto
+      if (cmd.action === 'insert_text' && cmd.parameters?.text) {
+        const regex = new RegExp(`\\b${cmd.command}\\b`, 'gi')
+        if (regex.test(replaced)) {
+          replaced = replaced.replace(regex, cmd.parameters.text)
+          hasCommand = true
+        }
+      } else if (cmd.action === 'newline' && replaced.includes(cmd.command)) {
+        replaced = replaced.replace(new RegExp(`\\b${cmd.command}\\b`, 'gi'), '\n')
+        hasCommand = true
+      } else if (cmd.action === 'new_paragraph' && replaced.includes(cmd.command)) {
+        replaced = replaced.replace(new RegExp(`\\b${cmd.command}\\b`, 'gi'), '\n\n')
         hasCommand = true
       }
     }
 
     // Normalizar espaços: remover antes de pontuação, adicionar depois
-    replaced = replaced.replace(/\s+([.,;:!?])/g, '$1') // Remove espaços antes
-    replaced = replaced.replace(/([.,;:!?])(?=\S)/g, '$1 ') // Adiciona espaço depois se necessário
+    replaced = replaced.replace(/\s+([.,;:!?])/g, '$1')
+    replaced = replaced.replace(/([.,;:!?])(?=\S)/g, '$1 ')
 
     return { text: replaced, hasCommand }
   }
@@ -166,6 +151,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   /**
    * Processa transcrição final confirmada
    * Confirma apenas o delta (texto novo) para evitar duplicação
+   * Agora verifica comandos do voiceCommandsConfig
    */
   const handleFinalTranscript = (transcript: string) => {
     if (!editor || !transcript.trim()) return
@@ -191,32 +177,51 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       return
     }
 
-    // Verificar comandos especiais
-    if (delta.toLowerCase().includes('apagar isso')) {
-      deleteLastWord(editor)
-      dictAnchorRef.current = editor.state.selection.from
-      dictConfirmedLengthRef.current = 0
-      dictInterimLengthRef.current = 0
-      dictCapitalizedRef.current = false
-      return
-    }
-
-    if (delta.toLowerCase().includes('desfaz') || delta.toLowerCase().includes('desfazer')) {
-      editor.commands.undo()
-      dictAnchorRef.current = null
-      dictConfirmedLengthRef.current = 0
-      dictInterimLengthRef.current = 0
-      dictCapitalizedRef.current = false
-      return
-    }
-
-    if (delta.toLowerCase().includes('refazer')) {
-      editor.commands.redo()
-      dictAnchorRef.current = null
-      dictConfirmedLengthRef.current = 0
-      dictInterimLengthRef.current = 0
-      dictCapitalizedRef.current = false
-      return
+    // Verificar comandos especiais do voiceCommandsConfig
+    const { VOICE_COMMANDS_CONFIG } = require('@/lib/voiceCommandsConfig')
+    const lowerDelta = delta.toLowerCase().trim()
+    
+    for (const cmd of VOICE_COMMANDS_CONFIG) {
+      if (lowerDelta.includes(cmd.command)) {
+        switch (cmd.action) {
+          case 'delete_word':
+            deleteLastWord(editor)
+            dictAnchorRef.current = editor.state.selection.from
+            dictConfirmedLengthRef.current = 0
+            dictInterimLengthRef.current = 0
+            dictCapitalizedRef.current = false
+            return
+          case 'undo':
+            editor.commands.undo()
+            dictAnchorRef.current = null
+            dictConfirmedLengthRef.current = 0
+            dictInterimLengthRef.current = 0
+            dictCapitalizedRef.current = false
+            return
+          case 'redo':
+            editor.commands.redo()
+            dictAnchorRef.current = null
+            dictConfirmedLengthRef.current = 0
+            dictInterimLengthRef.current = 0
+            dictCapitalizedRef.current = false
+            return
+          case 'toggle_bold':
+            editor.commands.toggleBold()
+            return
+          case 'toggle_italic':
+            editor.commands.toggleItalic()
+            return
+          case 'toggle_underline':
+            editor.commands.toggleUnderline()
+            return
+          case 'clear_all':
+            editor.commands.clearContent()
+            return
+          case 'select_all':
+            editor.commands.selectAll()
+            return
+        }
+      }
     }
 
     // Substituir comandos de voz
