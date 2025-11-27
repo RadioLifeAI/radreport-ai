@@ -22,6 +22,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   const editorRef = useRef<Editor | null>(null)
   const speechServiceRef = useRef<SpeechRecognitionService | null>(null)
   const anchorRef = useRef<number | null>(null)      // Posição inicial do ditado
+  const selectionEndRef = useRef<number | null>(null) // Posição final (para substituir seleção)
   const interimLengthRef = useRef<number>(0)          // Tamanho do texto provisório
   const lastConfidenceRef = useRef<number>(0)         // Último confidence score
   const retryCountRef = useRef<number>(0)             // Contador de retry
@@ -116,20 +117,23 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       const regex = new RegExp(`(^|\\s)${escapedCommand}($|\\s|[.,;:!?])`, 'gi')
       
       if (cmd.action === 'insert_text' && cmd.parameters?.text) {
-        if (regex.test(replaced)) {
-          replaced = replaced.replace(regex, (match, before, after) => {
-            return (before || '') + cmd.parameters!.text + (after && !['.', ',', ';', ':', '!', '?'].includes(after) ? after : '')
-          })
+        const newReplaced = replaced.replace(regex, (match, before, after) => {
+          return (before || '') + cmd.parameters!.text + (after && !['.', ',', ';', ':', '!', '?'].includes(after) ? after : '')
+        })
+        if (newReplaced !== replaced) {
+          replaced = newReplaced
           hasCommand = true
         }
       } else if (cmd.action === 'newline') {
-        if (regex.test(replaced)) {
-          replaced = replaced.replace(regex, () => '\n')
+        const newReplaced = replaced.replace(regex, '$1\n')
+        if (newReplaced !== replaced) {
+          replaced = newReplaced
           hasCommand = true
         }
       } else if (cmd.action === 'new_paragraph') {
-        if (regex.test(replaced)) {
-          replaced = replaced.replace(regex, () => '\n\n')
+        const newReplaced = replaced.replace(regex, '$1\n\n')
+        if (newReplaced !== replaced) {
+          replaced = newReplaced
           hasCommand = true
         }
       }
@@ -153,9 +157,16 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     const currentEditor = editorRef.current
     if (!currentEditor || !transcript.trim()) return
 
-    // Se não tem âncora ainda, salvar posição atual do cursor
+    // Se não tem âncora ainda, salvar posição atual do cursor e deletar seleção se houver
     if (anchorRef.current === null) {
-      anchorRef.current = currentEditor.state.selection.from
+      const { from, to } = currentEditor.state.selection
+      anchorRef.current = from
+      
+      // Se há texto selecionado, deletá-lo primeiro
+      if (from !== to) {
+        selectionEndRef.current = to
+        currentEditor.commands.deleteRange({ from, to })
+      }
     }
 
     const anchor = anchorRef.current
@@ -199,7 +210,18 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     
     if (!currentEditor || !transcript.trim()) return
 
-    const anchor = anchorRef.current ?? currentEditor.state.selection.from
+    // Se não tem âncora ainda, salvar posição atual e deletar seleção se houver
+    if (anchorRef.current === null) {
+      const { from, to } = currentEditor.state.selection
+      anchorRef.current = from
+      
+      if (from !== to) {
+        selectionEndRef.current = to
+        currentEditor.commands.deleteRange({ from, to })
+      }
+    }
+
+    const anchor = anchorRef.current
     const currentInterimLength = interimLengthRef.current
 
     const lowerTranscript = transcript.toLowerCase().trim()
@@ -278,6 +300,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
 
     // Resetar estado para próximo ditado
     anchorRef.current = null
+    selectionEndRef.current = null
     interimLengthRef.current = 0
 
     console.log('✏️ Final inserted:', content, 'at anchor:', anchor)
@@ -318,6 +341,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     
     // Resetar estado de âncora
     anchorRef.current = null
+    selectionEndRef.current = null
     interimLengthRef.current = 0
     
     console.log('🛑 Dictation stopped')
