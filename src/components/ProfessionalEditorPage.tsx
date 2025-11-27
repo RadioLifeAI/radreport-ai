@@ -99,26 +99,90 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
       const container = document.createElement('div')
       container.innerHTML = content
       
+      // TÍTULO PRINCIPAL - Centralizado, maiúsculas, 24pt após
       const title = container.querySelector('h1, h2')
       if (title) {
         title.textContent = title.textContent?.toUpperCase() || ''
-        title.setAttribute('style', 'font-family: Arial, Helvetica, sans-serif; font-size:12pt; font-weight:700; text-align:center; margin-bottom:20pt; margin-top:8pt; display:block; width:100%;')
+        title.setAttribute('style', `
+          font-family: Arial, Helvetica, sans-serif;
+          font-size: 12pt;
+          font-weight: 700;
+          text-align: center;
+          text-transform: uppercase;
+          margin-top: 0;
+          margin-bottom: 24pt;
+          line-height: 1.15;
+        `.replace(/\s+/g, ' ').trim())
       }
       
-      container.querySelectorAll('h3,h4,h5,h6').forEach(el => {
-        el.setAttribute('style', 'font-size:12pt; font-weight:600; margin-bottom:12pt; margin-top:16pt;')
+      // SUBTÍTULOS - 18pt antes, 8pt após (TÉCNICA, ACHADOS, IMPRESSÃO)
+      container.querySelectorAll('h3, h4, h5, h6').forEach(el => {
+        el.setAttribute('style', `
+          font-family: Arial, Helvetica, sans-serif;
+          font-size: 12pt;
+          font-weight: 600;
+          text-transform: uppercase;
+          margin-top: 18pt;
+          margin-bottom: 8pt;
+          line-height: 1.15;
+        `.replace(/\s+/g, ' ').trim())
       })
       
-      container.querySelectorAll('p, li, blockquote, code, pre, table').forEach(el => {
-        const prev = el.getAttribute('style') || ''
-        const next = prev
-          .split(';')
-          .filter(s => s.trim() && !/^font-size\s*:/i.test(s))
-          .join(';')
-        el.setAttribute('style', `${next}${next ? ';' : ''}font-size:12pt; margin-bottom:8.4pt; margin-top:8.4pt; text-align:left; line-height:1.15;`)
+      // Primeiro subtítulo após título (TÉCNICA) - sem margin-top extra
+      const firstH3 = container.querySelector('h2 + h3, h1 + h3')
+      if (firstH3) {
+        firstH3.setAttribute('style', `
+          font-family: Arial, Helvetica, sans-serif;
+          font-size: 12pt;
+          font-weight: 600;
+          text-transform: uppercase;
+          margin-top: 0;
+          margin-bottom: 8pt;
+          line-height: 1.15;
+        `.replace(/\s+/g, ' ').trim())
+      }
+      
+      // PARÁGRAFOS - 6pt entre parágrafos, texto justificado
+      container.querySelectorAll('p, li, blockquote').forEach(el => {
+        el.setAttribute('style', `
+          font-family: Arial, Helvetica, sans-serif;
+          font-size: 12pt;
+          font-weight: 400;
+          margin-top: 6pt;
+          margin-bottom: 6pt;
+          text-align: justify;
+          line-height: 1.15;
+        `.replace(/\s+/g, ' ').trim())
       })
       
-      const html = `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="font-family: Arial, Helvetica, sans-serif; font-size:12pt; line-height:1.4; margin:20pt; padding:0;">${container.innerHTML}</body></html>`
+      // Último parágrafo antes de subtítulo - margin-bottom maior (12pt)
+      container.querySelectorAll('p + h3, p + h4, p + h5, p + h6').forEach(subtitle => {
+        const prevParagraph = subtitle.previousElementSibling
+        if (prevParagraph && (prevParagraph.tagName === 'P' || prevParagraph.tagName === 'LI')) {
+          const currentStyle = prevParagraph.getAttribute('style') || ''
+          prevParagraph.setAttribute('style', 
+            currentStyle.replace(/margin-bottom:\s*[\d.]+pt/i, 'margin-bottom: 12pt')
+          )
+        }
+      })
+      
+      const html = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12pt;
+    line-height: 1.15;
+    margin: 2.5cm;
+    padding: 0;
+  }
+</style>
+</head>
+<body>${container.innerHTML}</body>
+</html>`
+      
       const plain = container.textContent || ''
       const ClipboardItemAny = (window as any).ClipboardItem
       if (ClipboardItemAny) {
@@ -130,7 +194,7 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
       } else {
         await navigator.clipboard.writeText(plain)
       }
-      toast.success('Laudo copiado com formatação')
+      toast.success('Laudo copiado com formatação profissional')
       return true
     } catch (error) {
       console.error('Erro ao copiar laudo:', error)
