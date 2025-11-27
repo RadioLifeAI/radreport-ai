@@ -54,23 +54,13 @@ export const corrections: Record<string, string> = {
   coledocolitiase: 'coledocolitíase',
   piolonefrite: 'pielonefrite',
   nefrolytiase: 'nefrolitíase',
-  esplenomegalia: 'esplenomegalia',
   hepatomegali: 'hepatomegalia',
   esteatose: 'esteatose hepática',
   
   meninjite: 'meningite',
-  encefalite: 'encefalite',
-  gliose: 'gliose',
   demielinizantes: 'placas desmielinizantes',
   
   mioma: 'mioma intramural', // Assume o tipo mais comum, embora genérico
-  adenomiose: 'adenomiose',
-  hidrossalpinge: 'hidrossalpinge',
-  
-  tendinopatia: 'tendinopatia',
-  bursite: 'bursite',
-  artrose: 'artrose',
-  espondilolistese: 'espondilolistese',
   osteofitos: 'osteófitos',
   
   // --- Descrições Genéricas ---
@@ -81,9 +71,7 @@ export const corrections: Record<string, string> = {
   vasculo: 'vascularização',
   
   // --- Termos Quantitativos ---
-  acentuado: 'acentuado',
-  discreto: 'discreto',
-  moderado: 'moderado'
+  // (termos já presentes no dicionário médico não precisam de correções redundantes)
 }
 
 export function applyPhoneticCorrections(t: string) {
