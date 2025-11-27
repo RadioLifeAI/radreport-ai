@@ -2697,6 +2697,138 @@ export const dict = {
     "ultrassonografia complementar"
   ],
   
+  // === TERMOS DE RESSONÂNCIA MAGNÉTICA - MAPEAMENTO COMPLETO (~200 termos) ===
+  termos_ressonancia_magnetica_completo: [
+    // NEURORRADIOLOGIA RM (~30 termos)
+    "pré-ganglionares", "pós-ganglionares", "pré-ganglionar", "pós-ganglionar",
+    "trajeto cisternal", "cisternal",
+    "intracanalicular", "intracanaliculares",
+    "ponto cerebelar",
+    "cavuns", "cavum de Meckel",
+    "raízes do plexo", "plexo braquial", "plexo sacral",
+    "troncos nervosos", "divisões nervosas", "fascículos nervosos",
+    "nervos ciáticos", "nervo ciático",
+    "porções proximais", "porções distais",
+    "efeito expansivo", "efeito compressivo",
+    "compressões extrínsecas", "compressão extrínseca",
+    "estruturas neurais", "território neural",
+    "VII par craniano", "VIII par craniano",
+    
+    // MUSCULOESQUELÉTICO RM (~35 termos)
+    "revestimentos condrais", "revestimento condral",
+    "fissuras condrais", "erosões condrais",
+    "tendão comum dos extensores", "tendão comum dos flexores",
+    "espessura mantida", "espessura preservada",
+    "ventres musculares eutróficos", "eutróficos", "eutrófico", "eutrófica",
+    "formação cística paralabral", "paralabral", "paralabrais",
+    "bursas peritrocantéricas", "peritrocantéricas", "peritrocantérico", "peritrocantérica",
+    "região adutora", "adutora",
+    "edema adjacente",
+    "trajetos livres", "trajeto livre",
+    "aspecto usual", "aspecto habitual",
+    "fossa poplítea", "poplítea",
+    "periarticulares", "periarticular",
+    "sinovite",
+    
+    // PRÓSTATA RM MULTIPARAMÉTRICA (~25 termos)
+    "gordura periprostática", "periprostática", "periprostático",
+    "glândula central",
+    "análise da difusão", "estudo difusional",
+    "estudo perfusional",
+    "ângulo vesículo-prostático", "vesículo-prostático",
+    "feixes neurovasculares", "neurovascular", "neurovasculares",
+    "plexos vésico-prostáticos", "vésico-prostáticos",
+    "fossas isquiorretais", "isquiorretais", "isquiorretal",
+    "espaço pré-sacral", "pré-sacral",
+    "linfonodomegalias pélvicas",
+    "linfonodomegalias inguinais",
+    "neoplasia prostática",
+    "clinicamente significativa",
+    "PI-RADS v2.1", "PIRADS",
+    
+    // PELVE FEMININA RM (~30 termos)
+    "em anteversão", "em retroversão",
+    "miométrio homogêneo",
+    "junção mioendometrial", "mioendometrial",
+    "endométrio fino",
+    "centrado", "centrada",
+    "compartimento anterior", "compartimento posterior", "compartimento lateral",
+    "espaço vesicouterino", "vesicouterino",
+    "recesso vesicovaginal", "vesicovaginal",
+    "ligamentos redondos", "ligamento redondo",
+    "ligamentos uterossacros", "uterossacros", "uterossacro",
+    "septo retovaginal", "retovaginal",
+    "ureteres distais", "ureter distal",
+    "formações císticas", "formação cística",
+    "uniloculares", "unilocular",
+    "natureza funcional",
+    
+    // ÓRBITAS E OUVIDOS RM (~20 termos)
+    "musculatura intrínseca", "intrínseca",
+    "musculatura extrínseca",
+    "gordura intraconal", "intraconal", "intraconais",
+    "gordura extraconal", "extraconal", "extraconais",
+    "glândulas lacrimais", "lacrimal",
+    "labirinto membranoso", "membranoso",
+    "agente paramagnético",
+    "cisternas do ângulo",
+    
+    // MAMAS RM (~20 termos)
+    "complexos areolopapilares", "areolopapilares", "areolopapilar",
+    "subcentimétricos", "subcentimétrico", "subcentimétrica",
+    "lúmen único", "lúmen",
+    "pastilhas de fechamento",
+    "dobras radiais", "dobra radial",
+    "ruptura intracapsular",
+    "ruptura extracapsular",
+    "líquido laminar",
+    "áreas anômalas de realce", "realce anômalo",
+    "cadeias mamárias internas",
+    "BI-RADS RM",
+    
+    // TÉCNICAS E SEQUÊNCIAS RM (~25 termos)
+    "sequência ECOPLANAR",
+    "critério Spin-Echo",
+    "impregnação anômala",
+    "restrição à difusão da água",
+    "sistemas vertebrobasilar",
+    "sistema carotídeo",
+    "cavidades aéreas paranasais",
+    "focais ou difusas",
+    "maiores eixos", "maior eixo",
+    "volume estimado",
+    "peso estimado",
+    
+    // DESCRITORES GERAIS RM (~25 termos)
+    "de aspecto usual",
+    "de aspecto preservado",
+    "dentro dos padrões da normalidade",
+    "sem alterações significativas",
+    "dignas de nota", "digna de nota",
+    "desprovido de significância", "desprovido", "desprovida",
+    "predominantemente homogênea", "predominantemente homogêneo",
+    "configuração anatômica",
+    "configuração preservada",
+    "configuração habitual",
+    "espessura e sinal preservados",
+    "baixa probabilidade",
+    "alta probabilidade",
+    
+    // COLUNA RM (~15 termos)
+    "altura e alinhamento posterior",
+    "alinhamento posterior preservado",
+    "articulações interfacetarias",
+    "calibre e sinal normais",
+    "calibre e intensidade",
+    
+    // ANGIORM (~10 termos)
+    "sinal de fluxo normal",
+    "oclusões ou estenoses",
+    "segmentos intradurais",
+    "padrão ouro",
+    "angiografia digital com subtração"
+  ],
+  
   sinonimos: {
     aneico: ["anecogênico", "sonolucente", "líquido simples", "conteúdo fluídico"],
     hipoecogênico: ["hipoecóico", "escuro ao ultrassom"],
