@@ -22,6 +22,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   const editorRef = useRef<Editor | null>(null)
   const speechServiceRef = useRef<SpeechRecognitionService | null>(null)
   const anchorRef = useRef<number | null>(null)      // Posição inicial do ditado
+  const selectionEndRef = useRef<number | null>(null) // Posição final da seleção (se houver)
   const interimLengthRef = useRef<number>(0)          // Tamanho do texto provisório
 
   // Sincronizar ref do editor sempre que mudar
@@ -102,33 +103,42 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
 
   /**
    * Substitui comandos de voz por pontuação/símbolos correspondentes
-   * Usa regex compatível com acentos portugueses
+   * Abordagem simplificada para contexto radiológico (essas palavras nunca aparecem em laudos)
    */
   const replaceVoiceCommands = (text: string): { text: string; hasCommand: boolean } => {
     let replaced = text
     let hasCommand = false
     
-    for (const cmd of VOICE_COMMANDS_CONFIG) {
-      const escapedCommand = escapeRegex(cmd.command)
-      // Usar (^|\\s) e ($|\\s|[.,;:!?]) em vez de \\b para suportar acentos
-      const regex = new RegExp(`(^|\\s)${escapedCommand}($|\\s|[.,;:!?])`, 'gi')
-      
-      if (cmd.action === 'insert_text' && cmd.parameters?.text) {
+    // Ordenar comandos por tamanho (maior primeiro) para evitar substituições parciais
+    // Ex: "ponto e vírgula" deve ser processado antes de "ponto"
+    const sortedCommands = [...VOICE_COMMANDS_CONFIG].sort(
+      (a, b) => b.command.length - a.command.length
+    )
+    
+    for (const cmd of sortedCommands) {
+      if (cmd.action === 'insert_text' || cmd.action === 'newline' || cmd.action === 'new_paragraph') {
+        // Em laudos radiológicos, essas palavras NUNCA aparecem no texto médico
+        // Então podemos fazer substituição case-insensitive direta
+        const regex = new RegExp(escapeRegex(cmd.command), 'gi')
+        
         if (regex.test(replaced)) {
-          replaced = replaced.replace(regex, (match, before, after) => {
-            return (before || '') + cmd.parameters!.text + (after && !['.', ',', ';', ':', '!', '?'].includes(after) ? after : '')
-          })
-          hasCommand = true
-        }
-      } else if (cmd.action === 'newline') {
-        if (regex.test(replaced)) {
-          replaced = replaced.replace(regex, () => '\n')
-          hasCommand = true
-        }
-      } else if (cmd.action === 'new_paragraph') {
-        if (regex.test(replaced)) {
-          replaced = replaced.replace(regex, () => '\n\n')
-          hasCommand = true
+          // CRITICAL: Resetar lastIndex antes de replace (fix do bug)
+          regex.lastIndex = 0
+          
+          let replacement = ''
+          
+          if (cmd.action === 'insert_text' && cmd.parameters?.text) {
+            replacement = cmd.parameters.text
+          } else if (cmd.action === 'newline') {
+            replacement = '\n'
+          } else if (cmd.action === 'new_paragraph') {
+            replacement = '\n\n'
+          }
+          
+          if (replacement) {
+            replaced = replaced.replace(regex, replacement)
+            hasCommand = true
+          }
         }
       }
     }
@@ -151,9 +161,17 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     const currentEditor = editorRef.current
     if (!currentEditor || !transcript.trim()) return
 
-    // Se não tem âncora ainda, salvar posição atual do cursor
+    // Se não tem âncora ainda, verificar se há seleção
     if (anchorRef.current === null) {
-      anchorRef.current = currentEditor.state.selection.from
+      const { from, to } = currentEditor.state.selection
+      anchorRef.current = from
+      
+      // Se há texto selecionado (from ≠ to), deletar primeiro
+      if (from !== to) {
+        selectionEndRef.current = to
+        currentEditor.commands.deleteRange({ from, to })
+        console.log('🗑️ Selection deleted:', { from, to })
+      }
     }
 
     const anchor = anchorRef.current
@@ -196,6 +214,19 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     console.log('✅ Final transcript:', transcript, 'hasEditor:', !!currentEditor)
     
     if (!currentEditor || !transcript.trim()) return
+
+    // Se não tem âncora ainda, verificar se há seleção
+    if (anchorRef.current === null) {
+      const { from, to } = currentEditor.state.selection
+      anchorRef.current = from
+      
+      // Se há texto selecionado, deletar primeiro
+      if (from !== to) {
+        selectionEndRef.current = to
+        currentEditor.commands.deleteRange({ from, to })
+        console.log('🗑️ Selection deleted on final:', { from, to })
+      }
+    }
 
     const anchor = anchorRef.current ?? currentEditor.state.selection.from
     const currentInterimLength = interimLengthRef.current
@@ -274,8 +305,9 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       .insertContentAt(anchor, content, { updateSelection: true })
       .run()
 
-    // Resetar estado para próximo ditado
+    // Resetar âncora, seleção e tamanho provisório para próximo ditado
     anchorRef.current = null
+    selectionEndRef.current = null
     interimLengthRef.current = 0
 
     console.log('✏️ Final inserted:', content, 'at anchor:', anchor)
@@ -316,6 +348,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     
     // Resetar estado de âncora
     anchorRef.current = null
+    selectionEndRef.current = null
     interimLengthRef.current = 0
     
     console.log('🛑 Dictation stopped')
