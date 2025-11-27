@@ -101,6 +101,24 @@ export function insertConclusion(editor: Editor, html: string) {
 }
 
 /**
+ * Substitui a seção IMPRESSÃO do laudo com nova conclusão
+ * Encontra <h3>IMPRESSÃO</h3> e substitui conteúdo até próximo <h3> ou fim
+ */
+export function replaceImpressionSection(editor: Editor, conclusionHtml: string) {
+  if (!editor) return
+  
+  // Usar replaceSection do sectionUtils
+  const { replaceSection } = require('@/editor/sectionUtils')
+  const currentHtml = editor.getHTML()
+  const newHtml = replaceSection(currentHtml, 'IMPRESSÃO', conclusionHtml)
+  
+  editor.commands.setContent(newHtml, {
+    emitUpdate: true,
+    parseOptions: TEMPLATE_PARSE_OPTIONS,
+  })
+}
+
+/**
  * Insere sugestão de IA
  */
 export function insertSuggestion(editor: Editor, text: string) {

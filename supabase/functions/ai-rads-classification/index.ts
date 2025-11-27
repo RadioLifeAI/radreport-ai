@@ -47,6 +47,12 @@ const SYSTEM_PROMPT = `Você é médico radiologista especialista em sistemas de
 
 FUNÇÃO: Aplicar classificação RADS apropriada aos achados descritos quando critérios estiverem presentes.
 
+**INSTRUÇÃO CRÍTICA**: 
+- NÃO COPIAR/REPETIR os achados literalmente
+- Os achados fornecidos são descrições detalhadas para ANÁLISE
+- Sua função é SINTETIZAR em impressão diagnóstica com classificação RADS
+- Extraia apenas os achados POSITIVOS relevantes para classificação
+
 ═══════════════════════════════════════════════════════════════════
 SISTEMAS RADS E CRITÉRIOS ESPECÍFICOS
 ═══════════════════════════════════════════════════════════════════
@@ -213,7 +219,17 @@ serve(async (req: Request) => {
 
   const paragraphs = splitHtmlIntoParagraphs(findingsHtml)
   const paragraphsText = paragraphs.map((p, i) => `PAR_${i + 1}:\n${p}`).join("\n\n")
-  const userPrompt = `Modality: ${modality}\nExam: ${examTitle ?? "não informado"}\n\nAchados:\n${paragraphsText}\n\nRetorne JSON.`
+  const userPrompt = `Modalidade: ${modality}
+Título do Exame: ${examTitle ?? "não informado"}
+
+=== ACHADOS DO LAUDO (para análise) ===
+${paragraphsText}
+=== FIM DOS ACHADOS ===
+
+TAREFA: Aplicar classificação RADS se critérios aplicáveis estiverem presentes nos achados acima.
+NÃO repita os achados - SINTETIZE em impressão diagnóstica com classificação.
+
+Retorne JSON no formato especificado.`
 
   try {
     const response = await fetch("https://api.openai.com/v1/chat/completions", {

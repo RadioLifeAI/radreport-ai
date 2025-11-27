@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 import { Editor } from '@tiptap/react'
 import { useReportStore } from '@/store'
-import { insertSuggestion, insertConclusion } from '@/editor/commands'
+import { insertSuggestion, replaceImpressionSection } from '@/editor/commands'
+import { parseReportSections } from '@/editor/sectionUtils'
 import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from 'sonner'
@@ -48,14 +49,28 @@ export default function EditorAIButton({ editor }: { editor: Editor | null }){
     if (!editor) return
     setLoadingConclusion(true)
     try{
-      const findingsHtml = editor.getHTML()
+      const fullHtml = editor.getHTML()
+      
+      // Extrair apenas ACHADOS do laudo
+      const sections = parseReportSections(fullHtml)
+      const achadosHtml = sections.achados
+      
+      // Validar que tem achados suficientes
+      if (!achadosHtml || achadosHtml.trim().length < 20) {
+        toast.error('Descreva os achados antes de gerar conclusão')
+        setLoadingConclusion(false)
+        return
+      }
+      
       const examTitle = modalidade || 'Exame'
       const { data, error } = await supabase.functions.invoke('ai-generate-conclusion', {
-        body: { findingsHtml, examTitle, modality: modalidade, user_id: user?.id }
+        body: { findingsHtml: achadosHtml, examTitle, modality: modalidade, user_id: user?.id }
       })
+      
       if (error) throw error
       if (data?.replacement) {
-        insertConclusion(editor, data.replacement)
+        // Substituir seção IMPRESSÃO com a conclusão gerada
+        replaceImpressionSection(editor, data.replacement)
         toast.success('Conclusão gerada com sucesso')
       }
     } catch (e) {
@@ -68,14 +83,28 @@ export default function EditorAIButton({ editor }: { editor: Editor | null }){
     if (!editor) return
     setLoadingRADS(true)
     try{
-      const findingsHtml = editor.getHTML()
+      const fullHtml = editor.getHTML()
+      
+      // Extrair apenas ACHADOS do laudo
+      const sections = parseReportSections(fullHtml)
+      const achadosHtml = sections.achados
+      
+      // Validar que tem achados suficientes
+      if (!achadosHtml || achadosHtml.trim().length < 20) {
+        toast.error('Descreva os achados antes de classificar RADS')
+        setLoadingRADS(false)
+        return
+      }
+      
       const examTitle = modalidade || 'Exame'
       const { data, error } = await supabase.functions.invoke('ai-rads-classification', {
-        body: { findingsHtml, examTitle, modality: modalidade, user_id: user?.id }
+        body: { findingsHtml: achadosHtml, examTitle, modality: modalidade, user_id: user?.id }
       })
+      
       if (error) throw error
       if (data?.replacement) {
-        insertConclusion(editor, data.replacement)
+        // Substituir seção IMPRESSÃO com a classificação RADS
+        replaceImpressionSection(editor, data.replacement)
         if (data.rads) {
           toast.success(`${data.rads.system} - Categoria ${data.rads.category}`)
         } else {
