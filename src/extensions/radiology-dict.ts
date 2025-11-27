@@ -931,7 +931,87 @@ export const dict = {
     "sobretudo",
     "poderão",
     "cpre", "colangiorm",
-    "ramos", "paredes", "conteúdo", "homogêneo", "meio", "concentração", "conservados", "vias"
+    "ramos", "paredes", "conteúdo", "homogêneo", "meio", "concentração", "conservados", "vias",
+    
+    // === ANATOMIA/ESTRUTURAS ADICIONAIS ===
+    "forma", "formas",
+    "arquitetura", "arquitetural",
+    "arco", "troncos",
+    "bulbo", "bulbos",
+    "lobo", "lobos",
+    "segmento", "segmentos",
+    "espaços",
+    "intercostal", "intercostais",
+    "membro", "membros",
+    "leito",
+    
+    // === DESCRITORES DE ESTADO/VISUALIZAÇÃO ===
+    "visibilizado", "visibilizada", "visibilizados", "visibilizadas",
+    "mantido", "mantida", "mantidos",
+    "comum", "comuns",
+    "interno", "interna", "internos", "internas",
+    "significativo", "significativa", "significativos", "significativas",
+    "indeterminado", "indeterminada", "indeterminados",
+    "acentuado", "acentuada", "acentuados", "acentuadas",
+    "rombo", "rombos",
+    "maldefinido", "maldefinidos", "maldefinida", "maldefinidas",
+    "gorduroso", "gordurosa", "gordurosos", "gordurosas",
+    "crônico", "crônica", "crônicos", "crônicas",
+    "reduzido", "reduzida", "reduzidos", "reduzidas",
+    "solitário", "solitária", "solitários", "solitárias",
+    "suspeito", "suspeita", "suspeitos", "suspeitas",
+    "comprometido", "comprometida", "comprometidos", "comprometidas", "comprometendo",
+    
+    // === TERMOS TÉCNICOS DE EXAME ===
+    "simetria", "simétrico", "simétrica",
+    "alinhamento", "alinhado", "alinhada",
+    "aeração",
+    "vascularização",
+    "restrição",
+    "infiltração", "infiltrado", "infiltrada",
+    "depósito", "depósitos",
+    "extensão",
+    "fator", "fatores",
+    "obstrutivo", "obstrutiva", "obstrutivos",
+    "feixe",
+    "grau", "graus",
+    "bilateralmente",
+    "difusamente",
+    
+    // === MODALIDADES E TÉCNICAS ===
+    "tomografia",
+    "ressonância",
+    "magnética", "magnético",
+    "computadorizada", "computadorizado",
+    "convencional",
+    "colangiorressonância",
+    
+    // === STATUS E CONDIÇÕES ===
+    "status",
+    "cirúrgico", "cirúrgica", "cirúrgicos",
+    "pós-cirúrgico", "pós-cirúrgica",
+    "pós-colecistectomia",
+    
+    // === PATOLOGIAS ADICIONAIS ===
+    "hemangioma", "hemangiomas",
+    
+    // === SUBSTÂNCIAS (DOENÇAS DE DEPÓSITO) ===
+    "ferro",
+    "glicogênio",
+    "cobre",
+    
+    // === OUTROS TERMOS FREQUENTES NOS TEMPLATES ===
+    "pacs",
+    "ortostase",
+    "curva", "curvas",
+    "fisiológico", "fisiológica", "fisiológicos", "fisiológicas",
+    "laudo", "laudos",
+    "elaborado", "elaborada",
+    "base", "bases",
+    "cerca",
+    "disponível", "disponíveis",
+    "custa",
+    "massas"
   ],
   
   sinonimos: {
