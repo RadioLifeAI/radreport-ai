@@ -79,6 +79,50 @@ export const VOICE_COMMANDS_CONFIG: VoiceCommand[] = [
     examples: ['tópico novo parágrafo continuação']
   },
   {
+    command: 'próximo parágrafo',
+    action: 'new_paragraph',
+    category: 'edição',
+    description: 'Cria novo parágrafo',
+    examples: ['próximo parágrafo']
+  },
+  {
+    command: 'parágrafo',
+    action: 'new_paragraph',
+    category: 'edição',
+    description: 'Cria novo parágrafo',
+    examples: ['parágrafo']
+  },
+  {
+    command: 'ponto parágrafo',
+    action: 'insert_text',
+    parameters: { text: '.\n\n' },
+    category: 'pontuação',
+    description: 'Insere ponto e cria novo parágrafo',
+    examples: ['ponto parágrafo']
+  },
+  {
+    command: 'ponto final',
+    action: 'insert_text',
+    parameters: { text: '. ' },
+    category: 'pontuação',
+    description: 'Insere ponto final',
+    examples: ['ponto final']
+  },
+  {
+    command: 'próxima linha',
+    action: 'newline',
+    category: 'edição',
+    description: 'Quebra de linha',
+    examples: ['próxima linha']
+  },
+  {
+    command: 'linha',
+    action: 'newline',
+    category: 'edição',
+    description: 'Quebra de linha',
+    examples: ['linha']
+  },
+  {
     command: 'apagar palavra',
     action: 'delete_word',
     category: 'edição',
