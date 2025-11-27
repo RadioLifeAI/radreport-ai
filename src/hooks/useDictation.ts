@@ -23,8 +23,6 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   const speechServiceRef = useRef<SpeechRecognitionService | null>(null)
   const anchorRef = useRef<number | null>(null)      // Posição inicial do ditado
   const interimLengthRef = useRef<number>(0)          // Tamanho do texto provisório
-  const lastConfidenceRef = useRef<number>(0)         // Último confidence score
-  const retryCountRef = useRef<number>(0)             // Contador de retry
 
   // Sincronizar ref do editor sempre que mudar
   useEffect(() => {
@@ -336,49 +334,21 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       setStatus(status)
     }
     
-    const resultCallback = (result: { transcript: string; isFinal: boolean; alternatives?: string[]; confidence?: number }) => {
-      const confidence = result.confidence || 0;
-      lastConfidenceRef.current = confidence;
-      
+    const resultCallback = (result: { transcript: string; isFinal: boolean; alternatives?: string[] }) => {
       console.log('🎯 Result received:', { 
         transcript: result.transcript, 
         isFinal: result.isFinal,
-        confidence,
         hasEditor: !!editorRef.current 
       })
-      
-      // Log baixa confiança para análise (mas não filtrar)
-      if (result.isFinal && confidence < 0.5 && confidence > 0) {
-        console.warn('⚠️ Low confidence result:', confidence, 'transcript:', result.transcript);
-      }
-      
       if (result.isFinal) {
         handleFinalTranscript(result.transcript)
-        retryCountRef.current = 0; // Reset retry counter on success
       } else {
         handleInterimTranscript(result.transcript)
       }
     }
 
-    const errorCallback = (error: string, message?: string) => {
-      console.error('🚨 Speech recognition error:', error, message);
-      
-      // Retry logic para erros recuperáveis
-      if ((error === 'network' || error === 'no-speech') && retryCountRef.current < 3) {
-        retryCountRef.current++;
-        console.log(`🔄 Retrying... (attempt ${retryCountRef.current}/3)`);
-        
-        setTimeout(() => {
-          if (speechService.isCurrentlyListening() === false && isActive) {
-            speechService.startListening();
-          }
-        }, 1000 * retryCountRef.current); // Exponential backoff
-      }
-    }
-
     speechService.setOnStatus(statusCallback)
     speechService.setOnResult(resultCallback)
-    speechService.setOnError(errorCallback)
     
     console.log('✓ Voice callbacks configured for useDictation')
 
@@ -386,7 +356,6 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       // Remover apenas callbacks deste hook
       speechService.removeOnStatus(statusCallback)
       speechService.removeOnResult(resultCallback)
-      speechService.removeOnError(errorCallback)
       speechService.stopListening()
     }
   }, [handleInterimTranscript, handleFinalTranscript])

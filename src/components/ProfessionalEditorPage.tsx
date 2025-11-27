@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback } from 'react'
 import { useReportStore } from '@/store'
 import { useTemplates } from '@/hooks/useTemplates'
 import { useFrasesModelo } from '@/hooks/useFrasesModelo'
@@ -7,8 +7,6 @@ import { useAuth } from '@/hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
 import { SimpleEditor } from '@/components/tiptap-templates/simple/simple-editor'
 import { supabaseService } from '@/services/SupabaseService'
-import { getSpeechRecognitionService } from '@/services/SpeechRecognitionService'
-import { getMedicalPhrasesForBiasing } from '@/lib/voiceCommandsConfig'
 import { toast } from 'sonner'
 import { Editor } from '@tiptap/react'
 import { EditorHeader } from '@/components/editor/EditorHeader'
@@ -94,24 +92,6 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
   const filteredFrasesAsMacros = filteredFrasesForDisplay.map(convertFraseToMacro)
   const recentFrasesAsMacros = recentFrases.map(convertFraseToMacro)
   const favoriteFrasesAsMacros = favoriteFrases.map(convertFraseToMacro)
-
-  // Inicializar Web Speech API 2025 features: medical phrases para contextual biasing
-  useEffect(() => {
-    const speechService = getSpeechRecognitionService()
-    
-    // Adicionar termos médicos radiológicos para melhor reconhecimento
-    const medicalPhrases = getMedicalPhrasesForBiasing()
-    console.log('🏥 Adding', medicalPhrases.length, 'medical phrases for contextual biasing')
-    speechService.addPhrases(medicalPhrases)
-    
-    // Verificar disponibilidade de reconhecimento local (opcional)
-    speechService.checkAvailability(['pt-BR'], false).then(status => {
-      console.log('🎤 Speech recognition availability:', status)
-      if (status === 'unavailable') {
-        console.warn('⚠️ Speech recognition not available for pt-BR')
-      }
-    })
-  }, [])
 
   // Copy formatted report function
   const copyFormattedReport = useCallback(async () => {
