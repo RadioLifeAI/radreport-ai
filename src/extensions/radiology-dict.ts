@@ -2300,6 +2300,82 @@ export const dict = {
     "evidentes ao método"
   ],
   
+  // === TERMOS DE MAMOGRAFIA (EXTRAÍDOS DOS TEMPLATES MG) ===
+  termos_mamografia_templates: [
+    // CLASSIFICAÇÃO BI-RADS (~3 termos)
+    "BI-RADS", "BI-RADS®", "BIRADS",
+    
+    // INCIDÊNCIAS E TÉCNICAS MAMOGRÁFICAS (~12 termos)
+    "tomossíntese",
+    "crânio-caudal", "craniocaudal",
+    "médio-lateral-oblíqua", "médio-lateral", "mediolateral",
+    "oblíqua", "oblíquas",
+    "magnificação", "magnificada", "magnificado",
+    "compressão localizada",
+    "manobra", "manobras",
+    "Eklund",
+    
+    // EQUIPAMENTOS E SISTEMAS (~5 termos)
+    "DR", "CR",
+    "sistema DR Digital", "sistema CR Digital",
+    "aquisição volumétrica",
+    
+    // MARCADORES E LOCALIZADORES (~10 termos)
+    "marcador", "marcadores",
+    "radiopaco", "radiopaca", "radiopacos", "radiopacas",
+    "cutânea", "cutâneo", "cutâneas", "cutâneos",
+    "caracterização",
+    
+    // IMPLANTES MAMÁRIOS (~15 termos)
+    "implante", "implantes",
+    "ruptura", "rupturas",
+    "extracapsular", "intracapsular",
+    "retropeitoral", "retropeitorais",
+    "subglandular", "subglandulares",
+    "localização", "localizações",
+    "manipulação", "manipulações",
+    
+    // ANATOMIA ESPECÍFICA DE MAMA (~10 termos)
+    "intra-mamário", "intra-mamária", "intramam", "intramário",
+    "fibroglandulares",
+    "parênquima mamário",
+    "tecido mamário",
+    
+    // ACHADOS MAMOGRÁFICOS (~2 termos)
+    "microcalcificações",
+    "nódulos suspeitos",
+    
+    // VERBOS E CONJUGAÇÕES FALTANTES (~12 termos)
+    "complementado", "complementada", "complementados", "complementadas",
+    "obtida", "obtidas", "obtido", "obtidos", "obter",
+    "considerar", "considerado", "considerada",
+    
+    // TERMOS DE ROTINA E CONTROLE (~10 termos)
+    "rotina", "rotinas",
+    "acordo",
+    "faixa", "faixas",
+    "etária", "etário", "etárias", "etários",
+    "faixa etária",
+    
+    // PALAVRAS COMUNS FALTANTES (~8 termos)
+    "ambas", "ambos",
+    "clínico", "clínica",
+    "diagnóstica", "diagnósticas",
+    
+    // DESCRITORES ESPECÍFICOS (~10 termos)
+    "extremamente densas", "extremamente",
+    "heterogeneamente densas",
+    "densidade mamária",
+    "alta densidade",
+    "poderá trazer",
+    "informações adicionais",
+    
+    // RASTREAMENTO (~3 termos)
+    "rastreamento mamográfico",
+    "controle de rotina",
+    "ultrassonografia complementar"
+  ],
+  
   sinonimos: {
     aneico: ["anecogênico", "sonolucente", "líquido simples", "conteúdo fluídico"],
     hipoecogênico: ["hipoecóico", "escuro ao ultrassom"],
