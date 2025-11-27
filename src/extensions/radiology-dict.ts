@@ -1593,6 +1593,93 @@ export const dict = {
     "massas"
   ],
   
+  // === TERMOS DE NEURORRADIOLOGIA (EXTRAÍDOS DOS TEMPLATES) ===
+  termos_neuro_templates: [
+    // ANATOMIA ENCEFÁLICA COMPLEMENTAR
+    "supratentorial", "supratentoriais",
+    "infratentorial", "infratentoriais",
+    "tentório", "tentorial",
+    "extra-axial", "extra-axiais",
+    "intra-axial", "intra-axiais",
+    "centro semioval", "semiovais",
+    "periventricular", "periventriculares",
+    "quiasma", "quiasmático", "quiasmática",
+    "cavernosos", "cavernoso",
+    "cávum", "cavuns", "meckel",
+    "liquóricos", "liquórico",
+    "pericerebrais", "pericerebral",
+    "subaracnoideanos", "subaracnoideo", "subaracnoideos",
+    "pericerebelar", "pericerebelares",
+    "linha média",
+    "base do crânio",
+    "estruturas ósseas cranianas",
+    
+    // ANATOMIA VASCULAR INTRACRANIANA
+    "artéria basilar", "basilar",
+    "artérias cerebrais", "cerebral anterior", "cerebral média", "cerebral posterior",
+    "segmentos intradurais", "intradural", "intradurais",
+    "seios venosos", "venosos durais",
+    "sistema venoso superficial", "sistema venoso profundo",
+    "vértebro-basilar", "vértebro basilar",
+    "supra-aórticos", "supra-aórtico",
+    
+    // HIPÓFISE E SELA TÚRCICA
+    "adeno-hipófise", "adenohipófise",
+    "neuro-hipófise", "neurohipófise",
+    "haste hipofisária", "infundíbulo",
+    "seios esfenoidais", "esfenoidal", "esfenoidais",
+    
+    // OUVIDO E OSSO TEMPORAL
+    "cócleas", "cóclea", "coclear", "cocleares",
+    "canais semicirculares", "semicircular", "semicirculares",
+    "vestíbulos", "vestíbulo", "vestibular", "vestibulares",
+    "labirinto", "labiríntico", "labiríntica",
+    "membranoso", "membranosa",
+    "condutos auditivos internos", "conduto auditivo interno",
+    "cisternal", "cisternais",
+    "intracanalicular", "intracanaliculares",
+    "pontocerebelar", "ponto cerebelar",
+    "ângulo pontocerebelar", "ângulo ponto cerebelar",
+    "pares cranianos", "par craniano",
+    "VII par", "VIII par",
+    
+    // COLUNA E MEDULA (TERMOS ESPECÍFICOS)
+    "transição crânio-cervical", "crânio-cervical",
+    "interespaços discais", "interespaço discal",
+    "interfacetárias", "interfacetária", "interfacetário",
+    "interapofisárias", "interapofisária",
+    "forames de conjugação", "forame de conjugação",
+    "cone medular",
+    "cauda equina", "cauda eqüina",
+    "raízes nervosas", "raiz nervosa",
+    
+    // ACHADOS E PATOLOGIAS ESPECÍFICAS
+    "microangiopatia", "microangiopático", "microangiopática",
+    "isquemia", "isquêmicos",
+    "processo expansivo", "processos expansivos",
+    "ectasia", "ectásico", "ectásica", "ectasias",
+    "intraparenquimatoso", "intraparenquimatosos",
+    "compensatória", "compensatório", "compensatórias",
+    "pequenos vasos", "doença dos pequenos vasos",
+    "fenômenos isquêmicos",
+    "redução volumétrica", "volumétrica",
+    
+    // TERMOS TÉCNICOS DE EXAME
+    "ECOPLANAR", "ecoplanar",
+    "Spin-Echo", "spin-echo", "spin echo",
+    "opacificação", "opacificado", "opacificada",
+    "anômala", "anômalo", "anômalas", "anômalos",
+    "impregnação anômala",
+    "agente paramagnético",
+    "angiografia digital", "subtração",
+    "critério", "critérios",
+    
+    // DESCRITORES DE FLUXO
+    "fluxo habitual",
+    "sinal de fluxo",
+    "flow void", "vazio de fluxo"
+  ],
+  
   sinonimos: {
     aneico: ["anecogênico", "sonolucente", "líquido simples", "conteúdo fluídico"],
     hipoecogênico: ["hipoecóico", "escuro ao ultrassom"],
