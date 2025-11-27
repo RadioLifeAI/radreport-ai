@@ -3,6 +3,7 @@ import type { IProofreaderInterface, ITextWithPosition } from '@farscrl/tiptap-e
 import { dict } from './radiology-dict'
 import phonetic, { corrections } from './phonetic-rules'
 import morphology from './morphology-rules'
+import { stopwords } from './portuguese-stopwords'
 
 function tokenizeIndices(text: string) {
   const regex = /[\p{L}\p{N}_]+/gu
@@ -53,11 +54,14 @@ const proofreader: IProofreaderInterface = {
     for (const { word, index } of tokens) {
       const lowerWord = word.toLowerCase()
       
-      // Ignorar palavras muito curtas (artigos, preposições)
-      if (word.length < 3) continue
+      // Ignorar palavras muito curtas (artigos, preposições de 1-2 letras)
+      if (word.length < 2) continue
       
       // Ignorar números e medidas com unidades médicas (ex: "5,2", "10x8", "10cm", "5mm")
       if (/^[\d.,x×]+(cm|mm|ml|mL|mg|g|kg|Hz|kHz|MHz|s|ms|min|h|%)?$/i.test(word)) continue
+      
+      // Ignorar stopwords do português (palavras estruturais da língua)
+      if (stopwords.has(lowerWord)) continue
       
       // Ignorar palavras do dicionário médico
       if (baseWords.has(lowerWord)) continue
