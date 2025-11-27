@@ -54,7 +54,9 @@ ESTRUTURA DA IMPRESSÃO:
 
 REGRAS DE REDAÇÃO RADIOLÓGICA:
 - Linguagem técnica, objetiva, estilo telegráfico característico de laudos radiológicos
-- NÃO repetir achados já descritos - SINTETIZAR em impressão diagnóstica
+- **CRÍTICO: NÃO COPIAR/REPETIR os achados literalmente - SINTETIZAR em diagnósticos e impressões**
+- Os achados fornecidos são descrições detalhadas das estruturas examinadas
+- Sua função é EXTRAIR apenas os achados POSITIVOS/RELEVANTES e sintetizá-los em impressão diagnóstica
 - Achados normais: "Estudo de [MODALIDADE] de [REGIÃO] sem alterações significativas." ou "Estudo dentro dos limites da normalidade."
 - Achados alterados: listar em ordem de relevância clínica (diagnósticos principais primeiro)
 - Usar terminologia RadLex/ACR padronizada quando aplicável
@@ -100,7 +102,18 @@ serve(async (req: Request) => {
   const paragraphs = splitHtmlIntoParagraphs(findingsHtml)
   const paragraphsText = paragraphs.map((p, i) => `PAR_${i + 1}:\n${p}`).join("\n\n")
 
-  const userPrompt = `Modalidade: ${modality}\nFormato: ${format}\nTítulo: ${examTitle ?? "não informado"}\n\nAchados:\n${paragraphsText}\n\nRetorne JSON.`
+  const userPrompt = `Modalidade: ${modality}
+Formato: ${format}
+Título do Exame: ${examTitle ?? "não informado"}
+
+=== ACHADOS DO LAUDO (para análise) ===
+${paragraphsText}
+=== FIM DOS ACHADOS ===
+
+TAREFA: Gerar IMPRESSÃO DIAGNÓSTICA sintetizando APENAS os achados positivos/relevantes acima.
+NÃO repita os achados - SINTETIZE em diagnósticos concisos.
+
+Retorne JSON no formato especificado.`
 
   try {
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
