@@ -10,6 +10,7 @@ export interface VoiceCommand {
   category: string;
   description: string;
   examples?: string[];
+  followedBy?: string; // Para comandos compostos como "ponto parágrafo"
 }
 
 export const VOICE_COMMANDS_CONFIG: VoiceCommand[] = [
@@ -62,32 +63,32 @@ export const VOICE_COMMANDS_CONFIG: VoiceCommand[] = [
   },
 
   // ==========================================
-  // COMANDOS DE NAVEGAÇÃO E EDIÇÃO
+  // COMANDOS DE NAVEGAÇÃO E EDIÇÃO (TipTap Native)
   // ==========================================
   {
     command: 'nova linha',
-    action: 'newline',
+    action: 'hard_break',
     category: 'edição',
-    description: 'Insere quebra de linha',
+    description: 'Insere quebra de linha (TipTap setHardBreak)',
     examples: ['texto nova linha continuação']
   },
   {
     command: 'novo parágrafo',
-    action: 'new_paragraph',
+    action: 'split_block',
     category: 'edição',
-    description: 'Cria novo parágrafo',
+    description: 'Cria novo parágrafo (TipTap splitBlock)',
     examples: ['tópico novo parágrafo continuação']
   },
   {
     command: 'próximo parágrafo',
-    action: 'new_paragraph',
+    action: 'split_block',
     category: 'edição',
     description: 'Cria novo parágrafo',
     examples: ['próximo parágrafo']
   },
   {
     command: 'parágrafo',
-    action: 'new_paragraph',
+    action: 'split_block',
     category: 'edição',
     description: 'Cria novo parágrafo',
     examples: ['parágrafo']
@@ -95,7 +96,8 @@ export const VOICE_COMMANDS_CONFIG: VoiceCommand[] = [
   {
     command: 'ponto parágrafo',
     action: 'insert_text',
-    parameters: { text: '.\n\n' },
+    parameters: { text: '.' },
+    followedBy: 'split_block',
     category: 'pontuação',
     description: 'Insere ponto e cria novo parágrafo',
     examples: ['ponto parágrafo']
@@ -103,21 +105,21 @@ export const VOICE_COMMANDS_CONFIG: VoiceCommand[] = [
   {
     command: 'ponto final',
     action: 'insert_text',
-    parameters: { text: '. ' },
+    parameters: { text: '.' },
     category: 'pontuação',
     description: 'Insere ponto final',
     examples: ['ponto final']
   },
   {
     command: 'próxima linha',
-    action: 'newline',
+    action: 'hard_break',
     category: 'edição',
     description: 'Quebra de linha',
     examples: ['próxima linha']
   },
   {
     command: 'linha',
-    action: 'newline',
+    action: 'hard_break',
     category: 'edição',
     description: 'Quebra de linha',
     examples: ['linha']
