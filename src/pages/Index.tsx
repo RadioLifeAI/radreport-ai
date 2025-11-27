@@ -155,46 +155,7 @@ const Index = () => {
               </CardFooter>
             </Card>
 
-            {/* Basic Plan */}
-            <Card className="glass-card">
-              <CardHeader>
-                <CardTitle className="text-2xl">Básico</CardTitle>
-                <CardDescription>Para radiologistas iniciantes</CardDescription>
-                <div className="mt-4">
-                  <span className="text-4xl font-bold">R$ 99</span>
-                  <span className="text-muted-foreground">/mês</span>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Check className="h-5 w-5 text-cyan-400" />
-                  <span>Até 100 laudos/mês</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check className="h-5 w-5 text-cyan-400" />
-                  <span>Todos os templates</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check className="h-5 w-5 text-cyan-400" />
-                  <span>IA assistente completa</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check className="h-5 w-5 text-cyan-400" />
-                  <span>Ditado por voz</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check className="h-5 w-5 text-cyan-400" />
-                  <span>Suporte por email</span>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button asChild variant="outline" className="w-full">
-                  <Link to="/signup">Assinar</Link>
-                </Button>
-              </CardFooter>
-            </Card>
-
-            {/* Pro Plan - Highlighted */}
+            {/* Pro Plan - Highlighted (Centro) */}
             <Card className="glass-card border-primary/50 shadow-glow scale-105">
               <CardHeader>
                 <div className="bg-gradient-to-r from-cyan-400 to-indigo-500 text-background text-xs font-semibold px-3 py-1 rounded-full w-fit mb-2">
@@ -235,6 +196,45 @@ const Index = () => {
               </CardContent>
               <CardFooter>
                 <Button asChild className="w-full btn-premium">
+                  <Link to="/signup">Assinar</Link>
+                </Button>
+              </CardFooter>
+            </Card>
+
+            {/* Basic Plan */}
+            <Card className="glass-card">
+              <CardHeader>
+                <CardTitle className="text-2xl">Básico</CardTitle>
+                <CardDescription>Para radiologistas iniciantes</CardDescription>
+                <div className="mt-4">
+                  <span className="text-4xl font-bold">R$ 99</span>
+                  <span className="text-muted-foreground">/mês</span>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Check className="h-5 w-5 text-cyan-400" />
+                  <span>Até 100 laudos/mês</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Check className="h-5 w-5 text-cyan-400" />
+                  <span>Todos os templates</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Check className="h-5 w-5 text-cyan-400" />
+                  <span>IA assistente completa</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Check className="h-5 w-5 text-cyan-400" />
+                  <span>Ditado por voz</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Check className="h-5 w-5 text-cyan-400" />
+                  <span>Suporte por email</span>
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button asChild variant="outline" className="w-full">
                   <Link to="/signup">Assinar</Link>
                 </Button>
               </CardFooter>
