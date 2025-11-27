@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { supabaseService } from '../services/SupabaseService'
 import { useReportStore } from '../store'
-import { formatarAchadosParagrafos, formatarAchadosMedicos, formatarTecnica } from '@/utils/templateFormatter'
+import { formatarAchadosParagrafos, formatarAchadosMedicos, formatarTecnica, dividirEmSentencas } from '@/utils/templateFormatter'
 
 export interface Template {
   id: string
@@ -291,30 +291,31 @@ export function useTemplates(): UseTemplatesReturn {
   const applyTemplate = useCallback((template: Template) => {
     setModalidade(template.modalidade)
     
-    // Formatar técnica usando a função específica (já inclui <h3>Técnica</h3>)
-    const tecnicaTexto = formatarTecnica(template.conteudo.tecnica)
-    const tecnicaHtml = tecnicaTexto ? formatarAchadosParagrafos(tecnicaTexto) : ''
+    // Título centralizado e em maiúsculas
+    const tituloHtml = `<h2 style="text-align: center; text-transform: uppercase;">${template.titulo}</h2>`
     
-    // Detectar se são achados médicos complexos e usar formatação apropriada
-    const achadosTexto = template.conteudo.achados
-    const achadosHtml = achadosTexto.includes('\\n') || achadosTexto.includes('\n') 
-      ? formatarAchadosMedicos(achadosTexto)
-      : formatarAchadosParagrafos(achadosTexto)
+    // Técnica - formatarTecnica já retorna HTML completo com <h3>TÉCNICA</h3> (não re-processar!)
+    const tecnicaHtml = formatarTecnica(template.conteudo.tecnica)
     
-    // Formatar impressão com parágrafos separados
-    const impressaoHtml = formatarAchadosParagrafos(template.conteudo.impressao)
+    // Achados - dividir sentenças em parágrafos
+    const achadosHtml = dividirEmSentencas(template.conteudo.achados)
     
-    // Formatar adicionais com parágrafos separados
-    const adicionaisHtml = template.conteudo.adicionais ? formatarAchadosParagrafos(template.conteudo.adicionais) : ''
+    // Impressão - dividir sentenças em parágrafos
+    const impressaoHtml = dividirEmSentencas(template.conteudo.impressao)
+    
+    // Adicionais
+    const adicionaisHtml = template.conteudo.adicionais 
+      ? dividirEmSentencas(template.conteudo.adicionais) 
+      : ''
     
     const html = [
-      `<h2>${template.titulo}</h2>`,
-      tecnicaHtml,
-      `<h3>Achados</h3>`,
+      tituloHtml,
+      tecnicaHtml, // Já inclui <h3>TÉCNICA</h3>
+      `<h3 style="text-transform: uppercase;">ACHADOS</h3>`,
       achadosHtml,
-      `<h3>Impressão</h3>`,
+      `<h3 style="text-transform: uppercase;">IMPRESSÃO</h3>`,
       impressaoHtml,
-      adicionaisHtml ? `<h3>Adicionais</h3>${adicionaisHtml}` : ''
+      adicionaisHtml ? `<h3 style="text-transform: uppercase;">ADICIONAIS</h3>${adicionaisHtml}` : ''
     ].filter(Boolean).join('')
     
     setContent(html)
