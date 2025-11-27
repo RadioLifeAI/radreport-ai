@@ -86,7 +86,7 @@ const corrections: Record<string, string> = {
   moderado: 'moderado'
 }
 
-function applyPhoneticCorrections(t: string) {
+export function applyPhoneticCorrections(t: string) {
   let text = t
   for (const wrong in corrections) {
     const right = corrections[wrong]
