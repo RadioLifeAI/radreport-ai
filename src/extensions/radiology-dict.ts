@@ -1680,6 +1680,97 @@ export const dict = {
     "flow void", "vazio de fluxo"
   ],
   
+  // === TERMOS DE TÓRAX E CORAÇÃO (EXTRAÍDOS DOS TEMPLATES) ===
+  termos_torax_cardiaco_templates: [
+    // ANATOMIA CARDÍACA
+    "átrio", "átrios",
+    "átrio direito", "átrio esquerdo",
+    "ventrículo direito", "ventrículo esquerdo",
+    "câmaras cardíacas", "câmaras",
+    "miocárdio", "miocárdica", "miocárdico",
+    "septo interventricular", "septo interatrial",
+    "valva mitral", "valva tricúspide",
+    "valva aórtica", "valva pulmonar",
+    "anel valvar", "anéis valvares",
+    "cordoalhas tendinosas",
+    "músculo papilar", "músculos papilares",
+    "endocárdio", "endocárdica", "endocárdico",
+    "epicárdio", "epicárdica", "epicárdico",
+    "pericárdio visceral", "pericárdio parietal",
+    "saco pericárdico",
+    
+    // FUNÇÃO CARDÍACA
+    "função sistólica", "sistólica", "sistólico",
+    "função diastólica", "diastólica", "diastólico",
+    "biventricular",
+    "fração de ejeção", "FEVE", "FEVD",
+    "IVDFVD", "IVSFVD", "IVDFVE", "IVSFVE", "IVAE",
+    "débito cardíaco",
+    "contratilidade",
+    "hipocinesia", "hipocinético", "hipocinética",
+    "acinesia", "acinético", "acinética",
+    "discinesia", "discinético", "discinética",
+    "normocinético", "normocinética",
+    "hipercinético", "hipercinética",
+    "segmentar", "segmentares",
+    
+    // TERMOS DE RM CARDÍACA
+    "cine-ressonância", "cine RM", "cine",
+    "double IR", "triple IR",
+    "mapas T1", "mapas T2", "mapping",
+    "técnica MOLLI", "MOLLI",
+    "miocardite", "miocardítica", "miocardítico",
+    "realce tardio miocárdico",
+    "fibrose miocárdica",
+    "edema miocárdico",
+    "stress cardíaco",
+    "perfusão miocárdica",
+    
+    // ANATOMIA TORÁCICA COMPLEMENTAR
+    "parede torácica",
+    "corpo do esterno", "corpo esternal",
+    "manúbrio esternal", "manúbrio",
+    "articulações esternoclaviculares", "esternoclavicular", "esterno-claviculares",
+    "junções costocondrais", "costocondral", "costocondrais",
+    "junções condroesternais", "condroesternal", "condroesternais",
+    "arcos costais", "arco costal",
+    "musculares", "muscular",
+    "artérias pulmonares",
+    "ramos principais", "ramos lobares", "ramos segmentares",
+    "tronco pulmonar", "tronco da artéria pulmonar",
+    "artéria pulmonar direita", "artéria pulmonar esquerda",
+    "hilares", "hilar",
+    "peribroncovasculares", "periboncovascular",
+    "estruturas ósseas", "estrutura óssea",
+    "estruturas vasculares mediastinais",
+    
+    // TERMOS DESCRITIVOS DE LAUDO
+    "dimensões preservadas", "dimensões aumentadas",
+    "calibre preservado", "calibre normal",
+    "contornos preservados", "contornos normais",
+    "topografia normal", "topografia",
+    "situação normal",
+    "patentes", "patente",
+    "centrado", "centrada",
+    "atenuação preservada",
+    "área cardíaca", "área cardíaca preservada",
+    "aspecto preservado",
+    "limitações do método",
+    
+    // TERMOS TÉCNICOS DE EXAME
+    "aquisições volumétricas", "aquisição volumétrica",
+    "reconstruções multiplanares", "reconstrução multiplanar",
+    "janela pulmonar", "janela de pulmão",
+    "janela mediastinal", "janela de mediastino",
+    "janela óssea", "janela ósseo",
+    "fase arterial", "fase venosa",
+    "protocolo TEP", "protocolo tromboembolismo",
+    "leito vascular",
+    "negativa para", "negativo para",
+    "angiotomografia", "angiotomográfico", "angiotomográfica",
+    "direcionado", "direcionada"
+  ],
+  
   sinonimos: {
     aneico: ["anecogênico", "sonolucente", "líquido simples", "conteúdo fluídico"],
     hipoecogênico: ["hipoecóico", "escuro ao ultrassom"],
