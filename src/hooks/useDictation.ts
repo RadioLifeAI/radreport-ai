@@ -102,60 +102,134 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   }
 
   /**
-   * Substitui comandos de voz por pontuação/símbolos correspondentes
-   * Abordagem simplificada para contexto radiológico (essas palavras nunca aparecem em laudos)
+   * Divide texto por comandos estruturais (linha/parágrafo)
+   * Retorna array de segmentos para processamento separado
    */
-  const replaceVoiceCommands = (text: string): { text: string; hasCommand: boolean } => {
-    let replaced = text
-    let hasCommand = false
+  interface VoiceSegment {
+    type: 'text' | 'hard_break' | 'split_block';
+    content?: string;
+  }
+
+  const splitByStructuralCommands = (text: string): VoiceSegment[] => {
+    const segments: VoiceSegment[] = []
     
-    // Ordenar comandos por tamanho (maior primeiro) para evitar substituições parciais
-    // Ex: "ponto e vírgula" deve ser processado antes de "ponto"
-    const sortedCommands = [...VOICE_COMMANDS_CONFIG].sort(
-      (a, b) => b.command.length - a.command.length
-    )
+    // Comandos estruturais ordenados por tamanho (maior primeiro)
+    const structuralCommands = VOICE_COMMANDS_CONFIG
+      .filter(cmd => cmd.action === 'hard_break' || cmd.action === 'split_block')
+      .sort((a, b) => b.command.length - a.command.length)
     
-    for (const cmd of sortedCommands) {
-      if (cmd.action === 'insert_text' || cmd.action === 'newline' || cmd.action === 'new_paragraph') {
-        // Em laudos radiológicos, essas palavras NUNCA aparecem no texto médico
-        // Então podemos fazer substituição case-insensitive direta
-        const regex = new RegExp(escapeRegex(cmd.command), 'gi')
+    let remaining = text
+    
+    while (remaining.length > 0) {
+      let foundCommand = false
+      
+      for (const cmd of structuralCommands) {
+        const regex = new RegExp(`(^|\\s)(${escapeRegex(cmd.command)})(\\s|$)`, 'i')
+        const match = remaining.match(regex)
         
-        if (regex.test(replaced)) {
-          // CRITICAL: Resetar lastIndex antes de replace (fix do bug)
-          regex.lastIndex = 0
-          
-          let replacement = ''
-          
-          if (cmd.action === 'insert_text' && cmd.parameters?.text) {
-            replacement = cmd.parameters.text
-          } else if (cmd.action === 'newline') {
-            replacement = '\n'
-          } else if (cmd.action === 'new_paragraph') {
-            replacement = '\n\n'
+        if (match && match.index !== undefined) {
+          // Texto antes do comando
+          const beforeText = remaining.substring(0, match.index + match[1].length)
+          if (beforeText.trim()) {
+            segments.push({ type: 'text', content: beforeText.trim() })
           }
           
-          if (replacement) {
-            replaced = replaced.replace(regex, replacement)
-            hasCommand = true
-          }
+          // Comando estrutural
+          segments.push({ 
+            type: cmd.action as 'hard_break' | 'split_block'
+          })
+          
+          // Continuar processando o restante
+          remaining = remaining.substring(match.index + match[0].length)
+          foundCommand = true
+          break
+        }
+      }
+      
+      if (!foundCommand) {
+        // Não encontrou mais comandos, adicionar texto restante
+        if (remaining.trim()) {
+          segments.push({ type: 'text', content: remaining.trim() })
+        }
+        break
+      }
+    }
+    
+    return segments
+  }
+
+  /**
+   * Substitui comandos de pontuação (não estruturais) no texto
+   */
+  const replacePunctuationCommands = (text: string): string => {
+    let replaced = text
+    
+    // Comandos de pontuação ordenados por tamanho
+    const punctuationCommands = VOICE_COMMANDS_CONFIG
+      .filter(cmd => cmd.action === 'insert_text' && !cmd.followedBy)
+      .sort((a, b) => b.command.length - a.command.length)
+    
+    for (const cmd of punctuationCommands) {
+      const regex = new RegExp(escapeRegex(cmd.command), 'gi')
+      
+      if (regex.test(replaced)) {
+        regex.lastIndex = 0
+        
+        if (cmd.parameters?.text) {
+          replaced = replaced.replace(regex, cmd.parameters.text)
         }
       }
     }
 
-    // Normalizar espaços: remover antes de pontuação, adicionar depois
+    // Normalizar espaços
     replaced = replaced.replace(/\s+([.,;:!?])/g, '$1')
-    replaced = replaced.replace(/([.,;:!?])(?=\S)/g, '$1 ')
-    
-    // Remover espaços múltiplos
+    replaced = replaced.replace(/([.,;:!?])(?=[^\s])/g, '$1 ')
     replaced = replaced.replace(/  +/g, ' ')
 
-    return { text: replaced, hasCommand }
+    return replaced
   }
 
   /**
-   * Processa transcrição provisória (interim)
-   * Insere/substitui texto provisório no editor em tempo real
+   * Processa entrada de voz usando comandos nativos do TipTap
+   */
+  const processVoiceInput = (transcript: string, currentEditor: Editor) => {
+    const segments = splitByStructuralCommands(transcript)
+    
+    for (const segment of segments) {
+      if (segment.type === 'text' && segment.content) {
+        // Processar pontuação
+        let processedText = replacePunctuationCommands(segment.content)
+        
+        // Verificar capitalização baseado na posição atual do cursor
+        const shouldCapitalize = shouldCapitalizeNext(currentEditor, currentEditor.state.selection.from)
+        processedText = applyCapitalization(processedText, shouldCapitalize)
+        
+        // Inserir texto
+        currentEditor.chain().focus().insertContent(processedText + ' ').run()
+        
+      } else if (segment.type === 'hard_break') {
+        // Comando nativo TipTap para quebra de linha
+        currentEditor.chain().focus().setHardBreak().run()
+        
+      } else if (segment.type === 'split_block') {
+        // Comando nativo TipTap para novo parágrafo
+        currentEditor.chain().focus().splitBlock().run()
+      }
+    }
+    
+    // Processar comandos compostos (ex: "ponto parágrafo")
+    const compositeCmd = VOICE_COMMANDS_CONFIG.find(
+      cmd => cmd.followedBy && transcript.toLowerCase().includes(cmd.command.toLowerCase())
+    )
+    
+    if (compositeCmd?.followedBy === 'split_block') {
+      currentEditor.chain().focus().splitBlock().run()
+    }
+  }
+
+  /**
+   * Handler para transcrições provisórias (em tempo real)
+   * Mostra preview com marcadores visuais para comandos estruturais
    */
   const handleInterimTranscript = useCallback((transcript: string) => {
     const currentEditor = editorRef.current
@@ -177,15 +251,19 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     const anchor = anchorRef.current
     const currentInterimLength = interimLengthRef.current
 
+    // Processar texto para preview (com marcadores visuais)
+    let previewText = transcript
+    
+    // Substituir comandos estruturais por marcadores visuais
+    previewText = previewText.replace(/nova linha|próxima linha|linha/gi, ' [↵] ')
+    previewText = previewText.replace(/novo parágrafo|próximo parágrafo|parágrafo/gi, ' [¶] ')
+    
+    // Processar pontuação
+    previewText = replacePunctuationCommands(previewText)
+    
     // Verificar se deve capitalizar
     const shouldCapitalize = shouldCapitalizeNext(currentEditor, anchor)
-
-    // Processar comandos de voz para exibição provisória
-    const { text: processedText } = replaceVoiceCommands(transcript)
-    let newText = processedText.trim()
-    
-    // Aplicar capitalização inteligente
-    newText = applyCapitalization(newText, shouldCapitalize)
+    const capitalizedText = applyCapitalization(previewText, shouldCapitalize)
 
     // Substituir texto provisório anterior pelo novo
     if (currentInterimLength > 0) {
@@ -195,23 +273,23 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       })
     }
     
-    currentEditor.commands.insertContentAt(anchor, newText, {
+    currentEditor.commands.insertContentAt(anchor, capitalizedText, {
       updateSelection: true,
     })
 
     // Atualizar comprimento do texto provisório
-    interimLengthRef.current = newText.length
+    interimLengthRef.current = capitalizedText.length
 
-    console.log('📝 Interim inserted:', newText, 'at anchor:', anchor)
+    console.log('📝 Interim with markers:', capitalizedText)
   }, [])
 
   /**
-   * Processa transcrição final confirmada
-   * Substitui texto provisório pelo texto final confirmado
+   * Handler para transcrições finais (confirmadas)
+   * Usa comandos nativos TipTap (setHardBreak, splitBlock)
    */
   const handleFinalTranscript = useCallback((transcript: string) => {
     const currentEditor = editorRef.current
-    console.log('✅ Final transcript:', transcript, 'hasEditor:', !!currentEditor)
+    console.log('✅ Final transcript:', transcript)
     
     if (!currentEditor || !transcript.trim()) return
 
@@ -236,7 +314,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     // Verificar comandos especiais primeiro (ações, não inserção de texto)
     for (const cmd of VOICE_COMMANDS_CONFIG) {
       if (lowerTranscript === cmd.command && 
-          !['insert_text', 'newline', 'new_paragraph'].includes(cmd.action)) {
+          !['insert_text', 'hard_break', 'split_block'].includes(cmd.action)) {
         // Limpar texto interim antes de executar comando
         if (currentInterimLength > 0) {
           currentEditor.commands.deleteRange({ 
@@ -267,50 +345,30 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
           case 'toggle_underline':
             currentEditor.commands.toggleUnderline()
             return
-          case 'clear_all':
-            currentEditor.commands.clearContent()
-            return
-          case 'select_all':
-            currentEditor.commands.selectAll()
-            return
         }
       }
     }
 
-    // Verificar se deve capitalizar baseado no contexto
-    const shouldCapitalize = shouldCapitalizeNext(currentEditor, anchor)
-
-    // Processar texto final com comandos de voz
-    const { text: processedText } = replaceVoiceCommands(transcript)
-    let finalText = processedText.trim()
-    if (!finalText) return
-
-    // Aplicar capitalização inteligente
-    finalText = applyCapitalization(finalText, shouldCapitalize)
-
-    // Adicionar espaço no final para próxima palavra (se não termina com quebra de linha)
-    const needsSpace = !/[.!?,;:\s\n]$/.test(finalText)
-    const content = finalText + (needsSpace ? ' ' : '')
-
-    // Substituir texto provisório pelo final
+    // Remover texto provisório se existir
     if (currentInterimLength > 0) {
       currentEditor.commands.deleteRange({ 
         from: anchor, 
         to: anchor + currentInterimLength 
       })
     }
-    
-    currentEditor.chain()
-      .focus()
-      .insertContentAt(anchor, content, { updateSelection: true })
-      .run()
 
-    // Resetar âncora, seleção e tamanho provisório para próximo ditado
+    // Posicionar cursor na âncora antes de processar
+    currentEditor.commands.setTextSelection(anchor)
+    
+    // Processar usando comandos nativos do TipTap
+    processVoiceInput(transcript, currentEditor)
+
+    // Resetar estado para próxima frase
     anchorRef.current = null
     selectionEndRef.current = null
     interimLengthRef.current = 0
 
-    console.log('✏️ Final inserted:', content, 'at anchor:', anchor)
+    console.log('✏️ Final processed with native TipTap commands')
   }, [])
 
   /**
