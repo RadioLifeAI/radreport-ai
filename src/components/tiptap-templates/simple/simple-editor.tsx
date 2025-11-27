@@ -163,15 +163,16 @@ export function SimpleEditor({
 
   const editor = useEditor({
     immediatelyRender: false,
-    editorProps: {
-      attributes: {
-        autocomplete: "off",
-        autocorrect: "off",
-        autocapitalize: "off",
-        "aria-label": "Main content area, start typing to enter text.",
-        class: "simple-editor",
+      editorProps: {
+        attributes: {
+          autocomplete: "off",
+          autocorrect: "off",
+          autocapitalize: "off",
+          spellcheck: "false",
+          "aria-label": "Main content area, start typing to enter text.",
+          class: "simple-editor",
+        },
       },
-    },
     extensions: [
       StarterKit.configure({
         heading: {

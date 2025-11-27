@@ -1,7 +1,7 @@
 import SpellcheckerExtension from '@farscrl/tiptap-extension-spellchecker'
 import type { IProofreaderInterface, ITextWithPosition } from '@farscrl/tiptap-extension-spellchecker/lib/i-proofreader-interface'
 import { dict } from './radiology-dict'
-import phonetic from './phonetic-rules'
+import phonetic, { corrections } from './phonetic-rules'
 import morphology from './morphology-rules'
 
 function tokenizeIndices(text: string) {
@@ -46,8 +46,34 @@ const baseWords: Set<string> = (() => {
 })()
 
 const proofreader: IProofreaderInterface = {
-  async proofreadText(_sentence: string): Promise<ITextWithPosition[]> {
-    return []
+  async proofreadText(sentence: string): Promise<ITextWithPosition[]> {
+    const errors: ITextWithPosition[] = []
+    const tokens = tokenizeIndices(sentence)
+    
+    for (const { word, index } of tokens) {
+      const lowerWord = word.toLowerCase()
+      
+      // Ignorar palavras muito curtas (artigos, preposições)
+      if (word.length < 3) continue
+      
+      // Ignorar números e medidas (ex: "5,2", "10x8")
+      if (/^[\d.,x×]+$/.test(word)) continue
+      
+      // Ignorar palavras do dicionário médico
+      if (baseWords.has(lowerWord)) continue
+      
+      // Ignorar palavras com correção automática (serão corrigidas pelo plugin)
+      if (corrections[lowerWord]) continue
+      
+      // Marcar como erro - usar offset/length (interface ITextWithPosition)
+      errors.push({
+        offset: index,
+        length: word.length,
+        word: word,
+      })
+    }
+    
+    return errors
   },
   async getSuggestions(word: string): Promise<string[]> {
     const candidates: string[] = Array.from(baseWords)
@@ -72,8 +98,14 @@ const RadiologySpellChecker = SpellcheckerExtension.extend({
     }
   },
   addProseMirrorPlugins() {
-    // Evita plugin de decorações do Spellchecker que pode causar erros de DecorationGroup
-    return [phonetic(), morphology()]
+    // Restaurar plugin pai para decorações visuais (sublinhados de erro)
+    const parent = this.parent?.() || []
+    
+    return [
+      ...parent,        // Decorações visuais do @farscrl/tiptap-extension-spellchecker
+      phonetic(),       // Correção automática fonética
+      morphology()      // Correção automática morfológica
+    ]
   }
 })
 

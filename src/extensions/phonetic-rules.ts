@@ -1,6 +1,6 @@
 import { Plugin } from 'prosemirror-state'
 
-const corrections: Record<string, string> = {
+export const corrections: Record<string, string> = {
   // --- Termos Fundamentais de Imagem ---
   // Ecografia (Hip/Hiper/Iso)
   hipoecogenico: 'hipoecogênico',
