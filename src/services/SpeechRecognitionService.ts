@@ -11,17 +11,45 @@ export interface MedicalTranscription {
   medicalTerms: string[];
 }
 
+export type SpeechErrorCode = 
+  | 'no-speech'
+  | 'aborted'
+  | 'audio-capture'
+  | 'network'
+  | 'not-allowed'
+  | 'service-not-allowed'
+  | 'language-not-supported'
+  | 'phrases-not-supported';
+
+export type AvailabilityStatus = 
+  | 'unavailable'
+  | 'downloadable'
+  | 'downloading'
+  | 'available';
+
+export interface SpeechRecognitionPhrase {
+  phrase: string;
+  boost: number;
+}
+
 export class SpeechRecognitionService {
   private recognition: SpeechRecognition | null = null;
   private isListening = false;
   private keepAlive = false;
   private userStopped = false;
+  private useStopInsteadOfAbort = false;
   private currentStream: MediaStream | null = null;
+  private lastConfidence = 0;
   private onStatusCallbacks: Array<(status: 'idle'|'waiting'|'listening') => void> = [];
   private onEndCallbacks: Array<(reason: 'auto'|'user') => void> = [];
-  private onResultDetailedCallbacks: Array<(result: { transcript: string; isFinal: boolean; alternatives?: string[] }) => void> = [];
-  private onErrorCallbacks: Array<(error: string) => void> = [];
-  private config = { lang: 'pt-BR' };
+  private onResultDetailedCallbacks: Array<(result: { transcript: string; isFinal: boolean; alternatives?: string[]; confidence?: number }) => void> = [];
+  private onErrorCallbacks: Array<(error: SpeechErrorCode, message?: string) => void> = [];
+  private config = { 
+    lang: 'pt-BR',
+    maxAlternatives: 3,
+    processLocally: false,
+    phrases: [] as SpeechRecognitionPhrase[]
+  };
 
   constructor() {
     this.initializeRecognition();
@@ -36,8 +64,24 @@ export class SpeechRecognitionService {
     this.recognition = new SpeechRecognition();
     this.recognition.continuous = true;
     this.recognition.interimResults = true;
-    this.recognition.lang = 'pt-BR';
-    this.recognition.maxAlternatives = (this.config as any).maxAlternatives ?? 1;
+    this.recognition.lang = this.config.lang;
+    this.recognition.maxAlternatives = this.config.maxAlternatives;
+    
+    // Web Speech API 2025 features (com feature detection)
+    if ('processLocally' in this.recognition) {
+      (this.recognition as any).processLocally = this.config.processLocally;
+    }
+    
+    if ('phrases' in this.recognition && this.config.phrases.length > 0) {
+      const phrases = (this.recognition as any).phrases as any[];
+      this.config.phrases.forEach(p => {
+        try {
+          phrases.push(new (window as any).SpeechRecognitionPhrase(p.phrase, p.boost));
+        } catch (e) {
+          console.warn('Failed to add phrase:', p.phrase, e);
+        }
+      });
+    }
     
     this.setupEventHandlers();
   }
@@ -78,34 +122,50 @@ export class SpeechRecognitionService {
       for (let i = event.resultIndex; i < results.length; ++i) {
         const res = results[i];
         const transcript = res[0].transcript;
+        const confidence = res[0].confidence || 0;
         const isFinal = res.isFinal;
+        
+        this.lastConfidence = confidence;
         
         const alternatives = Array.from(res).map((alt: SpeechRecognitionAlternative) => alt.transcript);
         
         console.log('🎙️ SpeechService onresult:', { 
           transcript, 
           isFinal,
+          confidence,
           resultIndex: i,
           callbackCount: this.onResultDetailedCallbacks.length 
         })
 
-        // Enviar apenas o texto deste resultado, não acumulado
+        // Enviar resultado com confidence score
         this.onResultDetailedCallbacks.forEach(cb => cb({
           transcript,
           isFinal,
-          alternatives
+          alternatives,
+          confidence
         }));
       }
     };
 
     this.recognition.onerror = (event) => {
-      console.error('Speech recognition error:', event.error);
-      this.onErrorCallbacks.forEach(cb => cb(event.error));
-      if (event.error === 'not-allowed' || event.error === 'audio-capture') {
+      const errorCode = event.error as SpeechErrorCode;
+      const errorMessage = this.getErrorMessage(errorCode);
+      
+      console.error('Speech recognition error:', errorCode, errorMessage);
+      this.onErrorCallbacks.forEach(cb => cb(errorCode, errorMessage));
+      
+      // Erros críticos que param o reconhecimento
+      const criticalErrors: SpeechErrorCode[] = ['not-allowed', 'audio-capture', 'service-not-allowed'];
+      if (criticalErrors.includes(errorCode)) {
         this.keepAlive = false;
         this.userStopped = true;
         this.isListening = false;
         this.onStatusCallbacks.forEach(cb => cb('idle'));
+      }
+      
+      // Retry logic para erros recuperáveis
+      if (errorCode === 'network' || errorCode === 'no-speech') {
+        console.log('🔄 Recoverable error, will retry...');
       }
     };
 
@@ -171,6 +231,10 @@ export class SpeechRecognitionService {
     }
   }
 
+  /**
+   * Para o reconhecimento e retorna o último resultado (Web Speech API best practice)
+   * Use quando o usuário clica em "Parar" e quer o resultado
+   */
   public stopListening(): boolean {
     if (!this.recognition || !this.isListening) {
       return false;
@@ -179,6 +243,41 @@ export class SpeechRecognitionService {
     try {
       this.keepAlive = false;
       this.userStopped = true;
+      this.useStopInsteadOfAbort = true;
+      
+      // Usar stop() para retornar último resultado
+      this.recognition.stop();
+      
+      // Parar MediaStream
+      if (this.currentStream) {
+        this.currentStream.getTracks().forEach(track => track.stop());
+        this.currentStream = null;
+      }
+      
+      this.isListening = false;
+      this.onStatusCallbacks.forEach(cb => cb('idle'));
+      return true;
+    } catch (error) {
+      console.error('Failed to stop speech recognition:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Aborta o reconhecimento imediatamente sem retornar resultado
+   * Use apenas para cancelamentos forçados ou erros críticos
+   */
+  public abortListening(): boolean {
+    if (!this.recognition || !this.isListening) {
+      return false;
+    }
+
+    try {
+      this.keepAlive = false;
+      this.userStopped = true;
+      this.useStopInsteadOfAbort = false;
+      
+      // Usar abort() para cancelamento forçado
       if (typeof this.recognition.abort === 'function') {
         this.recognition.abort();
       } else {
@@ -195,7 +294,7 @@ export class SpeechRecognitionService {
       this.onStatusCallbacks.forEach(cb => cb('idle'));
       return true;
     } catch (error) {
-      console.error('Failed to stop speech recognition:', error);
+      console.error('Failed to abort speech recognition:', error);
       return false;
     }
   }
@@ -221,19 +320,19 @@ export class SpeechRecognitionService {
     this.onEndCallbacks = this.onEndCallbacks.filter(cb => cb !== callback);
   }
 
-  public setOnResult(callback: (result: { transcript: string; isFinal: boolean; alternatives?: string[] }) => void) {
+  public setOnResult(callback: (result: { transcript: string; isFinal: boolean; alternatives?: string[]; confidence?: number }) => void) {
     this.onResultDetailedCallbacks.push(callback);
   }
 
-  public removeOnResult(callback: (result: { transcript: string; isFinal: boolean; alternatives?: string[] }) => void) {
+  public removeOnResult(callback: (result: { transcript: string; isFinal: boolean; alternatives?: string[]; confidence?: number }) => void) {
     this.onResultDetailedCallbacks = this.onResultDetailedCallbacks.filter(cb => cb !== callback);
   }
 
-  public setOnError(callback: (error: string) => void) {
+  public setOnError(callback: (error: SpeechErrorCode, message?: string) => void) {
     this.onErrorCallbacks.push(callback);
   }
 
-  public removeOnError(callback: (error: string) => void) {
+  public removeOnError(callback: (error: SpeechErrorCode, message?: string) => void) {
     this.onErrorCallbacks = this.onErrorCallbacks.filter(cb => cb !== callback);
   }
 
@@ -263,16 +362,126 @@ export class SpeechRecognitionService {
     return this.isListening;
   }
 
-  public updateConfig(config: { lang?: string; [key: string]: any }) {
+  public updateConfig(config: { 
+    lang?: string; 
+    maxAlternatives?: number;
+    processLocally?: boolean;
+    phrases?: SpeechRecognitionPhrase[];
+  }) {
     this.config = { ...this.config, ...config };
     if (this.recognition && config.lang) {
       this.recognition.lang = config.lang;
     }
-    if (this.recognition && typeof (config as any).maxAlternatives === 'number') {
+    if (this.recognition && typeof config.maxAlternatives === 'number') {
       try {
-        this.recognition.maxAlternatives = (config as any).maxAlternatives;
+        this.recognition.maxAlternatives = config.maxAlternatives;
       } catch {}
     }
+    if (this.recognition && typeof config.processLocally === 'boolean') {
+      try {
+        if ('processLocally' in this.recognition) {
+          (this.recognition as any).processLocally = config.processLocally;
+        }
+      } catch {}
+    }
+  }
+
+  /**
+   * Obtém o último confidence score registrado
+   */
+  public getLastConfidence(): number {
+    return this.lastConfidence;
+  }
+
+  /**
+   * Verifica disponibilidade de reconhecimento (Web Speech API 2025)
+   */
+  public async checkAvailability(langs: string[], processLocally = false): Promise<AvailabilityStatus> {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    
+    if (!SpeechRecognition) {
+      return 'unavailable';
+    }
+
+    // Feature detection para available()
+    if ('available' in SpeechRecognition) {
+      try {
+        const status = await (SpeechRecognition as any).available({ 
+          langs, 
+          processLocally 
+        });
+        return status as AvailabilityStatus;
+      } catch (e) {
+        console.warn('available() call failed:', e);
+      }
+    }
+
+    // Fallback: se não tem available(), assumir disponível
+    return 'available';
+  }
+
+  /**
+   * Instala pacotes de idioma local (Web Speech API 2025)
+   */
+  public async installLanguagePacks(langs: string[]): Promise<boolean> {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    
+    if (!SpeechRecognition) {
+      return false;
+    }
+
+    // Feature detection para install()
+    if ('install' in SpeechRecognition) {
+      try {
+        const result = await (SpeechRecognition as any).install({ 
+          langs,
+          processLocally: true
+        });
+        return result as boolean;
+      } catch (e) {
+        console.warn('install() call failed:', e);
+        return false;
+      }
+    }
+
+    // Fallback: se não tem install(), retornar true (assumir instalado)
+    return true;
+  }
+
+  /**
+   * Adiciona frases para contextual biasing (Web Speech API 2025)
+   */
+  public addPhrases(phrases: SpeechRecognitionPhrase[]) {
+    this.config.phrases = [...this.config.phrases, ...phrases];
+    
+    if (this.recognition && 'phrases' in this.recognition) {
+      const recognitionPhrases = (this.recognition as any).phrases as any[];
+      phrases.forEach(p => {
+        try {
+          recognitionPhrases.push(new (window as any).SpeechRecognitionPhrase(p.phrase, p.boost));
+        } catch (e) {
+          console.warn('Failed to add phrase:', p.phrase, e);
+        }
+      });
+    }
+  }
+
+  /**
+   * Mensagens de erro localizadas
+   */
+  private getErrorMessage(code: SpeechErrorCode): string {
+    const messages: Record<SpeechErrorCode, string> = {
+      'no-speech': 'Nenhuma fala detectada. Tente falar mais alto ou verificar o microfone.',
+      'aborted': 'Reconhecimento de voz cancelado.',
+      'audio-capture': 'Falha ao capturar áudio. Verifique as permissões do microfone.',
+      'network': 'Erro de rede. Verifique sua conexão com a internet.',
+      'not-allowed': 'Permissão de microfone negada. Habilite o acesso ao microfone nas configurações.',
+      'service-not-allowed': 'Serviço de reconhecimento não permitido. Verifique as configurações de privacidade.',
+      'language-not-supported': 'Idioma não suportado pelo serviço de reconhecimento.',
+      'phrases-not-supported': 'Suporte a frases contextuais não disponível neste navegador.'
+    };
+    
+    return messages[code] || 'Erro desconhecido no reconhecimento de voz.';
   }
 
 }
