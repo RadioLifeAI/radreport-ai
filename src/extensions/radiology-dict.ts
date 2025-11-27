@@ -576,6 +576,108 @@ export const dict = {
     "derivação", "derivações"
   ],
   
+  // === PATOLOGIAS DE CABEÇA E PESCOÇO ===
+  patologias_cabeca_pescoco: [
+    // ÓRBITA E GLOBO OCULAR
+    "pseudotumor", "orbitário", "orbitária",
+    "celulite", "pré-septal", "septal",
+    "oftalmopatia", "graves",
+    "dacrioadenite", "dacriocistite",
+    "hemangioma capilar", "hemangioma cavernoso",
+    "varizes", "linfangioma",
+    "retinoblastoma", "melanoma", "uveal",
+    "neurite", "óptica", "óptico",
+    "proptose", "enoftalmia", "exoftalmia",
+    
+    // SEIOS PARANASAIS E CAVIDADE NASAL
+    "sinusite", "rinossinusite",
+    "maxilar", "etmoidal", "esfenoidal", "frontal",
+    "pansinusite",
+    "fúngica", "fúngico",
+    "pólipo", "pólipos", "polipose", "polipoides",
+    "papiloma", "invertido",
+    "estesioneuroblastoma",
+    "desvio", "septal", "perfuração",
+    "granulomatose", "wegener",
+    "aspergilose",
+    
+    // OSSO TEMPORAL E ORELHA
+    "colesteatoma", "colesteatomas",
+    "otite", "média", "crônica",
+    "otomastoidite", "mastoidite",
+    "timpanoesclerose",
+    "otosclerose",
+    "labirintite",
+    "vestibular", "vestibulares",
+    "neuroma", "acústico",
+    "ménière",
+    "paraganglioma", "paragangliomas",
+    "glomus", "jugular", "timpânico",
+    "atresia", "auditivo",
+    "mondini",
+    "aqueduto", "alargado",
+    
+    // GLÂNDULAS SALIVARES
+    "sialadenite", "sialolitíase",
+    "parotidite", "submandibulite",
+    "pleomórfico", "pleomórfica",
+    "warthin",
+    "oncocitoma",
+    "linfoepitelial",
+    "mucoepidermoide",
+    "acinares",
+    "sialose",
+    "sjögren",
+    "rânula",
+    
+    // FARINGE E CAVIDADE ORAL
+    "nasofaringe", "orofaringe", "hipofaringe",
+    "assoalho", "bucal",
+    "peritonsilar", "retrofaríngeo", "parafaríngeo",
+    "tornwaldt",
+    "angioedema",
+    "tonsilite", "faringite",
+    "mononucleose",
+    
+    // LARINGE
+    "vocal", "vocais",
+    "papilomatose",
+    "laringocele",
+    "glótico", "glótica",
+    "supraglótico", "supraglótica",
+    "subglótico", "subglótica",
+    "transglótico", "transglótica",
+    "reinke",
+    "laringite",
+    
+    // TIREOIDE E PARATIREOIDES
+    "tireoidiano", "tireoidiana",
+    "bócio", "multinodular",
+    "coloide", "coloides",
+    "folicular", "foliculares",
+    "hashimoto",
+    "papilífero", "papilífera",
+    "medular", "medulares",
+    "anaplásico", "anaplásica",
+    "paratireoide", "paratireoides",
+    
+    // ESPAÇOS CERVICAIS PROFUNDOS
+    "branquial", "branquiais",
+    "tireoglosso",
+    "higroma",
+    "carotídea", "carotídeo", "carotídeas",
+    "corpo carotídeo",
+    
+    // LINFONODOS CERVICAIS
+    "linfadenopatia", "reativa",
+    "linfadenite",
+    "tuberculose ganglionar",
+    "linfonodal", "linfonodais",
+    "hodgkin",
+    "extracapsular",
+    "conglomerado"
+  ],
+  
   rads_scores: [
     "BI-RADS 0", "BI-RADS 1", "BI-RADS 2", "BI-RADS 3", "BI-RADS 4A", "BI-RADS 4B", "BI-RADS 4C", "BI-RADS 5", "BI-RADS 6",
     "TI-RADS 1", "TI-RADS 2", "TI-RADS 3", "TI-RADS 4", "TI-RADS 5",
