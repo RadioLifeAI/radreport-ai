@@ -1771,6 +1771,117 @@ export const dict = {
     "direcionado", "direcionada"
   ],
   
+  // === TERMOS DE ABDOME (EXTRAÍDOS DOS TEMPLATES) ===
+  termos_abdome_templates: [
+    // ANATOMIA ABDOMINAL ESPECÍFICA
+    "arquitetura vascular", "ramos portais", "sistema porta",
+    "coletores", "sistemas coletores", "pielocaliciais",
+    "segmentos", "segmento", "segmentar",
+    "córtex renal", "corticomedular", "diferenciação corticomedular",
+    "corticais", "adelgaçamento",
+    "lúmen", "luminal", "endoluminal", "endoluminais",
+    "pelve renal", "pelves", "piélico",
+    "espaços", "planos gordurosos", "planos adiposos",
+    "leito vesicular",
+    "gordura abdominal", "adiposos adjacentes",
+    "junção", "junções", "biliopancreática",
+    "implantação", "terço médio",
+    "espessura do parênquima",
+    "bordos rombos", "bordos finos",
+    
+    // ANATOMIA VASCULAR ABDOMINAL
+    "veia cava inferior", "VCI",
+    "tributárias", "ramos", "confluência",
+    "tronco celíaco",
+    "artéria mesentérica", "artérias mesentéricas",
+    "mesentérica superior", "mesentérica inferior",
+    "artérias renais", "veias renais",
+    "esplênica", "gastroesplênica",
+    "gástrica", "gastroduodenal",
+    "bifurcação", "emergência",
+    "suprarrenal", "infrarrenal", "suprarrenais",
+    "ápice", "transição tóraco abdominal",
+    "segmentos intradurais",
+    "pérvios", "pérvia",
+    "fluxo habitual", "opacificação",
+    
+    // TERMOS DE TÉCNICA USG
+    "transdutor", "convexo", "multifrequencial",
+    "varredura", "sistemática",
+    "documentação", "representativas",
+    "feixe acústico", "atenuação do feixe",
+    "repleção habitual", "ecos",
+    "modo bidimensional", "dinâmico",
+    "porções posteriores",
+    "parcialmente identificado",
+    "líquido livre", "livre na cavidade",
+    "peritoneal",
+    
+    // TERMOS DE TÉCNICA TC
+    "aquisições volumétricas", "aquisição volumétrica",
+    "helicoidal", "multislice",
+    "reconstruções", "reformatações", "reformatação",
+    "contraste oral", "VO",
+    "coeficiente de atenuação",
+    "protocolo direcionado",
+    "leito vascular", "vascular de interesse",
+    "padrão arterial", "padrão portal", "padrão tardio",
+    "fases", "fase arterial", "fase portal", "fase tardia",
+    "fase excretora", "excreção",
+    
+    // TERMOS DE TÉCNICA RM
+    "sequências multiplanares",
+    "intensidade de sinal", "sinal habitual",
+    "protocolo esteatose", "protocolo ferro",
+    "gordura e ferro hepáticos",
+    "contraste paramagnético",
+    "concentração adequada",
+    
+    // DESCRITORES DE ESTADO NORMAL
+    "sem particularidades", "particularidade",
+    "dignas de nota", "digna de nota",
+    "dentro dos limites", "limites da normalidade",
+    "aspecto habitual",
+    "espessura normal", "capacidade conservada",
+    "conteúdo anecóico", "conteúdo homogêneo",
+    "calibre normal", "calibre conservado",
+    "trajeto preservado", "trajeto normal",
+    "sinais aparentes",
+    "boa repleção", "baixa repleção",
+    "concentrado", "concentração",
+    "habitualmente",
+    
+    // ACHADOS E PATOLOGIAS USG
+    "hepatopatia de depósito",
+    "Murphy ultrassonográfico",
+    "imagem calculosa", "imagens calculosas",
+    "delaminadas", "delaminada",
+    "hiperdistendida", "hiperdistendido",
+    "artefato de reverberação", "reverberação posterior",
+    "artefato em cauda de cometa", "cauda de cometa",
+    "intramurais", "intramural",
+    "ecogênicos intramurais",
+    "formadores de sombra", "formadora de sombra",
+    "aspecto residual", "residual",
+    "à montante", "à jusante",
+    
+    // DESCRITORES DE RX ABDOME
+    "traçado vascular", "traçado",
+    "decúbito dorsal", "ortostática",
+    "anteroposterior", "AP",
+    "nível hidroaéreo", "níveis hidroaéreos",
+    "gases distribuídos", "distribuição gasosa",
+    "obstrução intestinal", "trânsito intestinal",
+    "pneumoperitônio",
+    "compressão", "dupla contrastação",
+    
+    // MEDIDAS E ÍNDICES
+    "índice esplênico",
+    "maior eixo", "menor eixo",
+    "diâmetro transverso", "diâmetro anteroposterior",
+    "volume", "volumetria"
+  ],
+  
   sinonimos: {
     aneico: ["anecogênico", "sonolucente", "líquido simples", "conteúdo fluídico"],
     hipoecogênico: ["hipoecóico", "escuro ao ultrassom"],
