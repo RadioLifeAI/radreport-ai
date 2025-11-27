@@ -1,5 +1,5 @@
 export { default as RadiologySpellChecker } from './RadiologySpellChecker'
 export { FontSize } from './FontSizeExtension'
 export * from './radiology-dict'
-export * from './phonetic-rules'
-export * from './morphology-rules'
+export { default as radiologyPhoneticRules, applyPhoneticCorrections } from './phonetic-rules'
+export { default as radiologyMorphologyRules, normalizeMorphology } from './morphology-rules'

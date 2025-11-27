@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Editor } from '@tiptap/react'
 import { getSpeechRecognitionService, SpeechRecognitionService } from '@/services/SpeechRecognitionService'
 import { VOICE_COMMANDS_CONFIG } from '@/lib/voiceCommandsConfig'
+import { processMedicalText } from '@/utils/medicalTextProcessor'
 
 interface UseDictationReturn {
   isActive: boolean
@@ -200,6 +201,9 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
         // Processar pontuação
         let processedText = replacePunctuationCommands(segment.content)
         
+        // 🆕 APLICAR CORREÇÕES MÉDICAS EM TEMPO REAL
+        processedText = processMedicalText(processedText)
+        
         // Verificar capitalização baseado na posição atual do cursor
         const shouldCapitalize = shouldCapitalizeNext(currentEditor, currentEditor.state.selection.from)
         processedText = applyCapitalization(processedText, shouldCapitalize)
@@ -253,6 +257,9 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
 
     // Processar texto para preview (com marcadores visuais)
     let previewText = transcript
+    
+    // 🆕 APLICAR CORREÇÕES MÉDICAS NO PREVIEW TAMBÉM (tempo real)
+    previewText = processMedicalText(previewText)
     
     // Substituir comandos estruturais por marcadores visuais
     previewText = previewText.replace(/nova linha|próxima linha|linha/gi, ' [↵] ')

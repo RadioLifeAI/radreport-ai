@@ -8,7 +8,7 @@ import type { EditorView } from 'prosemirror-view'
  * @param text O texto de entrada para ser corrigido (geralmente o texto digitado).
  * @returns O texto com as correções morfológicas aplicadas.
  */
-function normalizeMorphology(text: string): string {
+export function normalizeMorphology(text: string): string {
   let word = text
 
   // --- 1. Megalias e Patologias Viscerais (Acentuações e Terminações) ---
