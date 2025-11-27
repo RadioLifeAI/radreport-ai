@@ -1882,6 +1882,153 @@ export const dict = {
     "volume", "volumetria"
   ],
   
+  // === TERMOS DE RADIOGRAFIA (EXTRAÍDOS DOS TEMPLATES RX) ===
+  termos_radiografia_templates: [
+    // COLUNA VERTEBRAL
+    "eixo cervical", "eixo dorsal", "eixo lombar", "eixo sacrococcígeo", "eixo vertebral",
+    "alinhamento vertebral", "alinhamento vertebral posterior",
+    "corpos vertebrais anatômicos",
+    "uncovertebrais", "articulações uncovertebrais",
+    "pedículos", "pedículo",
+    "apófises espinhosas", "apófise espinhosa",
+    "costovertebrais", "articulações costovertebrais",
+    "curvatura toracolombar", "toracolombar",
+    "convexidade esquerda", "convexidade direita", "convexidade",
+    "ângulo de Cobb", "Cobb",
+    "cifose dorsal", "cifose", "cifótico", "cifótica",
+    "lordose lombar", "lordose", "lordótico", "lordótica",
+    "listese", "anterolistese", "retrolistese",
+    "canal sacral",
+    "anteriorização", "segmentos coccígeos", "coccígeo", "coccígea",
+    "rarefação óssea", "rarefação",
+    
+    // CRÂNIO E SELA TÚRCICA
+    "processos clinoideos", "clinoideos", "clinoideo",
+    "assoalho selar", "infradesnivelamentos", "infradesnivelamento",
+    "calcificações carotídeas", "calcificação intraselar",
+    "sulcos vasculares", "sulco vascular",
+    "junção crânio-cervical",
+    "calcificações intracranianas",
+    
+    // SEIOS DA FACE E NARIZ
+    "seios paranasais", "paranasais", "paranasal",
+    "seio frontal", "frontal",
+    "células etmoidais", "etmoidais", "etmoidal",
+    "septos intercelulares", "intercelulares",
+    "antros maxilares", "antro maxilar", "antros",
+    "septo nasal",
+    "fossas nasais", "fossa nasal",
+    "arejadas", "arejado", "transparente", "transparentes",
+    
+    // MANDÍBULA E ATM
+    "côndilos mandibulares", "côndilo mandibular", "côndilos",
+    "cavidades glenoides", "cavidade glenoide", "glenoides", "glenoide",
+    "temporo-mandibulares", "temporo-mandibular",
+    
+    // ÓRBITAS
+    "cavidades orbitárias", "cavidade orbitária",
+    "paredes orbitárias", "parede orbitária",
+    "corpo estranho", "corpos estranhos",
+    
+    // CAVUM E RINOFARINGE
+    "espaço aéreo", "coluna aérea",
+    "parede posterior da nasofaringe",
+    "tonsilas palatinas", "tonsila", "tonsilas",
+    "rinofaringe",
+    
+    // OSSOS E ARTICULAÇÕES GERAIS
+    "cortical íntegra", "cortical",
+    "medula óssea", "medula óssea com densidade preservada",
+    "superfícies articulares regulares",
+    "partes moles visíveis", "partes moles normais", "partes moles",
+    "calcificações periarticulares", "periarticulares",
+    
+    // OSSOS ESPECÍFICOS
+    "ossos do carpo", "carpo",
+    "metacarpos", "metacarpo",
+    "falanges", "falange", "falangiano", "falangiana",
+    "epífises", "epífise",
+    "apófises estilóides", "estilóides", "estilóide",
+    "arcos zigomáticos", "zigomático", "zigomáticos",
+    "osso malar", "malar",
+    "espaços intercostais", "intercostais", "intercostal",
+    
+    // ESCANOMETRIA E IDADE ÓSSEA
+    "escanometria",
+    "idade óssea", "idade cronológica",
+    "ossificação normal", "ossificação",
+    
+    // ESTUDOS CONTRASTADOS - DIGESTIVO ALTO
+    "trânsito faríngeo", "trânsito esofágico",
+    "relevo mucoso", "relevo",
+    "lesões ulceradas", "ulceradas", "ulcerada",
+    "lesões vegetantes", "vegetantes", "vegetante",
+    "lesões infiltrantes", "infiltrantes", "infiltrante",
+    "piloro pérvio", "piloro",
+    "bulbo duodenal", "bulbo",
+    "arco duodenal",
+    "trânsito digestivo alto",
+    
+    // ESTUDOS CONTRASTADOS - DIGESTIVO BAIXO
+    "trânsito retrógrado",
+    "grosso intestino",
+    "íleo distal",
+    "segmentos cólicos",
+    "formações diverticulares", "diverticulares",
+    "espaço retro-retal", "retro-retal",
+    "enema opaco", "enema",
+    
+    // SUBSTÂNCIAS CONTRASTADAS
+    "bário",
+    "contraste iodado", "iodado", "hidrossolúvel",
+    "opacificação das estruturas",
+    "distensibilidade",
+    "enchimento",
+    
+    // COLANGIOGRAFIA
+    "agulha de Chiba", "Chiba",
+    "IEC", "hilo hepático",
+    "colangiografia transparieto", "transparieto",
+    
+    // TÉCNICAS E INCIDÊNCIAS
+    "incidência", "incidências",
+    "penetração", "centro do filme",
+    "projeção AP", "projeção PA",
+    "perfil", "oblíqua", "oblíquas",
+    "transoral",
+    "dinâmica", "extensão", "flexão",
+    "fronto-naso", "mento-naso",
+    "Hirtz", "Bretton", "Zanca", "Ferguson",
+    "axial", "axilar",
+    "em carga", "com apoio",
+    "em rotação", "em pronação",
+    "em ortostase", "em decúbito",
+    "panorâmica", "panorâmico",
+    
+    // DESCRITORES DE QUALIDADE
+    "boa penetração", "boa distensão",
+    "exame tecnicamente limitado",
+    "qualidade adequada",
+    
+    // DESCRITORES ESPECÍFICOS DE RX
+    "aspecto radiológico", "aspecto radiológico normal",
+    "configuração anatômica", "configuração usual",
+    "bem configurados", "bem configurado",
+    "sem alterações significativas",
+    "sem anormalidades",
+    "descontinuidade da estrutura óssea", "descontinuidade",
+    "sinais radiológicos",
+    "estruturas visibilizadas",
+    
+    // PATOLOGIAS E ACHADOS RX
+    "esclerose óssea", "esclerose",
+    "reabsorção óssea", "reabsorção",
+    "alterações inflamatórias",
+    "redução dos espaços articulares",
+    "face ilíaca", "ilíaca", "ilíaco",
+    "sacro-ilíacas", "sacroilíacas"
+  ],
+  
   sinonimos: {
     aneico: ["anecogênico", "sonolucente", "líquido simples", "conteúdo fluídico"],
     hipoecogênico: ["hipoecóico", "escuro ao ultrassom"],
