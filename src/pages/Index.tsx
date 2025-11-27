@@ -118,6 +118,43 @@ const Index = () => {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {/* Free Plan */}
+            <Card className="glass-card">
+              <CardHeader>
+                <div className="bg-green-500/20 text-green-400 text-xs font-semibold px-3 py-1 rounded-full w-fit mb-2">
+                  15 DIAS GRÁTIS
+                </div>
+                <CardTitle className="text-2xl">Grátis</CardTitle>
+                <CardDescription>Experimente sem compromisso</CardDescription>
+                <div className="mt-4">
+                  <span className="text-4xl font-bold">R$ 0</span>
+                  <span className="text-muted-foreground">/15 dias</span>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Check className="h-5 w-5 text-cyan-400" />
+                  <span>15 dias de teste completo</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Check className="h-5 w-5 text-cyan-400" />
+                  <span>Todos os recursos liberados</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Check className="h-5 w-5 text-cyan-400" />
+                  <span>Sem cartão de crédito</span>
+                </div>
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <span className="text-xs">Após teste: 5 laudos/mês</span>
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button asChild variant="outline" className="w-full">
+                  <Link to="/signup">Começar teste grátis</Link>
+                </Button>
+              </CardFooter>
+            </Card>
+
             {/* Basic Plan */}
             <Card className="glass-card">
               <CardHeader>
@@ -135,7 +172,15 @@ const Index = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   <Check className="h-5 w-5 text-cyan-400" />
-                  <span>Templates básicos</span>
+                  <span>Todos os templates</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Check className="h-5 w-5 text-cyan-400" />
+                  <span>IA assistente completa</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Check className="h-5 w-5 text-cyan-400" />
+                  <span>Ditado por voz</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Check className="h-5 w-5 text-cyan-400" />
@@ -144,7 +189,7 @@ const Index = () => {
               </CardContent>
               <CardFooter>
                 <Button asChild variant="outline" className="w-full">
-                  <Link to="/signup">Começar</Link>
+                  <Link to="/signup">Assinar</Link>
                 </Button>
               </CardFooter>
             </Card>
@@ -158,7 +203,7 @@ const Index = () => {
                 <CardTitle className="text-2xl">Profissional</CardTitle>
                 <CardDescription>Para radiologistas ativos</CardDescription>
                 <div className="mt-4">
-                  <span className="text-4xl font-bold">R$ 299</span>
+                  <span className="text-4xl font-bold">R$ 199</span>
                   <span className="text-muted-foreground">/mês</span>
                 </div>
               </CardHeader>
@@ -173,7 +218,15 @@ const Index = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   <Check className="h-5 w-5 text-cyan-400" />
-                  <span>IA avançada</span>
+                  <span>IA avançada + RADS</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Check className="h-5 w-5 text-cyan-400" />
+                  <span>Ditado por voz</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Check className="h-5 w-5 text-cyan-400" />
+                  <span>Macros personalizados</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Check className="h-5 w-5 text-cyan-400" />
@@ -182,41 +235,7 @@ const Index = () => {
               </CardContent>
               <CardFooter>
                 <Button asChild className="w-full btn-premium">
-                  <Link to="/signup">Começar agora</Link>
-                </Button>
-              </CardFooter>
-            </Card>
-
-            {/* Institutional Plan */}
-            <Card className="glass-card">
-              <CardHeader>
-                <CardTitle className="text-2xl">Institucional</CardTitle>
-                <CardDescription>Para clínicas e hospitais</CardDescription>
-                <div className="mt-4">
-                  <span className="text-4xl font-bold">Custom</span>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Check className="h-5 w-5 text-cyan-400" />
-                  <span>Usuários ilimitados</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check className="h-5 w-5 text-cyan-400" />
-                  <span>Integração PACS</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check className="h-5 w-5 text-cyan-400" />
-                  <span>Treinamento dedicado</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check className="h-5 w-5 text-cyan-400" />
-                  <span>Suporte 24/7</span>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button asChild variant="outline" className="w-full">
-                  <a href="mailto:contato@radreport.com">Fale conosco</a>
+                  <Link to="/signup">Assinar</Link>
                 </Button>
               </CardFooter>
             </Card>
@@ -272,7 +291,7 @@ const Index = () => {
                 Há período de teste gratuito?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Sim! Oferecemos 14 dias de teste gratuito do plano Profissional, sem necessidade de
+                Sim! Oferecemos 15 dias de teste gratuito com todos os recursos liberados, sem necessidade de
                 cartão de crédito. Teste todas as funcionalidades antes de decidir.
               </AccordionContent>
             </AccordionItem>
