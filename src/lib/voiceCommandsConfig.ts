@@ -179,3 +179,69 @@ export const getCommandStats = (): Record<string, number> => {
   });
   return stats;
 };
+
+/**
+ * Termos Médicos Radiológicos para Contextual Biasing (Web Speech API 2025)
+ * Lista de termos frequentes em radiologia para melhorar reconhecimento
+ */
+export interface MedicalPhrase {
+  phrase: string;
+  boost: number; // 0.0 a 10.0, onde 10.0 é extremamente provável
+  category: string;
+}
+
+export const MEDICAL_TERMS_FOR_BIASING: MedicalPhrase[] = [
+  // Termos gerais de anatomia (boost moderado)
+  { phrase: 'hepatomegalia', boost: 5.0, category: 'anatomia' },
+  { phrase: 'esplenomegalia', boost: 5.0, category: 'anatomia' },
+  { phrase: 'linfonodomegalia', boost: 5.0, category: 'anatomia' },
+  { phrase: 'colecistolitíase', boost: 5.0, category: 'anatomia' },
+  { phrase: 'nefrolitíase', boost: 5.0, category: 'anatomia' },
+  
+  // Termos de ultrassom (boost alto)
+  { phrase: 'hipoecogênico', boost: 7.0, category: 'ultrassom' },
+  { phrase: 'hiperecogênico', boost: 7.0, category: 'ultrassom' },
+  { phrase: 'isoecogênico', boost: 7.0, category: 'ultrassom' },
+  { phrase: 'anecogênico', boost: 7.0, category: 'ultrassom' },
+  { phrase: 'anecóico', boost: 7.0, category: 'ultrassom' },
+  
+  // Classificações RADS (boost muito alto)
+  { phrase: 'birads', boost: 8.0, category: 'classificacao' },
+  { phrase: 'tirads', boost: 8.0, category: 'classificacao' },
+  { phrase: 'pirads', boost: 8.0, category: 'classificacao' },
+  { phrase: 'lirads', boost: 8.0, category: 'classificacao' },
+  
+  // Patologias comuns (boost moderado-alto)
+  { phrase: 'esteatose', boost: 6.0, category: 'patologia' },
+  { phrase: 'cirrose', boost: 6.0, category: 'patologia' },
+  { phrase: 'hepatopatia', boost: 6.0, category: 'patologia' },
+  { phrase: 'nefropatia', boost: 6.0, category: 'patologia' },
+  { phrase: 'pneumonia', boost: 6.0, category: 'patologia' },
+  { phrase: 'derrame', boost: 6.0, category: 'patologia' },
+  { phrase: 'atelectasia', boost: 6.0, category: 'patologia' },
+  
+  // Modalidades (boost moderado)
+  { phrase: 'tomografia', boost: 5.0, category: 'modalidade' },
+  { phrase: 'ressonância', boost: 5.0, category: 'modalidade' },
+  { phrase: 'ultrassonografia', boost: 5.0, category: 'modalidade' },
+  { phrase: 'mamografia', boost: 5.0, category: 'modalidade' },
+  
+  // Técnica (boost baixo-moderado)
+  { phrase: 'contraste', boost: 4.0, category: 'tecnica' },
+  { phrase: 'intravenoso', boost: 4.0, category: 'tecnica' },
+  { phrase: 'endovenoso', boost: 4.0, category: 'tecnica' },
+  
+  // Medidas (boost baixo)
+  { phrase: 'centímetros', boost: 3.0, category: 'medida' },
+  { phrase: 'milímetros', boost: 3.0, category: 'medida' }
+];
+
+/**
+ * Converte termos médicos para o formato SpeechRecognitionPhrase
+ */
+export const getMedicalPhrasesForBiasing = () => {
+  return MEDICAL_TERMS_FOR_BIASING.map(term => ({
+    phrase: term.phrase,
+    boost: term.boost
+  }));
+};
