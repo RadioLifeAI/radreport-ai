@@ -26,11 +26,16 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   const interimLengthRef = useRef<number>(0)          // Tamanho do texto provisório
   const lastConfidenceRef = useRef<number>(0)         // Último confidence score
   const retryCountRef = useRef<number>(0)             // Contador de retry
+  const isActiveRef = useRef(false)                   // Estado atual para retry callback
 
-  // Sincronizar ref do editor sempre que mudar
+  // Sincronizar refs sempre que mudarem
   useEffect(() => {
     editorRef.current = editor
   }, [editor])
+  
+  useEffect(() => {
+    isActiveRef.current = isActive
+  }, [isActive])
 
   /**
    * Escapa caracteres especiais para uso em regex
@@ -125,13 +130,13 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
           hasCommand = true
         }
       } else if (cmd.action === 'newline') {
-        const newReplaced = replaced.replace(regex, '$1\n')
+        const newReplaced = replaced.replace(regex, '\n')
         if (newReplaced !== replaced) {
           replaced = newReplaced
           hasCommand = true
         }
       } else if (cmd.action === 'new_paragraph') {
-        const newReplaced = replaced.replace(regex, '$1\n\n')
+        const newReplaced = replaced.replace(regex, '\n\n')
         if (newReplaced !== replaced) {
           replaced = newReplaced
           hasCommand = true
@@ -222,6 +227,11 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     }
 
     const anchor = anchorRef.current
+    if (anchor === null) {
+      console.error('❌ Anchor is null after initialization - this should not happen')
+      return
+    }
+    
     const currentInterimLength = interimLengthRef.current
 
     const lowerTranscript = transcript.toLowerCase().trim()
@@ -393,7 +403,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
         console.log(`🔄 Retrying... (attempt ${retryCountRef.current}/3)`);
         
         setTimeout(() => {
-          if (speechService.isCurrentlyListening() === false && isActive) {
+          if (speechService.isCurrentlyListening() === false && isActiveRef.current) {
             speechService.startListening();
           }
         }, 1000 * retryCountRef.current); // Exponential backoff
