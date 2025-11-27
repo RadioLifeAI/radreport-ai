@@ -30,6 +30,13 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   }, [editor])
 
   /**
+   * Escapa caracteres especiais para uso em regex
+   */
+  const escapeRegex = (str: string): string => {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  }
+
+  /**
    * Apaga a última palavra digitada (comando de voz "apagar isso")
    */
   const deleteLastWord = (editor: Editor) => {
@@ -47,32 +54,91 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   }
 
   /**
+   * Verifica se a próxima palavra deve começar com maiúscula
+   * baseado no contexto do editor
+   */
+  const shouldCapitalizeNext = (editor: Editor, position: number): boolean => {
+    // Se posição é 0 ou 1, é início do documento
+    if (position <= 1) return true
+    
+    // Pegar texto antes da posição atual
+    const textBefore = editor.state.doc.textBetween(0, position, ' ', ' ')
+    if (!textBefore.trim()) return true
+    
+    // Verificar se termina com pontuação de fim de frase
+    const trimmed = textBefore.trim()
+    const lastChar = trimmed.charAt(trimmed.length - 1)
+    
+    return ['.', '!', '?', '\n'].includes(lastChar)
+  }
+
+  /**
+   * Aplica capitalização inteligente ao texto
+   * - Primeira letra maiúscula no início
+   * - Primeira letra maiúscula após . ! ?
+   */
+  const applyCapitalization = (text: string, isStartOfDocument: boolean): string => {
+    if (!text.trim()) return text
+    
+    let result = text
+    
+    // Capitalizar primeira letra se início de documento ou parágrafo
+    if (isStartOfDocument) {
+      result = result.charAt(0).toUpperCase() + result.slice(1)
+    }
+    
+    // Capitalizar após pontuação de fim de frase (. ! ?)
+    result = result.replace(/([.!?]\s+)([a-záàâãéèêíìîóòôõúùûç])/gi, (match, punct, letter) => {
+      return punct + letter.toUpperCase()
+    })
+    
+    // Capitalizar após quebra de linha
+    result = result.replace(/(\n\s*)([a-záàâãéèêíìîóòôõúùûç])/gi, (match, newline, letter) => {
+      return newline + letter.toUpperCase()
+    })
+    
+    return result
+  }
+
+  /**
    * Substitui comandos de voz por pontuação/símbolos correspondentes
+   * Usa regex compatível com acentos portugueses
    */
   const replaceVoiceCommands = (text: string): { text: string; hasCommand: boolean } => {
     let replaced = text
     let hasCommand = false
     
     for (const cmd of VOICE_COMMANDS_CONFIG) {
-      // Apenas comandos de inserção de texto
+      const escapedCommand = escapeRegex(cmd.command)
+      // Usar (^|\\s) e ($|\\s|[.,;:!?]) em vez de \\b para suportar acentos
+      const regex = new RegExp(`(^|\\s)${escapedCommand}($|\\s|[.,;:!?])`, 'gi')
+      
       if (cmd.action === 'insert_text' && cmd.parameters?.text) {
-        const regex = new RegExp(`\\b${cmd.command}\\b`, 'gi')
         if (regex.test(replaced)) {
-          replaced = replaced.replace(regex, cmd.parameters.text)
+          replaced = replaced.replace(regex, (match, before, after) => {
+            return (before || '') + cmd.parameters!.text + (after && !['.', ',', ';', ':', '!', '?'].includes(after) ? after : '')
+          })
           hasCommand = true
         }
-      } else if (cmd.action === 'newline' && replaced.includes(cmd.command)) {
-        replaced = replaced.replace(new RegExp(`\\b${cmd.command}\\b`, 'gi'), '\n')
-        hasCommand = true
-      } else if (cmd.action === 'new_paragraph' && replaced.includes(cmd.command)) {
-        replaced = replaced.replace(new RegExp(`\\b${cmd.command}\\b`, 'gi'), '\n\n')
-        hasCommand = true
+      } else if (cmd.action === 'newline') {
+        if (regex.test(replaced)) {
+          replaced = replaced.replace(regex, () => '\n')
+          hasCommand = true
+        }
+      } else if (cmd.action === 'new_paragraph') {
+        if (regex.test(replaced)) {
+          replaced = replaced.replace(regex, () => '\n\n')
+          hasCommand = true
+        }
       }
     }
 
     // Normalizar espaços: remover antes de pontuação, adicionar depois
     replaced = replaced.replace(/\s+([.,;:!?])/g, '$1')
     replaced = replaced.replace(/([.,;:!?])(?=\S)/g, '$1 ')
+    
+    // Remover espaços múltiplos
+    replaced = replaced.replace(/  +/g, ' ')
 
     return { text: replaced, hasCommand }
   }
@@ -93,9 +159,15 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     const anchor = anchorRef.current
     const currentInterimLength = interimLengthRef.current
 
+    // Verificar se deve capitalizar
+    const shouldCapitalize = shouldCapitalizeNext(currentEditor, anchor)
+
     // Processar comandos de voz para exibição provisória
     const { text: processedText } = replaceVoiceCommands(transcript)
-    const newText = processedText.trim()
+    let newText = processedText.trim()
+    
+    // Aplicar capitalização inteligente
+    newText = applyCapitalization(newText, shouldCapitalize)
 
     // Substituir texto provisório anterior pelo novo
     if (currentInterimLength > 0) {
@@ -130,9 +202,10 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
 
     const lowerTranscript = transcript.toLowerCase().trim()
     
-    // Verificar comandos especiais primeiro
+    // Verificar comandos especiais primeiro (ações, não inserção de texto)
     for (const cmd of VOICE_COMMANDS_CONFIG) {
-      if (lowerTranscript === cmd.command) {
+      if (lowerTranscript === cmd.command && 
+          !['insert_text', 'newline', 'new_paragraph'].includes(cmd.action)) {
         // Limpar texto interim antes de executar comando
         if (currentInterimLength > 0) {
           currentEditor.commands.deleteRange({ 
@@ -173,13 +246,19 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       }
     }
 
-    // Processar texto final
+    // Verificar se deve capitalizar baseado no contexto
+    const shouldCapitalize = shouldCapitalizeNext(currentEditor, anchor)
+
+    // Processar texto final com comandos de voz
     const { text: processedText } = replaceVoiceCommands(transcript)
-    const finalText = processedText.trim()
+    let finalText = processedText.trim()
     if (!finalText) return
 
-    // Adicionar espaço no final para próxima palavra
-    const needsSpace = !/[.!?,;:\s]$/.test(finalText)
+    // Aplicar capitalização inteligente
+    finalText = applyCapitalization(finalText, shouldCapitalize)
+
+    // Adicionar espaço no final para próxima palavra (se não termina com quebra de linha)
+    const needsSpace = !/[.!?,;:\s\n]$/.test(finalText)
     const content = finalText + (needsSpace ? ' ' : '')
 
     // Substituir texto provisório pelo final
