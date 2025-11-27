@@ -18,9 +18,11 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   const [isActive, setIsActive] = useState(false)
   const [status, setStatus] = useState<'idle' | 'waiting' | 'listening'>('idle')
 
-  // Refs simplificados - apenas 2!
+  // Refs para sistema de âncora dinâmica
   const editorRef = useRef<Editor | null>(null)
   const speechServiceRef = useRef<SpeechRecognitionService | null>(null)
+  const anchorRef = useRef<number | null>(null)      // Posição inicial do ditado
+  const interimLengthRef = useRef<number>(0)          // Tamanho do texto provisório
 
   // Sincronizar ref do editor sempre que mudar
   useEffect(() => {
@@ -77,15 +79,45 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
 
   /**
    * Processa transcrição provisória (interim)
-   * Apenas log para feedback visual - não insere no editor
+   * Insere/substitui texto provisório no editor em tempo real
    */
   const handleInterimTranscript = useCallback((transcript: string) => {
-    console.log('📝 Interim (visual only):', transcript)
+    const currentEditor = editorRef.current
+    if (!currentEditor || !transcript.trim()) return
+
+    // Se não tem âncora ainda, salvar posição atual do cursor
+    if (anchorRef.current === null) {
+      anchorRef.current = currentEditor.state.selection.from
+    }
+
+    const anchor = anchorRef.current
+    const currentInterimLength = interimLengthRef.current
+
+    // Processar comandos de voz para exibição provisória
+    const { text: processedText } = replaceVoiceCommands(transcript)
+    const newText = processedText.trim()
+
+    // Substituir texto provisório anterior pelo novo
+    if (currentInterimLength > 0) {
+      currentEditor.commands.deleteRange({ 
+        from: anchor, 
+        to: anchor + currentInterimLength 
+      })
+    }
+    
+    currentEditor.commands.insertContentAt(anchor, newText, {
+      updateSelection: true,
+    })
+
+    // Atualizar comprimento do texto provisório
+    interimLengthRef.current = newText.length
+
+    console.log('📝 Interim inserted:', newText, 'at anchor:', anchor)
   }, [])
 
   /**
    * Processa transcrição final confirmada
-   * SOLUÇÃO SIMPLES: Apenas inserir no cursor atual com TipTap nativo!
+   * Substitui texto provisório pelo texto final confirmado
    */
   const handleFinalTranscript = useCallback((transcript: string) => {
     const currentEditor = editorRef.current
@@ -93,11 +125,25 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     
     if (!currentEditor || !transcript.trim()) return
 
+    const anchor = anchorRef.current ?? currentEditor.state.selection.from
+    const currentInterimLength = interimLengthRef.current
+
     const lowerTranscript = transcript.toLowerCase().trim()
     
-    // Verificar comandos especiais (undo, redo, delete, etc)
+    // Verificar comandos especiais primeiro
     for (const cmd of VOICE_COMMANDS_CONFIG) {
-      if (lowerTranscript.includes(cmd.command)) {
+      if (lowerTranscript === cmd.command) {
+        // Limpar texto interim antes de executar comando
+        if (currentInterimLength > 0) {
+          currentEditor.commands.deleteRange({ 
+            from: anchor, 
+            to: anchor + currentInterimLength 
+          })
+        }
+        // Resetar estado
+        anchorRef.current = null
+        interimLengthRef.current = 0
+        
         switch (cmd.action) {
           case 'delete_word':
             deleteLastWord(currentEditor)
@@ -127,17 +173,33 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       }
     }
 
-    // Processar comandos de voz (pontuação, etc)
+    // Processar texto final
     const { text: processedText } = replaceVoiceCommands(transcript)
-    if (!processedText.trim()) return
+    const finalText = processedText.trim()
+    if (!finalText) return
 
-    // SOLUÇÃO SIMPLES: Apenas inserir no cursor atual!
-    // TipTap cuida de tudo: capitalização, espaçamento, posição
-    const needsSpace = !/[.!?,;:\s]$/.test(processedText.trim())
-    const content = processedText.trim() + (needsSpace ? ' ' : '')
+    // Adicionar espaço no final para próxima palavra
+    const needsSpace = !/[.!?,;:\s]$/.test(finalText)
+    const content = finalText + (needsSpace ? ' ' : '')
+
+    // Substituir texto provisório pelo final
+    if (currentInterimLength > 0) {
+      currentEditor.commands.deleteRange({ 
+        from: anchor, 
+        to: anchor + currentInterimLength 
+      })
+    }
     
-    currentEditor.chain().focus().insertContent(content).run()
-    console.log('✏️ Inserted:', content)
+    currentEditor.chain()
+      .focus()
+      .insertContentAt(anchor, content, { updateSelection: true })
+      .run()
+
+    // Resetar estado para próximo ditado
+    anchorRef.current = null
+    interimLengthRef.current = 0
+
+    console.log('✏️ Final inserted:', content, 'at anchor:', anchor)
   }, [])
 
   /**
@@ -172,6 +234,11 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     speechServiceRef.current.stopListening()
     setIsActive(false)
     setStatus('idle')
+    
+    // Resetar estado de âncora
+    anchorRef.current = null
+    interimLengthRef.current = 0
+    
     console.log('🛑 Dictation stopped')
   }, [])
 
