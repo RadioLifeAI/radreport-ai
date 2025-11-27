@@ -56,8 +56,8 @@ const proofreader: IProofreaderInterface = {
       // Ignorar palavras muito curtas (artigos, preposições)
       if (word.length < 3) continue
       
-      // Ignorar números e medidas (ex: "5,2", "10x8")
-      if (/^[\d.,x×]+$/.test(word)) continue
+      // Ignorar números e medidas com unidades médicas (ex: "5,2", "10x8", "10cm", "5mm")
+      if (/^[\d.,x×]+(cm|mm|ml|mL|mg|g|kg|Hz|kHz|MHz|s|ms|min|h|%)?$/i.test(word)) continue
       
       // Ignorar palavras do dicionário médico
       if (baseWords.has(lowerWord)) continue
