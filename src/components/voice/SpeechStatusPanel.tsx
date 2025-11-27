@@ -16,19 +16,30 @@ export default function SpeechStatusPanel({ className, mediaStream }: Props){
     const svc = getSpeechRecognitionService()
     setStatus(svc.isCurrentlyListening() ? 'listening' : 'idle')
     
-    svc.setOnError((code) => {
+    const errorCallback = (code: string) => {
       setError(code)
       setStatus('error')
-    })
-    svc.setOnEnd(() => {
+    }
+    const endCallback = () => {
       setStatus('idle')
       setError(null)
       stopAnalysis()
-    })
-    svc.setOnResult((res) => {
+    }
+    const resultCallback = (res: any) => {
       if (!res.isFinal) setStatus('processing')
       else setStatus('listening')
-    })
+    }
+    
+    svc.setOnError(errorCallback)
+    svc.setOnEnd(endCallback)
+    svc.setOnResult(resultCallback)
+    
+    // ✅ Cleanup - remover callbacks ao desmontar
+    return () => {
+      svc.removeOnError(errorCallback)
+      svc.removeOnEnd(endCallback)
+      svc.removeOnResult(resultCallback)
+    }
   }, [stopAnalysis])
   
   React.useEffect(() => {

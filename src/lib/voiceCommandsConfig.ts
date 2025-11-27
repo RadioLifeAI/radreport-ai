@@ -1,6 +1,6 @@
 /**
  * Configuração Centralizada de Comandos de Voz em Português
- * RadReport Editor - Sistema Híbrido de Ditado e Comando
+ * RadReport Editor - Comandos Implementados e Funcionais
  */
 
 export interface VoiceCommand {
@@ -14,12 +14,12 @@ export interface VoiceCommand {
 
 export const VOICE_COMMANDS_CONFIG: VoiceCommand[] = [
   // ==========================================
-  // COMANDOS DE PONTUAÇÃO BÁSICA
+  // COMANDOS DE PONTUAÇÃO (processados via replaceVoiceCommands)
   // ==========================================
   {
     command: 'vírgula',
     action: 'insert_text',
-    parameters: { text: ', ', spaceAfter: false },
+    parameters: { text: ', ' },
     category: 'pontuação',
     description: 'Insere vírgula com espaço',
     examples: ['teste vírgula espaço']
@@ -27,7 +27,7 @@ export const VOICE_COMMANDS_CONFIG: VoiceCommand[] = [
   {
     command: 'ponto',
     action: 'insert_text',
-    parameters: { text: '. ', spaceAfter: false },
+    parameters: { text: '. ' },
     category: 'pontuação',
     description: 'Insere ponto final com espaço',
     examples: ['frase completa ponto']
@@ -35,65 +35,30 @@ export const VOICE_COMMANDS_CONFIG: VoiceCommand[] = [
   {
     command: 'ponto e vírgula',
     action: 'insert_text',
-    parameters: { text: '; ', spaceAfter: false },
+    parameters: { text: '; ' },
     category: 'pontuação',
     description: 'Insere ponto e vírgula com espaço'
   },
   {
     command: 'dois pontos',
     action: 'insert_text',
-    parameters: { text: ': ', spaceAfter: false },
+    parameters: { text: ': ' },
     category: 'pontuação',
     description: 'Insere dois pontos com espaço'
   },
   {
-    command: 'ponto de interrogação',
+    command: 'interrogação',
     action: 'insert_text',
-    parameters: { text: '? ', spaceAfter: false },
+    parameters: { text: '? ' },
     category: 'pontuação',
     description: 'Insere ponto de interrogação com espaço'
   },
   {
-    command: 'interrogação',
-    action: 'insert_text',
-    parameters: { text: '? ', spaceAfter: false },
-    category: 'pontuação',
-    description: 'Alternativa para ponto de interrogação'
-  },
-  {
-    command: 'ponto de exclamação',
-    action: 'insert_text',
-    parameters: { text: '! ', spaceAfter: false },
-    category: 'pontuação',
-    description: 'Insere ponto de exclamação com espaço'
-  },
-  {
     command: 'exclamação',
     action: 'insert_text',
-    parameters: { text: '! ', spaceAfter: false },
+    parameters: { text: '! ' },
     category: 'pontuação',
-    description: 'Alternativa para ponto de exclamação'
-  },
-  {
-    command: 'aspas',
-    action: 'insert_text',
-    parameters: { text: '""', cursorOffset: -1, spaceAfter: false },
-    category: 'pontuação',
-    description: 'Insere aspas duplas com cursor no meio'
-  },
-  {
-    command: 'parênteses',
-    action: 'insert_text',
-    parameters: { text: '()', cursorOffset: -1, spaceAfter: false },
-    category: 'pontuação',
-    description: 'Insere parênteses com cursor no meio'
-  },
-  {
-    command: 'travessão',
-    action: 'insert_text',
-    parameters: { text: '—', spaceAfter: false },
-    category: 'pontuação',
-    description: 'Insere travessão'
+    description: 'Insere ponto de exclamação com espaço'
   },
 
   // ==========================================
@@ -107,12 +72,6 @@ export const VOICE_COMMANDS_CONFIG: VoiceCommand[] = [
     examples: ['texto nova linha continuação']
   },
   {
-    command: 'próxima linha',
-    action: 'newline',
-    category: 'edição',
-    description: 'Alternativa para quebra de linha'
-  },
-  {
     command: 'novo parágrafo',
     action: 'new_paragraph',
     category: 'edição',
@@ -120,28 +79,10 @@ export const VOICE_COMMANDS_CONFIG: VoiceCommand[] = [
     examples: ['tópico novo parágrafo continuação']
   },
   {
-    command: 'apagar tudo',
-    action: 'clear_all',
-    category: 'edição',
-    description: 'Apaga todo o conteúdo do editor'
-  },
-  {
     command: 'apagar palavra',
     action: 'delete_word',
     category: 'edição',
-    description: 'Apaga a palavra anterior ao cursor'
-  },
-  {
-    command: 'apagar linha',
-    action: 'delete_line',
-    category: 'edição',
-    description: 'Apaga a linha atual onde está o cursor'
-  },
-  {
-    command: 'selecionar tudo',
-    action: 'select_all',
-    category: 'edição',
-    description: 'Seleciona todo o texto do editor'
+    description: 'Apaga a última palavra ditada'
   },
   {
     command: 'desfazer',
@@ -176,220 +117,6 @@ export const VOICE_COMMANDS_CONFIG: VoiceCommand[] = [
     action: 'toggle_underline',
     category: 'formatação',
     description: 'Ativa/desativa sublinhado no texto selecionado'
-  },
-  {
-    command: 'centralizar',
-    action: 'align_center',
-    category: 'formatação',
-    description: 'Centraliza o parágrafo atual'
-  },
-  {
-    command: 'alinhado esquerda',
-    action: 'align_left',
-    category: 'formatação',
-    description: 'Alinha o parágrafo à esquerda'
-  },
-  {
-    command: 'alinhado direita',
-    action: 'align_right',
-    category: 'formatação',
-    description: 'Alinha o parágrafo à direita'
-  },
-  {
-    command: 'justificar',
-    action: 'align_justify',
-    category: 'formatação',
-    description: 'Justifica o parágrafo atual'
-  },
-
-  // ==========================================
-  // COMANDOS DE SEÇÕES MÉDICAS
-  // ==========================================
-  {
-    command: 'inserir achados',
-    action: 'insert_section',
-    parameters: { section: 'achados' },
-    category: 'seções médicas',
-    description: 'Insere seção de achados',
-    examples: ['inserir achados espaço ocupado']
-  },
-  {
-    command: 'inserir conclusão',
-    action: 'insert_section',
-    parameters: { section: 'conclusao' },
-    category: 'seções médicas',
-    description: 'Insere seção de conclusão'
-  },
-  {
-    command: 'inserir impressão',
-    action: 'insert_section',
-    parameters: { section: 'impressao' },
-    category: 'seções médicas',
-    description: 'Insere seção de impressão'
-  },
-  {
-    command: 'inserir técnica',
-    action: 'insert_section',
-    parameters: { section: 'tecnica' },
-    category: 'seções médicas',
-    description: 'Insere seção de técnica'
-  },
-  {
-    command: 'inserir indicações',
-    action: 'insert_section',
-    parameters: { section: 'indicacoes' },
-    category: 'seções médicas',
-    description: 'Insere seção de indicações'
-  },
-
-  // ==========================================
-  // COMANDOS DE TEMPLATES
-  // ==========================================
-  {
-    command: 'template mamografia',
-    action: 'apply_template',
-    parameters: { template: 'mamografia' },
-    category: 'templates',
-    description: 'Aplica template de mamografia'
-  },
-  {
-    command: 'template tomografia',
-    action: 'apply_template',
-    parameters: { template: 'tomografia' },
-    category: 'templates',
-    description: 'Aplica template de tomografia'
-  },
-  {
-    command: 'template ressonância',
-    action: 'apply_template',
-    parameters: { template: 'ressonancia' },
-    category: 'templates',
-    description: 'Aplica template de ressonância magnética'
-  },
-  {
-    command: 'template raio x',
-    action: 'apply_template',
-    parameters: { template: 'raiox' },
-    category: 'templates',
-    description: 'Aplica template de raio X'
-  },
-  {
-    command: 'template ultrassom',
-    action: 'apply_template',
-    parameters: { template: 'ultrassom' },
-    category: 'templates',
-    description: 'Aplica template de ultrassom'
-  },
-
-  // ==========================================
-  // FRASES MÉDICAS COMUNS
-  // ==========================================
-  {
-    command: 'sem alterações',
-    action: 'insert_phrase',
-    parameters: { phrase: 'Sem alterações significativas.' },
-    category: 'frases médicas',
-    description: 'Insere frase padrão de normalidade'
-  },
-  {
-    command: 'sem achados',
-    action: 'insert_phrase',
-    parameters: { phrase: 'Sem achados patológicos significativos.' },
-    category: 'frases médicas',
-    description: 'Insere frase padrão de ausência de patologias'
-  },
-  {
-    command: 'estudo normal',
-    action: 'insert_phrase',
-    parameters: { phrase: 'Estudo dentro dos limites da normalidade.' },
-    category: 'frases médicas',
-    description: 'Insere frase de estudo normal'
-  },
-  {
-    command: 'correlacionar clínico',
-    action: 'insert_phrase',
-    parameters: { phrase: 'Correlacionar com dados clínicos.' },
-    category: 'frases médicas',
-    description: 'Insere sugestão de correlação clínica'
-  },
-  {
-    command: 'comparar anterior',
-    action: 'insert_phrase',
-    parameters: { phrase: 'Comparar com estudo anterior.' },
-    category: 'frases médicas',
-    description: 'Insere sugestão de comparação'
-  },
-
-  // ==========================================
-  // COMANDOS DE IA
-  // ==========================================
-  {
-    command: 'gerar sugestão',
-    action: 'ai_suggest',
-    category: 'inteligência artificial',
-    description: 'Solicita sugestão de texto à IA'
-  },
-  {
-    command: 'completar texto',
-    action: 'ai_complete',
-    category: 'inteligência artificial',
-    description: 'Solicita completamento de texto à IA'
-  },
-  {
-    command: 'gerar conclusão',
-    action: 'ai_conclusion',
-    category: 'inteligência artificial',
-    description: 'Solicita geração de conclusão à IA'
-  },
-
-  // ==========================================
-  // COMANDOS DE CONTROLE DO SISTEMA
-  // ==========================================
-  {
-    command: 'novo laudo',
-    action: 'new_report',
-    category: 'sistema',
-    description: 'Cria novo laudo'
-  },
-  {
-    command: 'salvar laudo',
-    action: 'save_report',
-    category: 'sistema',
-    description: 'Salva o laudo atual'
-  },
-  {
-    command: 'copiar laudo',
-    action: 'copy_report',
-    category: 'sistema',
-    description: 'Copia o laudo para área de transferência'
-  },
-  {
-    command: 'imprimir laudo',
-    action: 'print_report',
-    category: 'sistema',
-    description: 'Imprime o laudo'
-  },
-
-  // ==========================================
-  // COMANDOS DE CONTROLE DO DITADO
-  // ==========================================
-  {
-    command: 'parar ditado',
-    action: 'stop_listening',
-    category: 'controle ditado',
-    description: 'Para o reconhecimento de voz'
-  },
-  {
-    command: 'pausar ditado',
-    action: 'stop_listening',
-    category: 'controle ditado',
-    description: 'Alternativa para parar ditado'
-  },
-  {
-    command: 'continuar ditado',
-    action: 'start_listening',
-    category: 'controle ditado',
-    description: 'Continua o reconhecimento de voz'
   }
 ];
 
