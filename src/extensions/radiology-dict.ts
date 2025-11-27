@@ -2300,6 +2300,56 @@ export const dict = {
     "evidentes ao método"
   ],
   
+  // === TERMOS FALTANTES GERAIS (EXTRAÍDOS DE MÚLTIPLOS TEMPLATES) ===
+  termos_faltantes_templates: [
+    // ANATOMIA/POSIÇÃO ESPACIAL (~15 termos)
+    "coronal", "coronais",
+    "sagital", "sagitais",
+    "supressão", "suprimido", "suprimida",
+    "gordura", // substantivo
+    "derrame", "derrames",
+    "vascular", "vasculares", "vasculatura",
+    "peça", "peças",
+    
+    // FLEXÕES PLURAIS E GÊNERO FALTANTES (~20 termos)
+    "sacrais", // plural de sacral
+    "alinhadas", "alinhados", // plurais de alinhado/a
+    "patológicas", "patológicos", // plurais de patológico/a
+    "intracranianas", "intracranianos", // plurais
+    "cólicos", "cólicas", // plurais de cólico/a
+    "oblíquo", "oblíquos", // masculinos de oblíqua
+    "opaco", "opaca", "opacos", "opacas",
+    "grosso", "grossa", "grossos", "grossas",
+    "retrógrado", "retrógrada", "retrógrados", "retrógradas",
+    
+    // ADJETIVOS/DESCRITORES (~15 termos)
+    "definido", "definida", "definidos", "definidas",
+    "anatômico", "anatômica", "anatômicos", "anatômicas",
+    "radiológico", "radiológica", "radiológicos", "radiológicas",
+    
+    // SUBSTANTIVOS COMUNS DE LAUDO (~18 termos)
+    "crânio", "crânios",
+    "centro", "centros",
+    "filme", "filmes",
+    "trânsito",
+    "íleo", // anatomia intestinal
+    "formação", "formações",
+    "espaço", // singular de espaços
+    "sulco", // singular de sulcos
+    "aquisição", "aquisições",
+    "sensibilidade",
+    "evidência", // singular de evidências
+    
+    // ADVÉRBIOS E PALAVRAS COMUNS (~8 termos)
+    "melhor", "pior",
+    "livremente",
+    "diversos", "diversas", "diverso", "diversa",
+    
+    // VERBOS FALTANTES (~5 termos)
+    "evidenciou", // passado de evidenciar
+    "processou-se", "processou" // verbo processar
+  ],
+  
   // === TERMOS DE MAMOGRAFIA (EXTRAÍDOS DOS TEMPLATES MG) ===
   termos_mamografia_templates: [
     // CLASSIFICAÇÃO BI-RADS (~3 termos)
