@@ -108,3 +108,37 @@
   width: 1rem;
   height: 1rem;
 }
+
+// ============================================
+// Sublinhado de erros ortográficos (RadiologySpellChecker)
+// ============================================
+.spell-error {
+  text-decoration: underline wavy;
+  text-decoration-color: #ef4444;
+  text-decoration-skip-ink: none;
+  cursor: pointer;
+  
+  &:hover {
+    background-color: rgba(239, 68, 68, 0.1);
+    border-radius: 2px;
+  }
+}
+
+// Menu de sugestões do spellchecker
+.spellcheck-suggestions {
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.375rem;
+  padding: 0.25rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  
+  .suggestion-item {
+    padding: 0.375rem 0.75rem;
+    cursor: pointer;
+    border-radius: 0.25rem;
+    
+    &:hover {
+      background: hsl(var(--accent));
+    }
+  }
+}
