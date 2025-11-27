@@ -17,8 +17,6 @@ export class SpeechRecognitionService {
   private keepAlive = false;
   private userStopped = false;
   private currentStream: MediaStream | null = null;
-  private commandCallbacks = new Map<string, (text: string) => void>();
-  private aiCommandCallbacks = new Map<string, (transcript: string, context?: any) => Promise<void>>();
   private onStatusCallbacks: Array<(status: 'idle'|'waiting'|'listening') => void> = [];
   private onEndCallbacks: Array<(reason: 'auto'|'user') => void> = [];
   private onResultDetailedCallbacks: Array<(result: { transcript: string; isFinal: boolean; alternatives?: string[] }) => void> = [];
@@ -103,7 +101,6 @@ export class SpeechRecognitionService {
     this.recognition.onerror = (event) => {
       console.error('Speech recognition error:', event.error);
       this.onErrorCallbacks.forEach(cb => cb(event.error));
-      this.handleError(event.error);
       if (event.error === 'not-allowed' || event.error === 'audio-capture') {
         this.keepAlive = false;
         this.userStopped = true;
@@ -127,12 +124,6 @@ export class SpeechRecognitionService {
   }
 
 
-  private handleError(error: string) {
-    const callback = this.commandCallbacks.get('error');
-    if (callback) {
-      callback(`Erro de reconhecimento: ${error}`);
-    }
-  }
 
   public async startListeningWithAudio(): Promise<{ started: boolean; stream?: MediaStream }> {
     try {
@@ -213,17 +204,6 @@ export class SpeechRecognitionService {
     return this.isListening;
   }
 
-  public onCommand(command: string, callback: (text: string) => void) {
-    this.commandCallbacks.set(command, callback);
-  }
-
-  public onAICommand(command: string, callback: (text: string, context?: any) => Promise<void>) {
-    this.aiCommandCallbacks.set(command, callback);
-  }
-
-  public removeCommandCallback(command: string) {
-    this.commandCallbacks.delete(command);
-  }
 
   public setOnStatus(callback: (status: 'idle'|'waiting'|'listening') => void) {
     this.onStatusCallbacks.push(callback);
@@ -258,8 +238,6 @@ export class SpeechRecognitionService {
   }
 
   public clearAllCallbacks() {
-    this.commandCallbacks.clear();
-    this.aiCommandCallbacks.clear();
     this.onStatusCallbacks = [];
     this.onEndCallbacks = [];
     this.onResultDetailedCallbacks = [];
@@ -297,20 +275,6 @@ export class SpeechRecognitionService {
     }
   }
 
-  public integrateWithEditor(editor: any) {
-    // Integration logic for editor
-    console.log('Speech recognition integrated with editor');
-  }
-
-  public speak(text: string, opts?: { lang?: string; rate?: number }) {
-    try {
-      const u = new SpeechSynthesisUtterance();
-      u.text = text;
-      u.lang = opts?.lang ?? this.config.lang ?? 'pt-BR';
-      u.rate = opts?.rate ?? 1;
-      speechSynthesis.speak(u);
-    } catch {}
-  }
 }
 
 // Singleton instance

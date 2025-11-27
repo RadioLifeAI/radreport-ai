@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Editor } from '@tiptap/react'
 import { getSpeechRecognitionService, SpeechRecognitionService } from '@/services/SpeechRecognitionService'
+import { VOICE_COMMANDS_CONFIG } from '@/lib/voiceCommandsConfig'
 
 interface UseDictationReturn {
   isActive: boolean
@@ -49,9 +50,6 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   const replaceVoiceCommands = (text: string): { text: string; hasCommand: boolean } => {
     let replaced = text
     let hasCommand = false
-
-    // Importar comandos de voz do config
-    const { VOICE_COMMANDS_CONFIG } = require('@/lib/voiceCommandsConfig')
     
     for (const cmd of VOICE_COMMANDS_CONFIG) {
       // Apenas comandos de inserção de texto
@@ -95,7 +93,6 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     
     if (!currentEditor || !transcript.trim()) return
 
-    const { VOICE_COMMANDS_CONFIG } = require('@/lib/voiceCommandsConfig')
     const lowerTranscript = transcript.toLowerCase().trim()
     
     // Verificar comandos especiais (undo, redo, delete, etc)
