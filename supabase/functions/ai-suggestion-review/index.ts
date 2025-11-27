@@ -19,22 +19,11 @@ function sanitizeFragment(html: string): string {
   return out.trim()
 }
 
-const systemPrompt = `
-Você é um revisor profissional de laudos radiológicos.
-Sua tarefa é melhorar o laudo sem alterar achados, diagnósticos ou conteúdo clínico.
-
-⚕ REGRAS:
-- Retornar somente HTML (sem Markdown).
-- Não inventar achados, medidas ou diagnósticos.
-- Padronizar estilo, coerência e clareza radiológica.
-- Corrigir redundâncias, gramática e consistência.
-- Preservar spans, strong, em e estilos inline.
-- Não inserir classes, IDs extras ou novos blocos desnecessários.
-
-Formato da resposta:
-<section id="improved">… laudo revisado …</section>
-<section id="notes">… comentários objetivos (3–6 itens) …</section>
-`.trim()
+const systemPrompt = `Revisor de laudos radiológicos.
+REGRAS: Retornar HTML. Não inventar achados. Padronizar estilo/gramática. Preservar spans/strong/em.
+RESPOSTA:
+<section id="improved">laudo revisado</section>
+<section id="notes">3-6 comentários objetivos</section>`.trim()
 
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders })
@@ -44,9 +33,11 @@ serve(async (req: Request) => {
   const apiKey = Deno.env.get("OPENAI_API_KEY") || Deno.env.get("OPENAI_KEY") || ""
   if (!apiKey) return new Response("OPENAI KEY missing", { status: 500, headers: corsHeaders })
 
+  let body: { full_report?: string; user_id?: string } = {}
+  
   try {
-    const { fullReport, userId } = await req.json()
-    const text = String(fullReport || "").slice(0, 20000)
+    body = await req.json()
+    const text = String(body.full_report || "").slice(0, 8000)
 
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -55,7 +46,8 @@ serve(async (req: Request) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "gpt-5-nano-2025-08-07",
+        max_tokens: 600,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: `Laudo completo para revisão:\n"""${text}"""` },
@@ -63,41 +55,54 @@ serve(async (req: Request) => {
       }),
     })
 
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error("OpenAI API error:", response.status, errorText)
+      throw new Error(`OpenAI error: ${response.status}`)
+    }
+
     const completion = await response.json()
     const raw = completion.choices?.[0]?.message?.content || ""
     const cleaned = sanitizeFragment(raw)
-    const headers = { ...corsHeaders, "Content-Type": "text/html" }
+    
+    // Extrair seções
+    const improvedMatch = cleaned.match(/<section[^>]*id=["']improved["'][^>]*>([\s\S]*?)<\/section>/i)
+    const notesMatch = cleaned.match(/<section[^>]*id=["']notes["'][^>]*>([\s\S]*?)<\/section>/i)
+    const improved = improvedMatch ? improvedMatch[1] : ''
+    const notes = notesMatch ? notesMatch[1] : ''
 
-    // SUPABASE LOG — sucesso (opcional)
+    // SUPABASE LOG — sucesso
     const supabaseUrl = Deno.env.get("SUPABASE_URL")
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")
-    if (supabaseUrl && supabaseServiceKey && userId) {
+    if (supabaseUrl && supabaseServiceKey && body.user_id) {
       const sb = createClient(supabaseUrl, supabaseServiceKey)
       await sb.from("ai_review_log").insert({
-        user_id: userId,
+        user_id: body.user_id,
         size: text.length,
         response_size: cleaned.length,
         status: "ok",
-        model: "gpt-4o-mini",
+        model: "gpt-5-nano",
       })
     }
 
-    return new Response(cleaned, { status: 200, headers })
+    return new Response(JSON.stringify({ improved, notes, status: "ok" }), { 
+      status: 200, 
+      headers: { ...corsHeaders, "Content-Type": "application/json" } 
+    })
   } catch (err) {
     console.error("Error reviewing report:", err)
     
     // SUPABASE LOG — erro
     const supabaseUrl = Deno.env.get("SUPABASE_URL")
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")
-    const { userId } = await req.json().catch(() => ({}))
-    if (supabaseUrl && supabaseServiceKey && userId) {
+    if (supabaseUrl && supabaseServiceKey && body.user_id) {
       const sb = createClient(supabaseUrl, supabaseServiceKey)
       await sb.from("ai_review_log").insert({
-        user_id: userId,
+        user_id: body.user_id,
         size: 0,
         status: "error",
         metadata: { message: String((err as any)?.message || err) },
-        model: "gpt-4o-mini",
+        model: "gpt-5-nano",
       })
     }
 

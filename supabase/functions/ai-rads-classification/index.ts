@@ -3,15 +3,11 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
 const OPENAI_KEY = Deno.env.get("OPENAI_API_KEY") ?? ""
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? ""
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, x-client-info, apikey, x-requested-with",
 }
 
 function sanitizeInputHtml(html: string): string {
@@ -47,27 +43,24 @@ function splitHtmlIntoParagraphs(html: string): string[] {
   return [`<p>${html.trim()}</p>`]
 }
 
-const SYSTEM_PROMPT = `
-Você é um radiologista experiente especializado em aplicar sistemas RADS (ex.: BI-RADS, TI-RADS, PI-RADS, LI-RADS, O-RADS, VI-RADS).
-Entrada: seção "Achados" (findings) em HTML (ou texto). Recebe 'modality' e 'examTitle'.
-Tarefa:
-1) Analise parágrafo a parágrafo e classifique cada um como NORMAL ou ALTERADO.
-2) Para parágrafos ALTERADOS, determine se aplicável um sistema RADS apropriado (p.ex. BI-RADS para mama, O-RADS para ovário, TI-RADS para tireoide, PI-RADS para próstata, LI-RADS para fígado, VI-RADS para bexiga).
-3) Atribua CATEGORIA RADS apenas se houver critérios suficientes; caso contrário, informe insuficiência de dados.
-4) Não invente medidas/lateralidade/realce.
-5) Saída: APENAS JSON válido:
-{
+const SYSTEM_PROMPT = `Radiologista RADS (BI-RADS, TI-RADS, PI-RADS, LI-RADS, O-RADS, VI-RADS).
+Analise achados. Classifique NORMAL/ALTERADO. Aplique RADS se aplicável.
+JSON: {
   "field": "impressao",
-  "replacement": "<p>Conclusão clínica (1–3 frases).</p>",
-  "rads": { "system": "BI-RADS", "category": "BI-RADS 2", "score": 2, "confidence": 0.85, "details": "opcional" } | null,
-  "notes": ["Parágrafo 1: NORMAL", "Parágrafo 2: ALTERADO — …"]
+  "replacement": "<p>Conclusão...</p>",
+  "rads": { "system": "BI-RADS", "category": "BI-RADS 2", "score": 2, "confidence": 0.85 } | null,
+  "notes": []
 }
-Se NENHUM ALTERADO: replacement deve ser "Estudo de <EXAM_TITLE> dentro dos padrões da normalidade." (use examTitle se informado).
-`
+Se NORMAL: "Estudo de <EXAM_TITLE> dentro dos padrões da normalidade."`
 
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders })
   if (req.method !== "POST") return new Response(JSON.stringify({ error: "Method Not Allowed" }), { status: 405, headers: corsHeaders })
+
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+  )
 
   let body: any
   try {
@@ -76,7 +69,7 @@ serve(async (req: Request) => {
     return new Response(JSON.stringify({ error: "Invalid JSON body" }), { status: 400, headers: corsHeaders })
   }
 
-  const rawFindings = String(body.findingsHtml || "").slice(0, 40000)
+  const rawFindings = String(body.findingsHtml || "").slice(0, 8000)
   const examTitle = body.examTitle ? String(body.examTitle).trim() : null
   const modality = (body.modality ?? "unspecified").toString()
   const user_id = body.user_id ?? null
@@ -105,7 +98,7 @@ serve(async (req: Request) => {
 
   const paragraphs = splitHtmlIntoParagraphs(findingsHtml)
   const paragraphsText = paragraphs.map((p, i) => `PAR_${i + 1}:\n${p}`).join("\n\n")
-  const userPrompt = `Modality: ${modality}\nExam title: ${examTitle ?? "not provided"}\n\nAchados:\n${paragraphsText}\n\nClassifique e aplique RADS conforme critérios; retorne APENAS JSON conforme sistema.`
+  const userPrompt = `Modality: ${modality}\nExam: ${examTitle ?? "não informado"}\n\nAchados:\n${paragraphsText}\n\nRetorne JSON.`
 
   try {
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -115,7 +108,7 @@ serve(async (req: Request) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "gpt-5-nano-2025-08-07",
         max_tokens: 500,
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
@@ -123,6 +116,12 @@ serve(async (req: Request) => {
         ],
       }),
     })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error("OpenAI API error:", response.status, errorText)
+      throw new Error(`OpenAI error: ${response.status}`)
+    }
 
     const completion = await response.json()
     const raw = completion.choices?.[0]?.message?.content ?? ""

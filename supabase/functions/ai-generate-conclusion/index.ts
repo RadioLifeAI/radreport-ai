@@ -3,15 +3,11 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
 const OPENAI_KEY = Deno.env.get("OPENAI_API_KEY") ?? ""
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? ""
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, x-client-info, apikey, x-requested-with",
 }
 
 function sanitizeInputHtml(html: string): string {
@@ -47,20 +43,20 @@ function splitHtmlIntoParagraphs(html: string): string[] {
   return [`<p>${html.trim()}</p>`]
 }
 
-const SYSTEM_PROMPT = `Você é um radiologista experiente e gerador de conclusões para laudos.
-Entrada: lista de parágrafos da seção "Achados".
-Tarefa:
-1) Analise CADA parágrafo separadamente e classifique como "NORMAL" ou "ALTERADO".
-2) Gere uma conclusão/Impressão sumarizada baseada SOMENTE nos parágrafos classificados como "ALTERADO".
-3) Se nenhum parágrafo for "ALTERADO", retorne uma frase de normalidade: "Estudo de <EXAM_TITLE> dentro dos padrões da normalidade.".
-4) Baseie-se estritamente no texto fornecido. Não invente achados.
-5) Saída deve ser APENAS JSON válido:
-{ "field": "impressao", "replacement": "<p>Conclusão radiológica...</p>", "notes": ["Parágrafo 1: NORMAL", "Parágrafo 2: ALTERADO - resumo curto"] }
-`
+const SYSTEM_PROMPT = `Radiologista gerador de conclusões.
+Classifique parágrafos (NORMAL/ALTERADO). Conclusão baseada nos ALTERADOS.
+Se todos NORMAL: "Estudo de <EXAM_TITLE> dentro dos padrões da normalidade."
+JSON: { "field": "impressao", "replacement": "<p>...</p>", "notes": [] }
+NÃO INVENTAR.`
 
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders })
   if (req.method !== "POST") return new Response(JSON.stringify({ error: "Method Not Allowed" }), { status: 405, headers: corsHeaders })
+
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+  )
 
   let body: any
   try {
@@ -69,7 +65,7 @@ serve(async (req: Request) => {
     return new Response(JSON.stringify({ error: "Invalid JSON body" }), { status: 400, headers: corsHeaders })
   }
 
-  const rawFindings = String(body.findingsHtml || "").slice(0, 40000)
+  const rawFindings = String(body.findingsHtml || "").slice(0, 8000)
   const examTitle = body.examTitle ? String(body.examTitle).trim() : null
   const user_id = body.user_id ?? null
   const modality = (body.modality ?? "unspecified").toString()
@@ -79,7 +75,7 @@ serve(async (req: Request) => {
   const paragraphs = splitHtmlIntoParagraphs(findingsHtml)
   const paragraphsText = paragraphs.map((p, i) => `PAR_${i + 1}:\n${p}`).join("\n\n")
 
-  const userPrompt = `Modalidade: ${modality}\nFormato pedido: ${format}\nTítulo do exame: ${examTitle ?? "não informado"}\n\nLista de parágrafos dos Achados:\n${paragraphsText}\n\nResponda APENAS com JSON conforme instruções do sistema.`
+  const userPrompt = `Modalidade: ${modality}\nFormato: ${format}\nTítulo: ${examTitle ?? "não informado"}\n\nAchados:\n${paragraphsText}\n\nRetorne JSON.`
 
   try {
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -89,7 +85,7 @@ serve(async (req: Request) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "gpt-5-nano-2025-08-07",
         max_tokens: 400,
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
@@ -97,6 +93,12 @@ serve(async (req: Request) => {
         ],
       }),
     })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error("OpenAI API error:", response.status, errorText)
+      throw new Error(`OpenAI error: ${response.status}`)
+    }
 
     const completion = await response.json()
     const raw = completion.choices?.[0]?.message?.content ?? ""
