@@ -804,6 +804,7 @@ export type Database = {
           id: string
           modalidade_codigo: string | null
           modalidade_id: string | null
+          observacao: string | null
           regiao_anatomica_id: string | null
           sinônimos: string[] | null
           tags: string[] | null
@@ -825,6 +826,7 @@ export type Database = {
           id?: string
           modalidade_codigo?: string | null
           modalidade_id?: string | null
+          observacao?: string | null
           regiao_anatomica_id?: string | null
           sinônimos?: string[] | null
           tags?: string[] | null
@@ -846,6 +848,7 @@ export type Database = {
           id?: string
           modalidade_codigo?: string | null
           modalidade_id?: string | null
+          observacao?: string | null
           regiao_anatomica_id?: string | null
           sinônimos?: string[] | null
           tags?: string[] | null
