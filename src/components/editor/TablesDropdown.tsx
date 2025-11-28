@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Editor } from '@tiptap/react'
-import { Table2, ChevronDown, Award, Baby, Activity, Bone, HeartPulse, Eye, FileInput } from 'lucide-react'
+import { Table2, ChevronDown, Award, Baby, Activity, Bone, HeartPulse, Eye, FileInput, Copy, Bookmark } from 'lucide-react'
+import { toast } from 'sonner'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,6 +39,51 @@ export function TablesDropdown({ editor, onInsertTable }: TablesDropdownProps) {
     setViewerOpen(true)
   }
 
+  const handleCopyTable = async (table: RadiologyTable) => {
+    try {
+      // Cria blob HTML com estilos preservados
+      const htmlBlob = new Blob([table.htmlContent], { type: 'text/html' })
+      
+      // Também cria versão texto plano como fallback
+      const tempDiv = document.createElement('div')
+      tempDiv.innerHTML = table.htmlContent
+      const textBlob = new Blob([tempDiv.textContent || ''], { type: 'text/plain' })
+      
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          'text/html': htmlBlob,
+          'text/plain': textBlob,
+        })
+      ])
+      
+      toast.success('Tabela copiada! Cole em Word ou Google Docs.')
+    } catch (error) {
+      console.error('Erro ao copiar tabela:', error)
+      toast.error('Erro ao copiar tabela')
+    }
+  }
+
+  const handleInsertAsReference = (table: RadiologyTable) => {
+    if (!editor) return
+    
+    editor
+      .chain()
+      .focus()
+      .insertInformativeTable({
+        tableId: table.id,
+        tableName: table.name,
+        htmlContent: table.htmlContent,
+      })
+      .run()
+    
+    toast.success(`Tabela "${table.name}" inserida como referência`)
+  }
+
+  const handleInsertEditable = (table: RadiologyTable) => {
+    onInsertTable(table.htmlContent)
+    toast.success(`Tabela "${table.name}" inserida para edição`)
+  }
+
   return (
     <>
       <DropdownMenu>
@@ -65,30 +111,59 @@ export function TablesDropdown({ editor, onInsertTable }: TablesDropdownProps) {
                     >
                       <span className="text-sm truncate flex-1 mr-2">{table.name}</span>
                       <div className="flex items-center gap-1 shrink-0">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleViewTable(table)
-                          }}
-                          title="Visualizar tabela"
-                        >
-                          <Eye className="h-4 w-4 text-slate-400 group-hover:text-white hover:text-blue-400 transition-colors" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            onInsertTable(table.htmlContent)
-                          }}
-                          title="Inserir no editor"
-                        >
-                          <FileInput className="h-4 w-4 text-slate-400 group-hover:text-white hover:text-green-400 transition-colors" />
-                        </Button>
+                        {table.type === 'informative' ? (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleViewTable(table)
+                              }}
+                              title="Visualizar tabela"
+                            >
+                              <Eye className="h-4 w-4 text-slate-400 group-hover:text-white hover:text-blue-400 transition-colors" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleCopyTable(table)
+                              }}
+                              title="Copiar para clipboard"
+                            >
+                              <Copy className="h-4 w-4 text-slate-400 group-hover:text-white hover:text-purple-400 transition-colors" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleInsertAsReference(table)
+                              }}
+                              title="Inserir como referência"
+                            >
+                              <Bookmark className="h-4 w-4 text-slate-400 group-hover:text-white hover:text-cyan-400 transition-colors" />
+                            </Button>
+                          </>
+                        ) : (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleInsertEditable(table)
+                            }}
+                            title="Inserir para edição"
+                          >
+                            <FileInput className="h-4 w-4 text-slate-400 group-hover:text-white hover:text-green-400 transition-colors" />
+                          </Button>
+                        )}
                       </div>
                     </div>
                   ))}

@@ -2,6 +2,7 @@ export interface RadiologyTable {
   id: string
   name: string
   category: string
+  type: 'informative' | 'dynamic'
   subcategory?: string
   modality?: string[]
   htmlContent: string
@@ -24,6 +25,7 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
         id: 'birads',
         name: 'BI-RADS (Mama)',
         category: 'rads',
+        type: 'informative',
         modality: ['MG', 'US', 'RM'],
         htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
   <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">BI-RADS - Sistema de Classificação Mamária</caption>
@@ -67,6 +69,7 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
         id: 'tirads',
         name: 'TI-RADS ACR (Tireoide)',
         category: 'rads',
+        type: 'informative',
         modality: ['US'],
         htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
   <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">TI-RADS ACR 2017 - Sistema de Pontuação para Nódulos Tireoideanos</caption>
@@ -106,6 +109,7 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
         id: 'pirads',
         name: 'PI-RADS v2.1 (Próstata)',
         category: 'rads',
+        type: 'informative',
         modality: ['RM'],
         htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
   <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">PI-RADS v2.1 - Probabilidade de Câncer de Próstata Clinicamente Significativo</caption>
@@ -144,6 +148,7 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
         id: 'lirads',
         name: 'LI-RADS v2018 (Fígado)',
         category: 'rads',
+        type: 'informative',
         modality: ['TC', 'RM'],
         htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
   <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">LI-RADS v2018 - Classificação de Lesões Hepáticas em Pacientes com Risco de CHC</caption>
@@ -184,6 +189,7 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
         id: 'orads',
         name: 'O-RADS (Ovário)',
         category: 'rads',
+        type: 'informative',
         modality: ['US'],
         htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
   <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">O-RADS US - Classificação de Massas Anexiais</caption>
@@ -230,6 +236,7 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
         id: 'peso_fetal_hadlock',
         name: 'Peso Fetal (Hadlock)',
         category: 'obstetrics',
+        type: 'informative',
         modality: ['US'],
         htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
   <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Peso Fetal Estimado (Hadlock) - Percentis por Idade Gestacional</caption>
