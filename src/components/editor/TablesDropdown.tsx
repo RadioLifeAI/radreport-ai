@@ -75,7 +75,7 @@ export function TablesDropdown({ editor, onInsertTable }: TablesDropdownProps) {
                           }}
                           title="Visualizar tabela"
                         >
-                          <Eye className="h-4 w-4 text-muted-foreground group-hover:text-foreground hover:text-primary transition-colors" />
+                          <Eye className="h-4 w-4 text-slate-400 group-hover:text-white hover:text-blue-400 transition-colors" />
                         </Button>
                         <Button
                           variant="ghost"
@@ -87,7 +87,7 @@ export function TablesDropdown({ editor, onInsertTable }: TablesDropdownProps) {
                           }}
                           title="Inserir no editor"
                         >
-                          <FileInput className="h-4 w-4 text-muted-foreground group-hover:text-foreground hover:text-green-500 transition-colors" />
+                          <FileInput className="h-4 w-4 text-slate-400 group-hover:text-white hover:text-green-400 transition-colors" />
                         </Button>
                       </div>
                     </div>
