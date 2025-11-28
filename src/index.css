@@ -529,9 +529,9 @@
   }
 
   /* ============================================
-     Informative Table - Light Theme Island
-     Apenas background branco e proteção contra edição
-     Estilos originais da tabela são preservados
+     Informative Table - Force Light Theme Island
+     Tabelas de referência SEMPRE com fundo branco
+     independente do tema do editor
      ============================================ */
 
   /* Container principal - sempre fundo branco */
@@ -539,9 +539,68 @@
     background: white !important;
   }
 
-  /* Container da tabela - apenas fundo branco */
+  /* Container da tabela */
   .informative-table-content {
     background: white !important;
+    color: #1e293b !important;
+  }
+
+  /* Tabela e células - forçar cores escuras */
+  .informative-table-content table {
+    background: white !important;
+    border-color: #e2e8f0 !important;
+  }
+
+  .informative-table-content table th,
+  .informative-table-content table td {
+    color: #1e293b !important;
+    border-color: #e2e8f0 !important;
+  }
+
+  /* Caption/título da tabela */
+  .informative-table-content table caption {
+    color: #0f172a !important;
+  }
+
+  /* Corpo da tabela - linhas alternadas */
+  .informative-table-content table tbody tr {
+    background: white !important;
+  }
+
+  .informative-table-content table tbody tr:nth-child(even) {
+    background: #f8fafc !important;
+  }
+
+  /* Header da tabela - manter estilo original (azul escuro) */
+  .informative-table-content table thead tr {
+    background: #1e3a5f !important;
+  }
+
+  .informative-table-content table thead th {
+    color: white !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+  }
+
+  /* Footer/referências */
+  .informative-table-content table tfoot {
+    background: #f8fafc !important;
+  }
+
+  .informative-table-content table tfoot td {
+    color: #475569 !important;
+  }
+
+  .informative-table-content table tfoot a {
+    color: #0066cc !important;
+  }
+
+  /* Header do bloco (Tabela de Referência: ...) - adapta ao tema */
+  .informative-table-block > div:first-child {
+    color: #0891b2;
+  }
+
+  .dark .informative-table-block > div:first-child {
+    color: #22d3ee;
   }
 
   .table-viewer-container table caption {

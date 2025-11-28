@@ -174,14 +174,81 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
         }
       })
       
-      // TABELAS INFORMATIVAS - extrair apenas a tabela, preservar estilos originais
+      // TABELAS INFORMATIVAS - extrair apenas a tabela, remover wrapper UI
       container.querySelectorAll('.informative-table-block').forEach(block => {
         const table = block.querySelector('.informative-table-content table')
         if (table) {
-          // NÃO sobrescrever estilos - apenas extrair a tabela com seus estilos inline originais
-          // A tabela já vem com formatação completa e elegante de radiologyTables.ts
-          block.replaceWith(table.cloneNode(true))
+          // Aplicar estilos inline para garantir formatação no Word
+          table.setAttribute('style', `
+            width: 100%;
+            border-collapse: collapse;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 10pt;
+            margin: 12pt 0;
+          `.replace(/\s+/g, ' ').trim())
+          
+          // Estilizar caption
+          const caption = table.querySelector('caption')
+          if (caption) {
+            caption.setAttribute('style', `
+              font-weight: bold;
+              text-align: left;
+              margin-bottom: 8px;
+              font-size: 11pt;
+              color: #1e293b;
+            `.replace(/\s+/g, ' ').trim())
+          }
+          
+          // Estilizar header
+          table.querySelectorAll('thead tr').forEach(row => {
+            row.setAttribute('style', 'background: #1e3a5f; color: white;')
+          })
+          table.querySelectorAll('thead th').forEach(th => {
+            th.setAttribute('style', `
+              border: 1px solid #333;
+              padding: 6px 8px;
+              color: white;
+              font-weight: 600;
+            `.replace(/\s+/g, ' ').trim())
+          })
+          
+          // Estilizar células do corpo
+          table.querySelectorAll('tbody td').forEach(td => {
+            td.setAttribute('style', `
+              border: 1px solid #ddd;
+              padding: 6px 8px;
+              color: #1e293b;
+            `.replace(/\s+/g, ' ').trim())
+          })
+          
+          // Linhas alternadas
+          table.querySelectorAll('tbody tr').forEach((row, index) => {
+            if (index % 2 === 1) {
+              row.setAttribute('style', 'background: #f8f8f8;')
+            }
+          })
+          
+          // Estilizar footer/referências
+          table.querySelectorAll('tfoot td').forEach(td => {
+            td.setAttribute('style', `
+              border: 1px solid #ddd;
+              padding: 8px 12px;
+              font-size: 9pt;
+              background: #f8f9fa;
+              color: #475569;
+              line-height: 1.4;
+            `.replace(/\s+/g, ' ').trim())
+          })
+          
+          // Links nas referências
+          table.querySelectorAll('tfoot a').forEach(link => {
+            link.setAttribute('style', 'color: #0066cc; text-decoration: none; font-weight: 500;')
+          })
+          
+          // Substituir o wrapper inteiro pela tabela limpa
+          block.replaceWith(table)
         } else {
+          // Se não encontrou tabela, remover o bloco
           block.remove()
         }
       })

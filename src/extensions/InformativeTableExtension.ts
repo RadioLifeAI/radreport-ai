@@ -106,11 +106,22 @@ export const InformativeTable = Node.create<InformativeTableOptions>({
       dom.setAttribute('data-table-id', node.attrs.tableId)
       dom.setAttribute('data-table-name', node.attrs.tableName)
       
-      // Container da tabela com estilos preservados (sem header redundante)
+      // Header com nome da tabela e ícone
+      const header = document.createElement('div')
+      header.className = 'flex items-center gap-2 text-xs text-cyan-600 dark:text-cyan-400 font-medium mb-3 pb-2 border-b border-cyan-500/20'
+      header.innerHTML = `
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <span>Tabela de Referência: ${node.attrs.tableName}</span>
+      `
+      
+      // Container da tabela com estilos preservados
       const tableContainer = document.createElement('div')
       tableContainer.className = 'informative-table-content rounded-lg p-4 shadow-sm'
       tableContainer.innerHTML = node.attrs.htmlContent
       
+      dom.appendChild(header)
       dom.appendChild(tableContainer)
       
       return {
