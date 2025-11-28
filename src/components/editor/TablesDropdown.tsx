@@ -61,7 +61,7 @@ export function TablesDropdown({ editor, onInsertTable }: TablesDropdownProps) {
                   {category.tables.map((table) => (
                     <div
                       key={table.id}
-                      className="flex items-center justify-between px-2 py-1.5 hover:bg-accent rounded-sm transition-colors"
+                      className="group flex items-center justify-between px-2 py-1.5 hover:bg-accent rounded-sm transition-colors"
                     >
                       <span className="text-sm truncate flex-1 mr-2">{table.name}</span>
                       <div className="flex items-center gap-1 shrink-0">
@@ -75,7 +75,7 @@ export function TablesDropdown({ editor, onInsertTable }: TablesDropdownProps) {
                           }}
                           title="Visualizar tabela"
                         >
-                          <Eye className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors" />
+                          <Eye className="h-4 w-4 text-muted-foreground group-hover:text-foreground hover:text-primary transition-colors" />
                         </Button>
                         <Button
                           variant="ghost"
@@ -87,7 +87,7 @@ export function TablesDropdown({ editor, onInsertTable }: TablesDropdownProps) {
                           }}
                           title="Inserir no editor"
                         >
-                          <FileInput className="h-4 w-4 text-muted-foreground hover:text-green-500 transition-colors" />
+                          <FileInput className="h-4 w-4 text-muted-foreground group-hover:text-foreground hover:text-green-500 transition-colors" />
                         </Button>
                       </div>
                     </div>
