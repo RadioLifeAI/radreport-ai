@@ -22,7 +22,7 @@ import { Table } from "@tiptap/extension-table"
 import { TableRow } from "@tiptap/extension-table-row"
 import { TableCell } from "@tiptap/extension-table-cell"
 import { TableHeader } from "@tiptap/extension-table-header"
-import { RadiologySpellChecker, FontSize } from "@/extensions"
+import { RadiologySpellChecker, FontSize, InformativeTable } from "@/extensions"
 
 // --- UI Primitives ---
 import { Button } from "@/components/tiptap-ui-primitive/button"
@@ -220,6 +220,7 @@ export function SimpleEditor({
       Superscript,
       Subscript,
       RadiologySpellChecker,
+      InformativeTable,
     ],
     content: externalContent || '',
     onUpdate: ({ editor }) => {
