@@ -5,15 +5,17 @@ import { Badge } from '@/components/ui/badge'
 import { Copy, FileInput, X } from 'lucide-react'
 import { RadiologyTable } from '@/lib/radiologyTables'
 import { toast } from 'sonner'
+import { Editor } from '@tiptap/react'
 
 interface TableViewerModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   table: RadiologyTable | null
+  editor?: Editor | null
   onInsertTable?: (htmlContent: string) => void
 }
 
-export function TableViewerModal({ open, onOpenChange, table, onInsertTable }: TableViewerModalProps) {
+export function TableViewerModal({ open, onOpenChange, table, editor, onInsertTable }: TableViewerModalProps) {
   if (!table) return null
 
   const handleCopy = async () => {
@@ -29,8 +31,20 @@ export function TableViewerModal({ open, onOpenChange, table, onInsertTable }: T
   }
 
   const handleInsert = () => {
-    if (onInsertTable) {
-      onInsertTable(table.htmlContent)
+    if (table?.type === 'informative' && editor) {
+      editor
+        .chain()
+        .focus()
+        .insertInformativeTable({
+          tableId: table.id,
+          tableName: table.name,
+          htmlContent: table.htmlContent,
+        })
+        .run()
+      onOpenChange(false)
+      toast.success('Tabela inserida como referência não-editável')
+    } else if (onInsertTable) {
+      onInsertTable(table!.htmlContent)
       onOpenChange(false)
       toast.success('Tabela inserida no editor')
     }

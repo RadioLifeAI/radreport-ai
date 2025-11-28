@@ -178,6 +178,7 @@ export function TablesDropdown({ editor, onInsertTable }: TablesDropdownProps) {
         open={viewerOpen}
         onOpenChange={setViewerOpen}
         table={selectedTable}
+        editor={editor}
         onInsertTable={onInsertTable}
       />
     </>

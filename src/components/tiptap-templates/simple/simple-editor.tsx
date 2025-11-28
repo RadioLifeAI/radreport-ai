@@ -220,7 +220,16 @@ export function SimpleEditor({
       Superscript,
       Subscript,
       RadiologySpellChecker,
-      InformativeTable,
+      InformativeTable,  // ANTES de Table para garantir precedência
+      Table.configure({
+        resizable: true,
+        HTMLAttributes: {
+          class: 'radiology-table',
+        },
+      }),
+      TableRow,
+      TableCell,
+      TableHeader,
     ],
     content: externalContent || '',
     onUpdate: ({ editor }) => {

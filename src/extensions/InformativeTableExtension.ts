@@ -24,7 +24,10 @@ export const InformativeTable = Node.create<InformativeTableOptions>({
   
   group: 'block',
   
-  atom: true, // Não permite edição interna
+  atom: true,
+  selectable: true,    // Permite selecionar o bloco para deletar
+  draggable: false,    // Não permite arrastar
+  isolating: true,     // Isola do resto do documento, previne edição interna
   
   addOptions() {
     return {
@@ -74,10 +77,10 @@ export const InformativeTable = Node.create<InformativeTableOptions>({
         HTMLAttributes,
         {
           'data-informative-table': '',
+          'contenteditable': 'false',
           class: 'informative-table-block',
         }
       ),
-      ['div', { class: 'informative-table-content' }, 0],
     ]
   },
   
