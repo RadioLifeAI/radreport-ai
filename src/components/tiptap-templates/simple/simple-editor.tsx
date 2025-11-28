@@ -208,15 +208,6 @@ export function SimpleEditor({
           class: 'max-w-full h-auto rounded-lg',
         },
       }),
-      Table.configure({
-        resizable: true,
-        HTMLAttributes: {
-          class: 'radiology-table',
-        },
-      }),
-      TableRow,
-      TableCell,
-      TableHeader,
       Superscript,
       Subscript,
       RadiologySpellChecker,
