@@ -1,5 +1,5 @@
 import { Editor } from '@tiptap/react'
-import { Table2, ChevronDown, Award, Baby, Activity, Bone } from 'lucide-react'
+import { Table2, ChevronDown, Award, Baby, Activity, Bone, HeartPulse } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,6 +22,7 @@ const iconMap: Record<string, any> = {
   Baby,
   Activity,
   Bone,
+  HeartPulse,
 }
 
 export function TablesDropdown({ editor, onInsertTable }: TablesDropdownProps) {
