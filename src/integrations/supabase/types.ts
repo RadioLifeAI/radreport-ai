@@ -1717,6 +1717,162 @@ export type Database = {
         }
         Relationships: []
       }
+      user_favorite_frases: {
+        Row: {
+          created_at: string | null
+          frase_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          frase_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          frase_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_favorite_frases_frase_id_fkey"
+            columns: ["frase_id"]
+            isOneToOne: false
+            referencedRelation: "frases_modelo"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_favorite_templates: {
+        Row: {
+          created_at: string | null
+          id: string
+          template_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          template_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          template_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_favorite_templates_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "system_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_favorite_templates_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "system_templates_filters_v"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_frase_usage: {
+        Row: {
+          frase_id: string
+          id: string
+          report_id: string | null
+          usage_count: number | null
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          frase_id: string
+          id?: string
+          report_id?: string | null
+          usage_count?: number | null
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          frase_id?: string
+          id?: string
+          report_id?: string | null
+          usage_count?: number | null
+          used_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_frase_usage_frase_id_fkey"
+            columns: ["frase_id"]
+            isOneToOne: false
+            referencedRelation: "frases_modelo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_frase_usage_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_template_usage: {
+        Row: {
+          id: string
+          report_id: string | null
+          template_id: string
+          usage_count: number | null
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          report_id?: string | null
+          template_id: string
+          usage_count?: number | null
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          id?: string
+          report_id?: string | null
+          template_id?: string
+          usage_count?: number | null
+          used_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_template_usage_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_template_usage_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "system_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_template_usage_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "system_templates_filters_v"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       voice_commands: {
         Row: {
           ai_model: string | null

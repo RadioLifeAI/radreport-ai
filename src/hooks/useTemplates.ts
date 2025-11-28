@@ -48,20 +48,27 @@ export function useTemplates(): UseTemplatesReturn {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedModality, setSelectedModality] = useState<string | null>(null)
   const [favorites, setFavorites] = useState<string[]>([])
+  const [recentUsageData, setRecentUsageData] = useState<Array<{template_id: string, used_at: string, usage_count: number}>>([])
   
   // Report store integration
-  const { setContent, setModalidade } = useReportStore()
+  const { setContent, setModalidade, currentReportId } = useReportStore()
 
-  // Carregar favoritos do localStorage
+  // Carregar favoritos do Supabase
   useEffect(() => {
-    const savedFavorites = localStorage.getItem('radreport.favorites')
-    if (savedFavorites) {
-      try {
-        setFavorites(JSON.parse(savedFavorites))
-      } catch (error) {
-        console.error('Erro ao carregar favoritos:', error)
-      }
+    const loadFavorites = async () => {
+      const favoriteIds = await supabaseService.getUserFavoriteTemplates()
+      setFavorites(favoriteIds)
     }
+    loadFavorites()
+  }, [])
+
+  // Carregar histórico de uso recente
+  useEffect(() => {
+    const loadRecentUsage = async () => {
+      const usageData = await supabaseService.getRecentTemplates(10)
+      setRecentUsageData(usageData)
+    }
+    loadRecentUsage()
   }, [])
 
   // Função para verificar se é favorito
@@ -254,33 +261,35 @@ export function useTemplates(): UseTemplatesReturn {
 
   // _fuzzyMatch movida para cima para evitar TDZ
 
-  // Templates recentes com ordenação inteligente
+  // Templates recentes com ordenação baseada em histórico do Supabase
   const recentTemplates = useMemo(() => {
-    // Priorizar favoritos e templates mais usados
-    const favoriteTemplates = templates.filter(t => isFavorite(t.id))
-    const otherTemplates = templates.filter(t => !isFavorite(t.id))
+    if (recentUsageData.length === 0) return []
+
+    // Mapear dados de uso para templates
+    const usageMap = new Map(recentUsageData.map(u => [u.template_id, u]))
     
-    // Ordenar por relevância: favoritos primeiro, depois por uso recente
-    const sortedTemplates = [...favoriteTemplates, ...otherTemplates].sort((a, b) => {
-      // Favoritos sempre primeiro
+    // Filtrar templates que têm histórico de uso
+    const templatesWithUsage = templates
+      .filter(t => usageMap.has(t.id))
+      .map(t => {
+        const usage = usageMap.get(t.id)!
+        return {
+          ...t,
+          usageCount: usage.usage_count,
+          lastUsed: usage.used_at
+        }
+      })
+
+    // Ordenar: favoritos primeiro, depois por data de uso mais recente
+    return templatesWithUsage.sort((a, b) => {
       if (isFavorite(a.id) && !isFavorite(b.id)) return -1
       if (!isFavorite(a.id) && isFavorite(b.id)) return 1
       
-      // Depois por contagem de uso (mais usados primeiro)
-      const aUsage = a.usageCount || 0
-      const bUsage = b.usageCount || 0
-      if (aUsage !== bUsage) {
-        return bUsage - aUsage
-      }
-      
-      // Por último, por data de uso mais recente
       const aLastUsed = a.lastUsed || new Date(0).toISOString()
       const bLastUsed = b.lastUsed || new Date(0).toISOString()
       return new Date(bLastUsed).getTime() - new Date(aLastUsed).getTime()
-    })
-    
-    return sortedTemplates.slice(0, 10)
-  }, [templates, favorites])
+    }).slice(0, 10)
+  }, [templates, favorites, recentUsageData, isFavorite])
 
   // Templates favoritos
   const favoriteTemplates = useMemo(() => {
@@ -288,7 +297,7 @@ export function useTemplates(): UseTemplatesReturn {
   }, [templates, favorites])
 
   // Aplicar template no editor e registrar uso
-  const applyTemplate = useCallback((template: Template) => {
+  const applyTemplate = useCallback(async (template: Template) => {
     setModalidade(template.modalidade)
     
     // Título centralizado e em maiúsculas
@@ -320,26 +329,28 @@ export function useTemplates(): UseTemplatesReturn {
     
     setContent(html)
     
-    // Atualizar estatísticas de uso
-    setTemplates(prev => prev.map(t => 
-      t.id === template.id 
-        ? { ...t, usageCount: (t.usageCount || 0) + 1, lastUsed: new Date().toISOString() }
-        : t
-    ))
-  }, [setContent, setModalidade])
+    // Registrar uso no Supabase
+    await supabaseService.recordTemplateUsage(template.id, currentReportId)
+    
+    // Recarregar histórico de uso
+    const usageData = await supabaseService.getRecentTemplates(10)
+    setRecentUsageData(usageData)
+  }, [setContent, setModalidade, currentReportId])
 
-  // Gerenciar favoritos
-  const addToFavorites = useCallback((templateId: string) => {
-    const newFavorites = [...favorites, templateId]
-    setFavorites(newFavorites)
-    localStorage.setItem('radreport.favorites', JSON.stringify(newFavorites))
-  }, [favorites])
+  // Gerenciar favoritos no Supabase
+  const addToFavorites = useCallback(async (templateId: string) => {
+    const success = await supabaseService.addFavoriteTemplate(templateId)
+    if (success) {
+      setFavorites(prev => [...prev, templateId])
+    }
+  }, [])
 
-  const removeFromFavorites = useCallback((templateId: string) => {
-    const newFavorites = favorites.filter(id => id !== templateId)
-    setFavorites(newFavorites)
-    localStorage.setItem('radreport.favorites', JSON.stringify(newFavorites))
-  }, [favorites])
+  const removeFromFavorites = useCallback(async (templateId: string) => {
+    const success = await supabaseService.removeFavoriteTemplate(templateId)
+    if (success) {
+      setFavorites(prev => prev.filter(id => id !== templateId))
+    }
+  }, [])
 
   // Carregar templates na montagem
   useEffect(() => {

@@ -5,10 +5,12 @@ interface ReportState {
   content: string
   modalidade: string
   currentReport: any | null
+  currentReportId?: string
   versions: any[]
   setContent: (content: string) => void
   setModalidade: (modalidade: string) => void
   setCurrentReport: (report: any) => void
+  setCurrentReportId: (id: string | undefined) => void
   updateContent: (content: string) => void
   addVersion: (version: any) => void
 }
@@ -19,10 +21,12 @@ export const useReportStore = create<ReportState>()(
       content: '',
       modalidade: '',
       currentReport: null,
+      currentReportId: undefined,
       versions: [],
       setContent: (content) => set({ content }),
       setModalidade: (modalidade) => set({ modalidade }),
-      setCurrentReport: (report) => set({ currentReport: report }),
+      setCurrentReport: (report) => set({ currentReport: report, currentReportId: report?.id }),
+      setCurrentReportId: (currentReportId) => set({ currentReportId }),
       updateContent: (content) => set({ content }),
       addVersion: (version) => set((state) => ({ 
         versions: [...state.versions, version] 
