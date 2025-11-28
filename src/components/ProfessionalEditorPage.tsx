@@ -174,22 +174,33 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
         }
       })
       
-      // TABELAS INFORMATIVAS - extrair do data-html-content e preservar formatação
+      // TABELAS INFORMATIVAS - decodificar Base64 e preservar formatação original
       container.querySelectorAll('.informative-table-block').forEach(block => {
-        const htmlContent = block.getAttribute('data-html-content')
-        if (htmlContent) {
-          // Parser temporário para extrair tabela do HTML
+        const encodedContent = block.getAttribute('data-html-content')
+        
+        if (encodedContent) {
+          let htmlContent: string
+          
+          // Decodificar Base64
+          try {
+            htmlContent = decodeURIComponent(atob(encodedContent))
+          } catch {
+            // Fallback se não for Base64 (formato antigo)
+            htmlContent = encodedContent
+          }
+          
+          // Parser temporário para extrair tabela do HTML decodificado
           const temp = document.createElement('div')
           temp.innerHTML = htmlContent
           const table = temp.querySelector('table')
           
           if (table) {
-            // Ajustar apenas margem profissional, preservando todos os outros estilos
+            // Apenas ajustar margem profissional, preservando TODOS os estilos inline originais
             const currentStyle = table.getAttribute('style') || ''
             const cleanedStyle = currentStyle.replace(/margin:[^;]+;?/g, '').trim()
             table.setAttribute('style', cleanedStyle + '; margin: 12pt 0;')
             
-            // Substituir bloco pela tabela com formatação original
+            // Substituir bloco pela tabela com formatação original completa
             block.replaceWith(table)
           } else {
             block.remove()
@@ -202,32 +213,40 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
       const html = `<!DOCTYPE html>
 <html>
 <head>
-<meta charset="utf-8">
-<style>
-  body {
-    font-family: Arial, Helvetica, sans-serif;
-    font-size: 12pt;
-    line-height: 1.15;
-    margin: 2.5cm;
-    padding: 0;
-  }
-  table {
-    border-collapse: collapse;
-    width: 100%;
-    margin: 12pt 0;
-  }
-  table th, table td {
-    border: 1px solid #333;
-    padding: 6px 8px;
-  }
-  table thead tr {
-    background: #1e3a5f;
-    color: white;
-  }
-  table tbody tr:nth-child(even) {
-    background: #f8f8f8;
-  }
-</style>
+  <meta charset="utf-8">
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 12pt;
+      line-height: 1.15;
+      margin: 2.5cm;
+      padding: 0;
+    }
+    
+    h1, h2 {
+      text-align: center;
+      text-transform: uppercase;
+      margin: 0 0 24pt 0;
+      font-weight: bold;
+    }
+    
+    h3, h4, h5, h6 {
+      text-transform: uppercase;
+      margin: 18pt 0 8pt 0;
+      font-weight: bold;
+    }
+    
+    p {
+      margin: 6pt 0;
+      text-align: justify;
+    }
+    
+    ul, ol {
+      margin: 6pt 0;
+    }
+    
+    /* Tabelas usam apenas estilos inline originais - sem CSS genérico */
+  </style>
 </head>
 <body>${container.innerHTML}</body>
 </html>`

@@ -54,6 +54,17 @@ export const InformativeTable = Node.create<InformativeTableOptions>({
       htmlContent: {
         default: '',
         parseHTML: element => {
+          // Tentar decodificar Base64 primeiro
+          const encoded = element.getAttribute('data-html-content')
+          if (encoded) {
+            try {
+              return decodeURIComponent(atob(encoded))
+            } catch {
+              // Fallback para formato antigo (não Base64)
+              return encoded
+            }
+          }
+          // Fallback para formato legado (dentro do container)
           const container = element.querySelector('.informative-table-content')
           return container?.innerHTML || ''
         },
@@ -70,6 +81,9 @@ export const InformativeTable = Node.create<InformativeTableOptions>({
   },
   
   renderHTML({ HTMLAttributes, node }) {
+    // Codificar HTML em Base64 para evitar problemas com aspas duplas
+    const encodedContent = btoa(encodeURIComponent(node.attrs.htmlContent || ''))
+    
     return [
       'div',
       mergeAttributes(
@@ -77,7 +91,7 @@ export const InformativeTable = Node.create<InformativeTableOptions>({
         HTMLAttributes,
         {
           'data-informative-table': '',
-          'data-html-content': node.attrs.htmlContent,
+          'data-html-content': encodedContent,
           'contenteditable': 'false',
           class: 'informative-table-block',
         }
