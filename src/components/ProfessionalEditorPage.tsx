@@ -16,7 +16,6 @@ import { EditorFooter } from '@/components/editor/EditorFooter'
 import { Macro } from '@/components/selectors/MacroSelector'
 import { VariablesModal } from '@/components/editor/VariablesModal'
 import { useVariableProcessor } from '@/hooks/useVariableProcessor'
-import { RADIOLOGY_TABLES } from '@/lib/radiologyTables'
 
 interface ProfessionalEditorPageProps {
   onGenerateConclusion?: (conclusion?: string) => void
@@ -102,108 +101,6 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
   const recentFrasesAsMacros = recentFrases.map(convertFraseToMacro)
   const favoriteFrasesAsMacros = favoriteFrases.map(convertFraseToMacro)
 
-  // Helper: Cópia WYSIWYG usando document.execCommand (preserva formatação)
-  const copyRichTextToClipboard = (html: string): boolean => {
-    const tempElement = document.createElement('div')
-    tempElement.innerHTML = html
-    
-    // Posicionar fora da viewport mas visível (necessário para seleção)
-    tempElement.style.position = 'fixed'
-    tempElement.style.left = '-9999px'
-    tempElement.style.top = '0'
-    
-    document.body.appendChild(tempElement)
-    
-    try {
-      const range = document.createRange()
-      range.selectNodeContents(tempElement)
-      
-      const selection = window.getSelection()
-      selection?.removeAllRanges()
-      selection?.addRange(range)
-      
-      // Executar cópia (preserva formatação WYSIWYG)
-      const success = document.execCommand('copy')
-      
-      selection?.removeAllRanges()
-      return success
-    } finally {
-      document.body.removeChild(tempElement)
-    }
-  }
-
-  // Helper: Busca HTML original da tabela por ID
-  const findOriginalTableHTML = (tableId: string): string | null => {
-    for (const category of RADIOLOGY_TABLES) {
-      const table = category.tables.find(t => t.id === tableId)
-      if (table) return table.htmlContent
-    }
-    return null
-  }
-
-  // Helper: Propaga TODOS os estilos visuais de <tr> para <td>/<th>
-  const propagateAllStylesToTableCells = (table: Element) => {
-    // Processar cada linha
-    table.querySelectorAll('tr').forEach(tr => {
-      const trStyle = tr.getAttribute('style') || ''
-      if (!trStyle) return
-      
-      // Extrair todos os estilos visuais relevantes
-      const styleProps: Record<string, string> = {}
-      
-      // Background (shorthand e longhand)
-      const bgMatch = trStyle.match(/background(?:-color)?:\s*([^;]+)/i)
-      if (bgMatch) styleProps['background-color'] = bgMatch[1].trim()
-      
-      // Color (texto)
-      const colorMatch = trStyle.match(/(?:^|;\s*)color:\s*([^;]+)/i)
-      if (colorMatch) styleProps['color'] = colorMatch[1].trim()
-      
-      // Font-weight (para headers bold)
-      const fontWeightMatch = trStyle.match(/font-weight:\s*([^;]+)/i)
-      if (fontWeightMatch) styleProps['font-weight'] = fontWeightMatch[1].trim()
-      
-      // Propagar para cada célula
-      if (Object.keys(styleProps).length > 0) {
-        tr.querySelectorAll('td, th').forEach(cell => {
-          const cellStyle = cell.getAttribute('style') || ''
-          let additions = ''
-          
-          for (const [prop, value] of Object.entries(styleProps)) {
-            const propRegex = new RegExp(`${prop.replace('-', '\\-')}\\s*:`, 'i')
-            if (!propRegex.test(cellStyle)) {
-              additions += `${prop}:${value};`
-            }
-          }
-          
-          if (additions) {
-            const newStyle = (cellStyle + ';' + additions)
-              .replace(/;+/g, ';')
-              .replace(/^;/, '')
-              .replace(/;$/, '')
-            cell.setAttribute('style', newStyle)
-          }
-        })
-      }
-    })
-    
-    // Garantir bordas em TODAS as células
-    table.querySelectorAll('td, th').forEach(cell => {
-      const cellStyle = cell.getAttribute('style') || ''
-      if (!cellStyle.includes('border')) {
-        cell.setAttribute('style', cellStyle + ';border:1px solid #ddd')
-      }
-    })
-    
-    // Garantir caption mantém estilos
-    const caption = table.querySelector('caption')
-    if (caption && !caption.getAttribute('style')?.includes('font-weight')) {
-      caption.setAttribute('style', 
-        (caption.getAttribute('style') || '') + ';font-weight:bold;text-align:left'
-      )
-    }
-  }
-
   // Copy formatted report function
   const copyFormattedReport = useCallback(async () => {
     try {
@@ -277,44 +174,62 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
         }
       })
       
-      // TABELAS INFORMATIVAS - Sistema robusto com múltiplas estratégias
+      // TABELAS INFORMATIVAS - decodificar Base64 e preservar formatação original
       container.querySelectorAll('.informative-table-block').forEach(block => {
-        let htmlContent: string | null = null
+        const encodedContent = block.getAttribute('data-html-content')
         
-        // ESTRATÉGIA 1: Busca direta por tableId (mais confiável)
-        const tableId = block.getAttribute('data-table-id')
-        if (tableId) {
-          htmlContent = findOriginalTableHTML(tableId)
-        }
-        
-        // ESTRATÉGIA 2: Fallback - Decodificar Base64
-        if (!htmlContent) {
-          const encodedContent = block.getAttribute('data-html-content')
-          if (encodedContent) {
-            try {
-              htmlContent = decodeURIComponent(atob(encodedContent))
-            } catch {
-              htmlContent = encodedContent
-            }
+        if (encodedContent) {
+          let htmlContent: string
+          
+          // Decodificar Base64
+          try {
+            htmlContent = decodeURIComponent(atob(encodedContent))
+          } catch {
+            // Fallback se não for Base64 (formato antigo)
+            htmlContent = encodedContent
           }
-        }
-        
-        // Processar tabela se encontrada
-        if (htmlContent) {
+          
+          // Parser temporário para extrair tabela do HTML decodificado
           const temp = document.createElement('div')
           temp.innerHTML = htmlContent
           const table = temp.querySelector('table')
           
           if (table) {
-            // Propagar TODOS os estilos para células
-            propagateAllStylesToTableCells(table)
+            // PROPAGAÇÃO DE ESTILOS DO <tr> PARA <td>/<th> (compatibilidade Word)
+            table.querySelectorAll('tr').forEach(tr => {
+              const trStyle = tr.getAttribute('style') || ''
+              
+              // Extrair background e color do <tr>
+              const bgMatch = trStyle.match(/background(?:-color)?:\s*([^;]+)/i)
+              const colorMatch = trStyle.match(/(?:^|;)\s*color:\s*([^;]+)/i)
+              
+              if (bgMatch || colorMatch) {
+                // Propagar para cada célula filho
+                tr.querySelectorAll('td, th').forEach(cell => {
+                  const cellStyle = cell.getAttribute('style') || ''
+                  let newStyle = cellStyle
+                  
+                  // Adicionar background se não existir na célula
+                  if (bgMatch && !cellStyle.includes('background')) {
+                    newStyle += `; background-color: ${bgMatch[1].trim()}`
+                  }
+                  
+                  // Adicionar color se não existir na célula
+                  if (colorMatch && !cellStyle.includes('color:')) {
+                    newStyle += `; color: ${colorMatch[1].trim()}`
+                  }
+                  
+                  cell.setAttribute('style', newStyle.replace(/^;\s*/, ''))
+                })
+              }
+            })
             
             // Ajustar margem profissional
             const currentStyle = table.getAttribute('style') || ''
-            const cleanedStyle = currentStyle.replace(/margin[^;]*;?/gi, '').trim()
-            table.setAttribute('style', cleanedStyle + ';margin:12pt 0')
+            const cleanedStyle = currentStyle.replace(/margin:[^;]+;?/g, '').trim()
+            table.setAttribute('style', cleanedStyle + '; margin: 12pt 0;')
             
-            // Substituir bloco pela tabela processada
+            // Substituir bloco pela tabela com formatação propagada
             block.replaceWith(table)
           } else {
             block.remove()
@@ -324,8 +239,7 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
         }
       })
       
-      // Montar documento HTML completo
-      const htmlDocument = `<!DOCTYPE html>
+      const html = `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
@@ -359,31 +273,25 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
     ul, ol {
       margin: 6pt 0;
     }
+    
+    /* Tabelas usam apenas estilos inline originais - sem CSS genérico */
   </style>
 </head>
 <body>${container.innerHTML}</body>
 </html>`
-
-      // Método WYSIWYG - preserva formatação exatamente como renderizada
-      const success = copyRichTextToClipboard(htmlDocument)
-
-      if (success) {
-        toast.success('Laudo copiado com formatação profissional')
+      
+      const plain = container.textContent || ''
+      const ClipboardItemAny = (window as any).ClipboardItem
+      if (ClipboardItemAny) {
+        const item = new ClipboardItemAny({
+          'text/html': new Blob([html], { type: 'text/html' }),
+          'text/plain': new Blob([plain], { type: 'text/plain' }),
+        })
+        await navigator.clipboard.write([item])
       } else {
-        // Fallback para Clipboard API se execCommand falhar
-        const plain = container.textContent || ''
-        const ClipboardItemAny = (window as any).ClipboardItem
-        if (ClipboardItemAny) {
-          const item = new ClipboardItemAny({
-            'text/html': new Blob([htmlDocument], { type: 'text/html' }),
-            'text/plain': new Blob([plain], { type: 'text/plain' }),
-          })
-          await navigator.clipboard.write([item])
-        } else {
-          await navigator.clipboard.writeText(plain)
-        }
-        toast.success('Laudo copiado')
+        await navigator.clipboard.writeText(plain)
       }
+      toast.success('Laudo copiado com formatação profissional')
       return true
     } catch (error) {
       console.error('Erro ao copiar laudo:', error)
