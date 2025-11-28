@@ -195,12 +195,41 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
           const table = temp.querySelector('table')
           
           if (table) {
-            // Apenas ajustar margem profissional, preservando TODOS os estilos inline originais
+            // PROPAGAÇÃO DE ESTILOS DO <tr> PARA <td>/<th> (compatibilidade Word)
+            table.querySelectorAll('tr').forEach(tr => {
+              const trStyle = tr.getAttribute('style') || ''
+              
+              // Extrair background e color do <tr>
+              const bgMatch = trStyle.match(/background(?:-color)?:\s*([^;]+)/i)
+              const colorMatch = trStyle.match(/(?:^|;)\s*color:\s*([^;]+)/i)
+              
+              if (bgMatch || colorMatch) {
+                // Propagar para cada célula filho
+                tr.querySelectorAll('td, th').forEach(cell => {
+                  const cellStyle = cell.getAttribute('style') || ''
+                  let newStyle = cellStyle
+                  
+                  // Adicionar background se não existir na célula
+                  if (bgMatch && !cellStyle.includes('background')) {
+                    newStyle += `; background-color: ${bgMatch[1].trim()}`
+                  }
+                  
+                  // Adicionar color se não existir na célula
+                  if (colorMatch && !cellStyle.includes('color:')) {
+                    newStyle += `; color: ${colorMatch[1].trim()}`
+                  }
+                  
+                  cell.setAttribute('style', newStyle.replace(/^;\s*/, ''))
+                })
+              }
+            })
+            
+            // Ajustar margem profissional
             const currentStyle = table.getAttribute('style') || ''
             const cleanedStyle = currentStyle.replace(/margin:[^;]+;?/g, '').trim()
             table.setAttribute('style', cleanedStyle + '; margin: 12pt 0;')
             
-            // Substituir bloco pela tabela com formatação original completa
+            // Substituir bloco pela tabela com formatação propagada
             block.replaceWith(table)
           } else {
             block.remove()
