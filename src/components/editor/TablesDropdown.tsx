@@ -1,5 +1,6 @@
+import { useState } from 'react'
 import { Editor } from '@tiptap/react'
-import { Table2, ChevronDown, Award, Baby, Activity, Bone, HeartPulse } from 'lucide-react'
+import { Table2, ChevronDown, Award, Baby, Activity, Bone, HeartPulse, Eye, FileInput } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,7 +11,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
-import { RADIOLOGY_TABLES } from '@/lib/radiologyTables'
+import { RADIOLOGY_TABLES, RadiologyTable } from '@/lib/radiologyTables'
+import { TableViewerModal } from './TableViewerModal'
 
 interface TablesDropdownProps {
   editor: Editor | null
@@ -26,46 +28,83 @@ const iconMap: Record<string, any> = {
 }
 
 export function TablesDropdown({ editor, onInsertTable }: TablesDropdownProps) {
+  const [viewerOpen, setViewerOpen] = useState(false)
+  const [selectedTable, setSelectedTable] = useState<RadiologyTable | null>(null)
+
   if (!editor) return null
 
+  const handleViewTable = (table: RadiologyTable) => {
+    setSelectedTable(table)
+    setViewerOpen(true)
+  }
+
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="gap-2 text-foreground hover:text-foreground">
-          <Table2 size={16} />
-          <span className="text-sm">Tabelas</span>
-          <ChevronDown size={14} />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56 bg-popover border-border z-[100]">
-        {RADIOLOGY_TABLES.map((category) => {
-          const IconComponent = iconMap[category.icon]
-          return (
-            <DropdownMenuSub key={category.id}>
-              <DropdownMenuSubTrigger className="cursor-pointer">
-                {IconComponent && <IconComponent className="mr-2 h-4 w-4" />}
-                <span>{category.name}</span>
-              </DropdownMenuSubTrigger>
-              <DropdownMenuSubContent className="bg-popover border-border z-[101]">
-                {category.tables.map((table) => (
-                  <DropdownMenuItem
-                    key={table.id}
-                    onClick={() => onInsertTable(table.htmlContent)}
-                    className="cursor-pointer"
-                  >
-                    {table.name}
-                    {table.modality && (
-                      <span className="ml-auto text-xs text-muted-foreground">
-                        {table.modality.join(', ')}
-                      </span>
-                    )}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuSubContent>
-            </DropdownMenuSub>
-          )
-        })}
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="sm" className="gap-2 text-foreground hover:text-foreground">
+            <Table2 size={16} />
+            <span className="text-sm">Tabelas</span>
+            <ChevronDown size={14} />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-72 bg-popover border-border z-[100]">
+          {RADIOLOGY_TABLES.map((category) => {
+            const IconComponent = iconMap[category.icon]
+            return (
+              <DropdownMenuSub key={category.id}>
+                <DropdownMenuSubTrigger className="cursor-pointer">
+                  {IconComponent && <IconComponent className="mr-2 h-4 w-4" />}
+                  <span>{category.name}</span>
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent className="w-80 bg-popover border-border z-[101]">
+                  {category.tables.map((table) => (
+                    <div
+                      key={table.id}
+                      className="flex items-center justify-between px-2 py-1.5 hover:bg-accent rounded-sm transition-colors"
+                    >
+                      <span className="text-sm truncate flex-1 mr-2">{table.name}</span>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleViewTable(table)
+                          }}
+                          title="Visualizar tabela"
+                        >
+                          <Eye className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            onInsertTable(table.htmlContent)
+                          }}
+                          title="Inserir no editor"
+                        >
+                          <FileInput className="h-4 w-4 text-muted-foreground hover:text-green-500 transition-colors" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+            )
+          })}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <TableViewerModal
+        open={viewerOpen}
+        onOpenChange={setViewerOpen}
+        table={selectedTable}
+        onInsertTable={onInsertTable}
+      />
+    </>
   )
 }
