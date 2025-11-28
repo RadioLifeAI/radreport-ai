@@ -276,6 +276,7 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
         id: 'ila',
         name: 'ILA (Índice de Líquido Amniótico)',
         category: 'obstetrics',
+        type: 'informative',
         modality: ['US'],
         htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
   <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Índice de Líquido Amniótico (ILA) - Valores de Referência</caption>
@@ -323,6 +324,7 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
         id: 'figado_dimensoes',
         name: 'Fígado - Dimensões Normais',
         category: 'abdominal',
+        type: 'informative',
         modality: ['US', 'TC', 'RM'],
         htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
   <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Fígado - Valores de Referência por Lobo</caption>
@@ -360,6 +362,7 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
         id: 'rins_dimensoes',
         name: 'Rins - Dimensões Normais',
         category: 'abdominal',
+        type: 'informative',
         modality: ['US', 'TC', 'RM'],
         htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
   <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Rins - Valores de Referência em Adultos</caption>
@@ -404,6 +407,7 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
         id: 'cobb_escoliose',
         name: 'Ângulo de Cobb (Escoliose)',
         category: 'musculoskeletal',
+        type: 'informative',
         modality: ['RX'],
         htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
   <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Ângulo de Cobb - Classificação da Escoliose</caption>
@@ -442,6 +446,7 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
         id: 'graf_ddq',
         name: 'Classificação de Graf (DDQ)',
         category: 'musculoskeletal',
+        type: 'informative',
         modality: ['US'],
         htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
   <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Classificação de Graf - Displasia do Desenvolvimento do Quadril (DDQ)</caption>
@@ -491,6 +496,7 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
         id: 'graf-ddq',
         name: 'Graf - Displasia do Desenvolvimento do Quadril',
         category: 'pediatric',
+        type: 'informative',
         subcategory: 'Quadril Infantil',
         modality: ['US'],
         htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
@@ -536,6 +542,7 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
         id: 'acetabular-index',
         name: 'Índice Acetabular por Idade',
         category: 'pediatric',
+        type: 'informative',
         subcategory: 'Quadril Infantil',
         modality: ['RX'],
         htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
@@ -578,6 +585,7 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
         id: 'figado-pediatrico',
         name: 'Fígado - Comprimento por Idade',
         category: 'pediatric',
+        type: 'informative',
         subcategory: 'Órgãos Abdominais',
         modality: ['US'],
         htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
@@ -619,6 +627,7 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
         id: 'baco-pediatrico',
         name: 'Baço - Comprimento por Idade',
         category: 'pediatric',
+        type: 'informative',
         subcategory: 'Órgãos Abdominais',
         modality: ['US'],
         htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
@@ -660,6 +669,7 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
         id: 'rins-pediatricos',
         name: 'Rins - Comprimento por Idade',
         category: 'pediatric',
+        type: 'informative',
         subcategory: 'Órgãos Abdominais',
         modality: ['US'],
         htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
@@ -701,6 +711,7 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
         id: 'pancreas-pediatrico',
         name: 'Pâncreas - Dimensões por Idade',
         category: 'pediatric',
+        type: 'informative',
         subcategory: 'Órgãos Abdominais',
         modality: ['US'],
         htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
@@ -741,6 +752,7 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
         id: 'vesicula-pediatrica',
         name: 'Vesícula Biliar - Dimensões',
         category: 'pediatric',
+        type: 'informative',
         subcategory: 'Órgãos Abdominais',
         modality: ['US'],
         htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
@@ -780,6 +792,7 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
         id: 'suprarrenais-pediatricas',
         name: 'Glândulas Suprarrenais - RN',
         category: 'pediatric',
+        type: 'informative',
         subcategory: 'Órgãos Abdominais',
         modality: ['US'],
         htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
@@ -820,6 +833,7 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
         id: 'piloro-pediatrico',
         name: 'Estenose Hipertrófica do Piloro',
         category: 'pediatric',
+        type: 'informative',
         subcategory: 'Gastrointestinal',
         modality: ['US'],
         htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
@@ -860,6 +874,7 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
         id: 'apendice-pediatrico',
         name: 'Apêndice - Diâmetro Normal',
         category: 'pediatric',
+        type: 'informative',
         subcategory: 'Gastrointestinal',
         modality: ['US'],
         htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
@@ -901,6 +916,7 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
         id: 'intussuscepcao',
         name: 'Intussuscepção - Critérios US',
         category: 'pediatric',
+        type: 'informative',
         subcategory: 'Gastrointestinal',
         modality: ['US'],
         htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
@@ -942,6 +958,7 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
         id: 'capacidade-vesical',
         name: 'Capacidade Vesical por Idade',
         category: 'pediatric',
+        type: 'informative',
         subcategory: 'Urológico',
         modality: ['US'],
         htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
@@ -985,6 +1002,7 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
         id: 'hidronefrose-sfu',
         name: 'Hidronefrose - Classificação SFU',
         category: 'pediatric',
+        type: 'informative',
         subcategory: 'Urológico',
         modality: ['US'],
         htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
@@ -1026,6 +1044,7 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
         id: 'ventriculos-cerebrais',
         name: 'Ventrículos Cerebrais - Dimensões RN',
         category: 'pediatric',
+        type: 'informative',
         subcategory: 'Craniano Neonatal',
         modality: ['US'],
         htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
@@ -1068,6 +1087,7 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
         id: 'hemorragia-intraventricular',
         name: 'HIV - Classificação de Papile',
         category: 'pediatric',
+        type: 'informative',
         subcategory: 'Craniano Neonatal',
         modality: ['US'],
         htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
@@ -1108,6 +1128,7 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
         id: 'leucomalacia-periventricular',
         name: 'Leucomalácia Periventricular',
         category: 'pediatric',
+        type: 'informative',
         subcategory: 'Craniano Neonatal',
         modality: ['US'],
         htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
@@ -1147,6 +1168,7 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
         id: 'timo-pediatrico',
         name: 'Timo - Índice Tímico por Idade',
         category: 'pediatric',
+        type: 'informative',
         subcategory: 'Tórax',
         modality: ['RX', 'US'],
         htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
@@ -1187,6 +1209,7 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
         id: 'aorta-pediatrica',
         name: 'Aorta Abdominal - Diâmetro por Idade',
         category: 'pediatric',
+        type: 'informative',
         subcategory: 'Vascular',
         modality: ['US'],
         htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
