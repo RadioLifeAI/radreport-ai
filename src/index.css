@@ -498,7 +498,21 @@
   .table-viewer-container table td,
   .table-viewer-container table th {
     color: #1e293b !important;
-    background-color: transparent;
+  }
+
+  /* Informative Table Block - Non-editable reference tables in editor */
+  .informative-table-block {
+    @apply select-none cursor-default;
+  }
+
+  .informative-table-block:hover {
+    border-color: rgba(6, 182, 212, 0.5);
+  }
+
+  /* When selected in TipTap */
+  .ProseMirror .informative-table-block.ProseMirror-selectednode {
+    outline: 2px solid rgb(6, 182, 212);
+    outline-offset: 2px;
   }
 
   .table-viewer-container table caption {
