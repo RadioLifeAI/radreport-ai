@@ -69,7 +69,7 @@ export const InformativeTable = Node.create<InformativeTableOptions>({
     ]
   },
   
-  renderHTML({ HTMLAttributes }) {
+  renderHTML({ HTMLAttributes, node }) {
     return [
       'div',
       mergeAttributes(
@@ -77,6 +77,7 @@ export const InformativeTable = Node.create<InformativeTableOptions>({
         HTMLAttributes,
         {
           'data-informative-table': '',
+          'data-html-content': node.attrs.htmlContent,
           'contenteditable': 'false',
           class: 'informative-table-block',
         }

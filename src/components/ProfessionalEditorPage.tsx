@@ -174,21 +174,22 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
         }
       })
       
-      // TABELAS INFORMATIVAS - preservar formatação original completa
+      // TABELAS INFORMATIVAS - extrair do data-html-content e preservar formatação
       container.querySelectorAll('.informative-table-block').forEach(block => {
-        const tableContent = block.querySelector('.informative-table-content')
-        if (tableContent) {
-          const originalTable = tableContent.querySelector('table')
-          if (originalTable) {
-            // Clonar tabela mantendo TODOS os estilos inline originais
-            const table = originalTable.cloneNode(true) as HTMLTableElement
-            
-            // Apenas ajustar margem profissional (NÃO alterar outros estilos)
+        const htmlContent = block.getAttribute('data-html-content')
+        if (htmlContent) {
+          // Parser temporário para extrair tabela do HTML
+          const temp = document.createElement('div')
+          temp.innerHTML = htmlContent
+          const table = temp.querySelector('table')
+          
+          if (table) {
+            // Ajustar apenas margem profissional, preservando todos os outros estilos
             const currentStyle = table.getAttribute('style') || ''
             const cleanedStyle = currentStyle.replace(/margin:[^;]+;?/g, '').trim()
             table.setAttribute('style', cleanedStyle + '; margin: 12pt 0;')
             
-            // Substituir wrapper pela tabela COM formatação original preservada
+            // Substituir bloco pela tabela com formatação original
             block.replaceWith(table)
           } else {
             block.remove()
