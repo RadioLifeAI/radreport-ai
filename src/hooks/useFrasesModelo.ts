@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { supabaseService } from '../services/SupabaseService'
+import { FraseVariable } from '@/types/fraseVariables'
 
 export interface FraseModelo {
   id: string
@@ -15,8 +16,164 @@ export interface FraseModelo {
   regiao_anatomica_id?: string
   estrutura_anatomica_id?: string
   tipo_template_id?: string
-  variaveis?: any[]  // Variáveis para preenchimento
-  condicoes_logicas?: any[]  // Condições lógicas (para expansão futura)
+  variaveis?: FraseVariable[]
+  condicoes_logicas?: any[]
+}
+
+// Opções padrão para variáveis de seleção comuns
+const defaultSelectOptions: Record<string, string[]> = {
+  'lado': ['direito', 'esquerdo', 'bilateral'],
+  'posicao': ['superior', 'inferior', 'medial', 'lateral', 'central'],
+  'grau': ['leve', 'moderado', 'acentuado', 'grave'],
+  'segmento': ['I', 'II', 'III', 'IVa', 'IVb', 'V', 'VI', 'VII', 'VIII'],
+  'morfologia': ['fusiforme', 'sacular', 'irregular'],
+  'calcificacao': ['leves', 'moderadas', 'grosseiras'],
+  'lobo': ['direito', 'esquerdo', 'caudado'],
+  'localizacao': ['proximal', 'medial', 'distal'],
+  'aspecto': ['homogêneo', 'heterogêneo'],
+  'contorno': ['regular', 'irregular', 'lobulado'],
+}
+
+// Formatar nome da variável para exibição
+function formatarNomeVariavel(nome: string): string {
+  return nome
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, c => c.toUpperCase())
+    .replace(/ Cm$/i, ' (cm)')
+    .replace(/ Mm$/i, ' (mm)')
+    .replace(/ Percent$/i, ' (%)')
+    .replace(/ Hu$/i, ' (HU)')
+    .replace(/ Ml$/i, ' (ml)')
+}
+
+// Inferir unidade pelo nome
+function inferirUnidade(nome: string): string | undefined {
+  const nomeLC = nome.toLowerCase()
+  if (nomeLC.includes('_cm') || nomeLC.endsWith('cm')) return 'cm'
+  if (nomeLC.includes('_mm') || nomeLC.endsWith('mm')) return 'mm'
+  if (nomeLC.includes('_percent') || nomeLC.includes('percentual')) return '%'
+  if (nomeLC.includes('hu') || nomeLC.includes('hounsfield')) return 'HU'
+  if (nomeLC.includes('_ml') || nomeLC.endsWith('ml')) return 'ml'
+  if (nomeLC.includes('_g') || nomeLC.endsWith('_g')) return 'g'
+  return undefined
+}
+
+// Inferir tipo pelo nome da variável
+function inferirTipo(nome: string): 'texto' | 'numero' | 'select' | 'boolean' {
+  const nomeLC = nome.toLowerCase()
+  
+  // Padrões numéricos
+  if (nomeLC.includes('_cm') || nomeLC.includes('_mm') || 
+      nomeLC.includes('medida') || nomeLC.includes('diametro') ||
+      nomeLC.includes('tamanho') || nomeLC.includes('volume') ||
+      nomeLC.includes('espessura') || nomeLC.includes('calibre') ||
+      nomeLC.includes('_percent') || nomeLC.includes('quantidade') ||
+      nomeLC.includes('extensao') || nomeLC.includes('comprimento') ||
+      nomeLC.includes('largura') || nomeLC.includes('altura') ||
+      /^(ap|t|ll|cc)$/i.test(nome)) {
+    return 'numero'
+  }
+  
+  // Padrões de seleção
+  if (nomeLC.includes('lado') || nomeLC.includes('posicao') ||
+      nomeLC.includes('grau') || nomeLC.includes('tipo') ||
+      nomeLC.includes('segmento') || nomeLC.includes('morfologia') ||
+      nomeLC.includes('calcificacao') || nomeLC.includes('lobo') ||
+      nomeLC.includes('localizacao') || nomeLC.includes('aspecto') ||
+      nomeLC.includes('contorno')) {
+    return 'select'
+  }
+  
+  return 'texto'
+}
+
+// Extrair variáveis do texto quando não há metadados
+function extractVariablesFromText(texto: string, conclusao?: string): FraseVariable[] {
+  const regex = /\{\{(\w+)\}\}/g
+  const allText = texto + (conclusao || '')
+  const matches = [...allText.matchAll(regex)]
+  const uniqueNames = [...new Set(matches.map(m => m[1]))]
+  
+  return uniqueNames.map(nome => ({
+    nome,
+    tipo: inferirTipo(nome),
+    descricao: formatarNomeVariavel(nome),
+    obrigatorio: true,
+    unidade: inferirUnidade(nome)
+  }))
+}
+
+// Normalizar uma única variável
+function normalizeVariable(v: any): FraseVariable {
+  // Normalizar tipo (inglês → português)
+  const tipoMap: Record<string, string> = {
+    'number': 'numero',
+    'text': 'texto',
+    'string': 'texto',
+    'numero': 'numero',
+    'texto': 'texto',
+    'select': 'select',
+    'boolean': 'boolean'
+  }
+  
+  const tipoNormalizado = tipoMap[v.tipo?.toLowerCase()] || v.tipo || inferirTipo(v.nome)
+  
+  // Normalizar min/max
+  const minimo = v.minimo ?? v.valor_min ?? v.min ?? undefined
+  const maximo = v.maximo ?? v.valor_max ?? v.max ?? undefined
+  
+  // Normalizar opções
+  let opcoes = v.opcoes || []
+  
+  // Se for select e não tem opções, tentar pegar opções padrão
+  if (tipoNormalizado === 'select' && opcoes.length === 0) {
+    const nomeLC = v.nome.toLowerCase()
+    for (const [key, defaultOpts] of Object.entries(defaultSelectOptions)) {
+      if (nomeLC.includes(key)) {
+        opcoes = defaultOpts
+        break
+      }
+    }
+  }
+  
+  return {
+    nome: v.nome,
+    tipo: tipoNormalizado as 'texto' | 'numero' | 'select' | 'boolean',
+    descricao: v.descricao || formatarNomeVariavel(v.nome),
+    opcoes,
+    valor_padrao: v.valor_padrao ?? v.default ?? undefined,
+    obrigatorio: v.obrigatorio ?? false,
+    unidade: v.unidade || inferirUnidade(v.nome),
+    minimo,
+    maximo
+  }
+}
+
+// Função principal para normalizar variáveis de diferentes formatos
+function normalizeVariables(rawVariaveis: any, texto: string, conclusao?: string): FraseVariable[] {
+  if (!rawVariaveis) {
+    // Extrair variáveis do texto se não há metadados
+    return extractVariablesFromText(texto, conclusao)
+  }
+  
+  let variablesArray: any[] = []
+  
+  // Formato 1 e 3: Array
+  if (Array.isArray(rawVariaveis)) {
+    variablesArray = rawVariaveis
+  }
+  // Formato 2: Objeto com chaves como nomes
+  else if (typeof rawVariaveis === 'object') {
+    variablesArray = Object.entries(rawVariaveis).map(([nome, config]: [string, any]) => ({
+      nome,
+      ...(typeof config === 'object' ? config : { tipo: 'texto' })
+    }))
+  }
+  
+  // Normalizar cada variável
+  return variablesArray
+    .filter(v => v && v.nome) // Filtrar entradas inválidas
+    .map(v => normalizeVariable(v))
 }
 
 // Helper function to extract title from codigo
@@ -92,12 +249,12 @@ export function useFrasesModelo() {
         tags: item.tags || [],
         sinônimos: item.sinônimos || [],
         ativa: item.ativa !== false,
-        modalidade_id: item.modalidade_codigo || '', // Usar modalidade_codigo
+        modalidade_id: item.modalidade_codigo || '',
         regiao_anatomica_id: item.regiao_anatomica_id || null,
         estrutura_anatomica_id: item.estrutura_anatomica_id || null,
         tipo_template_id: item.tipo_template_id || null,
-        variaveis: item.variaveis || [],  // Incluir variáveis
-        condicoes_logicas: item.condicoes_logicas || [],  // Incluir condições lógicas
+        variaveis: normalizeVariables(item.variaveis, item.texto, item.conclusao),
+        condicoes_logicas: item.condicoes_logicas || [],
       }))
       
       setFrases(transformedFrases)
@@ -191,8 +348,8 @@ export function useFrasesModelo() {
           regiao_anatomica_id: item.regiao_anatomica_id || null,
           estrutura_anatomica_id: item.estrutura_anatomica_id || null,
           tipo_template_id: item.tipo_template_id || null,
-          variaveis: item.variaveis || [],  // Incluir variáveis
-          condicoes_logicas: item.condicoes_logicas || [],  // Incluir condições lógicas
+          variaveis: normalizeVariables(item.variaveis, item.texto, item.conclusao),
+          condicoes_logicas: item.condicoes_logicas || [],
         }))
         // Simple ranking: título match > começa > contém
         const s = term.toLowerCase()

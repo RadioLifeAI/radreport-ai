@@ -119,10 +119,18 @@ export function VariablesModal({
               {variable.descricao || variable.nome}
               {variable.unidade && <span className="text-muted-foreground ml-1">({variable.unidade})</span>}
               {variable.obrigatorio && <span className="text-destructive ml-1">*</span>}
+              {(variable.minimo !== undefined || variable.maximo !== undefined) && (
+                <span className="text-xs text-muted-foreground ml-2">
+                  [{variable.minimo ?? '...'} - {variable.maximo ?? '...'}]
+                </span>
+              )}
             </Label>
             <Input
               id={variable.nome}
               type="number"
+              min={variable.minimo}
+              max={variable.maximo}
+              step="0.1"
               value={value?.toString() || ''}
               onChange={(e) => handleValueChange(variable.nome, parseFloat(e.target.value) || 0)}
               placeholder={variable.valor_padrao?.toString() || '0'}

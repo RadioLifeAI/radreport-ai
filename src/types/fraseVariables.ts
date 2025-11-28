@@ -6,6 +6,8 @@ export interface FraseVariable {
   valor_padrao?: string | number | boolean
   obrigatorio?: boolean
   unidade?: string  // ex: "mm", "cm", "HU"
+  minimo?: number  // Validação min para números
+  maximo?: number  // Validação max para números
 }
 
 export interface FraseWithVariables {
