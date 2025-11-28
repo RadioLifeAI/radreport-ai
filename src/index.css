@@ -489,4 +489,33 @@
       @apply text-[9px] px-1.5 min-w-[28px];
     }
   }
+
+  /* Table Viewer Container - Force dark text for readability */
+  .table-viewer-container table {
+    color: #1e293b !important;
+  }
+
+  .table-viewer-container table td,
+  .table-viewer-container table th {
+    color: #1e293b !important;
+    background-color: transparent;
+  }
+
+  .table-viewer-container table caption {
+    color: #0f172a !important;
+    font-weight: 600;
+  }
+
+  .table-viewer-container table tfoot td {
+    color: #334155 !important;
+  }
+
+  .table-viewer-container table tfoot a {
+    color: #0066cc !important;
+    text-decoration: underline;
+  }
+
+  .table-viewer-container table thead th {
+    background-color: rgba(241, 245, 249, 0.8) !important;
+  }
 }

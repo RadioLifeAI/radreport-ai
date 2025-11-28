@@ -60,7 +60,7 @@ export function TableViewerModal({ open, onOpenChange, table, onInsertTable }: T
         {/* Área de Visualização da Tabela */}
         <ScrollArea className="flex-1 -mx-6 px-6 py-4">
           <div 
-            className="bg-background rounded-lg p-6 shadow-inner border border-border/20"
+            className="table-viewer-container bg-white rounded-xl p-6 shadow-lg border border-slate-200"
             dangerouslySetInnerHTML={{ __html: table.htmlContent }}
           />
         </ScrollArea>
