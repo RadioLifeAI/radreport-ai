@@ -100,7 +100,7 @@ export const InformativeTable = Node.create<InformativeTableOptions>({
   addNodeView() {
     return ({ node }) => {
       const dom = document.createElement('div')
-      dom.className = 'informative-table-block border-2 border-dashed border-cyan-500/30 rounded-lg p-4 my-4 bg-slate-50 dark:bg-slate-900/50'
+      dom.className = 'informative-table-block border-2 border-dashed border-cyan-500/30 rounded-lg p-4 my-4 bg-white'
       dom.setAttribute('contenteditable', 'false')
       dom.setAttribute('data-informative-table', '')
       dom.setAttribute('data-table-id', node.attrs.tableId)
@@ -118,7 +118,7 @@ export const InformativeTable = Node.create<InformativeTableOptions>({
       
       // Container da tabela com estilos preservados
       const tableContainer = document.createElement('div')
-      tableContainer.className = 'informative-table-content bg-white dark:bg-slate-800 rounded-lg p-4 shadow-sm'
+      tableContainer.className = 'informative-table-content rounded-lg p-4 shadow-sm'
       tableContainer.innerHTML = node.attrs.htmlContent
       
       dom.appendChild(header)
