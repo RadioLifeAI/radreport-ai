@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import { useReportStore } from '@/store'
 import { useTemplates } from '@/hooks/useTemplates'
-import { useFrasesModelo } from '@/hooks/useFrasesModelo'
+import { useFrasesModelo, FraseModelo } from '@/hooks/useFrasesModelo'
 import { useDictation } from '@/hooks/useDictation'
 import { useAuth } from '@/hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
@@ -14,6 +14,8 @@ import { EditorLeftSidebar } from '@/components/editor/EditorLeftSidebar'
 import { EditorRightSidebar } from '@/components/editor/EditorRightSidebar'
 import { EditorFooter } from '@/components/editor/EditorFooter'
 import { Macro } from '@/components/selectors/MacroSelector'
+import { VariablesModal } from '@/components/editor/VariablesModal'
+import { useVariableProcessor } from '@/hooks/useVariableProcessor'
 
 interface ProfessionalEditorPageProps {
   onGenerateConclusion?: (conclusion?: string) => void
@@ -32,6 +34,12 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
   const [selectedTemplate, setSelectedTemplate] = useState('Template do exame')
   const [selectedMacro, setSelectedMacro] = useState('Frases rápidas')
   const [mediaStream, setMediaStream] = useState<MediaStream | null>(null)
+  
+  // Variables modal state
+  const [variablesModalOpen, setVariablesModalOpen] = useState(false)
+  const [selectedFraseForVariables, setSelectedFraseForVariables] = useState<FraseModelo | null>(null)
+  
+  const { hasVariables } = useVariableProcessor()
 
   // Voice dictation hook - centralized voice logic
   const { isActive: isVoiceActive, status: voiceStatus, startDictation, stopDictation } = useDictation(editorInstance)
@@ -284,6 +292,22 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
   const handleFraseSelect = useCallback((frase: Macro) => {
     if (!editorInstance) return
     
+    // Find original frase with variables
+    const fraseOriginal = frases.find(f => f.id === frase.id)
+    
+    // Check if frase has variables that need to be filled
+    const needsVariables = fraseOriginal?.variaveis && 
+                          fraseOriginal.variaveis.length > 0 && 
+                          (hasVariables(frase.frase) || (frase.conclusao && hasVariables(frase.conclusao)))
+    
+    if (needsVariables && fraseOriginal) {
+      // Open modal for variable filling
+      setSelectedFraseForVariables(fraseOriginal)
+      setVariablesModalOpen(true)
+      return
+    }
+    
+    // Insert directly if no variables
     const sections = findDocumentSections(editorInstance)
     const { state } = editorInstance
     const { selection } = state
@@ -318,13 +342,59 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
       }
     }
 
-    const fraseOriginal = frases.find(f => f.id === frase.id)
     if (fraseOriginal) {
       hookApplyFrase(fraseOriginal)
     }
     setFraseSearchTerm('')
     setMacroDropdownVisible(false)
-  }, [editorInstance, hookApplyFrase, frases, findDocumentSections, replaceConclusionText, setFraseSearchTerm])
+  }, [editorInstance, hookApplyFrase, frases, findDocumentSections, replaceConclusionText, setFraseSearchTerm, hasVariables])
+  
+  // Handle variables submission
+  const handleVariablesSubmit = useCallback((processedTexto: string, processedConclusao?: string) => {
+    if (!editorInstance) return
+    
+    const sections = findDocumentSections(editorInstance)
+    const { state } = editorInstance
+    const { selection } = state
+    const cursorPos = selection.from
+
+    const isInConclusion = sections.conclusao.start !== -1 && 
+                          cursorPos >= sections.conclusao.start && 
+                          cursorPos <= sections.conclusao.end
+
+    if (processedTexto && processedConclusao) {
+      if (isInConclusion && processedConclusao) {
+        editorInstance.commands.insertContent(processedConclusao)
+      } else if (sections.achados.start !== -1) {
+        editorInstance.commands.insertContent(processedTexto)
+        if (processedConclusao) {
+          replaceConclusionText(editorInstance, processedConclusao)
+        }
+      } else {
+        editorInstance.commands.insertContent(processedTexto)
+        if (processedConclusao) {
+          editorInstance.commands.insertContent('<p></p>')
+          editorInstance.commands.insertContent(processedConclusao)
+        }
+      }
+    } else if (processedTexto) {
+      editorInstance.commands.insertContent(processedTexto)
+    } else if (processedConclusao) {
+      if (sections.conclusao.start !== -1) {
+        replaceConclusionText(editorInstance, processedConclusao)
+      } else {
+        editorInstance.commands.insertContent(processedConclusao)
+      }
+    }
+    
+    // Apply frase to recent
+    if (selectedFraseForVariables) {
+      hookApplyFrase(selectedFraseForVariables)
+    }
+    
+    setVariablesModalOpen(false)
+    setSelectedFraseForVariables(null)
+  }, [editorInstance, findDocumentSections, replaceConclusionText, selectedFraseForVariables, hookApplyFrase])
 
   return (
     <div className="h-screen flex flex-col bg-background">
@@ -449,8 +519,25 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
             setMediaStream(null)
           }}
           mediaStream={mediaStream}
+          onOpenVariablesModal={(frase) => {
+            setSelectedFraseForVariables(frase)
+            setVariablesModalOpen(true)
+          }}
         />
       </div>
+      
+      {/* Variables Modal */}
+      {selectedFraseForVariables && (
+        <VariablesModal
+          open={variablesModalOpen}
+          onOpenChange={setVariablesModalOpen}
+          codigo={selectedFraseForVariables.codigo}
+          texto={selectedFraseForVariables.frase}
+          conclusao={selectedFraseForVariables.conclusao}
+          variaveis={selectedFraseForVariables.variaveis || []}
+          onSubmit={handleVariablesSubmit}
+        />
+      )}
     </div>
   )
 }

@@ -15,6 +15,8 @@ export interface FraseModelo {
   regiao_anatomica_id?: string
   estrutura_anatomica_id?: string
   tipo_template_id?: string
+  variaveis?: any[]  // Variáveis para preenchimento
+  condicoes_logicas?: any[]  // Condições lógicas (para expansão futura)
 }
 
 // Helper function to extract title from codigo
@@ -94,6 +96,8 @@ export function useFrasesModelo() {
         regiao_anatomica_id: item.regiao_anatomica_id || null,
         estrutura_anatomica_id: item.estrutura_anatomica_id || null,
         tipo_template_id: item.tipo_template_id || null,
+        variaveis: item.variaveis || [],  // Incluir variáveis
+        condicoes_logicas: item.condicoes_logicas || [],  // Incluir condições lógicas
       }))
       
       setFrases(transformedFrases)
@@ -187,6 +191,8 @@ export function useFrasesModelo() {
           regiao_anatomica_id: item.regiao_anatomica_id || null,
           estrutura_anatomica_id: item.estrutura_anatomica_id || null,
           tipo_template_id: item.tipo_template_id || null,
+          variaveis: item.variaveis || [],  // Incluir variáveis
+          condicoes_logicas: item.condicoes_logicas || [],  // Incluir condições lógicas
         }))
         // Simple ranking: título match > começa > contém
         const s = term.toLowerCase()

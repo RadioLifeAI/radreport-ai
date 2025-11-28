@@ -5,9 +5,10 @@ import VoiceButton from '@/components/voice/VoiceButton'
 import SpeechStatusPanel from '@/components/voice/SpeechStatusPanel'
 import EditorAIButton from '@/components/editor/EditorAIButton'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { useFrasesModelo } from '@/hooks/useFrasesModelo'
+import { useFrasesModelo, FraseModelo } from '@/hooks/useFrasesModelo'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { useVariableProcessor } from '@/hooks/useVariableProcessor'
 
 interface EditorRightSidebarProps {
   collapsed: boolean
@@ -18,6 +19,7 @@ interface EditorRightSidebarProps {
   onVoiceStart: () => void
   onVoiceStop: () => void
   mediaStream?: MediaStream | null
+  onOpenVariablesModal?: (frase: FraseModelo) => void
 }
 
 export function EditorRightSidebar({
@@ -29,14 +31,27 @@ export function EditorRightSidebar({
   onVoiceStart,
   onVoiceStop,
   mediaStream,
+  onOpenVariablesModal,
 }: EditorRightSidebarProps) {
   const [frasesOpen, setFrasesOpen] = useState(false)
   const { recentFrases, favoriteFrases } = useFrasesModelo()
+  const { hasVariables } = useVariableProcessor()
 
-  const insertFrase = (fraseText: string) => {
-    if (editor) {
-      editor.chain().focus().insertContent(fraseText + ' ').run()
+  const handleFraseClick = (frase: FraseModelo) => {
+    // Check if frase has variables
+    const needsVariables = frase.variaveis && 
+                          frase.variaveis.length > 0 && 
+                          (hasVariables(frase.frase) || (frase.conclusao && hasVariables(frase.conclusao)))
+    
+    if (needsVariables && onOpenVariablesModal) {
+      onOpenVariablesModal(frase)
       setFrasesOpen(false)
+    } else {
+      // Insert directly
+      if (editor) {
+        editor.chain().focus().insertContent(frase.frase + ' ').run()
+        setFrasesOpen(false)
+      }
     }
   }
 
@@ -84,7 +99,7 @@ export function EditorRightSidebar({
                           {favoriteFrases.slice(0, 5).map((frase) => (
                             <button
                               key={frase.id}
-                              onClick={() => insertFrase(frase.frase)}
+                              onClick={() => handleFraseClick(frase)}
                               className="w-full px-2 py-2 text-xs hover:bg-muted rounded transition-colors text-left space-y-1"
                             >
                               <div className="font-medium">{frase.codigo}</div>
@@ -107,7 +122,7 @@ export function EditorRightSidebar({
                           {recentFrases.slice(0, 8).map((frase) => (
                             <button
                               key={frase.id}
-                              onClick={() => insertFrase(frase.frase)}
+                              onClick={() => handleFraseClick(frase)}
                               className="w-full px-2 py-2 text-xs hover:bg-muted rounded transition-colors text-left space-y-1"
                             >
                               <div className="font-medium">{frase.codigo}</div>
