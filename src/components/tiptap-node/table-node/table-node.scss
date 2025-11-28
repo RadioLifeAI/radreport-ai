@@ -1,0 +1,78 @@
+/* Estilos para tabelas radiológicas no editor TipTap */
+
+.simple-editor table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: Arial, sans-serif;
+  font-size: 10pt;
+  margin: 1rem 0;
+  background: hsl(var(--background));
+
+  caption {
+    font-weight: bold;
+    text-align: left;
+    margin-bottom: 8px;
+    font-size: 11pt;
+    color: hsl(var(--foreground));
+  }
+
+  th,
+  td {
+    border: 1px solid hsl(var(--border));
+    padding: 6px 8px;
+    text-align: left;
+    color: hsl(var(--foreground));
+  }
+
+  thead tr {
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    font-weight: 600;
+
+    th {
+      border-color: hsl(var(--primary) / 0.5);
+    }
+  }
+
+  tbody tr {
+    background: hsl(var(--background));
+
+    &:nth-child(even) {
+      background: hsl(var(--muted) / 0.3);
+    }
+
+    &:hover {
+      background: hsl(var(--accent) / 0.5);
+    }
+  }
+
+  // Estilos específicos para impressão
+  @media print {
+    th {
+      background: #1e3a5f !important;
+      color: white !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    td,
+    th {
+      border-color: #333 !important;
+    }
+
+    tbody tr:nth-child(even) {
+      background: #f8f8f8 !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+  }
+}
+
+// Estilos para modo escuro
+.dark .simple-editor table {
+  tbody tr {
+    &:nth-child(even) {
+      background: hsl(var(--muted) / 0.2);
+    }
+  }
+}
