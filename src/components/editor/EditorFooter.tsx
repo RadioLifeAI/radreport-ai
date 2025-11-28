@@ -1,5 +1,6 @@
 import { RotateCcw, Copy, Sparkles } from 'lucide-react'
 import { Editor } from '@tiptap/react'
+import { TablesDropdown } from './TablesDropdown'
 
 interface EditorFooterProps {
   editor: Editor | null
@@ -8,15 +9,30 @@ interface EditorFooterProps {
 }
 
 export function EditorFooter({ editor, onRestart, onCopy }: EditorFooterProps) {
+  const handleInsertTable = (tableHtml: string) => {
+    if (!editor) return
+    
+    editor.chain()
+      .focus()
+      .insertContent(tableHtml, {
+        parseOptions: { preserveWhitespace: false }
+      })
+      .run()
+  }
+
   return (
     <div className="h-16 border-t border-border/40 bg-card/95 backdrop-blur-sm flex items-center justify-between px-6">
-      <button
-        onClick={onRestart}
-        className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-muted transition-colors"
-      >
-        <RotateCcw size={18} />
-        <span className="text-sm">Reiniciar laudo</span>
-      </button>
+      <div className="flex items-center gap-2">
+        <button
+          onClick={onRestart}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-muted transition-colors"
+        >
+          <RotateCcw size={18} />
+          <span className="text-sm">Reiniciar laudo</span>
+        </button>
+        
+        <TablesDropdown editor={editor} onInsertTable={handleInsertTable} />
+      </div>
 
       <div className="flex items-center gap-3">
         <button

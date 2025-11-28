@@ -18,6 +18,10 @@ import { TextStyle } from "@tiptap/extension-text-style"
 import Placeholder from "@tiptap/extension-placeholder"
 import Link from "@tiptap/extension-link"
 import Underline from "@tiptap/extension-underline"
+import { Table } from "@tiptap/extension-table"
+import { TableRow } from "@tiptap/extension-table-row"
+import { TableCell } from "@tiptap/extension-table-cell"
+import { TableHeader } from "@tiptap/extension-table-header"
 import { RadiologySpellChecker, FontSize } from "@/extensions"
 
 // --- UI Primitives ---
@@ -37,6 +41,7 @@ import "@/components/tiptap-node/list-node/list-node.scss"
 import "@/components/tiptap-node/image-node/image-node.scss"
 import "@/components/tiptap-node/heading-node/heading-node.scss"
 import "@/components/tiptap-node/paragraph-node/paragraph-node.scss"
+import "@/components/tiptap-node/table-node/table-node.scss"
 
 // --- Tiptap UI ---
 import { 
@@ -203,6 +208,15 @@ export function SimpleEditor({
           class: 'max-w-full h-auto rounded-lg',
         },
       }),
+      Table.configure({
+        resizable: true,
+        HTMLAttributes: {
+          class: 'radiology-table',
+        },
+      }),
+      TableRow,
+      TableCell,
+      TableHeader,
       Superscript,
       Subscript,
       RadiologySpellChecker,
