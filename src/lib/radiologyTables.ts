@@ -309,5 +309,509 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
 </table>`
       }
     ]
+  },
+  {
+    id: 'pediatric',
+    name: 'Pediatria',
+    icon: 'HeartPulse',
+    tables: [
+      {
+        id: 'graf-ddq',
+        name: 'Graf - Displasia do Desenvolvimento do Quadril',
+        category: 'pediatric',
+        subcategory: 'Quadril Infantil',
+        modality: ['US'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Classificação de Graf - DDQ (Displasia do Desenvolvimento do Quadril)</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px;">Tipo</th>
+      <th style="border:1px solid #333; padding:6px;">Ângulo α</th>
+      <th style="border:1px solid #333; padding:6px;">Ângulo β</th>
+      <th style="border:1px solid #333; padding:6px;">Descrição</th>
+      <th style="border:1px solid #333; padding:6px;">Conduta</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px;">Ia</td><td>≥60°</td><td>&lt;55°</td><td>Quadril maduro normal</td><td>Observação</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;">Ib</td><td>≥60°</td><td>&lt;55°</td><td>Quadril maduro (ossificação incompleta)</td><td>Observação</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px;">IIa</td><td>50-59°</td><td>55-77°</td><td>Quadril imaturo (&lt;3 meses)</td><td>Controle 4-6 sem</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;">IIb</td><td>50-59°</td><td>55-77°</td><td>Atraso maturação (&gt;3 meses)</td><td>Suspensório</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px;">IIc</td><td>43-49°</td><td>&gt;70°</td><td>Deficiência acetabular crítica</td><td>Abdução imediata</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;">D</td><td>43-49°</td><td>&gt;77°</td><td>Displasia (descentrado)</td><td>Tratamento ortopédico</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px;">IIIa</td><td>&lt;43°</td><td>&gt;77°</td><td>Luxação (acetábulo detectável)</td><td>Redução + aparelho</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;">IIIb</td><td>&lt;43°</td><td>&gt;77°</td><td>Luxação (acetábulo não detectável)</td><td>Redução + aparelho</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px;">IV</td><td>&lt;43°</td><td>-</td><td>Luxação grave (labrum invertido)</td><td>Redução cirúrgica</td></tr>
+  </tbody>
+</table>`
+      },
+      {
+        id: 'acetabular-index',
+        name: 'Índice Acetabular por Idade',
+        category: 'pediatric',
+        subcategory: 'Quadril Infantil',
+        modality: ['RX'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Índice Acetabular - Valores Normais por Idade</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px;">Idade</th>
+      <th style="border:1px solid #333; padding:6px;">Valor Normal (°)</th>
+      <th style="border:1px solid #333; padding:6px;">Limite Superior</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px;">Recém-nascido</td><td>27,5° ± 5°</td><td>&lt;30°</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;">3 meses</td><td>26° ± 5°</td><td>&lt;30°</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px;">6 meses</td><td>24° ± 5°</td><td>&lt;28°</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;">1 ano</td><td>22° ± 4°</td><td>&lt;25°</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px;">2 anos</td><td>20° ± 4°</td><td>&lt;23°</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;">3 anos</td><td>18° ± 3°</td><td>&lt;21°</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px;">4 anos</td><td>17° ± 3°</td><td>&lt;20°</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;">5 anos</td><td>16° ± 3°</td><td>&lt;19°</td></tr>
+  </tbody>
+</table>`
+      },
+      {
+        id: 'figado-pediatrico',
+        name: 'Fígado - Comprimento por Idade',
+        category: 'pediatric',
+        subcategory: 'Órgãos Abdominais',
+        modality: ['US'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Fígado - Comprimento por Idade (Linha Hemiclavicular)</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px;">Idade</th>
+      <th style="border:1px solid #333; padding:6px;">Comprimento (cm)</th>
+      <th style="border:1px solid #333; padding:6px;">P95 (cm)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px;">0-3 meses</td><td>4,0 - 5,5</td><td>6,0</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;">3-12 meses</td><td>5,5 - 6,5</td><td>7,5</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px;">1-2 anos</td><td>6,5 - 7,5</td><td>8,5</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;">2-5 anos</td><td>7,5 - 9,0</td><td>10,0</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px;">5-10 anos</td><td>9,0 - 11,0</td><td>12,5</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;">10-16 anos</td><td>10,5 - 13,0</td><td>14,5</td></tr>
+  </tbody>
+  <tfoot>
+    <tr><td colspan="3" style="border:1px solid #ddd; padding:6px; font-size:9pt; font-style:italic;">Fórmula alternativa: Comprimento (cm) = 5,0 + 0,1 × idade (meses) até 2 anos</td></tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'baco-pediatrico',
+        name: 'Baço - Comprimento por Idade',
+        category: 'pediatric',
+        subcategory: 'Órgãos Abdominais',
+        modality: ['US'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Baço - Comprimento Longitudinal por Idade</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px;">Idade</th>
+      <th style="border:1px solid #333; padding:6px;">Comprimento (cm)</th>
+      <th style="border:1px solid #333; padding:6px;">P95 (cm)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px;">0-3 meses</td><td>3,5 - 5,0</td><td>5,5</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;">3-12 meses</td><td>5,0 - 6,5</td><td>7,0</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px;">1-2 anos</td><td>6,0 - 7,5</td><td>8,0</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;">2-5 anos</td><td>7,0 - 8,5</td><td>9,5</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px;">5-10 anos</td><td>8,0 - 10,0</td><td>11,0</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;">10-16 anos</td><td>9,5 - 11,5</td><td>12,5</td></tr>
+  </tbody>
+  <tfoot>
+    <tr><td colspan="3" style="border:1px solid #ddd; padding:6px; font-size:9pt; font-style:italic;">Fórmula de Rosenberg: Comprimento (cm) = 5,7 + 0,31 × idade (anos)</td></tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'rins-pediatricos',
+        name: 'Rins - Comprimento por Idade',
+        category: 'pediatric',
+        subcategory: 'Órgãos Abdominais',
+        modality: ['US'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Rins - Comprimento Longitudinal por Idade</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px;">Idade</th>
+      <th style="border:1px solid #333; padding:6px;">Comprimento (cm)</th>
+      <th style="border:1px solid #333; padding:6px;">P95 (cm)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px;">0-3 meses</td><td>4,0 - 5,5</td><td>6,0</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;">3-12 meses</td><td>5,0 - 6,5</td><td>7,0</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px;">1-2 anos</td><td>6,0 - 7,5</td><td>8,0</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;">2-5 anos</td><td>7,0 - 8,5</td><td>9,5</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px;">5-10 anos</td><td>8,0 - 10,0</td><td>11,0</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;">10-16 anos</td><td>9,5 - 11,5</td><td>12,5</td></tr>
+  </tbody>
+  <tfoot>
+    <tr><td colspan="3" style="border:1px solid #ddd; padding:6px; font-size:9pt; font-style:italic;">Diferença &gt;1,5 cm entre os rins sugere assimetria patológica. Fórmula: Comprimento (cm) = 4,98 + 0,155 × idade (meses)</td></tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'pancreas-pediatrico',
+        name: 'Pâncreas - Dimensões por Idade',
+        category: 'pediatric',
+        subcategory: 'Órgãos Abdominais',
+        modality: ['US'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Pâncreas - Diâmetro Anteroposterior por Idade</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px;">Idade</th>
+      <th style="border:1px solid #333; padding:6px;">Cabeça (mm)</th>
+      <th style="border:1px solid #333; padding:6px;">Corpo (mm)</th>
+      <th style="border:1px solid #333; padding:6px;">Cauda (mm)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px;">0-1 mês</td><td>10-14</td><td>6-10</td><td>10-14</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;">1-12 meses</td><td>11-15</td><td>7-11</td><td>11-15</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px;">1-5 anos</td><td>12-17</td><td>8-12</td><td>12-18</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;">5-10 anos</td><td>15-20</td><td>9-13</td><td>15-22</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px;">10-19 anos</td><td>17-25</td><td>10-14</td><td>18-24</td></tr>
+  </tbody>
+</table>`
+      },
+      {
+        id: 'vesicula-pediatrica',
+        name: 'Vesícula Biliar - Dimensões',
+        category: 'pediatric',
+        subcategory: 'Órgãos Abdominais',
+        modality: ['US'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Vesícula Biliar - Dimensões em Jejum por Idade</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px;">Idade</th>
+      <th style="border:1px solid #333; padding:6px;">Comprimento (cm)</th>
+      <th style="border:1px solid #333; padding:6px;">Espessura Parede (mm)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px;">0-1 ano</td><td>2,0 - 4,0</td><td>&lt;3</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;">1-5 anos</td><td>3,0 - 5,5</td><td>&lt;3</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px;">5-10 anos</td><td>4,5 - 7,0</td><td>&lt;3</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;">10-16 anos</td><td>6,0 - 9,0</td><td>&lt;3</td></tr>
+  </tbody>
+  <tfoot>
+    <tr><td colspan="3" style="border:1px solid #ddd; padding:6px; font-size:9pt; font-style:italic;">Avaliação após jejum de 4-6h. Espessura parede &gt;3mm sugere colecistite.</td></tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'suprarrenais-pediatricas',
+        name: 'Glândulas Suprarrenais - RN',
+        category: 'pediatric',
+        subcategory: 'Órgãos Abdominais',
+        modality: ['US'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Glândulas Suprarrenais - Recém-Nascido e Involução</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px;">Idade</th>
+      <th style="border:1px solid #333; padding:6px;">Comprimento (mm)</th>
+      <th style="border:1px solid #333; padding:6px;">Espessura (mm)</th>
+      <th style="border:1px solid #333; padding:6px;">Observação</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px;">RN (0-7 dias)</td><td>15-25</td><td>3-6</td><td>Hiperecoica (cortical fetal)</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;">1-6 meses</td><td>12-20</td><td>2-5</td><td>Involução cortical</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px;">6-12 meses</td><td>10-18</td><td>2-4</td><td>Padrão adulto</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;">&gt;1 ano</td><td>10-15</td><td>2-3</td><td>Difícil visualização</td></tr>
+  </tbody>
+  <tfoot>
+    <tr><td colspan="4" style="border:1px solid #ddd; padding:6px; font-size:9pt; font-style:italic;">Razão rim/suprarrenal no RN: 2,5:1. Massa suprarrenal neonatal: hemorragia (70%) ou neuroblastoma.</td></tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'piloro-pediatrico',
+        name: 'Estenose Hipertrófica do Piloro',
+        category: 'pediatric',
+        subcategory: 'Gastrointestinal',
+        modality: ['US'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Estenose Hipertrófica do Piloro - Critérios Ultrassonográficos</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px;">Parâmetro</th>
+      <th style="border:1px solid #333; padding:6px;">Normal</th>
+      <th style="border:1px solid #333; padding:6px;">Borderline</th>
+      <th style="border:1px solid #333; padding:6px;">Estenose</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px;">Espessura muscular</td><td>&lt;3 mm</td><td>3,0-3,5 mm</td><td><strong>≥3 mm</strong></td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;">Comprimento pilórico</td><td>&lt;15 mm</td><td>15-17 mm</td><td><strong>≥15 mm</strong></td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px;">Diâmetro pilórico</td><td>&lt;13 mm</td><td>13-15 mm</td><td><strong>≥13 mm</strong></td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;">Volume pilórico</td><td>&lt;1,5 cm³</td><td>1,5-2,0 cm³</td><td><strong>≥2,0 cm³</strong></td></tr>
+  </tbody>
+  <tfoot>
+    <tr><td colspan="4" style="border:1px solid #ddd; padding:6px; font-size:9pt; font-style:italic;">Critérios mais específicos: espessura ≥3mm + comprimento ≥15mm. Pico de incidência: 2-8 semanas de vida. Meninos 4:1.</td></tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'apendice-pediatrico',
+        name: 'Apêndice - Diâmetro Normal',
+        category: 'pediatric',
+        subcategory: 'Gastrointestinal',
+        modality: ['US'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Apêndice Pediátrico - Critérios Diagnósticos por Ultrassom</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px;">Critério</th>
+      <th style="border:1px solid #333; padding:6px;">Normal</th>
+      <th style="border:1px solid #333; padding:6px;">Apendicite</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px;">Diâmetro máximo</td><td><strong>&lt;6 mm</strong></td><td><strong>≥7 mm</strong></td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;">Espessura da parede</td><td>&lt;3 mm</td><td>≥3 mm</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px;">Compressibilidade</td><td>Compressível</td><td>Não compressível</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;">Hipervascularização</td><td>Ausente</td><td>Presente (Doppler)</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px;">Líquido periapendicular</td><td>Ausente</td><td>Presente</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;">Apendicolito</td><td>Ausente</td><td>Presente (30-40%)</td></tr>
+  </tbody>
+  <tfoot>
+    <tr><td colspan="3" style="border:1px solid #ddd; padding:6px; font-size:9pt; font-style:italic;">Sensibilidade do US: 85-90%. Diâmetro &gt;6mm + não compressível = apendicite (VPP 95%).</td></tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'intussuscepcao',
+        name: 'Intussuscepção - Critérios US',
+        category: 'pediatric',
+        subcategory: 'Gastrointestinal',
+        modality: ['US'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Intussuscepção - Critérios Ultrassonográficos</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px;">Achado</th>
+      <th style="border:1px solid #333; padding:6px;">Descrição</th>
+      <th style="border:1px solid #333; padding:6px;">Significado Clínico</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px;"><strong>Sinal do alvo</strong></td><td>Transversal: múltiplas camadas concêntricas</td><td>Diagnóstico (sensibilidade 98%)</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;"><strong>Sinal do pseudorim</strong></td><td>Longitudinal: estrutura alongada multicamadas</td><td>Diagnóstico (especificidade 100%)</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px;">Diâmetro &gt;2,5 cm</td><td>Diâmetro externo da invaginação</td><td>Menor chance redução hidrostática</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;">Líquido aprisionado</td><td>Líquido entre camadas intestinais</td><td>Edema de parede, isquemia</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px;">Ausência de fluxo Doppler</td><td>Sem sinal vascular na parede</td><td>Isquemia, indicação cirúrgica</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;">Linfonodo aumentado</td><td>Ponto de cabeça (lead point)</td><td>Causa em 10% dos casos</td></tr>
+  </tbody>
+  <tfoot>
+    <tr><td colspan="3" style="border:1px solid #ddd; padding:6px; font-size:9pt; font-style:italic;">Mais comum: ileocólica (80%), pico 6-18 meses. Redução hidrostática: sucesso 80-90% se &lt;24h sintomas.</td></tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'capacidade-vesical',
+        name: 'Capacidade Vesical por Idade',
+        category: 'pediatric',
+        subcategory: 'Urológico',
+        modality: ['US'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Capacidade Vesical Esperada por Idade (Fórmula de Koff)</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px;">Idade</th>
+      <th style="border:1px solid #333; padding:6px;">Capacidade (ml)</th>
+      <th style="border:1px solid #333; padding:6px;">Cálculo</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px;">1 ano</td><td>90 ml</td><td>(1+2) × 30</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;">2 anos</td><td>120 ml</td><td>(2+2) × 30</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px;">3 anos</td><td>150 ml</td><td>(3+2) × 30</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;">4 anos</td><td>180 ml</td><td>(4+2) × 30</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px;">5 anos</td><td>210 ml</td><td>(5+2) × 30</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;">8 anos</td><td>300 ml</td><td>(8+2) × 30</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px;">10 anos</td><td>360 ml</td><td>(10+2) × 30</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;">12 anos</td><td>420 ml</td><td>(12+2) × 30</td></tr>
+  </tbody>
+  <tfoot>
+    <tr><td colspan="3" style="border:1px solid #ddd; padding:6px; font-size:9pt; font-style:italic;"><strong>Fórmula de Koff:</strong> Capacidade (ml) = (Idade em anos + 2) × 30. Válida até 12-14 anos. Bexiga neurogênica: capacidade reduzida.</td></tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'hidronefrose-sfu',
+        name: 'Hidronefrose - Classificação SFU',
+        category: 'pediatric',
+        subcategory: 'Urológico',
+        modality: ['US'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Hidronefrose - Classificação SFU (Society for Fetal Urology)</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px;">Grau</th>
+      <th style="border:1px solid #333; padding:6px;">Pelve Renal</th>
+      <th style="border:1px solid #333; padding:6px;">Cálices</th>
+      <th style="border:1px solid #333; padding:6px;">Parênquima</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px;"><strong>Grau 0</strong></td><td>Normal</td><td>Normais</td><td>Normal</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;"><strong>Grau I</strong></td><td>Dilatação leve da pelve</td><td>Normais ou minimamente dilatados</td><td>Normal</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px;"><strong>Grau II</strong></td><td>Dilatação moderada da pelve</td><td>Cálices levemente dilatados</td><td>Normal</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;"><strong>Grau III</strong></td><td>Dilatação acentuada da pelve</td><td>Cálices moderadamente dilatados</td><td>Espessura preservada</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px;"><strong>Grau IV</strong></td><td>Dilatação acentuada da pelve</td><td>Cálices acentuadamente dilatados</td><td><strong>Afilamento cortical</strong></td></tr>
+  </tbody>
+  <tfoot>
+    <tr><td colspan="4" style="border:1px solid #ddd; padding:6px; font-size:9pt; font-style:italic;">Graus I-II: seguimento clínico. Graus III-IV: investigação com cintilografia + uretrocistografia. Diâmetro pelve AP &gt;10mm RN = significativo.</td></tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'ventriculos-cerebrais',
+        name: 'Ventrículos Cerebrais - Dimensões RN',
+        category: 'pediatric',
+        subcategory: 'Craniano Neonatal',
+        modality: ['US'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Ventrículos Cerebrais - Valores Normais no Recém-Nascido</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px;">Estrutura</th>
+      <th style="border:1px solid #333; padding:6px;">Medida Normal</th>
+      <th style="border:1px solid #333; padding:6px;">Limite Superior</th>
+      <th style="border:1px solid #333; padding:6px;">Patológico</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px;">Ventrículo lateral (corpo)</td><td>2-4 mm</td><td>&lt;10 mm</td><td>≥10 mm</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;">Corno frontal (largura)</td><td>1-3 mm</td><td>&lt;5 mm</td><td>≥5 mm</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px;">Terceiro ventrículo</td><td>2-3 mm</td><td>&lt;3 mm</td><td>≥4 mm</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;">Quarto ventrículo (AP)</td><td>3-6 mm</td><td>&lt;8 mm</td><td>≥10 mm</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px;">Espaço interhemisférico</td><td>2-3 mm</td><td>&lt;5 mm</td><td>≥6 mm</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;">Espaço subaracnóideo</td><td>1-3 mm</td><td>&lt;5 mm</td><td>≥6 mm</td></tr>
+  </tbody>
+  <tfoot>
+    <tr><td colspan="4" style="border:1px solid #ddd; padding:6px; font-size:9pt; font-style:italic;">Medidas no corte coronal pela fontanela anterior. Ventriculomegalia: VL ≥10mm. Índice ventricular: VL/hemisfério &gt;0,35 = anormal.</td></tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'hemorragia-intraventricular',
+        name: 'HIV - Classificação de Papile',
+        category: 'pediatric',
+        subcategory: 'Craniano Neonatal',
+        modality: ['US'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Hemorragia Intraventricular (HIV) - Classificação de Papile</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px;">Grau</th>
+      <th style="border:1px solid #333; padding:6px;">Localização</th>
+      <th style="border:1px solid #333; padding:6px;">Descrição</th>
+      <th style="border:1px solid #333; padding:6px;">Prognóstico</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px;"><strong>Grau I</strong></td><td>Matriz germinativa</td><td>Hemorragia subependimária isolada, sem extensão intraventricular</td><td>Bom (90% normal)</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;"><strong>Grau II</strong></td><td>Intraventricular</td><td>HIV sem dilatação ventricular (&lt;50% do ventrículo)</td><td>Bom (80-85% normal)</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px;"><strong>Grau III</strong></td><td>Intraventricular</td><td>HIV com dilatação ventricular (&gt;50% do ventrículo)</td><td>Reservado (50-60% sequelas)</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;"><strong>Grau IV</strong></td><td>Intraparenquimatosa</td><td>HIV + hemorragia intraparenquimatosa (infarto hemorrágico periventricular)</td><td>Grave (70-90% sequelas)</td></tr>
+  </tbody>
+  <tfoot>
+    <tr><td colspan="4" style="border:1px solid #ddd; padding:6px; font-size:9pt; font-style:italic;">Incidência: 25% em prematuros &lt;32 sem. Pico: 24-72h de vida. Graus III-IV: risco de hidrocefalia pós-hemorrágica (35%).</td></tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'leucomalacia-periventricular',
+        name: 'Leucomalácia Periventricular',
+        category: 'pediatric',
+        subcategory: 'Craniano Neonatal',
+        modality: ['US'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Leucomalácia Periventricular (LPV) - Classificação de Vries</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px;">Grau</th>
+      <th style="border:1px solid #333; padding:6px;">Achados US</th>
+      <th style="border:1px solid #333; padding:6px;">Evolução</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px;"><strong>Grau I</strong></td><td>Hiperecogenicidade transitória periventricular (&lt;7 dias), sem cistos</td><td>Resolução completa (bom prognóstico)</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;"><strong>Grau II</strong></td><td>Hiperecogenicidade persistente (&gt;7 dias), sem cistos ou com pequenos cistos frontais</td><td>Sequelas leves em 50%</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px;"><strong>Grau III</strong></td><td>Cistos periventriculares extensos (região occipital)</td><td>Sequelas motoras em 75% (diplegia espástica)</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;"><strong>Grau IV</strong></td><td>Cistos extensos difusos + atrofia subcortical</td><td>Sequelas graves em 90% (tetraplegia, atraso cognitivo)</td></tr>
+  </tbody>
+  <tfoot>
+    <tr><td colspan="3" style="border:1px solid #ddd; padding:6px; font-size:9pt; font-style:italic;">Cistos aparecem 2-4 semanas após evento isquêmico. RM é superior ao US para detecção de LPV leve. Incidência: 5-15% em prematuros &lt;32 sem.</td></tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'timo-pediatrico',
+        name: 'Timo - Índice Tímico por Idade',
+        category: 'pediatric',
+        subcategory: 'Tórax',
+        modality: ['RX', 'US'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Timo - Índice Tímico e Dimensões por Idade</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px;">Idade</th>
+      <th style="border:1px solid #333; padding:6px;">Índice Tímico (RX)</th>
+      <th style="border:1px solid #333; padding:6px;">Dimensões US (mm)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px;">0-6 meses</td><td>0,33-0,43</td><td>35-55 × 20-35</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;">6-12 meses</td><td>0,30-0,40</td><td>40-60 × 20-35</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px;">1-2 anos</td><td>0,28-0,38</td><td>45-65 × 20-35</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;">2-5 anos</td><td>0,25-0,35</td><td>50-70 × 20-35</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px;">5-10 anos</td><td>0,20-0,30</td><td>Involução progressiva</td></tr>
+  </tbody>
+  <tfoot>
+    <tr><td colspan="3" style="border:1px solid #ddd; padding:6px; font-size:9pt; font-style:italic;">Índice tímico = largura timo / largura tórax no RX PA. Sinal da onda tímica (ondulação costelas) = normal. Timo hiperplásico: reversão após stress.</td></tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'aorta-pediatrica',
+        name: 'Aorta Abdominal - Diâmetro por Idade',
+        category: 'pediatric',
+        subcategory: 'Vascular',
+        modality: ['US'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Aorta Abdominal - Diâmetro Normal por Idade (Nível Diafragma)</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px;">Idade</th>
+      <th style="border:1px solid #333; padding:6px;">Diâmetro (mm)</th>
+      <th style="border:1px solid #333; padding:6px;">P95 (mm)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px;">0-1 mês</td><td>5,0-7,0</td><td>8,0</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;">1-12 meses</td><td>6,0-8,0</td><td>9,0</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px;">1-2 anos</td><td>7,0-9,0</td><td>10,0</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;">2-5 anos</td><td>8,0-10,0</td><td>11,5</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px;">5-10 anos</td><td>9,0-12,0</td><td>13,5</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px;">10-16 anos</td><td>11,0-15,0</td><td>17,0</td></tr>
+  </tbody>
+  <tfoot>
+    <tr><td colspan="3" style="border:1px solid #ddd; padding:6px; font-size:9pt; font-style:italic;">Medida no plano transversal, diâmetro externo-externo. Aorta diminui ~2mm do diafragma à bifurcação. Dilatação: &gt;P95 para idade.</td></tr>
+  </tfoot>
+</table>`
+      }
+    ]
   }
 ]
