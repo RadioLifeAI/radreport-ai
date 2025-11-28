@@ -14,13 +14,25 @@ export function useVariableProcessor() {
     return /\{\{.+?\}\}/.test(texto)
   }, [])
   
+  // Formata valor para exibição (números com vírgula decimal, sempre 1 casa)
+  const formatValue = useCallback((value: string | number | boolean): string => {
+    if (typeof value === 'number') {
+      // Padrão brasileiro: vírgula como separador, sempre 1 casa decimal
+      return value.toLocaleString('pt-BR', { 
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1 
+      })
+    }
+    return value.toString()
+  }, [])
+
   // Função para substituir variáveis pelos valores
   const processText = useCallback((texto: string, values: VariableValues): string => {
     return texto.replace(/\{\{(\w+)\}\}/g, (match, varName) => {
       const value = values[varName]
-      return value !== undefined && value !== null ? value.toString() : match
+      return value !== undefined && value !== null ? formatValue(value) : match
     })
-  }, [])
+  }, [formatValue])
   
-  return { extractVariables, hasVariables, processText }
+  return { extractVariables, hasVariables, processText, formatValue }
 }
