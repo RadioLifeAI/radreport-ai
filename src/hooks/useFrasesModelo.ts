@@ -199,7 +199,7 @@ export function useFrasesModelo() {
   const [frases, setFrases] = useState<FraseModelo[]>([])
   const [serverResults, setServerResults] = useState<FraseModelo[]>([])
   const [filteredFrases, setFilteredFrases] = useState<FraseModelo[]>([])
-  const [recentFrases, setRecentFrases] = useState<FraseModelo[]>([])
+  const [recentUsageData, setRecentUsageData] = useState<Array<{frase_id: string, used_at: string, usage_count: number}>>([])
   const [favoriteFrases, setFavoriteFrases] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -209,25 +209,22 @@ export function useFrasesModelo() {
   const [categories, setCategories] = useState<string[]>([])
   const [modalities, setModalities] = useState<string[]>([])
 
-  // Load favorites from localStorage
+  // Load favorites from Supabase
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem('radreport.frases_modelo.favorites')
-      if (saved) {
-        setFavoriteFrases(JSON.parse(saved))
-      }
-    } catch (error) {
-      console.error('Error loading frases_modelo favorites:', error)
+    const loadFavorites = async () => {
+      const favoriteIds = await supabaseService.getUserFavoriteFrases()
+      setFavoriteFrases(favoriteIds)
     }
+    loadFavorites()
   }, [])
 
-  // Save favorites to localStorage
-  const saveFavorites = useCallback((favorites: string[]) => {
-    try {
-      localStorage.setItem('radreport.frases_modelo.favorites', JSON.stringify(favorites))
-    } catch (error) {
-      console.error('Error saving frases_modelo favorites:', error)
+  // Load recent usage from Supabase
+  useEffect(() => {
+    const loadRecentUsage = async () => {
+      const usageData = await supabaseService.getRecentFrases(10)
+      setRecentUsageData(usageData)
     }
+    loadRecentUsage()
   }, [])
 
   // Fetch frases from Supabase
@@ -395,29 +392,50 @@ export function useFrasesModelo() {
     return favoriteFrases.includes(fraseId)
   }, [favoriteFrases])
 
-  // Add to favorites
-  const addToFavorites = useCallback((fraseId: string) => {
-    const newFavorites = [...favoriteFrases, fraseId]
-    setFavoriteFrases(newFavorites)
-    saveFavorites(newFavorites)
-  }, [favoriteFrases, saveFavorites])
+  // Add to favorites via Supabase
+  const addToFavorites = useCallback(async (fraseId: string) => {
+    const success = await supabaseService.addFavoriteFrase(fraseId)
+    if (success) {
+      setFavoriteFrases(prev => [...prev, fraseId])
+    }
+  }, [])
 
-  // Remove from favorites
-  const removeFromFavorites = useCallback((fraseId: string) => {
-    const newFavorites = favoriteFrases.filter(id => id !== fraseId)
-    setFavoriteFrases(newFavorites)
-    saveFavorites(newFavorites)
-  }, [favoriteFrases, saveFavorites])
+  // Remove from favorites via Supabase
+  const removeFromFavorites = useCallback(async (fraseId: string) => {
+    const success = await supabaseService.removeFavoriteFrase(fraseId)
+    if (success) {
+      setFavoriteFrases(prev => prev.filter(id => id !== fraseId))
+    }
+  }, [])
 
-  // Apply frase (add to recent)
-  const applyFrase = useCallback((frase: FraseModelo) => {
-    // Add to recent (move to front)
-    const newRecent = [frase, ...recentFrases.filter(f => f.id !== frase.id)].slice(0, 5)
-    setRecentFrases(newRecent)
+  // Apply frase and record usage in Supabase
+  const applyFrase = useCallback(async (frase: FraseModelo, reportId?: string) => {
+    // Record usage in Supabase
+    await supabaseService.recordFraseUsage(frase.id, reportId)
+    
+    // Reload recent usage data
+    const usageData = await supabaseService.getRecentFrases(10)
+    setRecentUsageData(usageData)
     
     // Return the frase text to be inserted
     return frase.frase
-  }, [recentFrases])
+  }, [])
+
+  // Compute recent frases based on usage data
+  const recentFrases = useMemo(() => {
+    if (recentUsageData.length === 0) return []
+
+    const usageMap = new Map(recentUsageData.map(u => [u.frase_id, u]))
+    
+    return frases
+      .filter(f => usageMap.has(f.id))
+      .sort((a, b) => {
+        const aUsage = usageMap.get(a.id)!
+        const bUsage = usageMap.get(b.id)!
+        return new Date(bUsage.used_at).getTime() - new Date(aUsage.used_at).getTime()
+      })
+      .slice(0, 10)
+  }, [frases, recentUsageData])
 
   // Load frases on mount
   useEffect(() => {
@@ -427,7 +445,7 @@ export function useFrasesModelo() {
   return {
     frases,
     filteredFrases,
-    recentFrases,
+    recentFrases, // Now computed from recentUsageData
     favoriteFrases: frases.filter(f => favoriteFrases.includes(f.id)),
     loading,
     error,
