@@ -807,6 +807,7 @@ export type Database = {
           regiao_anatomica_id: string | null
           sinônimos: string[] | null
           tags: string[] | null
+          tecnica: string | null
           texto: string
           tipo_template_id: string | null
           updated_at: string | null
@@ -827,6 +828,7 @@ export type Database = {
           regiao_anatomica_id?: string | null
           sinônimos?: string[] | null
           tags?: string[] | null
+          tecnica?: string | null
           texto: string
           tipo_template_id?: string | null
           updated_at?: string | null
@@ -847,6 +849,7 @@ export type Database = {
           regiao_anatomica_id?: string | null
           sinônimos?: string[] | null
           tags?: string[] | null
+          tecnica?: string | null
           texto?: string
           tipo_template_id?: string | null
           updated_at?: string | null
