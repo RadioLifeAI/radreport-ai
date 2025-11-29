@@ -10,6 +10,7 @@ import {
 } from '@/utils/medicalTextProcessor'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from 'sonner'
+import { useWhisperCredits } from './useWhisperCredits'
 
 interface UseDictationReturn {
   isActive: boolean
@@ -56,6 +57,9 @@ interface AudioSegment {
 export function useDictation(editor: Editor | null): UseDictationReturn {
   const [isActive, setIsActive] = useState(false)
   const [status, setStatus] = useState<'idle' | 'waiting' | 'listening'>('idle')
+  
+  // Whisper credits hook
+  const { balance, hasEnoughCredits, checkQuota, refreshBalance } = useWhisperCredits()
 
   // Refs para sistema de âncora dinâmica (Web Speech)
   const editorRef = useRef<Editor | null>(null)
@@ -180,6 +184,16 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
         })
 
         if (error) throw error
+
+        // Refresh balance after consumption
+        if (data?.credits_remaining !== undefined) {
+          await refreshBalance()
+          
+          // Show low balance warning
+          if (data.credits_remaining < 10) {
+            toast.warning(`⚡ Saldo baixo: ${data.credits_remaining} créditos restantes`)
+          }
+        }
 
         if (data?.text) {
           let whisperText = processMedicalText(data.text)
@@ -858,12 +872,18 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
    * Toggle Whisper
    */
   const toggleWhisper = useCallback(() => {
+    // Check if user has enough credits before enabling
+    if (!isWhisperEnabled && !hasEnoughCredits) {
+      toast.error('Saldo insuficiente de créditos Whisper. Compre mais créditos para ativar.')
+      return
+    }
+    
     setIsWhisperEnabled(prev => {
       const newState = !prev
       toast.info(newState ? 'Whisper ativado ✅' : 'Whisper desativado ⏸️')
       return newState
     })
-  }, [])
+  }, [isWhisperEnabled, hasEnoughCredits])
 
   /**
    * Cleanup ao desmontar

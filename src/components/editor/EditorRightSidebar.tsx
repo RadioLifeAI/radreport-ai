@@ -1,4 +1,4 @@
-import { FileText, History, ChevronLeft, MessageSquare, Sparkles, CheckCircle2, XCircle } from 'lucide-react'
+import { FileText, History, ChevronLeft, MessageSquare, Sparkles, CheckCircle2, XCircle, Zap, ShoppingCart } from 'lucide-react'
 import { Editor } from '@tiptap/react'
 import { useState } from 'react'
 import VoiceButton from '@/components/voice/VoiceButton'
@@ -9,6 +9,8 @@ import { useFrasesModelo, FraseModelo } from '@/hooks/useFrasesModelo'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useVariableProcessor } from '@/hooks/useVariableProcessor'
+import { useWhisperCredits } from '@/hooks/useWhisperCredits'
+import { Button } from '@/components/ui/button'
 
 interface EditorRightSidebarProps {
   collapsed: boolean
@@ -48,6 +50,7 @@ export function EditorRightSidebar({
   const [frasesOpen, setFrasesOpen] = useState(false)
   const { recentFrases, favoriteFrases } = useFrasesModelo()
   const { hasVariables } = useVariableProcessor()
+  const { balance, isLoading: isLoadingBalance } = useWhisperCredits()
 
   const handleFraseClick = (frase: FraseModelo) => {
     // Check if frase has variables
@@ -165,6 +168,43 @@ export function EditorRightSidebar({
           <div>
             <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-3">Controles de Voz</h3>
             <div className="space-y-2">
+              {/* Whisper Credits Balance */}
+              {!isLoadingBalance && (
+                <div className="flex items-center justify-between p-2 bg-card/50 border border-border/30 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <Zap size={14} className={balance > 10 ? 'text-green-500' : balance > 5 ? 'text-yellow-500' : 'text-red-500'} />
+                    <span className="text-xs font-medium">Créditos Whisper</span>
+                  </div>
+                  <Badge 
+                    variant="secondary" 
+                    className={`text-xs ${
+                      balance > 10 
+                        ? 'bg-green-500/10 text-green-500' 
+                        : balance > 5 
+                        ? 'bg-yellow-500/10 text-yellow-500' 
+                        : 'bg-red-500/10 text-red-500'
+                    }`}
+                  >
+                    {balance}
+                  </Badge>
+                </div>
+              )}
+              
+              {/* Buy Credits Button (if balance is low) */}
+              {balance === 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full text-xs gap-2"
+                  onClick={() => {
+                    // TODO: Implement purchase flow
+                    alert('Sistema de compra de créditos em desenvolvimento')
+                  }}
+                >
+                  <ShoppingCart size={14} />
+                  Comprar créditos
+                </Button>
+              )}
               <VoiceButton 
                 isActive={isVoiceActive}
                 status={voiceStatus}
@@ -178,12 +218,21 @@ export function EditorRightSidebar({
               {toggleWhisper && (
                 <button
                   onClick={toggleWhisper}
+                  disabled={balance === 0 && !isWhisperEnabled}
                   className={`w-full flex items-center justify-between gap-2 p-3 border rounded-lg transition-all ${
-                    isWhisperEnabled
+                    balance === 0 && !isWhisperEnabled
+                      ? 'bg-card border-border/40 opacity-50 cursor-not-allowed'
+                      : isWhisperEnabled
                       ? 'bg-gradient-to-r from-cyan-500/10 to-indigo-500/10 border-cyan-500/30 hover:border-cyan-500/50'
                       : 'bg-card border-border/40 hover:bg-muted/50'
                   }`}
-                  title={isWhisperEnabled ? 'Whisper ativado' : 'Whisper desativado'}
+                  title={
+                    balance === 0 && !isWhisperEnabled
+                      ? 'Saldo insuficiente - compre créditos para ativar'
+                      : isWhisperEnabled 
+                      ? 'Whisper ativado' 
+                      : 'Whisper desativado'
+                  }
                 >
                   <div className="flex items-center gap-2">
                     <Sparkles size={16} className={isWhisperEnabled ? 'text-cyan-500' : 'text-muted-foreground'} />
