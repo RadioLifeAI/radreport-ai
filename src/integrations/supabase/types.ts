@@ -7854,6 +7854,14 @@ export type Database = {
         Args: { p_diametro_mm: number; p_localizacao?: string }
         Returns: number
       }
+      refund_whisper_credits: {
+        Args: {
+          p_credits_to_refund: number
+          p_reason?: string
+          p_user_id: string
+        }
+        Returns: number
+      }
       rm_craneo_alteracao_corpo_caloso: {
         Args: {
           afilamento?: boolean
