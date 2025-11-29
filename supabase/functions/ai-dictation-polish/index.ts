@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
 
@@ -105,13 +106,54 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    const correctedText = data.choices[0].message.content;
+    console.log('📊 OpenAI response completo:', JSON.stringify(data, null, 2));
+    
+    // Extrair com optional chaining e fallback
+    const correctedText = data.choices?.[0]?.message?.content ?? "";
+    const finishReason = data.choices?.[0]?.finish_reason ?? "unknown";
+    
+    console.log('📊 Finish reason:', finishReason);
+    console.log('📊 Content length:', correctedText.length);
+
+    // Validar se content está vazio
+    if (!correctedText || correctedText.trim().length === 0) {
+      console.warn('⚠️ OpenAI retornou texto vazio, usando original como fallback');
+      return new Response(
+        JSON.stringify({ 
+          corrected: text, 
+          fallback: true,
+          reason: finishReason
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     console.log('✅ Texto corrigido:', {
       original_length: text.length,
       corrected_length: correctedText.length,
       preview: correctedText.substring(0, 100)
     });
+
+    // Logging no banco de dados
+    try {
+      const supabaseUrl = Deno.env.get('SUPABASE_URL');
+      const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+      
+      if (supabaseUrl && supabaseServiceKey && user_id) {
+        const supabase = createClient(supabaseUrl, supabaseServiceKey);
+        await supabase.from('ai_voice_logs').insert({
+          user_id,
+          action: 'dictation-polish',
+          raw_voice: text.substring(0, 500), // Limitar tamanho
+          replacement: correctedText.substring(0, 500),
+          field: 'dictation',
+          created_at: new Date().toISOString(),
+        });
+      }
+    } catch (logError) {
+      console.error('⚠️ Erro ao logar no banco:', logError);
+      // Não falhar a requisição por erro de log
+    }
 
     return new Response(
       JSON.stringify({ corrected: correctedText }),
