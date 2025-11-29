@@ -1,5 +1,8 @@
 project_id = "gxhbdbovixbptrjrcwbr"
 
+[functions.radreport-chat]
+verify_jwt = false
+
 [functions.ai-generate-conclusion]
 verify_jwt = false
 
