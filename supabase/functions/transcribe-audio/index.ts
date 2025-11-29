@@ -77,10 +77,28 @@ serve(async (req) => {
     const audioSizeBytes = (audio.length * 0.75); // base64 to bytes
     const estimatedDurationSeconds = Math.ceil(audioSizeBytes / 16000);
     
+    // 🆕 FASE 1: Validação mínima 10s (alinhado com cobrança mínima Groq)
+    if (estimatedDurationSeconds < 10) {
+      console.log('⏭️ Audio too short:', estimatedDurationSeconds, 's (min: 10s)');
+      return new Response(
+        JSON.stringify({ 
+          text: '', 
+          skipped: true,
+          reason: 'Audio menor que 10 segundos - não processado',
+          duration: estimatedDurationSeconds
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
     // Calculate credits: 1 credit per minute, min 1, max 5
     const creditsToConsume = Math.min(Math.max(Math.ceil(estimatedDurationSeconds / 60), 1), 5);
     
-    console.log(`📊 Estimated duration: ${estimatedDurationSeconds}s, Credits needed: ${creditsToConsume}`);
+    console.log('📥 Whisper request:', JSON.stringify({
+      audioSizeKB: Math.round(audioSizeBytes / 1024),
+      estimatedDurationSec: estimatedDurationSeconds,
+      creditsNeeded: creditsToConsume
+    }));
 
     // Check balance BEFORE consuming (don't consume yet)
     const { data: balanceCheck, error: balanceError } = await supabaseClient
@@ -121,6 +139,9 @@ serve(async (req) => {
     formData.append('prompt', medicalPrompt);
     formData.append('temperature', '0.0');
     formData.append('response_format', 'verbose_json');
+    // 🆕 FASE 3: Adicionar granularidade word-level para sincronização precisa
+    formData.append('timestamp_granularities[]', 'segment');
+    formData.append('timestamp_granularities[]', 'word');
 
     // Send to Groq Whisper API
     const response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
@@ -139,20 +160,31 @@ serve(async (req) => {
 
     const result = await response.json();
 
-    // Filter noise/silence segments using no_speech_prob from verbose_json
+    // 🆕 FASE 2: Filter noise/silence segments using no_speech_prob AND avg_logprob
     let finalText = result.text;
     let segmentsFiltered = 0;
+    let avgConfidence = null;
     
     if (result.segments && Array.isArray(result.segments)) {
       const validSegments = result.segments.filter(
-        (segment: any) => segment.no_speech_prob < 0.5
+        (segment: any) => {
+          const noSpeechOk = segment.no_speech_prob < 0.5;
+          const confidenceOk = segment.avg_logprob > -0.5; // 🆕 Alta confiança
+          
+          if (!confidenceOk) {
+            console.log('⚠️ Low confidence segment filtered:', segment.avg_logprob);
+          }
+          
+          return noSpeechOk && confidenceOk;
+        }
       );
       
       segmentsFiltered = result.segments.length - validSegments.length;
       
       if (validSegments.length > 0) {
         finalText = validSegments.map((s: any) => s.text).join(' ').trim();
-        console.log(`Filtered ${segmentsFiltered} noise segments out of ${result.segments.length}`);
+        avgConfidence = validSegments.reduce((sum: number, s: any) => sum + (s.avg_logprob || 0), 0) / validSegments.length;
+        console.log(`Filtered ${segmentsFiltered} noise/low-confidence segments out of ${result.segments.length}`);
       }
     }
 
@@ -174,13 +206,16 @@ serve(async (req) => {
 
     const creditsRemaining = consumeResult || (balanceCheck.balance - creditsToConsume);
 
-    // Log usage
+    // 🆕 FASE 5: Log estruturado JSON com métricas detalhadas
     await supabaseClient.from('whisper_usage_log').insert({
       user_id: userId,
       credits_consumed: creditsToConsume,
       audio_duration_seconds: result.duration || estimatedDurationSeconds,
       segments_filtered: segmentsFiltered,
+      avg_confidence: avgConfidence,
       language: result.language || language,
+      text_length: finalText.length,
+      segments_total: result.segments?.length || 0
     });
 
     return new Response(

@@ -137,7 +137,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   }, [])
 
   /**
-   * 🆕 VAD: Detecta atividade de áudio (filtrar silêncio)
+   * 🆕 FASE 4: VAD com threshold aumentado e peak detection
    */
   const detectAudioActivity = useCallback(async (blob: Blob): Promise<boolean> => {
     try {
@@ -148,14 +148,17 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       const channelData = audioBuffer.getChannelData(0)
       const rms = Math.sqrt(channelData.reduce((sum, val) => sum + val * val, 0) / channelData.length)
       
+      // 🆕 Peak detection para melhor filtro de ruído de fundo
+      const peak = Math.max(...Array.from(channelData).map(Math.abs))
+      
       await audioContext.close()
       
-      const SILENCE_THRESHOLD = 0.01
-      const hasActivity = rms > SILENCE_THRESHOLD
+      // 🆕 Thresholds aumentados para melhor precisão
+      const RMS_THRESHOLD = 0.02  // Aumentado de 0.01
+      const PEAK_THRESHOLD = 0.1  // Novo threshold de pico
+      const hasActivity = rms > RMS_THRESHOLD && peak > PEAK_THRESHOLD
       
-      if (!hasActivity) {
-        console.log('🔇 Silent audio detected, skipping (RMS:', rms.toFixed(4), ')')
-      }
+      console.log(`🔊 VAD: RMS=${rms.toFixed(4)}, Peak=${peak.toFixed(4)}, Active=${hasActivity}`)
       
       return hasActivity
     } catch (error) {
