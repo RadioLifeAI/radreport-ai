@@ -92,7 +92,6 @@ serve(async (req) => {
           { role: 'user', content: text }
         ],
         max_completion_tokens: 800,
-        temperature: 0.3, // Baixa criatividade para correções precisas
       }),
     });
 

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Editor } from '@tiptap/react'
 import { processVoiceInput } from '@/services/dictation/voiceCommandProcessor'
-import { blobToBase64 } from '@/utils/textFormatter'
+import { blobToBase64, convertNewlinesToHTML } from '@/utils/textFormatter'
 import { useWhisperCredits } from './useWhisperCredits'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from 'sonner'
@@ -59,6 +59,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   const anchorRef = useRef<number | null>(null)
   const interimLengthRef = useRef<number>(0)
   const dictationStartRef = useRef<number | null>(null)
+  const rawTranscriptRef = useRef<string>('')  // ← RAW transcript para Corretor AI
 
   // Sync editor ref
   useEffect(() => {
@@ -152,6 +153,9 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
             )
           }
 
+          // Acumular RAW transcript para Corretor AI (ANTES de processVoiceInput)
+          rawTranscriptRef.current += (rawTranscriptRef.current ? ' ' : '') + transcript
+
           processVoiceInput(transcript, editorRef.current)
 
           // Reset anchor
@@ -179,6 +183,9 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
 
       // Salvar posição inicial do ditado
       dictationStartRef.current = editorRef.current.state.selection.from
+      
+      // Reset RAW transcript
+      rawTranscriptRef.current = ''
 
       // Start MediaRecorder para Whisper (SEM timeslice)
       if (isWhisperEnabled) {
@@ -287,26 +294,29 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       const startPos = dictationStartRef.current
       const endPos = editorRef.current.state.selection.from
       
-      // Extrair texto ditado
-      const dictatedText = editorRef.current.state.doc.textBetween(startPos, endPos)
+      // Usar RAW transcript (texto ANTES de processVoiceInput) ← CRÍTICO
+      const rawText = rawTranscriptRef.current.trim()
       
-      if (dictatedText.length > 10) {
-        console.log('🪄 Enviando para Corretor AI:', dictatedText.substring(0, 100))
+      if (rawText.length > 10) {
+        console.log('🪄 Enviando RAW text para Corretor AI:', rawText.substring(0, 100))
         setIsTranscribing(true)
         
         try {
           const { data, error } = await supabase.functions.invoke('ai-dictation-polish', {
-            body: { text: dictatedText }
+            body: { text: rawText }
           })
           
           if (!error && data?.corrected) {
-            // Substituir texto pelo corrigido
+            // Converter \n para HTML estruturado ← NOVO
+            const htmlContent = convertNewlinesToHTML(data.corrected)
+            
+            // Substituir texto pelo corrigido com HTML
             editorRef.current.chain()
               .deleteRange({ from: startPos, to: endPos })
-              .insertContent(data.corrected)
+              .insertContent(htmlContent)
               .run()
             
-            console.log('✅ Corretor AI aplicado:', data.corrected.substring(0, 80) + '...')
+            console.log('✅ Corretor AI aplicado com HTML:', htmlContent.substring(0, 80) + '...')
             toast.success('Texto corrigido com IA')
           } else if (error) {
             console.error('❌ Erro no Corretor AI:', error)
@@ -334,6 +344,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     anchorRef.current = null
     interimLengthRef.current = 0
     dictationStartRef.current = null
+    rawTranscriptRef.current = ''  // ← Resetar RAW
 
     console.log('🛑 Dictation stopped')
   }, [isWhisperEnabled, isAICorrectorEnabled])
