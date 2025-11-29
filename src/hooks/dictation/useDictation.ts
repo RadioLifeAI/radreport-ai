@@ -153,9 +153,19 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   }, [isWhisperEnabled, audioRecorder, transcriptBuffer, whisperQueue])
 
   /**
-   * Handler unificado para transcrições (Web Speech)
+   * Verifica se há comando estrutural que deve enviar buffer imediatamente
    */
-  const handleTranscript = useCallback((result: { transcript: string; isFinal: boolean }) => {
+  const hasStructuralCommandTrigger = useCallback((text: string): boolean => {
+    const triggers = ['ponto parágrafo', 'novo parágrafo', 'fim de laudo', 'encerrar laudo']
+    return triggers.some(t => text.toLowerCase().includes(t))
+  }, [])
+
+  /**
+   * Handler unificado para transcrições (Web Speech) - estabilizado via ref
+   */
+  const handleTranscriptRef = useRef<(result: { transcript: string; isFinal: boolean }) => void>()
+  
+  handleTranscriptRef.current = useCallback((result: { transcript: string; isFinal: boolean }) => {
     const currentEditor = editorRef.current
     if (!currentEditor || !result.transcript) return
 
@@ -213,8 +223,13 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
 
         transcriptBuffer.append(processedText, currentEditor)
 
-        // Verificar se deve enviar para Whisper
-        if (checkBufferTrigger()) {
+        // Trigger: comando estrutural envia buffer imediatamente
+        if (hasStructuralCommandTrigger(result.transcript)) {
+          console.log('🎯 Trigger: Structural command detected')
+          sendCurrentChunk()
+        }
+        // Verificar trigger normal (silêncio ou buffer máximo)
+        else if (checkBufferTrigger()) {
           sendCurrentChunk()
         }
       }
@@ -223,7 +238,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       anchorRef.current = null
       interimLengthRef.current = 0
     }
-  }, [isWhisperEnabled, transcriptBuffer, checkBufferTrigger, sendCurrentChunk])
+  }, [isWhisperEnabled, transcriptBuffer, checkBufferTrigger, sendCurrentChunk, hasStructuralCommandTrigger])
 
 
   /**
@@ -244,7 +259,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       }
 
       const speechService = speechServiceRef.current
-      speechService.setOnResult(handleTranscript)
+      speechService.setOnResult((result) => handleTranscriptRef.current?.(result))
 
       // Verificar créditos Whisper
       if (isWhisperEnabled) {
@@ -288,7 +303,6 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       return null
     }
   }, [
-    handleTranscript,
     isWhisperEnabled,
     checkQuota,
     audioRecorder,
@@ -311,7 +325,6 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     // Parar reconhecimento de voz
     if (speechServiceRef.current) {
       speechServiceRef.current.stopListening()
-      speechServiceRef.current.removeOnResult(handleTranscript)
     }
 
     // Parar gravação e enviar chunk final
@@ -335,7 +348,6 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
 
     console.log('🛑 Dictation stopped')
   }, [
-    handleTranscript,
     isWhisperEnabled,
     audioRecorder,
     sendFinalChunk,
@@ -361,14 +373,29 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     }
   }, [isWhisperEnabled, checkQuota, whisperQueue])
 
+  // Pausar ditado quando aba fica oculta (privacidade)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && isActive) {
+        console.log('🔒 Tab hidden - pausing dictation for privacy')
+        stopDictation()
+        toast.info('Ditado pausado (aba em segundo plano)')
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [isActive, stopDictation])
+
   // Cleanup na desmontagem
   useEffect(() => {
     return () => {
       if (isActive) {
         stopDictation()
       }
+      whisperQueue.abort()
     }
-  }, [isActive, stopDictation])
+  }, [isActive, stopDictation, whisperQueue])
 
   return {
     isActive,

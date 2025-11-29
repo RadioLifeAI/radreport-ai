@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react'
 import { Editor } from '@tiptap/react'
-import { transcribeAudio } from '@/services/dictation/whisperClient'
+import { transcribeAudio, validateAudioBlob, detectAudioActivity } from '@/services/dictation/whisperClient'
 import { shouldApplyWhisperRefinement, extractVoiceCommands, reinsertVoiceCommands } from '@/utils/medicalTextProcessor'
 import { processVoiceInput } from '@/services/dictation/voiceCommandProcessor'
 import { toast } from 'sonner'
@@ -86,6 +86,22 @@ export function useWhisperQueue(): UseWhisperQueueReturn {
 
       try {
         abortControllerRef.current = new AbortController()
+
+        // Validação de áudio (tamanho, formato)
+        const validation = validateAudioBlob(audioBlob)
+        if (!validation.valid) {
+          console.log('⏭️ Skipping audio:', validation.reason)
+          setStats(prev => ({ ...prev, failed: prev.failed + 1 }))
+          return
+        }
+
+        // VAD: Voice Activity Detection (filtrar áudio silencioso)
+        const hasActivity = await detectAudioActivity(audioBlob)
+        if (!hasActivity) {
+          console.log('⏭️ Skipping silent audio (no speech detected)')
+          setStats(prev => ({ ...prev, failed: prev.failed + 1 }))
+          return
+        }
 
         // Extrair comandos de voz antes de enviar
         const { cleanText, commands } = extractVoiceCommands(webSpeechText)
