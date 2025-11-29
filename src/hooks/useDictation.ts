@@ -3,6 +3,7 @@ import { Editor } from '@tiptap/react'
 import { processVoiceInput } from '@/services/dictation/voiceCommandProcessor'
 import { processMedicalText } from '@/utils/medicalTextProcessor'
 import { blobToBase64 } from '@/utils/textFormatter'
+import { applyGlobalPolish } from '@/utils/globalTextPolish'
 import { useWhisperCredits } from './useWhisperCredits'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from 'sonner'
@@ -38,6 +39,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   const bufferTextRef = useRef<string>('')
   const bufferStartTimeRef = useRef<number>(0)
   const processingRef = useRef<boolean>(false)
+  const dictationStartRef = useRef<number | null>(null)
 
   // Sync editor ref
   useEffect(() => {
@@ -224,6 +226,9 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       recognition.start()
       recognitionRef.current = recognition
 
+      // Salvar posição inicial do ditado
+      dictationStartRef.current = editorRef.current.state.selection.from
+
       // Start MediaRecorder for Whisper
       if (isWhisperEnabled) {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
@@ -304,12 +309,35 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       streamRef.current = null
     }
 
+    // Aplicar correção global final no trecho ditado
+    if (editorRef.current && dictationStartRef.current !== null) {
+      const endPos = editorRef.current.state.selection.from
+      const startPos = dictationStartRef.current
+      
+      if (endPos > startPos) {
+        // Extrair texto ditado
+        const dictatedText = editorRef.current.state.doc.textBetween(startPos, endPos, ' ', ' ')
+        
+        // Selecionar trecho visualmente
+        editorRef.current.commands.setTextSelection({ from: startPos, to: endPos })
+        
+        // Aplicar correção global final
+        const polishedText = applyGlobalPolish(dictatedText)
+        
+        // Substituir seleção com texto polido
+        editorRef.current.commands.insertContent(polishedText)
+        
+        console.log('✨ Global polish applied to dictation')
+      }
+    }
+
     // Reset states
     setIsActive(false)
     setStatus('idle')
     anchorRef.current = null
     interimLengthRef.current = 0
     bufferTextRef.current = ''
+    dictationStartRef.current = null
 
     console.log('🛑 Stopped')
   }, [isWhisperEnabled, sendToWhisper])
