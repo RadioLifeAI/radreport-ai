@@ -16,6 +16,9 @@ import { EditorFooter } from '@/components/editor/EditorFooter'
 import { Macro } from '@/components/selectors/MacroSelector'
 import { VariablesModal } from '@/components/editor/VariablesModal'
 import { useVariableProcessor } from '@/hooks/useVariableProcessor'
+import { useChat } from '@/hooks/useChat'
+import { ChatPanel } from '@/components/chat'
+import { insertContent } from '@/editor/commands'
 
 interface ProfessionalEditorPageProps {
   onGenerateConclusion?: (conclusion?: string) => void
@@ -38,8 +41,17 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
   // Variables modal state
   const [variablesModalOpen, setVariablesModalOpen] = useState(false)
   const [selectedFraseForVariables, setSelectedFraseForVariables] = useState<FraseModelo | null>(null)
+  const [isChatOpen, setIsChatOpen] = useState(false)
   
   const { hasVariables } = useVariableProcessor()
+  
+  // Chat hook
+  const {
+    messages: chatMessages,
+    isStreaming,
+    sendMessage,
+    startNewConversation
+  } = useChat()
 
   // Voice dictation hook - centralized voice logic
   const { isActive: isVoiceActive, status: voiceStatus, startDictation, stopDictation } = useDictation(editorInstance)
@@ -548,6 +560,7 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
         needsVariableInput={needsVariableInput}
         applyTemplateWithVariables={applyTemplateWithVariables}
         onLogout={logout}
+        onChatToggle={() => setIsChatOpen(!isChatOpen)}
       />
 
       <div className="flex-1 flex overflow-hidden">
@@ -631,6 +644,21 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
           onSubmit={handleVariablesSubmit}
         />
       )}
+      
+      <ChatPanel
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        messages={chatMessages}
+        isStreaming={isStreaming}
+        onSendMessage={sendMessage}
+        onInsertToReport={(text) => {
+          if (editorInstance) {
+            insertContent(editorInstance, text, true);
+            toast.success('Texto inserido no laudo');
+          }
+        }}
+        onNewConversation={startNewConversation}
+      />
     </div>
   )
 }

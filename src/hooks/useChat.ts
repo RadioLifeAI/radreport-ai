@@ -1,0 +1,241 @@
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from './useAuth';
+import { toast } from 'sonner';
+
+export interface Message {
+  id: string;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  created_at: string;
+}
+
+export interface Conversation {
+  id: string;
+  title: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export const useChat = () => {
+  const { user } = useAuth();
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [currentConversation, setCurrentConversation] = useState<Conversation | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const loadConversations = useCallback(async () => {
+    if (!user) return;
+    
+    const { data, error } = await supabase
+      .from('chat_conversations')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('updated_at', { ascending: false });
+
+    if (error) {
+      console.error('Error loading conversations:', error);
+      return;
+    }
+
+    setConversations(data || []);
+  }, [user]);
+
+  const loadMessages = useCallback(async (conversationId: string) => {
+    setIsLoading(true);
+    const { data, error } = await supabase
+      .from('chat_messages')
+      .select('*')
+      .eq('conversation_id', conversationId)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error('Error loading messages:', error);
+      toast.error('Erro ao carregar mensagens');
+      setIsLoading(false);
+      return;
+    }
+
+    setMessages(data.map(msg => ({
+      ...msg,
+      role: msg.role as 'user' | 'assistant' | 'system'
+    })) || []);
+    setIsLoading(false);
+  }, []);
+
+  const startNewConversation = useCallback(async () => {
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from('chat_conversations')
+      .insert({
+        user_id: user.id,
+        title: 'Nova conversa'
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating conversation:', error);
+      toast.error('Erro ao criar conversa');
+      return;
+    }
+
+    setCurrentConversation(data);
+    setMessages([]);
+    await loadConversations();
+  }, [user, loadConversations]);
+
+  const selectConversation = useCallback(async (id: string) => {
+    const conv = conversations.find(c => c.id === id);
+    if (!conv) return;
+
+    setCurrentConversation(conv);
+    await loadMessages(id);
+  }, [conversations, loadMessages]);
+
+  const deleteConversation = useCallback(async (id: string) => {
+    const { error } = await supabase
+      .from('chat_conversations')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error deleting conversation:', error);
+      toast.error('Erro ao deletar conversa');
+      return;
+    }
+
+    if (currentConversation?.id === id) {
+      setCurrentConversation(null);
+      setMessages([]);
+    }
+
+    await loadConversations();
+    toast.success('Conversa deletada');
+  }, [currentConversation, loadConversations]);
+
+  const sendMessage = useCallback(async (content: string) => {
+    if (!user || !currentConversation) {
+      toast.error('Nenhuma conversa selecionada');
+      return;
+    }
+
+    const userMessage: Message = {
+      id: crypto.randomUUID(),
+      role: 'user',
+      content,
+      created_at: new Date().toISOString()
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setIsStreaming(true);
+
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      const token = session?.session?.access_token;
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/radreport-chat`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            messages: [...messages, userMessage].map(m => ({
+              role: m.role,
+              content: m.content
+            })),
+            conversation_id: currentConversation.id
+          })
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Falha na requisição');
+      }
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let assistantContent = '';
+      let assistantMessageId = crypto.randomUUID();
+
+      if (reader) {
+        let buffer = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
+
+          for (let line of lines) {
+            line = line.trim();
+            if (!line || line.startsWith(':')) continue;
+            if (!line.startsWith('data: ')) continue;
+
+            const data = line.slice(6);
+            if (data === '[DONE]') continue;
+
+            try {
+              const parsed = JSON.parse(data);
+              const delta = parsed.choices?.[0]?.delta?.content;
+              
+              if (delta) {
+                assistantContent += delta;
+                setMessages(prev => {
+                  const last = prev[prev.length - 1];
+                  if (last?.role === 'assistant' && last.id === assistantMessageId) {
+                    return prev.map(m => 
+                      m.id === assistantMessageId 
+                        ? { ...m, content: assistantContent }
+                        : m
+                    );
+                  }
+                  return [...prev, {
+                    id: assistantMessageId,
+                    role: 'assistant' as const,
+                    content: assistantContent,
+                    created_at: new Date().toISOString()
+                  }];
+                });
+              }
+            } catch (e) {
+              console.error('Error parsing SSE:', e);
+            }
+          }
+        }
+      }
+
+      setIsStreaming(false);
+      await loadConversations();
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast.error('Erro ao enviar mensagem');
+      setIsStreaming(false);
+    }
+  }, [user, currentConversation, messages, loadConversations]);
+
+  useEffect(() => {
+    loadConversations();
+  }, [loadConversations]);
+
+  return {
+    conversations,
+    currentConversation,
+    messages,
+    isStreaming,
+    isLoading,
+    loadConversations,
+    loadMessages,
+    startNewConversation,
+    selectConversation,
+    deleteConversation,
+    sendMessage
+  };
+};
