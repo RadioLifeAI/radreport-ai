@@ -29,7 +29,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
 
   // Refs
   const editorRef = useRef<Editor | null>(null)
-  const recognitionRef = useRef<SpeechRecognition | null>(null)
+  const recognitionRef = useRef<InstanceType<typeof window.SpeechRecognition | typeof window.webkitSpeechRecognition> | null>(null)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const streamRef = useRef<MediaStream | null>(null)
   const audioChunksRef = useRef<Blob[]>([])
@@ -347,10 +347,50 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   }
 }
 
-// Global type declarations
+// Global type declarations for Web Speech API
 declare global {
   interface Window {
-    SpeechRecognition: any
-    webkitSpeechRecognition: any
+    SpeechRecognition: {
+      new(): {
+        continuous: boolean
+        interimResults: boolean
+        lang: string
+        start(): void
+        stop(): void
+        abort(): void
+        onaudiostart: ((ev: Event) => any) | null
+        onaudioend: ((ev: Event) => any) | null
+        onend: ((ev: Event) => any) | null
+        onerror: ((ev: any) => any) | null
+        onnomatch: ((ev: any) => any) | null
+        onresult: ((ev: any) => any) | null
+        onsoundstart: ((ev: Event) => any) | null
+        onsoundend: ((ev: Event) => any) | null
+        onspeechstart: ((ev: Event) => any) | null
+        onspeechend: ((ev: Event) => any) | null
+        onstart: ((ev: Event) => any) | null
+      }
+    }
+    webkitSpeechRecognition: {
+      new(): {
+        continuous: boolean
+        interimResults: boolean
+        lang: string
+        start(): void
+        stop(): void
+        abort(): void
+        onaudiostart: ((ev: Event) => any) | null
+        onaudioend: ((ev: Event) => any) | null
+        onend: ((ev: Event) => any) | null
+        onerror: ((ev: any) => any) | null
+        onnomatch: ((ev: any) => any) | null
+        onresult: ((ev: any) => any) | null
+        onsoundstart: ((ev: Event) => any) | null
+        onsoundend: ((ev: Event) => any) | null
+        onspeechstart: ((ev: Event) => any) | null
+        onspeechend: ((ev: Event) => any) | null
+        onstart: ((ev: Event) => any) | null
+      }
+    }
   }
 }
