@@ -1935,6 +1935,27 @@ export type Database = {
           },
         ]
       }
+      user_whisper_balance: {
+        Row: {
+          balance: number
+          created_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       voice_commands: {
         Row: {
           ai_model: string | null
@@ -2024,6 +2045,78 @@ export type Database = {
           },
         ]
       }
+      whisper_credits_ledger: {
+        Row: {
+          amount: number
+          balance_after: number
+          balance_before: number
+          created_at: string
+          description: string | null
+          id: string
+          metadata: Json | null
+          transaction_type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          balance_after: number
+          balance_before: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          transaction_type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          balance_after?: number
+          balance_before?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          transaction_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      whisper_usage_log: {
+        Row: {
+          audio_duration_seconds: number
+          audio_size_bytes: number | null
+          created_at: string
+          credits_consumed: number
+          error_message: string | null
+          id: string
+          metadata: Json | null
+          transcription_status: string
+          user_id: string
+        }
+        Insert: {
+          audio_duration_seconds: number
+          audio_size_bytes?: number | null
+          created_at?: string
+          credits_consumed: number
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          transcription_status: string
+          user_id: string
+        }
+        Update: {
+          audio_duration_seconds?: number
+          audio_size_bytes?: number | null
+          created_at?: string
+          credits_consumed?: number
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          transcription_status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       system_templates_filters_v: {
@@ -2058,6 +2151,20 @@ export type Database = {
       }
     }
     Functions: {
+      add_whisper_credits: {
+        Args: {
+          p_credits_to_add: number
+          p_description?: string
+          p_metadata?: Json
+          p_transaction_type?: string
+          p_user_id: string
+        }
+        Returns: {
+          balance_after: number
+          message: string
+          success: boolean
+        }[]
+      }
       analise_conclusiva_coluna: {
         Args: {
           achados_principais?: string[]
@@ -7510,6 +7617,19 @@ export type Database = {
           tipo_achado?: string
         }
         Returns: string
+      }
+      consume_whisper_credits: {
+        Args: {
+          p_credits_to_consume: number
+          p_description?: string
+          p_metadata?: Json
+          p_user_id: string
+        }
+        Returns: {
+          balance_after: number
+          message: string
+          success: boolean
+        }[]
       }
       converter_posicao_para_quadrante: {
         Args: { lateralidade: string; posicao_horas: number }
