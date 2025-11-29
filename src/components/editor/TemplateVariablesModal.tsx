@@ -74,7 +74,7 @@ export function TemplateVariablesModal({
 
     // Get selected technique text
     const tecnicaText = selectedTechnique && template.conteudo.tecnica[selectedTechnique]
-      ? template.conteudo.tecnica[selectedTechnique]
+      ? processTemplateText(template.conteudo.tecnica[selectedTechnique], processedValues)
       : ''
 
     // Format sections
@@ -286,10 +286,13 @@ export function TemplateVariablesModal({
                 />
               </CollapsibleTrigger>
               <CollapsibleContent className="mt-3">
-                <div 
-                  className="p-4 bg-muted/30 rounded-lg text-sm border border-border/50 prose prose-sm max-w-none"
-                  dangerouslySetInnerHTML={{ __html: previewHtml }}
-                />
+                <ScrollArea className="h-[300px] w-full rounded-lg border border-border">
+                  <div 
+                    className="p-4 bg-background prose prose-sm prose-invert max-w-none"
+                    style={{ color: 'hsl(var(--foreground))' }}
+                    dangerouslySetInnerHTML={{ __html: previewHtml }}
+                  />
+                </ScrollArea>
               </CollapsibleContent>
             </Collapsible>
           </div>
