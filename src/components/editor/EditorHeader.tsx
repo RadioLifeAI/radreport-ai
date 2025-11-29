@@ -1,4 +1,4 @@
-import { LogOut, Moon, Sun } from 'lucide-react'
+import { LogOut, Moon, Sun, MessageSquare } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useTheme } from 'next-themes'
 import TemplateSelector from '@/components/selectors/TemplateSelector'
@@ -48,6 +48,7 @@ interface EditorHeaderProps {
   macroModalities: string[]
   
   onLogout: () => void
+  onChatToggle: () => void
   
   // Template variables support
   needsVariableInput: (template: any) => boolean
@@ -93,6 +94,7 @@ export function EditorHeader({
   categories,
   macroModalities,
   onLogout,
+  onChatToggle,
   needsVariableInput,
   applyTemplateWithVariables,
 }: EditorHeaderProps) {
@@ -185,6 +187,13 @@ export function EditorHeader({
       </div>
 
       <div className="flex items-center gap-2">
+        <button 
+          onClick={onChatToggle}
+          className="p-2 hover:bg-muted rounded-lg transition-colors"
+          title="Chat IA"
+        >
+          <MessageSquare size={18} />
+        </button>
         <button 
           onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
           className="p-2 hover:bg-muted rounded-lg transition-colors"
