@@ -72,15 +72,13 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   // 🎙️ Refs para sistema Whisper integrado
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const audioChunksRef = useRef<Blob[]>([])
-  const accumulatedAudioRef = useRef<Blob[]>([]) // 🆕 Buffer acumulado durante sessão
   const chunkIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const lastSegmentEndRef = useRef<number>(0)
   const textSegmentsRef = useRef<TextSegment[]>([])
   const isProcessingRef = useRef<boolean>(false) // 🔒 Mutex para evitar race conditions
   const processingQueueRef = useRef<Array<() => Promise<void>>>([]) // 📋 Fila de processamento
   const abortControllerRef = useRef<AbortController | null>(null) // 🛑 Cancelamento de requests
-  const whisperDebounceRef = useRef<NodeJS.Timeout | null>(null) // 🆕 Debounce timer
-  const lastFinalTranscriptRef = useRef<string>('') // 🆕 Track last transcript
+  const lastFinalTranscriptRef = useRef<string>('') // 🆕 Track last transcript for sync
   
   // 🆕 FASE 3: Mapa de segmentos de áudio isolados
   const audioSegmentsRef = useRef<Map<string, AudioSegment>>(new Map())
@@ -168,7 +166,55 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   }, [])
 
   /**
-   * 🆕 Envia áudio acumulado para Whisper (chamado apenas em stop ou após debounce)
+   * 🆕 RESTAURADO: Envia chunk atual para Whisper durante ditado ativo
+   * Chamado periodicamente (a cada 5s) pelo interval
+   */
+  const sendCurrentChunkToWhisper = useCallback(() => {
+    const currentEditor = editorRef.current
+    if (!currentEditor || audioChunksRef.current.length === 0) return
+    
+    // Criar blob dos chunks atuais
+    const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' })
+    
+    // Verificar tamanho mínimo (~3s = 24KB para WebM Opus)
+    const MIN_CHUNK_SIZE = 3 * 8000 // 3 segundos
+    if (audioBlob.size < MIN_CHUNK_SIZE) {
+      console.log('⏭️ Chunk too small, waiting for more audio')
+      return
+    }
+    
+    // Capturar posições atuais
+    const endPos = currentEditor.state.selection.from
+    const webSpeechText = lastFinalTranscriptRef.current || ''
+    const textLength = webSpeechText.length
+    const startPos = Math.max(0, lastSegmentEndRef.current || (endPos - textLength - 10))
+    
+    console.log('📤 Sending periodic chunk:', {
+      size: Math.round(audioBlob.size / 1024) + 'KB',
+      startPos,
+      endPos,
+      text: webSpeechText.substring(0, 30) + '...'
+    })
+    
+    // Enfileirar para processamento
+    enqueueWhisperProcessing({
+      audioBlob,
+      startPos,
+      endPos,
+      webSpeechText
+    })
+    
+    // Atualizar posição do último segmento
+    lastSegmentEndRef.current = endPos
+    
+    // Limpar chunks processados
+    audioChunksRef.current = []
+    lastFinalTranscriptRef.current = ''
+    
+  }, [])
+
+  /**
+   * Envia chunk de áudio para Whisper com validação e processamento
    */
   const sendChunkToWhisper = useCallback(async (params: {
     audioBlob: Blob
@@ -331,23 +377,6 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   }, [blobToBase64])
 
   /**
-   * 🆕 FASE 2: Enfileira processamento Whisper para evitar race conditions
-   */
-  const enqueueWhisperProcessing = useCallback((params: {
-    audioBlob: Blob
-    startPos: number
-    endPos: number
-    webSpeechText: string
-  }) => {
-    const task = async () => {
-      await sendChunkToWhisper(params)
-    }
-    
-    processingQueueRef.current.push(task)
-    processNextInQueue()
-  }, [sendChunkToWhisper])
-
-  /**
    * 🆕 FASE 2: Processa próximo item da fila com mutex
    */
   const processNextInQueue = useCallback(async () => {
@@ -373,6 +402,25 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       isProcessingRef.current = false
     }
   }, [])
+
+  /**
+   * 🆕 FASE 2: Enfileira processamento Whisper para evitar race conditions
+   */
+  const enqueueWhisperProcessing = useCallback((params: {
+    audioBlob: Blob
+    startPos: number
+    endPos: number
+    webSpeechText: string
+  }) => {
+    const task = async () => {
+      await sendChunkToWhisper(params)
+    }
+    
+    processingQueueRef.current.push(task)
+    
+    // Iniciar processamento de forma assíncrona
+    Promise.resolve().then(() => processNextInQueue())
+  }, [sendChunkToWhisper, processNextInQueue])
 
   /**
    * Apaga a última palavra digitada (comando de voz "apagar isso")
@@ -714,16 +762,10 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     // 🆕 FASE 2: Capturar posição DEPOIS (corrigido)
     const webSpeechEndPos = currentEditor.state.selection.from
     
-    // 🔧 Acumular áudio durante ditado (não enviar)
-    if (isWhisperEnabled && audioChunksRef.current.length > 0) {
-      // Adicionar chunks atuais ao buffer acumulado
-      accumulatedAudioRef.current.push(...audioChunksRef.current)
-      audioChunksRef.current = []
-      
-      // Salvar última transcrição para envio posterior
+    // 🔧 RESTAURADO: Salvar transcrição para sincronização (não acumular áudio)
+    if (isWhisperEnabled) {
       lastFinalTranscriptRef.current = transcript
-      
-      console.log('📦 Audio accumulated, will send on stop')
+      console.log('📝 Transcript saved for next chunk')
     }
 
     // Resetar estado
@@ -809,19 +851,13 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     processingQueueRef.current = []
     isProcessingRef.current = false
     audioChunksRef.current = []
-    accumulatedAudioRef.current = []
     textSegmentsRef.current = []
     lastSegmentEndRef.current = 0
   }, [stopMediaRecorder])
 
   /**
-   * ❌ REMOVIDO: Chunking temporal substituído por sincronização em handleFinalTranscript
-   * A lógica agora captura posições exatas quando Web Speech confirma o texto
-   */
-
-  /**
    * Inicia o ditado por voz com captura de audio stream e Whisper
-   * 🆕 Sem chunking temporal - sincronização acontece em handleFinalTranscript
+   * 🆕 RESTAURADO: Chunking temporal a cada 5s para refinamento contínuo
    */
   const startDictation = useCallback(async (): Promise<MediaStream | null> => {
     const currentEditor = editorRef.current
@@ -840,7 +876,11 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       if (stream && isWhisperEnabled) {
         // Iniciar gravação de áudio para Whisper
         await startAudioRecording(stream)
-        // ❌ Chunking temporal removido - agora sincronizado com handleFinalTranscript
+        
+        // 🆕 RESTAURADO: Chunking temporal a cada 5 segundos
+        chunkIntervalRef.current = setInterval(() => {
+          sendCurrentChunkToWhisper()
+        }, 5000) // 5 segundos
       }
       
       console.log('✓ Dictation started successfully with Whisper integration')
@@ -849,11 +889,11 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     
     console.error('✗ Failed to start dictation')
     return null
-  }, [isWhisperEnabled, startAudioRecording])
+  }, [isWhisperEnabled, startAudioRecording, sendCurrentChunkToWhisper])
 
   /**
-   * Para o ditado por voz e envia áudio acumulado final para Whisper
-   * 🔧 CORREÇÃO: Para MediaRecorder primeiro, depois envia diretamente para Whisper
+   * Para o ditado por voz e envia apenas chunks restantes não processados
+   * 🆕 RESTAURADO: Envia apenas chunk final restante (não blob gigante acumulado)
    */
   const stopDictation = useCallback(() => {
     if (!speechServiceRef.current) return
@@ -862,38 +902,17 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     setIsActive(false)
     setStatus('idle')
     
-    // 🔧 Parar MediaRecorder PRIMEIRO (sem cancelar requests)
+    // Parar MediaRecorder PRIMEIRO (sem cancelar requests)
     stopMediaRecorder()
     
-    // 🔧 Enviar áudio diretamente para Whisper (não enfileirar)
-    if (isWhisperEnabled && accumulatedAudioRef.current.length > 0) {
-      const finalAudioBlob = new Blob(accumulatedAudioRef.current)
-      const currentEditor = editorRef.current
+    // 🆕 RESTAURADO: Enviar apenas chunks finais não processados
+    if (isWhisperEnabled && audioChunksRef.current.length > 0) {
+      const finalChunk = new Blob(audioChunksRef.current, { type: 'audio/webm' })
       
-      if (currentEditor && lastFinalTranscriptRef.current) {
-        console.log('📤 Sending accumulated audio on stop (', Math.round(finalAudioBlob.size / 1024), 'KB)')
-        
-        // Capturar posições aproximadas do conteúdo ditado
-        const endPos = currentEditor.state.selection.from
-        const textLength = lastFinalTranscriptRef.current.length
-        const startPos = Math.max(0, endPos - textLength - 50)
-        
-        // 🔧 Chamar diretamente sendChunkToWhisper ao invés de enfileirar
-        sendChunkToWhisper({
-          audioBlob: finalAudioBlob,
-          startPos,
-          endPos,
-          webSpeechText: lastFinalTranscriptRef.current
-        })
+      // ~2.5s mínimo
+      if (finalChunk.size > 20000) {
+        sendCurrentChunkToWhisper()
       }
-      
-      accumulatedAudioRef.current = []
-    }
-    
-    // Limpar debounce timer
-    if (whisperDebounceRef.current) {
-      clearTimeout(whisperDebounceRef.current)
-      whisperDebounceRef.current = null
     }
     
     // Resetar estado de âncora
@@ -904,8 +923,8 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     lastFinalTranscriptRef.current = ''
     audioChunksRef.current = []
     
-    console.log('🛑 Dictation stopped and final audio sent directly')
-  }, [stopMediaRecorder, isWhisperEnabled, sendChunkToWhisper])
+    console.log('🛑 Dictation stopped')
+  }, [stopMediaRecorder, isWhisperEnabled, sendCurrentChunkToWhisper])
 
   /**
    * 🆕 FASE 6: Callbacks estabilizados - sem dependências no array
@@ -955,7 +974,6 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
         stopDictation()
         // Limpar áudio da memória
         audioChunksRef.current = []
-        accumulatedAudioRef.current = []
         toast.info('Ditado pausado (aba em segundo plano)')
       }
     }
