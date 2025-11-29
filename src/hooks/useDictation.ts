@@ -81,6 +81,10 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   const abortControllerRef = useRef<AbortController | null>(null) // 🛑 Cancelamento de requests
   const lastFinalTranscriptRef = useRef<string>('') // 🆕 Track last transcript for sync
   
+  // 🆕 CORREÇÃO WHISPER: Refs para rastrear texto acumulado do período de buffer
+  const accumulatedTranscriptRef = useRef<string>('') // 🆕 Acumula TODO texto do período
+  const periodStartPosRef = useRef<number | null>(null) // 🆕 Posição início do período
+  
   // 🆕 FASE 3: Mapa de segmentos de áudio isolados
   const audioSegmentsRef = useRef<Map<string, AudioSegment>>(new Map())
   const currentSegmentIdRef = useRef<string | null>(null)
@@ -540,9 +544,10 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     
     // Capturar posições
     const endPos = currentEditor.state.selection.from
-    const webSpeechText = lastFinalTranscriptRef.current || ''
-    const textLength = webSpeechText.length
-    const startPos = Math.max(0, lastSegmentEndRef.current || (endPos - textLength - 10))
+    // 🆕 CORREÇÃO: Usar texto ACUMULADO do período
+    const webSpeechText = accumulatedTranscriptRef.current || ''
+    // 🆕 CORREÇÃO: Usar posição início REAL do período
+    const startPos = periodStartPosRef.current ?? Math.max(0, endPos - webSpeechText.length - 10)
     
     console.log('📤 Sending FINAL chunk to Whisper:', Math.round(audioBlob.size / 1024) + 'KB')
     
@@ -553,6 +558,10 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       endPos,
       webSpeechText
     })
+    
+    // 🆕 CORREÇÃO: Resetar acumuladores ao enviar final
+    accumulatedTranscriptRef.current = ''
+    periodStartPosRef.current = null
     
     // NÃO reiniciar MediaRecorder - estamos parando!
     audioChunksRef.current = []
@@ -594,9 +603,10 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     
     // 4. Capturar posições atuais
     const endPos = currentEditor.state.selection.from
-    const webSpeechText = lastFinalTranscriptRef.current || ''
-    const textLength = webSpeechText.length
-    const startPos = Math.max(0, lastSegmentEndRef.current || (endPos - textLength - 10))
+    // 🆕 CORREÇÃO: Usar texto ACUMULADO do período
+    const webSpeechText = accumulatedTranscriptRef.current || ''
+    // 🆕 CORREÇÃO: Usar posição início REAL do período
+    const startPos = periodStartPosRef.current ?? Math.max(0, endPos - webSpeechText.length - 10)
     
     const bufferDuration = Date.now() - bufferStartTimeRef.current
     
@@ -616,9 +626,12 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       webSpeechText
     })
     
-    // 6. Atualizar refs
+    // 6. Atualizar refs - RESETAR para novo período
     lastSegmentEndRef.current = endPos
     lastFinalTranscriptRef.current = ''
+    // 🆕 CORREÇÃO: RESETAR acumuladores para novo período
+    accumulatedTranscriptRef.current = ''
+    periodStartPosRef.current = null
     bufferStartTimeRef.current = Date.now()
     
     // 7. 🆕 REINICIAR MediaRecorder para novo segmento com header WebM
@@ -973,6 +986,18 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     if (isWhisperEnabled) {
       lastFinalTranscriptRef.current = transcript
       
+      // 🆕 CORREÇÃO: Salvar posição início do período (primeira vez)
+      if (periodStartPosRef.current === null) {
+        periodStartPosRef.current = webSpeechStartPos
+      }
+      
+      // 🆕 CORREÇÃO: CONCATENAR texto ao invés de substituir
+      if (accumulatedTranscriptRef.current) {
+        accumulatedTranscriptRef.current += ' ' + transcript
+      } else {
+        accumulatedTranscriptRef.current = transcript
+      }
+      
       // 🆕 SMART BUFFERING: Trigger 3 - Comando estrutural detectado
       if (hasStructuralCommandTrigger(transcript)) {
         console.log('🎯 Trigger: Structural command detected')
@@ -1148,6 +1173,9 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     interimLengthRef.current = 0
     whisperFallbackToastShownRef.current = false
     lastFinalTranscriptRef.current = ''
+    // 🆕 CORREÇÃO: Resetar refs acumulativas
+    accumulatedTranscriptRef.current = ''
+    periodStartPosRef.current = null
     streamRef.current = null
     
     console.log('🛑 Smart Buffering dictation stopped')
