@@ -92,7 +92,7 @@ serve(async (req) => {
           { role: 'system', content: systemPrompt },
           { role: 'user', content: text }
         ],
-        max_completion_tokens: 1600,
+        max_completion_tokens: 2000,
         reasoning_effort: 'low',
       }),
     });
