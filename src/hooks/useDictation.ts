@@ -1,9 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Editor } from '@tiptap/react'
 import { processVoiceInput } from '@/services/dictation/voiceCommandProcessor'
-import { processMedicalText } from '@/utils/medicalTextProcessor'
 import { blobToBase64 } from '@/utils/textFormatter'
-import { applyGlobalPolish } from '@/utils/globalTextPolish'
 import { useWhisperCredits } from './useWhisperCredits'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from 'sonner'
@@ -33,12 +31,8 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   const recognitionRef = useRef<InstanceType<typeof window.SpeechRecognition | typeof window.webkitSpeechRecognition> | null>(null)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const streamRef = useRef<MediaStream | null>(null)
-  const audioChunksRef = useRef<Blob[]>([])
   const anchorRef = useRef<number | null>(null)
   const interimLengthRef = useRef<number>(0)
-  const bufferTextRef = useRef<string>('')
-  const bufferStartTimeRef = useRef<number>(0)
-  const processingRef = useRef<boolean>(false)
   const dictationStartRef = useRef<number | null>(null)
 
   // Sync editor ref
@@ -53,74 +47,6 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       toast.info('Whisper AI desativado - sem créditos disponíveis')
     }
   }, [hasEnoughCredits, isWhisperEnabled])
-
-  /**
-   * Send audio to Whisper Edge Function
-   * Returns the transcribed text for global polish
-   */
-  const sendToWhisper = useCallback(async (): Promise<string | null> => {
-    if (!editorRef.current || !isWhisperEnabled || audioChunksRef.current.length === 0) return null
-    if (processingRef.current) return null
-
-    const chunks = [...audioChunksRef.current]
-    const editor = editorRef.current
-
-    // Reset for next batch
-    audioChunksRef.current = []
-    bufferTextRef.current = ''
-    bufferStartTimeRef.current = Date.now()
-    processingRef.current = true
-    setIsTranscribing(true)
-
-    try {
-      const audioBlob = new Blob(chunks, { type: 'audio/webm;codecs=opus' })
-      
-      // Validate size
-      const MIN_SIZE = 40000 // 5s * 8000 bytes/s
-      if (audioBlob.size < MIN_SIZE) {
-        console.log('⏭️ Audio too short, skipping Whisper')
-        return null
-      }
-
-      const base64Audio = await blobToBase64(audioBlob)
-      console.log('📤 Sending to Whisper:', Math.round(audioBlob.size / 1024) + 'KB')
-
-      const { data, error } = await supabase.functions.invoke('transcribe-audio', {
-        body: { audio: base64Audio, language: 'pt' }
-      })
-
-      if (error || !data?.text) {
-        setStats(prev => ({ ...prev, total: prev.total + 1, failed: prev.failed + 1 }))
-        console.error('❌ Whisper error:', error)
-        return null
-      }
-
-      const whisperText = processMedicalText(data.text)
-      
-      // Substituir texto no editor usando posição salva
-      if (dictationStartRef.current !== null) {
-        const startPos = dictationStartRef.current
-        const endPos = editor.state.selection.from
-        
-        editor.chain()
-          .deleteRange({ from: startPos, to: endPos })
-          .insertContent(whisperText + ' ')
-          .run()
-        
-        console.log('✅ Whisper text applied to editor')
-      }
-
-      setStats(prev => ({ ...prev, total: prev.total + 1, success: prev.success + 1 }))
-      return whisperText // Retornar texto para global polish
-    } catch (err) {
-      console.error('❌ Whisper processing error:', err)
-      setStats(prev => ({ ...prev, total: prev.total + 1, failed: prev.failed + 1 }))
-      return null
-    } finally {
-      processingRef.current = false
-      setIsTranscribing(false)
-    }
-  }, [isWhisperEnabled])
 
   /**
    * Start dictation
@@ -156,7 +82,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
         const isFinal = result.isFinal
 
         if (!isFinal) {
-          // INTERIM: preview
+          // INTERIM: preview em tempo real
           if (anchorRef.current === null) {
             anchorRef.current = editorRef.current.state.selection.from
           }
@@ -176,7 +102,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
 
           interimLengthRef.current = transcript.length
         } else {
-          // FINAL: process and insert
+          // FINAL: processar e inserir
           if (anchorRef.current !== null && interimLengthRef.current > 0) {
             editorRef.current.view.dispatch(
               editorRef.current.state.tr.delete(
@@ -187,25 +113,10 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
           }
 
           processVoiceInput(transcript, editorRef.current)
-          
-          // Acumular texto processado no buffer para o Whisper
-          const processedText = editorRef.current.state.doc.textBetween(
-            anchorRef.current || 0,
-            editorRef.current.state.selection.from,
-            ' ',
-            ' '
-          )
-          bufferTextRef.current = processedText
 
           // Reset anchor
           anchorRef.current = null
           interimLengthRef.current = 0
-
-          // Send to Whisper after 10 seconds
-          const elapsed = Date.now() - bufferStartTimeRef.current
-          if (isWhisperEnabled && elapsed >= 10000) {
-            sendToWhisper()
-          }
         }
       }
 
@@ -229,7 +140,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       // Salvar posição inicial do ditado
       dictationStartRef.current = editorRef.current.state.selection.from
 
-      // Start MediaRecorder for Whisper
+      // Start MediaRecorder para Whisper (SEM timeslice)
       if (isWhisperEnabled) {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
         streamRef.current = stream
@@ -245,15 +156,9 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
 
         const mediaRecorder = new MediaRecorder(stream, { mimeType })
         
-        mediaRecorder.ondataavailable = (e) => {
-          if (e.data.size > 0) {
-            audioChunksRef.current.push(e.data)
-          }
-        }
-
-        mediaRecorder.start(500)
+        // ondataavailable será configurado em stopDictation
+        mediaRecorder.start()  // ← SEM timeslice = blob ÚNICO ao parar
         mediaRecorderRef.current = mediaRecorder
-        bufferStartTimeRef.current = Date.now()
       }
 
       setIsActive(true)
@@ -267,7 +172,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       setStatus('idle')
       return null
     }
-  }, [isWhisperEnabled, checkQuota, isActive, sendToWhisper])
+  }, [isWhisperEnabled, checkQuota, isActive])
 
   /**
    * Stop dictation
@@ -275,32 +180,61 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   const stopDictation = useCallback(async (): Promise<void> => {
     console.log('🛑 Stopping dictation')
 
-    // Stop recognition
+    // 1. Parar Web Speech (preview descartável)
     if (recognitionRef.current) {
       recognitionRef.current.stop()
       recognitionRef.current = null
     }
 
-    // Stop MediaRecorder and await Whisper processing
-    let finalWhisperText: string | null = null
-    
+    // 2. Parar MediaRecorder e obter blob ÚNICO
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-      // Aguardar chunk final E processamento Whisper
-      finalWhisperText = await new Promise<string | null>((resolve) => {
-        const mr = mediaRecorderRef.current
-        if (!mr) {
-          resolve(null)
-          return
-        }
+      await new Promise<void>((resolve) => {
+        const mr = mediaRecorderRef.current!
         
-        mr.onstop = async () => {
-          if (isWhisperEnabled && audioChunksRef.current.length > 0) {
-            // AGUARDAR Whisper processar e retornar texto
-            const text = await sendToWhisper()
-            resolve(text)
-          } else {
-            resolve(null)
+        mr.ondataavailable = async (e) => {
+          if (e.data.size > 0 && isWhisperEnabled && editorRef.current) {
+            console.log('📦 Audio blob:', Math.round(e.data.size / 1024), 'KB')
+            
+            // Validar tamanho mínimo (5s * 8KB/s = 40KB)
+            if (e.data.size < 40000) {
+              console.log('⏭️ Audio too short, keeping WebSpeech text')
+              resolve()
+              return
+            }
+            
+            // Enviar para Whisper
+            setIsTranscribing(true)
+            try {
+              const base64 = await blobToBase64(e.data)
+              
+              const { data, error } = await supabase.functions.invoke('transcribe-audio', {
+                body: { audio: base64, language: 'pt' }
+              })
+              
+              if (!error && data?.text && dictationStartRef.current !== null) {
+                // SUBSTITUIR texto do WebSpeech pelo texto do Whisper
+                const startPos = dictationStartRef.current
+                const endPos = editorRef.current!.state.selection.from
+                
+                editorRef.current!.chain()
+                  .deleteRange({ from: startPos, to: endPos })
+                  .insertContent(data.text)  // ← Texto do Whisper DIRETO (já formatado)
+                  .run()
+                
+                console.log('✅ Whisper text applied:', data.text.substring(0, 80) + '...')
+                setStats(prev => ({ ...prev, total: prev.total + 1, success: prev.success + 1 }))
+              } else if (error) {
+                console.error('❌ Whisper error:', error)
+                setStats(prev => ({ ...prev, total: prev.total + 1, failed: prev.failed + 1 }))
+              }
+            } catch (err) {
+              console.error('❌ Whisper processing error:', err)
+              setStats(prev => ({ ...prev, total: prev.total + 1, failed: prev.failed + 1 }))
+            } finally {
+              setIsTranscribing(false)
+            }
           }
+          resolve()
         }
         
         mr.stop()
@@ -309,62 +243,21 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       mediaRecorderRef.current = null
     }
 
-    // Stop stream
+    // 3. Parar stream de áudio
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop())
       streamRef.current = null
     }
 
-    // Aplicar correção global final no trecho ditado
-    if (editorRef.current && dictationStartRef.current !== null) {
-      const endPos = editorRef.current.state.selection.from
-      const startPos = dictationStartRef.current
-      
-      if (endPos > startPos) {
-        // Se Whisper retornou texto, usar texto atualizado do editor; senão, usar texto atual
-        let textToPolish: string
-        
-        if (finalWhisperText) {
-          // Whisper já substituiu - pegar texto atualizado do editor
-          textToPolish = editorRef.current.state.doc.textBetween(
-            startPos, 
-            editorRef.current.state.selection.from, 
-            ' ', 
-            ' '
-          )
-          console.log('🎯 Using Whisper-refined text for polish')
-        } else {
-          // Sem Whisper - usar texto WebSpeech
-          textToPolish = editorRef.current.state.doc.textBetween(startPos, endPos, ' ', ' ')
-          console.log('📝 Using WebSpeech text for polish')
-        }
-        
-        // Selecionar trecho visualmente
-        editorRef.current.commands.setTextSelection({ 
-          from: startPos, 
-          to: editorRef.current.state.selection.from 
-        })
-        
-        // Aplicar correção global final
-        const polishedText = applyGlobalPolish(textToPolish)
-        
-        // Substituir seleção com texto polido
-        editorRef.current.commands.insertContent(polishedText)
-        
-        console.log('✨ Global polish applied to dictation')
-      }
-    }
-
-    // Reset states
+    // 4. Reset estados
     setIsActive(false)
     setStatus('idle')
     anchorRef.current = null
     interimLengthRef.current = 0
-    bufferTextRef.current = ''
     dictationStartRef.current = null
 
-    console.log('🛑 Stopped')
-  }, [isWhisperEnabled, sendToWhisper])
+    console.log('🛑 Dictation stopped')
+  }, [isWhisperEnabled])
 
   /**
    * Toggle Whisper
