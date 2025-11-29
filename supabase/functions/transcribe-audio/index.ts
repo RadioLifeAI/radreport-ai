@@ -68,17 +68,17 @@ serve(async (req) => {
       base64Length: audio.length,
       estimatedBytes: audioSizeBytes,
       estimatedDurationSeconds,
-      minRequired: 5
+      minRequired: 2
     });
     
-    // 🆕 Validação mínima 5s (Groq cobra mínimo 10s, mas aceitamos 5s+ para não perder áudio útil)
-    if (estimatedDurationSeconds < 5) {
-      console.log('⏭️ Audio too short:', estimatedDurationSeconds, 's (min: 5s)');
+    // 🆕 Validação mínima 2s (Groq cobra mínimo 10s, mas aceitamos 2s+ para não perder áudio útil)
+    if (estimatedDurationSeconds < 2) {
+      console.log('⏭️ Audio too short:', estimatedDurationSeconds, 's (min: 2s)');
       return new Response(
         JSON.stringify({ 
           text: '', 
           skipped: true,
-          reason: 'Audio menor que 5 segundos - não processado',
+          reason: 'Audio menor que 2 segundos - não processado',
           duration: estimatedDurationSeconds
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
