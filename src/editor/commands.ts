@@ -1,4 +1,5 @@
 import { Editor } from '@tiptap/react'
+import { replaceSection } from '@/editor/sectionUtils'
 
 // Opções para templates: normalizar whitespace em HTML estruturado
 const TEMPLATE_PARSE_OPTIONS = {
@@ -107,8 +108,6 @@ export function insertConclusion(editor: Editor, html: string) {
 export function replaceImpressionSection(editor: Editor, conclusionHtml: string) {
   if (!editor) return
   
-  // Usar replaceSection do sectionUtils
-  const { replaceSection } = require('@/editor/sectionUtils')
   const currentHtml = editor.getHTML()
   const newHtml = replaceSection(currentHtml, 'IMPRESSÃO', conclusionHtml)
   
