@@ -6,6 +6,7 @@ interface VoiceButtonProps {
   onStart: () => void
   onStop: () => void
   disabled?: boolean
+  isTranscribing?: boolean
 }
 
 export default function VoiceButton({ 
@@ -13,7 +14,8 @@ export default function VoiceButton({
   status, 
   onStart, 
   onStop, 
-  disabled = false 
+  disabled = false,
+  isTranscribing = false
 }: VoiceButtonProps) {
   const toggle = () => {
     if (isActive) {
@@ -38,7 +40,7 @@ export default function VoiceButton({
       {isActive ? <Square size={16} /> : <Mic size={16} />}
       {isActive && (
         <span className="voice-status" style={{ marginLeft: 6, fontSize: 12 }}>
-          {status === 'listening' ? 'Ditando…' : 'Aguardando fala…'}
+          {isTranscribing ? '🎯 Refinando...' : (status === 'listening' ? 'Ditando…' : 'Aguardando fala…')}
         </span>
       )}
     </button>

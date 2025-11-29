@@ -47,8 +47,6 @@ export function useHybridDictation(editor: Editor | null): UseHybridDictationRet
   })
 
   // Refs para posicionamento e debounce
-  const whisperAnchorRef = useRef<number | null>(null)
-  const previewLengthRef = useRef<number>(0)
   const editorRef = useRef<Editor | null>(null)
   const lastStatusRef = useRef<'idle' | 'waiting' | 'listening'>('idle')
   const silenceTimerRef = useRef<NodeJS.Timeout | null>(null)
@@ -143,10 +141,19 @@ export function useHybridDictation(editor: Editor | null): UseHybridDictationRet
       return
     }
 
-    // Validar tamanho do áudio (max 25MB)
+    // Validar tamanho do áudio
     const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' })
-    const MAX_AUDIO_SIZE = 25 * 1024 * 1024 // 25MB
     
+    // Não enviar se áudio muito curto (< 0.5s = ~50KB)
+    const MIN_AUDIO_SIZE = 50 * 1024 // 50KB
+    if (audioBlob.size < MIN_AUDIO_SIZE) {
+      console.log('⚠️ Audio too short, skipping Whisper')
+      audioChunksRef.current = []
+      return
+    }
+    
+    // Não enviar se áudio muito longo (max 25MB)
+    const MAX_AUDIO_SIZE = 25 * 1024 * 1024 // 25MB
     if (audioBlob.size > MAX_AUDIO_SIZE) {
       console.warn('⚠️ Audio too large:', Math.round(audioBlob.size / 1024 / 1024), 'MB')
       toast.error('Áudio muito longo. Pause e continue ditando.')
@@ -157,8 +164,10 @@ export function useHybridDictation(editor: Editor | null): UseHybridDictationRet
     setIsTranscribing(true)
     setWhisperStats(prev => ({ ...prev, total: prev.total + 1 }))
 
-    const anchor = whisperAnchorRef.current
-    const previewLength = previewLengthRef.current
+    // USAR âncora do useDictation em vez de refs próprios
+    const anchorInfo = dictation.getAnchorInfo()
+    const anchor = anchorInfo.anchor
+    const previewLength = anchorInfo.interimLength
 
     try {
       const base64Audio = await blobToBase64(audioBlob)
@@ -183,7 +192,7 @@ export function useHybridDictation(editor: Editor | null): UseHybridDictationRet
             .chain()
             .focus()
             .deleteRange({ from: anchor, to: anchor + previewLength })
-            .insertContentAt(anchor, processedText)
+            .insertContentAt(anchor, ' ' + processedText)
             .run()
           
           console.log('🔄 Replaced Web Speech preview with Whisper text')
@@ -195,10 +204,6 @@ export function useHybridDictation(editor: Editor | null): UseHybridDictationRet
             .insertContent(' ' + processedText)
             .run()
         }
-
-        // Resetar refs de posicionamento
-        whisperAnchorRef.current = null
-        previewLengthRef.current = 0
 
         setWhisperStats(prev => ({ ...prev, success: prev.success + 1 }))
       }
@@ -225,12 +230,12 @@ export function useHybridDictation(editor: Editor | null): UseHybridDictationRet
 
     // Transição para silêncio: iniciar timer de debounce
     if (lastStatus === 'listening' && currentStatus === 'waiting') {
-      console.log('🔇 Silence detected - starting 1.5s debounce timer')
+      console.log('🔇 Silence detected - starting 2.0s debounce timer')
       
       silenceTimerRef.current = setTimeout(() => {
         console.log('⏰ Debounce complete - sending to Whisper')
         sendToWhisper()
-      }, 1500)
+      }, 2000)
     } 
     // Voltou a falar: cancelar timer
     else if (currentStatus === 'listening' && silenceTimerRef.current) {
@@ -251,12 +256,6 @@ export function useHybridDictation(editor: Editor | null): UseHybridDictationRet
     if (stream && isWhisperEnabled) {
       // Reutilizar MediaStream do Web Speech para MediaRecorder
       await startAudioRecording(stream)
-      
-      // Salvar âncora inicial para substituição futura
-      if (editorRef.current) {
-        whisperAnchorRef.current = editorRef.current.state.selection.anchor
-        previewLengthRef.current = 0
-      }
     }
     
     return stream
