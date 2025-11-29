@@ -1,11 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Editor } from '@tiptap/react'
 import { useDictation } from './useDictation'
-import { useSpeechCorrectionBuffer } from './useSpeechCorrectionBuffer'
 import { supabase } from '@/integrations/supabase/client'
-import { calculateDiff, filterSignificantDiffs, sortDiffsByPosition, mergeDiffs } from '@/utils/diffUtils'
-import { applyDiffToEditor } from '@/utils/applyDiffToTipTap'
-import { prepareForLLM } from '@/utils/radiologyPostProcessor'
+import { processMedicalText } from '@/utils/medicalTextProcessor'
 import { toast } from 'sonner'
 
 export interface UseHybridDictationReturn {
@@ -15,45 +12,46 @@ export interface UseHybridDictationReturn {
   startDictation: () => Promise<MediaStream | null>
   stopDictation: () => void
   
-  // Novos do sistema híbrido
-  isCorrectionEnabled: boolean
-  toggleCorrection: () => void
-  pendingCorrections: number
-  lastCorrectionTime: Date | null
-  correctionStats: {
+  // Novos do sistema híbrido Whisper
+  isWhisperEnabled: boolean
+  toggleWhisper: () => void
+  isTranscribing: boolean
+  whisperStats: {
     total: number
-    applied: number
-    rejected: number
+    success: number
+    failed: number
   }
-  manualCorrection: () => Promise<void>
 }
 
 /**
  * Hook orquestrador do sistema híbrido de ditado médico
  * 
- * Camada 1: Web Speech API → useDictation → TipTap (tempo real)
- * Camada 2: Buffer → Groq LLM → Diffs → TipTap (correção paralela)
+ * Camada 1: Web Speech API → useDictation → preview em tempo real no TipTap
+ * Camada 2: MediaRecorder → áudio paralelo → Whisper no silêncio → substituição de alta precisão
  */
 export function useHybridDictation(editor: Editor | null): UseHybridDictationReturn {
-  // 🎤 Camada 1: Ditado em tempo real (passthrough completo)
+  // 🎤 Camada 1: Ditado em tempo real (Web Speech API)
   const dictation = useDictation(editor)
 
-  // 📦 Buffer inteligente
-  const buffer = useSpeechCorrectionBuffer()
-
-  // 🤖 Estado da correção IA
-  const [isCorrectionEnabled, setIsCorrectionEnabled] = useState(true)
-  const [pendingCorrections, setPendingCorrections] = useState(0)
-  const [lastCorrectionTime, setLastCorrectionTime] = useState<Date | null>(null)
-  const [correctionStats, setCorrectionStats] = useState({
+  // 🎙️ Camada 2: Gravação de áudio para Whisper
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const audioChunksRef = useRef<Blob[]>([])
+  const mediaStreamRef = useRef<MediaStream | null>(null)
+  
+  // Estado Whisper
+  const [isWhisperEnabled, setIsWhisperEnabled] = useState(true)
+  const [isTranscribing, setIsTranscribing] = useState(false)
+  const [whisperStats, setWhisperStats] = useState({
     total: 0,
-    applied: 0,
-    rejected: 0,
+    success: 0,
+    failed: 0,
   })
 
+  // Refs para posicionamento
+  const whisperAnchorRef = useRef<number | null>(null)
+  const previewLengthRef = useRef<number>(0)
   const editorRef = useRef<Editor | null>(null)
-  const lastProcessedText = useRef<string>('')
-  const isProcessing = useRef(false)
+  const lastStatusRef = useRef<'idle' | 'waiting' | 'listening'>('idle')
 
   // Sincronizar ref do editor
   useEffect(() => {
@@ -61,176 +59,190 @@ export function useHybridDictation(editor: Editor | null): UseHybridDictationRet
   }, [editor])
 
   /**
-   * Intercepta transcrições finais e adiciona ao buffer
+   * Converte Blob de áudio para base64
    */
-  useEffect(() => {
-    if (!editor || !dictation.isActive) return
-
-    // Observar mudanças no editor
-    const handleUpdate = () => {
-      if (!isCorrectionEnabled || !dictation.isActive) return
-
-      const currentText = editor.state.doc.textContent
-      const newText = currentText.slice(lastProcessedText.current.length)
-
-      if (newText.trim().length > 0) {
-        const { from } = editor.state.selection
-        buffer.addChunk(newText, { from: from - newText.length, to: from })
-        lastProcessedText.current = currentText
+  const blobToBase64 = useCallback((blob: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        const base64 = reader.result as string
+        // Remove o prefixo "data:audio/webm;base64,"
+        const base64Data = base64.split(',')[1]
+        resolve(base64Data)
       }
-    }
-
-    editor.on('update', handleUpdate)
-
-    return () => {
-      editor.off('update', handleUpdate)
-    }
-  }, [editor, dictation.isActive, isCorrectionEnabled, buffer])
-
-  /**
-   * Chama Edge Function de correção de texto
-   */
-  const callTextCorrection = useCallback(async (text: string): Promise<string> => {
-    try {
-      const { data, error } = await supabase.functions.invoke('text-correction', {
-        body: { text }
-      })
-
-      if (error) {
-        console.error('❌ Text correction error:', error)
-        throw error
-      }
-
-      if (!data || !data.corrected) {
-        console.warn('⚠️ No correction returned')
-        return text
-      }
-
-      console.log('✅ Text corrected by Groq LLM')
-      return data.corrected
-    } catch (error) {
-      console.error('❌ Text correction failed:', error)
-      throw error
-    }
+      reader.onerror = reject
+      reader.readAsDataURL(blob)
+    })
   }, [])
 
   /**
-   * Processa buffer e aplica correções
+   * Inicia gravação de áudio paralela
    */
-  const processBuffer = useCallback(async () => {
-    const currentEditor = editorRef.current
-    if (!currentEditor || isProcessing.current || !isCorrectionEnabled) return
-
-    const unsentText = buffer.getUnsentText()
-    
-    // Threshold mínimo de 20 caracteres para enviar
-    if (unsentText.length < 20) return
-
-    isProcessing.current = true
-    setPendingCorrections(prev => prev + 1)
+  const startAudioRecording = useCallback(async () => {
+    if (!isWhisperEnabled) return
 
     try {
-      console.log('🔄 Processing buffer:', unsentText.substring(0, 50) + '...')
+      // Usar o mesmo MediaStream do Web Speech se disponível
+      let stream = mediaStreamRef.current
+      
+      if (!stream) {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+        mediaStreamRef.current = stream
+      }
 
-      // 1. Preparar texto para LLM (correções locais completas)
-      const postProcessed = prepareForLLM(unsentText)
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: 'audio/webm;codecs=opus'
+      })
 
-      // 2. Enviar para correção IA via Groq LLM
-      const corrected = await callTextCorrection(postProcessed)
+      audioChunksRef.current = []
 
-      // 3. Calcular diffs
-      let diffs = calculateDiff(unsentText, corrected)
-      diffs = filterSignificantDiffs(diffs)
-      diffs = mergeDiffs(diffs)
-      diffs = sortDiffsByPosition(diffs)
-
-      if (diffs.length > 0) {
-        console.log('📊 Found', diffs.length, 'corrections to apply')
-
-        // 4. Aplicar diffs no editor
-        const success = applyDiffToEditor(currentEditor, diffs)
-
-        if (success) {
-          setCorrectionStats(prev => ({
-            total: prev.total + diffs.length,
-            applied: prev.applied + diffs.length,
-            rejected: prev.rejected,
-          }))
-          setLastCorrectionTime(new Date())
-        } else {
-          setCorrectionStats(prev => ({
-            ...prev,
-            rejected: prev.rejected + diffs.length,
-          }))
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data)
         }
       }
 
-      // Marcar chunks como enviados
-      const unsent = buffer.getUnsent()
-      buffer.markAsSent(unsent.map(c => c.id))
+      mediaRecorder.start(100) // Capturar a cada 100ms
+      mediaRecorderRef.current = mediaRecorder
+
+      console.log('🎙️ Audio recording started for Whisper')
+    } catch (error) {
+      console.error('❌ Failed to start audio recording:', error)
+      toast.error('Erro ao iniciar gravação de áudio')
+    }
+  }, [isWhisperEnabled])
+
+  /**
+   * Para gravação de áudio
+   */
+  const stopAudioRecording = useCallback(() => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop()
+      mediaRecorderRef.current = null
+      console.log('🎙️ Audio recording stopped')
+    }
+
+    // Não parar o MediaStream aqui, pois pode ser usado pelo Web Speech
+  }, [])
+
+  /**
+   * Envia áudio para Whisper e substitui preview
+   */
+  const sendToWhisper = useCallback(async () => {
+    const currentEditor = editorRef.current
+    if (!currentEditor || audioChunksRef.current.length === 0 || isTranscribing) {
+      return
+    }
+
+    setIsTranscribing(true)
+    setWhisperStats(prev => ({ ...prev, total: prev.total + 1 }))
+
+    try {
+      // Criar blob do áudio acumulado
+      const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' })
+      const base64Audio = await blobToBase64(audioBlob)
+
+      console.log('🎤 Sending audio to Whisper (', Math.round(audioBlob.size / 1024), 'KB )')
+
+      // Enviar para Whisper
+      const { data, error } = await supabase.functions.invoke('transcribe-audio', {
+        body: { 
+          audio: base64Audio,
+          language: 'pt'
+        }
+      })
+
+      if (error) {
+        throw error
+      }
+
+      if (data?.text) {
+        // Aplicar correções médicas locais
+        const processedText = processMedicalText(data.text)
+
+        console.log('✅ Whisper transcription:', processedText.substring(0, 50) + '...')
+
+        // Substituir preview Web Speech pelo texto Whisper (mais preciso)
+        // TODO: Implementar lógica de substituição inteligente
+        // Por enquanto, apenas adicionar ao final
+        currentEditor
+          .chain()
+          .focus()
+          .insertContent(' ' + processedText)
+          .run()
+
+        setWhisperStats(prev => ({ ...prev, success: prev.success + 1 }))
+      }
+
+      // Limpar buffer de áudio
+      audioChunksRef.current = []
 
     } catch (error) {
-      console.error('❌ Buffer processing error:', error)
-      toast.error('Erro ao corrigir texto com IA')
+      console.error('❌ Whisper transcription error:', error)
+      setWhisperStats(prev => ({ ...prev, failed: prev.failed + 1 }))
     } finally {
-      isProcessing.current = false
-      setPendingCorrections(prev => Math.max(0, prev - 1))
+      setIsTranscribing(false)
     }
-  }, [buffer, isCorrectionEnabled, callTextCorrection])
+  }, [blobToBase64, isTranscribing])
 
   /**
-   * Correção manual (força processamento imediato)
-   */
-  const manualCorrection = useCallback(async () => {
-    await processBuffer()
-    toast.success('Correções aplicadas manualmente')
-  }, [processBuffer])
-
-  /**
-   * Cron job: processa buffer a cada 4 segundos
+   * Detectar silêncio (status muda de 'listening' → 'waiting')
    */
   useEffect(() => {
-    if (!isCorrectionEnabled || !dictation.isActive) return
+    if (!isWhisperEnabled || !dictation.isActive) return
 
-    const interval = setInterval(() => {
-      processBuffer()
-    }, 4000) // 4 segundos
+    const currentStatus = dictation.status
+    const lastStatus = lastStatusRef.current
 
-    return () => clearInterval(interval)
-  }, [isCorrectionEnabled, dictation.isActive, processBuffer])
+    // Detectar transição para silêncio
+    if (lastStatus === 'listening' && currentStatus === 'waiting') {
+      console.log('🔇 Silence detected - sending to Whisper')
+      sendToWhisper()
+    }
+
+    lastStatusRef.current = currentStatus
+  }, [dictation.status, dictation.isActive, isWhisperEnabled, sendToWhisper])
 
   /**
-   * Limpar chunks antigos periodicamente
+   * Iniciar/parar gravação de áudio quando ditado inicia/para
    */
   useEffect(() => {
-    const interval = setInterval(() => {
-      buffer.cleanOldChunks()
-    }, 5 * 60 * 1000) // 5 minutos
+    if (dictation.isActive && isWhisperEnabled) {
+      startAudioRecording()
+    } else {
+      stopAudioRecording()
+      
+      // Se parou e ainda tem áudio, enviar para Whisper
+      if (audioChunksRef.current.length > 0) {
+        sendToWhisper()
+      }
+    }
 
-    return () => clearInterval(interval)
-  }, [buffer])
+    // Cleanup ao desmontar
+    return () => {
+      stopAudioRecording()
+    }
+  }, [dictation.isActive, isWhisperEnabled, startAudioRecording, stopAudioRecording, sendToWhisper])
 
   /**
-   * Toggle de correção IA
+   * Toggle de Whisper
    */
-  const toggleCorrection = useCallback(() => {
-    setIsCorrectionEnabled(prev => {
+  const toggleWhisper = useCallback(() => {
+    setIsWhisperEnabled(prev => {
       const newState = !prev
-      toast.info(newState ? 'Correção IA ativada' : 'Correção IA desativada')
+      toast.info(newState ? 'Whisper ativado' : 'Whisper desativado')
       return newState
     })
   }, [])
 
   return {
-    // Passthrough completo do useDictation
+    // Passthrough completo do useDictation (Web Speech preview)
     ...dictation,
     
-    // Novos do sistema híbrido
-    isCorrectionEnabled,
-    toggleCorrection,
-    pendingCorrections,
-    lastCorrectionTime,
-    correctionStats,
-    manualCorrection,
+    // Novos do sistema híbrido Whisper
+    isWhisperEnabled,
+    toggleWhisper,
+    isTranscribing,
+    whisperStats,
   }
 }

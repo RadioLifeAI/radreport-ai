@@ -53,17 +53,16 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
     startNewConversation
   } = useChat()
 
-  // Voice dictation hook - hybrid system (Web Speech + Groq LLM correction)
+  // Voice dictation hook - hybrid system (Web Speech + Whisper)
   const { 
     isActive: isVoiceActive, 
     status: voiceStatus, 
     startDictation, 
     stopDictation,
-    isCorrectionEnabled,
-    toggleCorrection,
-    pendingCorrections,
-    correctionStats,
-    manualCorrection
+    isWhisperEnabled,
+    toggleWhisper,
+    isTranscribing,
+    whisperStats
   } = useHybridDictation(editorInstance)
 
   // Template hook
@@ -639,10 +638,10 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
             setSelectedFraseForVariables(frase)
             setVariablesModalOpen(true)
           }}
-          isCorrectionEnabled={isCorrectionEnabled}
-          toggleCorrection={toggleCorrection}
-          pendingCorrections={pendingCorrections}
-          correctionStats={correctionStats}
+          isWhisperEnabled={isWhisperEnabled}
+          toggleWhisper={toggleWhisper}
+          isTranscribing={isTranscribing}
+          whisperStats={whisperStats}
         />
       </div>
       
