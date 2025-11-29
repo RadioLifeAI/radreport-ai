@@ -54,6 +54,9 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   const chunkIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const lastSegmentEndRef = useRef<number>(0)
   const textSegmentsRef = useRef<TextSegment[]>([])
+  const isProcessingRef = useRef<boolean>(false) // 🔒 Mutex para evitar race conditions
+  const processingQueueRef = useRef<Array<() => Promise<void>>>([]) // 📋 Fila de processamento
+  const abortControllerRef = useRef<AbortController | null>(null) // 🛑 Cancelamento de requests
   
   // Estados Whisper
   const [isWhisperEnabled, setIsWhisperEnabled] = useState(true)
@@ -75,6 +78,184 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   const escapeRegex = (str: string): string => {
     return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
   }
+
+  /**
+   * Converte Blob de áudio para base64
+   */
+  const blobToBase64 = useCallback((blob: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        const base64 = reader.result as string
+        const base64Data = base64.split(',')[1]
+        resolve(base64Data)
+      }
+      reader.onerror = reject
+      reader.readAsDataURL(blob)
+    })
+  }, [])
+
+  /**
+   * 🆕 FASE 3: Envia chunk de áudio para Whisper com retry e backoff
+   */
+  const sendChunkToWhisper = useCallback(async (params: {
+    audioBlob: Blob
+    startPos: number
+    endPos: number
+    webSpeechText: string
+  }) => {
+    const currentEditor = editorRef.current
+    if (!currentEditor) return
+
+    const { audioBlob, startPos, endPos, webSpeechText } = params
+    
+    // 🆕 FASE 3: MIN_AUDIO_SIZE reduzido de 50KB para 10KB
+    const MIN_AUDIO_SIZE = 10 * 1024 // 10KB
+    if (audioBlob.size < MIN_AUDIO_SIZE) {
+      console.log('⚠️ Audio too short, skipping Whisper')
+      return
+    }
+    
+    const MAX_AUDIO_SIZE = 25 * 1024 * 1024 // 25MB
+    if (audioBlob.size > MAX_AUDIO_SIZE) {
+      console.warn('⚠️ Audio too large:', Math.round(audioBlob.size / 1024 / 1024), 'MB')
+      return
+    }
+
+    setIsTranscribing(true)
+    setWhisperStats(prev => ({ ...prev, total: prev.total + 1 }))
+
+    // Criar segmento para rastreamento
+    const segmentId = `segment-${Date.now()}`
+    
+    textSegmentsRef.current.push({
+      id: segmentId,
+      startPos,
+      endPos,
+      webSpeechText,
+      status: 'processing'
+    })
+
+    // 🆕 FASE 3: Retry com backoff exponencial
+    const MAX_RETRIES = 3
+    let attempt = 0
+    
+    while (attempt < MAX_RETRIES) {
+      try {
+        // 🆕 FASE 4: AbortController para cancelamento
+        abortControllerRef.current = new AbortController()
+        
+        const base64Audio = await blobToBase64(audioBlob)
+        console.log(`🎤 Sending chunk to Whisper (attempt ${attempt + 1}/${MAX_RETRIES},`, Math.round(audioBlob.size / 1024), 'KB ) for positions', startPos, '-', endPos)
+
+        const { data, error } = await supabase.functions.invoke('transcribe-audio', {
+          body: { 
+            audio: base64Audio,
+            language: 'pt'
+          }
+        })
+
+        if (error) throw error
+
+        if (data?.text) {
+          const whisperText = processMedicalText(data.text)
+          console.log('✅ Whisper transcription:', whisperText.substring(0, 50) + '...')
+
+          // Encontrar segmento correspondente
+          const segment = textSegmentsRef.current.find(s => s.id === segmentId)
+          if (segment) {
+            segment.whisperText = whisperText
+            segment.status = 'refined'
+
+            // Substituir APENAS este trecho específico
+            currentEditor
+              .chain()
+              .focus()
+              .deleteRange({ from: startPos, to: endPos })
+              .insertContentAt(startPos, whisperText + ' ')
+              .run()
+            
+            console.log('🔄 Replaced segment:', webSpeechText.substring(0, 30), '→', whisperText.substring(0, 30))
+
+            // Ajustar offsets dos segmentos seguintes
+            const lengthDiff = whisperText.length - (endPos - startPos)
+            if (lengthDiff !== 0) {
+              textSegmentsRef.current.forEach(s => {
+                if (s.startPos > endPos) {
+                  s.startPos += lengthDiff
+                  s.endPos += lengthDiff
+                }
+              })
+            }
+          }
+
+          setWhisperStats(prev => ({ ...prev, success: prev.success + 1 }))
+          break // Sucesso, sair do loop de retry
+        }
+
+      } catch (error) {
+        attempt++
+        console.error(`❌ Whisper error (attempt ${attempt}/${MAX_RETRIES}):`, error)
+        
+        if (attempt < MAX_RETRIES) {
+          // 🆕 FASE 3: Backoff exponencial (1s, 2s, 4s)
+          const backoffMs = Math.pow(2, attempt) * 1000
+          console.log(`⏳ Retrying in ${backoffMs}ms...`)
+          await new Promise(resolve => setTimeout(resolve, backoffMs))
+        } else {
+          // Última tentativa falhou
+          setWhisperStats(prev => ({ ...prev, failed: prev.failed + 1 }))
+        }
+      }
+    }
+    
+    setIsTranscribing(false)
+    abortControllerRef.current = null
+  }, [blobToBase64])
+
+  /**
+   * 🆕 FASE 2: Enfileira processamento Whisper para evitar race conditions
+   */
+  const enqueueWhisperProcessing = useCallback((params: {
+    audioBlob: Blob
+    startPos: number
+    endPos: number
+    webSpeechText: string
+  }) => {
+    const task = async () => {
+      await sendChunkToWhisper(params)
+    }
+    
+    processingQueueRef.current.push(task)
+    processNextInQueue()
+  }, [sendChunkToWhisper])
+
+  /**
+   * 🆕 FASE 2: Processa próximo item da fila com mutex
+   */
+  const processNextInQueue = useCallback(async () => {
+    // 🔒 Mutex: se já está processando, não inicia outro
+    if (isProcessingRef.current || processingQueueRef.current.length === 0) {
+      return
+    }
+    
+    isProcessingRef.current = true
+    const task = processingQueueRef.current.shift()
+    
+    if (task) {
+      try {
+        await task()
+      } catch (error) {
+        console.error('❌ Error processing queued task:', error)
+      } finally {
+        isProcessingRef.current = false
+        // Processar próximo item da fila
+        processNextInQueue()
+      }
+    } else {
+      isProcessingRef.current = false
+    }
+  }, [])
 
   /**
    * Apaga a última palavra digitada (comando de voz "apagar isso")
@@ -331,6 +512,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   /**
    * Handler para transcrições finais (confirmadas)
    * Usa comandos nativos TipTap (setHardBreak, splitBlock)
+   * 🆕 FASE 1: Captura posições exatas e associa áudio com texto Web Speech
    */
   const handleFinalTranscript = useCallback((transcript: string) => {
     const currentEditor = editorRef.current
@@ -402,38 +584,45 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       })
     }
 
+    // 🎯 FASE 1: Capturar posição ANTES de inserir texto
+    const webSpeechStartPos = anchor
+    
     // Posicionar cursor na âncora antes de processar
     currentEditor.commands.setTextSelection(anchor)
     
     // Processar usando comandos nativos do TipTap
     processVoiceInput(transcript, currentEditor)
 
+    // 🎯 FASE 1: Capturar posição DEPOIS de inserir texto
+    const webSpeechEndPos = currentEditor.state.selection.from
+    
+    // 🎯 FASE 1: Associar chunk de áudio às posições EXATAS do texto Web Speech
+    if (isWhisperEnabled && audioChunksRef.current.length > 0) {
+      const audioBlob = new Blob(audioChunksRef.current)
+      
+      // Enfileirar processamento Whisper com posições exatas
+      enqueueWhisperProcessing({
+        audioBlob,
+        startPos: webSpeechStartPos,
+        endPos: webSpeechEndPos,
+        webSpeechText: transcript
+      })
+      
+      // Limpar buffer de áudio para próximo segmento
+      audioChunksRef.current = []
+    }
+
     // Resetar estado para próxima frase
     anchorRef.current = null
     selectionEndRef.current = null
     interimLengthRef.current = 0
 
-    console.log('✏️ Final processed with native TipTap commands')
-  }, [])
-
-  /**
-   * Converte Blob de áudio para base64
-   */
-  const blobToBase64 = useCallback((blob: Blob): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        const base64 = reader.result as string
-        const base64Data = base64.split(',')[1]
-        resolve(base64Data)
-      }
-      reader.onerror = reject
-      reader.readAsDataURL(blob)
-    })
-  }, [])
+    console.log('✏️ Final processed with positions:', webSpeechStartPos, '->', webSpeechEndPos)
+  }, [isWhisperEnabled, enqueueWhisperProcessing])
 
   /**
    * Inicia gravação de áudio para Whisper
+   * 🆕 FASE 3: Timeslice aumentado de 100ms para 500ms
    */
   const startAudioRecording = useCallback(async (stream: MediaStream) => {
     if (!isWhisperEnabled) return
@@ -463,7 +652,8 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
         }
       }
 
-      mediaRecorder.start(100)
+      // 🆕 FASE 3: Timeslice otimizado de 100ms → 500ms (menos overhead)
+      mediaRecorder.start(500)
       mediaRecorderRef.current = mediaRecorder
 
       console.log('🎙️ Audio recording started for Whisper with', mimeType)
@@ -475,6 +665,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
 
   /**
    * Para gravação de áudio Whisper
+   * 🆕 FASE 4: Cancela requests em andamento e limpa fila
    */
   const stopAudioRecording = useCallback(() => {
     if (chunkIntervalRef.current) {
@@ -488,139 +679,29 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       console.log('🎙️ Audio recording stopped')
     }
     
+    // 🆕 FASE 4: Cancelar request Whisper em andamento
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+      abortControllerRef.current = null
+    }
+    
+    // Limpar fila de processamento
+    processingQueueRef.current = []
+    isProcessingRef.current = false
+    
     audioChunksRef.current = []
     textSegmentsRef.current = []
     lastSegmentEndRef.current = 0
   }, [])
 
   /**
-   * Envia chunk de áudio para Whisper e substitui progressivamente
+   * ❌ REMOVIDO: Chunking temporal substituído por sincronização em handleFinalTranscript
+   * A lógica agora captura posições exatas quando Web Speech confirma o texto
    */
-  const sendChunkToWhisper = useCallback(async (params: {
-    audioBlob: Blob
-    startPos: number
-    endPos: number
-  }) => {
-    const currentEditor = editorRef.current
-    if (!currentEditor || isTranscribing) return
-
-    const { audioBlob, startPos, endPos } = params
-    
-    // Validar tamanho
-    const MIN_AUDIO_SIZE = 50 * 1024 // 50KB
-    if (audioBlob.size < MIN_AUDIO_SIZE) {
-      console.log('⚠️ Audio too short, skipping Whisper')
-      return
-    }
-    
-    const MAX_AUDIO_SIZE = 25 * 1024 * 1024 // 25MB
-    if (audioBlob.size > MAX_AUDIO_SIZE) {
-      console.warn('⚠️ Audio too large:', Math.round(audioBlob.size / 1024 / 1024), 'MB')
-      return
-    }
-
-    setIsTranscribing(true)
-    setWhisperStats(prev => ({ ...prev, total: prev.total + 1 }))
-
-    // Criar segmento para rastreamento
-    const segmentId = `segment-${Date.now()}`
-    const webSpeechText = currentEditor.state.doc.textBetween(startPos, endPos, ' ', ' ')
-    
-    textSegmentsRef.current.push({
-      id: segmentId,
-      startPos,
-      endPos,
-      webSpeechText,
-      status: 'processing'
-    })
-
-    try {
-      const base64Audio = await blobToBase64(audioBlob)
-      console.log('🎤 Sending chunk to Whisper (', Math.round(audioBlob.size / 1024), 'KB ) for positions', startPos, '-', endPos)
-
-      const { data, error } = await supabase.functions.invoke('transcribe-audio', {
-        body: { 
-          audio: base64Audio,
-          language: 'pt'
-        }
-      })
-
-      if (error) throw error
-
-      if (data?.text) {
-        const whisperText = processMedicalText(data.text)
-        console.log('✅ Whisper transcription:', whisperText.substring(0, 50) + '...')
-
-        // Encontrar segmento correspondente
-        const segment = textSegmentsRef.current.find(s => s.id === segmentId)
-        if (segment) {
-          segment.whisperText = whisperText
-          segment.status = 'refined'
-
-          // Substituir APENAS este trecho específico
-          currentEditor
-            .chain()
-            .focus()
-            .deleteRange({ from: startPos, to: endPos })
-            .insertContentAt(startPos, whisperText + ' ')
-            .run()
-          
-          console.log('🔄 Replaced segment:', webSpeechText.substring(0, 30), '→', whisperText.substring(0, 30))
-
-          // Ajustar offsets dos segmentos seguintes
-          const lengthDiff = whisperText.length - (endPos - startPos)
-          if (lengthDiff !== 0) {
-            textSegmentsRef.current.forEach(s => {
-              if (s.startPos > endPos) {
-                s.startPos += lengthDiff
-                s.endPos += lengthDiff
-              }
-            })
-          }
-        }
-
-        setWhisperStats(prev => ({ ...prev, success: prev.success + 1 }))
-      }
-
-    } catch (error) {
-      console.error('❌ Whisper transcription error:', error)
-      setWhisperStats(prev => ({ ...prev, failed: prev.failed + 1 }))
-    } finally {
-      setIsTranscribing(false)
-    }
-  }, [blobToBase64, isTranscribing])
-
-  /**
-   * Inicia chunking temporal de 3 segundos
-   */
-  const startChunkingInterval = useCallback(() => {
-    if (!isWhisperEnabled) return
-
-    // Limpar interval anterior se existir
-    if (chunkIntervalRef.current) {
-      clearInterval(chunkIntervalRef.current)
-    }
-
-    chunkIntervalRef.current = setInterval(() => {
-      if (audioChunksRef.current.length > 0 && editorRef.current) {
-        const segmentEnd = editorRef.current.state.selection.from
-        
-        sendChunkToWhisper({
-          audioBlob: new Blob(audioChunksRef.current),
-          startPos: lastSegmentEndRef.current,
-          endPos: segmentEnd
-        })
-        
-        audioChunksRef.current = []
-        lastSegmentEndRef.current = segmentEnd
-      }
-    }, 3000) // A cada 3 segundos
-
-    console.log('⏰ Chunking interval started (3s)')
-  }, [isWhisperEnabled, sendChunkToWhisper])
 
   /**
    * Inicia o ditado por voz com captura de audio stream e Whisper
+   * 🆕 Sem chunking temporal - sincronização acontece em handleFinalTranscript
    */
   const startDictation = useCallback(async (): Promise<MediaStream | null> => {
     const currentEditor = editorRef.current
@@ -639,8 +720,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       if (stream && isWhisperEnabled) {
         // Iniciar gravação de áudio para Whisper
         await startAudioRecording(stream)
-        // Iniciar chunking temporal
-        startChunkingInterval()
+        // ❌ Chunking temporal removido - agora sincronizado com handleFinalTranscript
       }
       
       console.log('✓ Dictation started successfully with Whisper integration')
@@ -649,10 +729,11 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     
     console.error('✗ Failed to start dictation')
     return null
-  }, [isWhisperEnabled, startAudioRecording, startChunkingInterval])
+  }, [isWhisperEnabled, startAudioRecording])
 
   /**
-   * Para o ditado por voz e envia chunk final para Whisper
+   * Para o ditado por voz
+   * 🆕 Sem envio de chunk final - processamento já acontece em handleFinalTranscript
    */
   const stopDictation = useCallback(() => {
     if (!speechServiceRef.current) return
@@ -661,17 +742,9 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     setIsActive(false)
     setStatus('idle')
     
-    // Enviar áudio final acumulado para Whisper
-    if (audioChunksRef.current.length > 0 && editorRef.current) {
-      const segmentEnd = editorRef.current.state.selection.from
-      sendChunkToWhisper({
-        audioBlob: new Blob(audioChunksRef.current),
-        startPos: lastSegmentEndRef.current,
-        endPos: segmentEnd
-      })
-    }
+    // ❌ Não envia chunk final - já processado em handleFinalTranscript
     
-    // Para gravação de áudio
+    // Para gravação de áudio e limpa fila
     stopAudioRecording()
     
     // Resetar estado de âncora
@@ -680,7 +753,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     interimLengthRef.current = 0
     
     console.log('🛑 Unified dictation stopped')
-  }, [stopAudioRecording, sendChunkToWhisper])
+  }, [stopAudioRecording])
 
   /**
    * Inicializa serviço de reconhecimento de voz e configura callbacks
