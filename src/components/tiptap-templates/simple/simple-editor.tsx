@@ -168,6 +168,7 @@ export function SimpleEditor({
 
   const editor = useEditor({
     immediatelyRender: false,
+      shouldRerenderOnTransaction: false, // 🆕 FASE 7: Otimização - evitar re-renders
       editorProps: {
         attributes: {
           autocomplete: "off",
