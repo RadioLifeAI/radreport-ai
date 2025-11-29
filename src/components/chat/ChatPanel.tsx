@@ -54,7 +54,11 @@ export const ChatPanel = ({
 
       {/* Messages Area */}
       <div className="flex-1 overflow-hidden">
-        <ChatMessages messages={messages} onInsertToReport={onInsertToReport} />
+        <ChatMessages 
+          messages={messages} 
+          onInsertToReport={onInsertToReport}
+          isStreaming={isStreaming}
+        />
       </div>
 
       {/* Input Area */}

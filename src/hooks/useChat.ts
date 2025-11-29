@@ -117,9 +117,32 @@ export const useChat = () => {
   }, [currentConversation, loadConversations]);
 
   const sendMessage = useCallback(async (content: string) => {
-    if (!user || !currentConversation) {
-      toast.error('Nenhuma conversa selecionada');
+    if (!user) {
+      toast.error('Usuário não autenticado');
       return;
+    }
+
+    // Auto-criar conversa se não existir
+    let conversationId = currentConversation?.id;
+    if (!conversationId) {
+      const { data, error } = await supabase
+        .from('chat_conversations')
+        .insert({
+          user_id: user.id,
+          title: content.slice(0, 50) || 'Nova conversa'
+        })
+        .select()
+        .single();
+      
+      if (error || !data) {
+        console.error('Error creating conversation:', error);
+        toast.error('Erro ao criar conversa');
+        return;
+      }
+      
+      conversationId = data.id;
+      setCurrentConversation(data);
+      await loadConversations();
     }
 
     const userMessage: Message = {
@@ -133,6 +156,13 @@ export const useChat = () => {
     setIsStreaming(true);
 
     try {
+      // Salvar mensagem do usuário no banco
+      await supabase.from('chat_messages').insert({
+        conversation_id: conversationId,
+        role: 'user',
+        content
+      });
+
       const { data: session } = await supabase.auth.getSession();
       const token = session?.session?.access_token;
 
@@ -149,7 +179,7 @@ export const useChat = () => {
               role: m.role,
               content: m.content
             })),
-            conversation_id: currentConversation.id
+            conversation_id: conversationId
           })
         }
       );
@@ -184,7 +214,7 @@ export const useChat = () => {
 
             try {
               const parsed = JSON.parse(data);
-              const delta = parsed.choices?.[0]?.delta?.content;
+              const delta = parsed.content || parsed.choices?.[0]?.delta?.content;
               
               if (delta) {
                 assistantContent += delta;

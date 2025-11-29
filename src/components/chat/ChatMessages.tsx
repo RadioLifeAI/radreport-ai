@@ -7,9 +7,10 @@ import type { Message } from '@/hooks/useChat';
 interface ChatMessagesProps {
   messages: Message[];
   onInsertToReport: (text: string) => void;
+  isStreaming?: boolean;
 }
 
-export const ChatMessages = ({ messages, onInsertToReport }: ChatMessagesProps) => {
+export const ChatMessages = ({ messages, onInsertToReport, isStreaming = false }: ChatMessagesProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -48,7 +49,7 @@ export const ChatMessages = ({ messages, onInsertToReport }: ChatMessagesProps) 
             >
               <div className="whitespace-pre-wrap break-words text-sm leading-relaxed">
                 {message.content}
-                {message.role === 'assistant' && message.content && (
+                {message.role === 'assistant' && isStreaming && messages[messages.length - 1]?.id === message.id && (
                   <span className="inline-block w-2 h-4 ml-1 bg-current animate-pulse" />
                 )}
               </div>
