@@ -73,18 +73,25 @@ serve(async (req) => {
       throw new Error('No audio data provided');
     }
 
-    // Estimate audio duration: base64 string length / 1.33 (base64 overhead) / 16000 bytes/sec (WebM ~16KB/s)
+    // Estimate audio duration: WebM Opus típico ~8KB/s (não 16KB/s como raw audio)
     const audioSizeBytes = (audio.length * 0.75); // base64 to bytes
-    const estimatedDurationSeconds = Math.ceil(audioSizeBytes / 16000);
+    const estimatedDurationSeconds = Math.ceil(audioSizeBytes / 8000); // Corrigido para WebM Opus
     
-    // 🆕 FASE 1: Validação mínima 10s (alinhado com cobrança mínima Groq)
-    if (estimatedDurationSeconds < 10) {
-      console.log('⏭️ Audio too short:', estimatedDurationSeconds, 's (min: 10s)');
+    console.log('📊 Audio analysis:', {
+      base64Length: audio.length,
+      estimatedBytes: audioSizeBytes,
+      estimatedDurationSeconds,
+      minRequired: 5
+    });
+    
+    // 🆕 Validação mínima 5s (Groq cobra mínimo 10s, mas aceitamos 5s+ para não perder áudio útil)
+    if (estimatedDurationSeconds < 5) {
+      console.log('⏭️ Audio too short:', estimatedDurationSeconds, 's (min: 5s)');
       return new Response(
         JSON.stringify({ 
           text: '', 
           skipped: true,
-          reason: 'Audio menor que 10 segundos - não processado',
+          reason: 'Audio menor que 5 segundos - não processado',
           duration: estimatedDurationSeconds
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
