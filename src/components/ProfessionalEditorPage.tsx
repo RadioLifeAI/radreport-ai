@@ -60,6 +60,8 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
     addToFavorites,
     removeFromFavorites,
     applyTemplate: hookApplyTemplate,
+    applyTemplateWithVariables,
+    needsVariableInput,
   } = useTemplates()
 
   // Frases modelo hook
@@ -543,6 +545,8 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
         setMacroDropdownVisible={setMacroDropdownVisible}
         categories={fraseCategories}
         macroModalities={['RM', 'TC', 'USG', 'RX', 'MG']}
+        needsVariableInput={needsVariableInput}
+        applyTemplateWithVariables={applyTemplateWithVariables}
         onLogout={logout}
       />
 

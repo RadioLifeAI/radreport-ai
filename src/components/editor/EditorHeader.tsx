@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import { useTheme } from 'next-themes'
 import TemplateSelector from '@/components/selectors/TemplateSelector'
 import MacroSelector, { Macro } from '@/components/selectors/MacroSelector'
+import { TemplateVariablesModal } from './TemplateVariablesModal'
+import { TemplateWithVariables, TemplateVariableValues } from '@/types/templateVariables'
+import { useState } from 'react'
 
 interface EditorHeaderProps {
   selectedTemplate: string
@@ -45,6 +48,10 @@ interface EditorHeaderProps {
   macroModalities: string[]
   
   onLogout: () => void
+  
+  // Template variables support
+  needsVariableInput: (template: any) => boolean
+  applyTemplateWithVariables: (template: any, selectedTechnique: string | null, variableValues: TemplateVariableValues) => void
 }
 
 export function EditorHeader({
@@ -86,39 +93,70 @@ export function EditorHeader({
   categories,
   macroModalities,
   onLogout,
+  needsVariableInput,
+  applyTemplateWithVariables,
 }: EditorHeaderProps) {
   const navigate = useNavigate()
   const { theme, setTheme } = useTheme()
+  
+  // Template variables modal state
+  const [templateModalOpen, setTemplateModalOpen] = useState(false)
+  const [selectedTemplateForModal, setSelectedTemplateForModal] = useState<TemplateWithVariables | null>(null)
+  
+  // Handle template selection with variable check
+  const handleTemplateSelect = (template: any) => {
+    if (needsVariableInput(template)) {
+      // Open modal for variable input
+      setSelectedTemplateForModal(template as TemplateWithVariables)
+      setTemplateModalOpen(true)
+    } else {
+      // Apply directly
+      onTemplateSelect(template)
+    }
+  }
+  
+  // Handle template submission with variables
+  const handleTemplateVariablesSubmit = (
+    selectedTechnique: string | null,
+    variableValues: TemplateVariableValues
+  ) => {
+    if (selectedTemplateForModal) {
+      applyTemplateWithVariables(selectedTemplateForModal, selectedTechnique, variableValues)
+      setTemplateModalOpen(false)
+      setSelectedTemplateForModal(null)
+    }
+  }
 
   return (
-    <header className="h-14 border-b border-border/40 bg-card/95 backdrop-blur-sm flex items-center justify-between px-6 z-50">
-      <div className="flex items-center gap-6">
-        <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
-          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-cyan-400/80 to-indigo-500/60 shadow-glow" />
-          <span className="font-bold text-xl gradient-text-medical">RadReport</span>
-        </div>
+    <>
+      <header className="h-14 border-b border-border/40 bg-card/95 backdrop-blur-sm flex items-center justify-between px-6 z-50">
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
+            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-cyan-400/80 to-indigo-500/60 shadow-glow" />
+            <span className="font-bold text-xl gradient-text-medical">RadReport</span>
+          </div>
 
-        <div className="relative">
-          <TemplateSelector
-            selectedTemplate={selectedTemplate}
-            searchTerm={searchTerm}
-            onTemplateSearch={onTemplateSearch}
-            onTemplateSelect={onTemplateSelect}
-            onModalityClick={onModalityClick}
-            onFavoriteToggle={onFavoriteToggle}
-            dropdownVisible={dropdownVisible}
-            setDropdownVisible={setDropdownVisible}
-            templates={templates}
-            filteredTemplates={filteredTemplates}
-            recentTemplates={recentTemplates}
-            favoriteTemplates={favoriteTemplates}
-            loading={loading}
-            error={error}
-            selectedModality={selectedModality}
-            isFavorite={isFavorite}
-            modalities={modalities}
-          />
-        </div>
+          <div className="relative">
+            <TemplateSelector
+              selectedTemplate={selectedTemplate}
+              searchTerm={searchTerm}
+              onTemplateSearch={onTemplateSearch}
+              onTemplateSelect={handleTemplateSelect}
+              onModalityClick={onModalityClick}
+              onFavoriteToggle={onFavoriteToggle}
+              dropdownVisible={dropdownVisible}
+              setDropdownVisible={setDropdownVisible}
+              templates={templates}
+              filteredTemplates={filteredTemplates}
+              recentTemplates={recentTemplates}
+              favoriteTemplates={favoriteTemplates}
+              loading={loading}
+              error={error}
+              selectedModality={selectedModality}
+              isFavorite={isFavorite}
+              modalities={modalities}
+            />
+          </div>
 
         <div className="relative">
           <MacroSelector
@@ -154,14 +192,23 @@ export function EditorHeader({
         >
           {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
         </button>
-        <button 
-          onClick={onLogout}
-          className="p-2 hover:bg-muted rounded-lg transition-colors"
-          title="Sair"
-        >
-          <LogOut size={18} />
-        </button>
-      </div>
-    </header>
+          <button 
+            onClick={onLogout}
+            className="p-2 hover:bg-muted rounded-lg transition-colors"
+            title="Sair"
+          >
+            <LogOut size={18} />
+          </button>
+        </div>
+      </header>
+
+      {/* Template Variables Modal */}
+      <TemplateVariablesModal
+        open={templateModalOpen}
+        onOpenChange={setTemplateModalOpen}
+        template={selectedTemplateForModal}
+        onSubmit={handleTemplateVariablesSubmit}
+      />
+    </>
   )
 }
