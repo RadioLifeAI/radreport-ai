@@ -170,6 +170,7 @@ export function EditorRightSidebar({
                 status={voiceStatus}
                 onStart={onVoiceStart}
                 onStop={onVoiceStop}
+                isTranscribing={isTranscribing}
               />
               <SpeechStatusPanel mediaStream={mediaStream} />
               

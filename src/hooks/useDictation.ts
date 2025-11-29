@@ -9,6 +9,7 @@ interface UseDictationReturn {
   status: 'idle' | 'waiting' | 'listening'
   startDictation: () => Promise<MediaStream | null>
   stopDictation: () => void
+  getAnchorInfo: () => { anchor: number | null; interimLength: number }
 }
 
 /**
@@ -463,5 +464,9 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     status,
     startDictation,
     stopDictation,
+    getAnchorInfo: () => ({
+      anchor: anchorRef.current,
+      interimLength: interimLengthRef.current
+    })
   }
 }
