@@ -139,9 +139,8 @@ serve(async (req) => {
     formData.append('prompt', medicalPrompt);
     formData.append('temperature', '0.0');
     formData.append('response_format', 'verbose_json');
-    // 🆕 FASE 3: Adicionar granularidade word-level para sincronização precisa
-    formData.append('timestamp_granularities[]', 'segment');
-    formData.append('timestamp_granularities[]', 'word');
+    // timestamp_granularities[] removido - sintaxe incompatível com FormData
+    // verbose_json já retorna metadados necessários (avg_logprob, no_speech_prob, segments)
 
     // Send to Groq Whisper API
     const response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
