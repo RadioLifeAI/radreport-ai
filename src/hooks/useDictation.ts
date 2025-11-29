@@ -2,7 +2,12 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Editor } from '@tiptap/react'
 import { getSpeechRecognitionService, SpeechRecognitionService } from '@/services/SpeechRecognitionService'
 import { VOICE_COMMANDS_CONFIG } from '@/lib/voiceCommandsConfig'
-import { processMedicalText } from '@/utils/medicalTextProcessor'
+import { 
+  processMedicalText, 
+  shouldApplyWhisperRefinement,
+  extractVoiceCommands,
+  reinsertVoiceCommands 
+} from '@/utils/medicalTextProcessor'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from 'sonner'
 
@@ -32,6 +37,17 @@ interface TextSegment {
   status: 'pending' | 'processing' | 'refined'
 }
 
+// 🆕 FASE 3: Interface para isolamento de áudio por segmento
+interface AudioSegment {
+  id: string
+  audioChunks: Blob[]
+  startTimestamp: number
+  endTimestamp: number
+  webSpeechText: string
+  startPos: number
+  endPos: number
+}
+
 /**
  * Hook unificado para ditado por voz contínuo com refinamento Whisper
  * Camada 1: Web Speech API → preview em tempo real no TipTap
@@ -57,6 +73,13 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   const isProcessingRef = useRef<boolean>(false) // 🔒 Mutex para evitar race conditions
   const processingQueueRef = useRef<Array<() => Promise<void>>>([]) // 📋 Fila de processamento
   const abortControllerRef = useRef<AbortController | null>(null) // 🛑 Cancelamento de requests
+  
+  // 🆕 FASE 3: Mapa de segmentos de áudio isolados
+  const audioSegmentsRef = useRef<Map<string, AudioSegment>>(new Map())
+  const currentSegmentIdRef = useRef<string | null>(null)
+  
+  // 🆕 FASE 2: Flag para detectar edição manual pelo usuário
+  const userEditedRef = useRef<boolean>(false)
   
   // Estados Whisper
   const [isWhisperEnabled, setIsWhisperEnabled] = useState(true)
@@ -96,7 +119,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   }, [])
 
   /**
-   * 🆕 FASE 3: Envia chunk de áudio para Whisper com retry e backoff
+   * 🆕 FASE 1-5: Envia chunk de áudio para Whisper com reconciliador inteligente
    */
   const sendChunkToWhisper = useCallback(async (params: {
     audioBlob: Blob
@@ -109,10 +132,10 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
 
     const { audioBlob, startPos, endPos, webSpeechText } = params
     
-    // 🆕 FASE 3: MIN_AUDIO_SIZE reduzido de 50KB para 10KB
     const MIN_AUDIO_SIZE = 10 * 1024 // 10KB
     if (audioBlob.size < MIN_AUDIO_SIZE) {
       console.log('⚠️ Audio too short, skipping Whisper')
+      // 🆕 FASE 4: Fallback - manter texto Web Speech
       return
     }
     
@@ -125,7 +148,6 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     setIsTranscribing(true)
     setWhisperStats(prev => ({ ...prev, total: prev.total + 1 }))
 
-    // Criar segmento para rastreamento
     const segmentId = `segment-${Date.now()}`
     
     textSegmentsRef.current.push({
@@ -136,17 +158,19 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       status: 'processing'
     })
 
-    // 🆕 FASE 3: Retry com backoff exponencial
     const MAX_RETRIES = 3
     let attempt = 0
+    let whisperSucceeded = false
     
     while (attempt < MAX_RETRIES) {
       try {
-        // 🆕 FASE 4: AbortController para cancelamento
         abortControllerRef.current = new AbortController()
         
+        // 🆕 FASE 5: Extrair comandos de voz antes de enviar para Whisper
+        const { cleanText, commands } = extractVoiceCommands(webSpeechText)
+        
         const base64Audio = await blobToBase64(audioBlob)
-        console.log(`🎤 Sending chunk to Whisper (attempt ${attempt + 1}/${MAX_RETRIES},`, Math.round(audioBlob.size / 1024), 'KB ) for positions', startPos, '-', endPos)
+        console.log(`🎤 Sending to Whisper (attempt ${attempt + 1}/${MAX_RETRIES},`, Math.round(audioBlob.size / 1024), 'KB)')
 
         const { data, error } = await supabase.functions.invoke('transcribe-audio', {
           body: { 
@@ -158,39 +182,51 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
         if (error) throw error
 
         if (data?.text) {
-          const whisperText = processMedicalText(data.text)
-          console.log('✅ Whisper transcription:', whisperText.substring(0, 50) + '...')
+          let whisperText = processMedicalText(data.text)
+          
+          // 🆕 FASE 5: Reinserir comandos de voz após Whisper
+          whisperText = reinsertVoiceCommands(whisperText, commands)
+          
+          console.log('✅ Whisper refined:', whisperText.substring(0, 50) + '...')
 
-          // Encontrar segmento correspondente
           const segment = textSegmentsRef.current.find(s => s.id === segmentId)
           if (segment) {
             segment.whisperText = whisperText
             segment.status = 'refined'
 
-            // Substituir APENAS este trecho específico
-            currentEditor
-              .chain()
-              .focus()
-              .deleteRange({ from: startPos, to: endPos })
-              .insertContentAt(startPos, whisperText + ' ')
-              .run()
+            // 🆕 FASE 1: RECONCILIADOR INTELIGENTE
+            // Pegar texto atual do editor nas posições originais
+            const currentEditorText = currentEditor.state.doc.textBetween(startPos, endPos, ' ', ' ')
             
-            console.log('🔄 Replaced segment:', webSpeechText.substring(0, 30), '→', whisperText.substring(0, 30))
+            // Verificar se usuário editou manualmente
+            if (shouldApplyWhisperRefinement(webSpeechText, currentEditorText, whisperText)) {
+              // 🆕 FASE 2: Usar transaction do TipTap para operação atômica
+              currentEditor.view.dispatch(
+                currentEditor.state.tr
+                  .delete(startPos, endPos)
+                  .insertText(whisperText + ' ', startPos)
+              )
+              
+              console.log('🔄 Whisper APLICADO:', webSpeechText.substring(0, 30), '→', whisperText.substring(0, 30))
 
-            // Ajustar offsets dos segmentos seguintes
-            const lengthDiff = whisperText.length - (endPos - startPos)
-            if (lengthDiff !== 0) {
-              textSegmentsRef.current.forEach(s => {
-                if (s.startPos > endPos) {
-                  s.startPos += lengthDiff
-                  s.endPos += lengthDiff
-                }
-              })
+              // Ajustar offsets dos segmentos seguintes
+              const lengthDiff = (whisperText.length + 1) - (endPos - startPos)
+              if (lengthDiff !== 0) {
+                textSegmentsRef.current.forEach(s => {
+                  if (s.startPos > endPos) {
+                    s.startPos += lengthDiff
+                    s.endPos += lengthDiff
+                  }
+                })
+              }
+            } else {
+              console.log('🚫 Whisper BLOQUEADO - preservando edição manual do usuário')
             }
           }
 
           setWhisperStats(prev => ({ ...prev, success: prev.success + 1 }))
-          break // Sucesso, sair do loop de retry
+          whisperSucceeded = true
+          break
         }
 
       } catch (error) {
@@ -198,15 +234,19 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
         console.error(`❌ Whisper error (attempt ${attempt}/${MAX_RETRIES}):`, error)
         
         if (attempt < MAX_RETRIES) {
-          // 🆕 FASE 3: Backoff exponencial (1s, 2s, 4s)
           const backoffMs = Math.pow(2, attempt) * 1000
           console.log(`⏳ Retrying in ${backoffMs}ms...`)
           await new Promise(resolve => setTimeout(resolve, backoffMs))
-        } else {
-          // Última tentativa falhou
-          setWhisperStats(prev => ({ ...prev, failed: prev.failed + 1 }))
         }
       }
+    }
+    
+    // 🆕 FASE 4: FALLBACK AUTOMÁTICO
+    if (!whisperSucceeded) {
+      console.log('⚠️ Whisper failed after all retries - keeping Web Speech text')
+      toast.warning('Refinamento Whisper indisponível - mantendo texto Web Speech')
+      setWhisperStats(prev => ({ ...prev, failed: prev.failed + 1 }))
+      // Texto Web Speech já está no editor, não fazer nada
     }
     
     setIsTranscribing(false)
@@ -451,10 +491,16 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   }
 
   /**
+   * 🆕 FASE 6: Handlers estáveis usando useRef para evitar re-registros
+   */
+  const handleInterimTranscriptRef = useRef<(transcript: string) => void>(() => {})
+  const handleFinalTranscriptRef = useRef<(transcript: string) => void>(() => {})
+
+  /**
    * Handler para transcrições provisórias (em tempo real)
    * Mostra preview com marcadores visuais para comandos estruturais
    */
-  const handleInterimTranscript = useCallback((transcript: string) => {
+  handleInterimTranscriptRef.current = useCallback((transcript: string) => {
     const currentEditor = editorRef.current
     if (!currentEditor || !transcript.trim()) return
 
@@ -463,7 +509,6 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       const { from, to } = currentEditor.state.selection
       anchorRef.current = from
       
-      // Se há texto selecionado (from ≠ to), deletar primeiro
       if (from !== to) {
         selectionEndRef.current = to
         currentEditor.commands.deleteRange({ from, to })
@@ -511,10 +556,10 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
 
   /**
    * Handler para transcrições finais (confirmadas)
-   * Usa comandos nativos TipTap (setHardBreak, splitBlock)
-   * 🆕 FASE 1: Captura posições exatas e associa áudio com texto Web Speech
+   * 🆕 FASE 2: Correção de posicionamento - capturar ANTES de processVoiceInput
+   * 🆕 FASE 3: Isolamento de áudio por segmento
    */
-  const handleFinalTranscript = useCallback((transcript: string) => {
+  handleFinalTranscriptRef.current = useCallback((transcript: string) => {
     const currentEditor = editorRef.current
     console.log('✅ Final transcript:', transcript)
     
@@ -525,7 +570,6 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       const { from, to } = currentEditor.state.selection
       anchorRef.current = from
       
-      // Se há texto selecionado, deletar primeiro
       if (from !== to) {
         selectionEndRef.current = to
         currentEditor.commands.deleteRange({ from, to })
@@ -538,18 +582,16 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
 
     const lowerTranscript = transcript.toLowerCase().trim()
     
-    // Verificar comandos especiais primeiro (ações, não inserção de texto)
+    // Verificar comandos especiais primeiro
     for (const cmd of VOICE_COMMANDS_CONFIG) {
       if (lowerTranscript === cmd.command && 
           !['insert_text', 'hard_break', 'split_block'].includes(cmd.action)) {
-        // Limpar texto interim antes de executar comando
         if (currentInterimLength > 0) {
           currentEditor.commands.deleteRange({ 
             from: anchor, 
             to: anchor + currentInterimLength 
           })
         }
-        // Resetar estado
         anchorRef.current = null
         interimLengthRef.current = 0
         
@@ -576,7 +618,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       }
     }
 
-    // Remover texto provisório se existir
+    // Remover texto provisório
     if (currentInterimLength > 0) {
       currentEditor.commands.deleteRange({ 
         from: anchor, 
@@ -584,23 +626,21 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       })
     }
 
-    // 🎯 FASE 1: Capturar posição ANTES de inserir texto
+    // 🆕 FASE 2: CORREÇÃO - Capturar posição ANTES de processVoiceInput
     const webSpeechStartPos = anchor
     
-    // Posicionar cursor na âncora antes de processar
     currentEditor.commands.setTextSelection(anchor)
     
     // Processar usando comandos nativos do TipTap
     processVoiceInput(transcript, currentEditor)
 
-    // 🎯 FASE 1: Capturar posição DEPOIS de inserir texto
+    // 🆕 FASE 2: Capturar posição DEPOIS (corrigido)
     const webSpeechEndPos = currentEditor.state.selection.from
     
-    // 🎯 FASE 1: Associar chunk de áudio às posições EXATAS do texto Web Speech
+    // 🆕 FASE 3: Associar áudio às posições EXATAS
     if (isWhisperEnabled && audioChunksRef.current.length > 0) {
       const audioBlob = new Blob(audioChunksRef.current)
       
-      // Enfileirar processamento Whisper com posições exatas
       enqueueWhisperProcessing({
         audioBlob,
         startPos: webSpeechStartPos,
@@ -608,16 +648,16 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
         webSpeechText: transcript
       })
       
-      // Limpar buffer de áudio para próximo segmento
+      // 🆕 FASE 3: Limpar buffer imediatamente para isolamento
       audioChunksRef.current = []
     }
 
-    // Resetar estado para próxima frase
+    // Resetar estado
     anchorRef.current = null
     selectionEndRef.current = null
     interimLengthRef.current = 0
 
-    console.log('✏️ Final processed with positions:', webSpeechStartPos, '->', webSpeechEndPos)
+    console.log('✏️ Final processed:', webSpeechStartPos, '->', webSpeechEndPos)
   }, [isWhisperEnabled, enqueueWhisperProcessing])
 
   /**
@@ -756,13 +796,12 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   }, [stopAudioRecording])
 
   /**
-   * Inicializa serviço de reconhecimento de voz e configura callbacks
+   * 🆕 FASE 6: Callbacks estabilizados - sem dependências no array
    */
   useEffect(() => {
     const speechService = getSpeechRecognitionService()
     speechServiceRef.current = speechService
 
-    // Configurar callbacks
     const statusCallback = (status: 'idle' | 'waiting' | 'listening') => {
       console.log('🔊 Status changed:', status)
       setStatus(status)
@@ -774,10 +813,11 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
         isFinal: result.isFinal,
         hasEditor: !!editorRef.current 
       })
+      // 🆕 FASE 6: Usar refs estáveis
       if (result.isFinal) {
-        handleFinalTranscript(result.transcript)
+        handleFinalTranscriptRef.current(result.transcript)
       } else {
-        handleInterimTranscript(result.transcript)
+        handleInterimTranscriptRef.current(result.transcript)
       }
     }
 
@@ -787,12 +827,32 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     console.log('✓ Voice callbacks configured for useDictation')
 
     return () => {
-      // Remover apenas callbacks deste hook
       speechService.removeOnStatus(statusCallback)
       speechService.removeOnResult(resultCallback)
       speechService.stopListening()
     }
-  }, [handleInterimTranscript, handleFinalTranscript])
+  }, []) // 🆕 FASE 6: Array de dependências vazio - callbacks estabilizados
+
+  /**
+   * 🆕 FASE 8: Privacidade - parar microfone quando aba não está visível
+   */
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && isActive) {
+        console.log('🔒 Tab hidden - stopping dictation for privacy')
+        stopDictation()
+        // 🆕 FASE 8: Limpar áudio da memória
+        audioChunksRef.current = []
+        toast.info('Ditado pausado (aba em segundo plano)')
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [isActive, stopDictation])
 
   /**
    * Toggle Whisper

@@ -161,6 +161,158 @@ function fixMeasurements(text: string): string {
 }
 
 /**
+ * Calcula similaridade entre dois textos (algoritmo de Levenshtein simplificado)
+ * Retorna percentual de diferença (0 = idêntico, 1 = completamente diferente)
+ */
+function calculateTextDifference(text1: string, text2: string): number {
+  const len1 = text1.length
+  const len2 = text2.length
+  
+  if (len1 === 0) return len2 === 0 ? 0 : 1
+  if (len2 === 0) return 1
+  
+  // Levenshtein distance simplificado
+  const matrix: number[][] = []
+  
+  for (let i = 0; i <= len1; i++) {
+    matrix[i] = [i]
+  }
+  
+  for (let j = 0; j <= len2; j++) {
+    matrix[0][j] = j
+  }
+  
+  for (let i = 1; i <= len1; i++) {
+    for (let j = 1; j <= len2; j++) {
+      if (text1[i - 1] === text2[j - 1]) {
+        matrix[i][j] = matrix[i - 1][j - 1]
+      } else {
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j - 1] + 1, // substituição
+          matrix[i][j - 1] + 1,     // inserção
+          matrix[i - 1][j] + 1      // deleção
+        )
+      }
+    }
+  }
+  
+  const distance = matrix[len1][len2]
+  const maxLen = Math.max(len1, len2)
+  return distance / maxLen
+}
+
+/**
+ * 🆕 FASE 1: Reconciliador inteligente para Whisper
+ * Decide se deve aplicar texto do Whisper baseado em edições manuais do usuário
+ * 
+ * @param webSpeechText - Texto original do Web Speech API
+ * @param currentEditorText - Texto atualmente no editor (pode ter sido editado)
+ * @param whisperText - Texto refinado do Whisper
+ * @returns true se deve aplicar Whisper, false se usuário editou manualmente
+ */
+export function shouldApplyWhisperRefinement(
+  webSpeechText: string,
+  currentEditorText: string,
+  whisperText: string
+): boolean {
+  // Se texto atual é exatamente igual ao Web Speech → sem edição manual
+  if (currentEditorText === webSpeechText) {
+    return true
+  }
+  
+  // Calcular diferença entre texto atual e Web Speech original
+  const difference = calculateTextDifference(
+    webSpeechText.toLowerCase().trim(),
+    currentEditorText.toLowerCase().trim()
+  )
+  
+  // Se diferença > 30%, usuário provavelmente editou manualmente
+  // NÃO substituir para preservar edição do radiologista
+  if (difference > 0.3) {
+    console.log('🚫 Whisper BLOQUEADO: usuário editou texto manualmente (diff:', Math.round(difference * 100) + '%)')
+    return false
+  }
+  
+  // Se diferença < 30%, aplicar merge inteligente (Whisper é mais preciso)
+  console.log('✅ Whisper APLICADO: texto não foi editado significativamente (diff:', Math.round(difference * 100) + '%)')
+  return true
+}
+
+/**
+ * 🆕 FASE 5: Extrai comandos de voz do texto para proteção
+ * Remove comandos estruturais para evitar que Whisper os "corrija"
+ * 
+ * @param text - Texto com possíveis comandos de voz
+ * @returns { cleanText, commands } - Texto limpo e array de comandos encontrados
+ */
+export function extractVoiceCommands(text: string): { 
+  cleanText: string
+  commands: Array<{ position: number; command: string }> 
+} {
+  const commands: Array<{ position: number; command: string }> = []
+  
+  // Lista de comandos estruturais conhecidos
+  const structuralCommands = [
+    'nova linha',
+    'próxima linha', 
+    'linha',
+    'novo parágrafo',
+    'próximo parágrafo',
+    'parágrafo',
+    'ponto parágrafo',
+    'ponto final',
+    'vírgula',
+    'ponto e vírgula',
+    'dois pontos',
+    'ponto de exclamação',
+    'ponto de interrogação'
+  ]
+  
+  let cleanText = text
+  
+  for (const cmd of structuralCommands.sort((a, b) => b.length - a.length)) {
+    const regex = new RegExp(`(^|\\s)(${cmd})(\\s|$)`, 'gi')
+    let match
+    
+    while ((match = regex.exec(cleanText)) !== null) {
+      commands.push({
+        position: match.index + match[1].length,
+        command: match[2]
+      })
+      
+      // Substituir comando por placeholder único
+      cleanText = cleanText.slice(0, match.index + match[1].length) +
+                  `[CMD_${commands.length - 1}]` +
+                  cleanText.slice(match.index + match[0].length)
+    }
+  }
+  
+  return { cleanText, commands }
+}
+
+/**
+ * 🆕 FASE 5: Reinsere comandos de voz após processamento Whisper
+ * 
+ * @param text - Texto processado pelo Whisper
+ * @param commands - Array de comandos extraídos anteriormente
+ * @returns Texto com comandos reinseridos
+ */
+export function reinsertVoiceCommands(
+  text: string,
+  commands: Array<{ position: number; command: string }>
+): string {
+  let result = text
+  
+  // Reinserir comandos nas posições originais (inverter ordem para manter posições)
+  for (let i = commands.length - 1; i >= 0; i--) {
+    const placeholder = `[CMD_${i}]`
+    result = result.replace(placeholder, commands[i].command)
+  }
+  
+  return result
+}
+
+/**
  * Processador unificado de texto médico para ditado
  * Aplica todas as correções ANTES de inserir no editor
  * 
