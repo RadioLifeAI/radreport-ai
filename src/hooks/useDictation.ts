@@ -67,6 +67,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   const anchorRef = useRef<number | null>(null)      // Posição inicial do ditado
   const selectionEndRef = useRef<number | null>(null) // Posição final da seleção (se houver)
   const interimLengthRef = useRef<number>(0)          // Tamanho do texto provisório
+  const whisperFallbackToastShownRef = useRef<boolean>(false) // Flag para toast único
 
   // 🎙️ Refs para sistema Whisper integrado
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
@@ -258,7 +259,15 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     // 🆕 FASE 4: FALLBACK AUTOMÁTICO
     if (!whisperSucceeded) {
       console.log('⚠️ Whisper failed after all retries - keeping Web Speech text')
-      toast.warning('Refinamento Whisper indisponível - mantendo texto Web Speech')
+      
+      // Toast único por sessão de ditado
+      if (!whisperFallbackToastShownRef.current) {
+        whisperFallbackToastShownRef.current = true
+        toast.info('Usando transcrição básica. Ative o Whisper AI para termos médicos mais precisos.', {
+          duration: 6000,
+        })
+      }
+      
       setWhisperStats(prev => ({ ...prev, failed: prev.failed + 1 }))
       // Texto Web Speech já está no editor, não fazer nada
     }
@@ -805,6 +814,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     anchorRef.current = null
     selectionEndRef.current = null
     interimLengthRef.current = 0
+    whisperFallbackToastShownRef.current = false // Reset toast flag
     
     console.log('🛑 Unified dictation stopped')
   }, [stopAudioRecording])
@@ -874,13 +884,15 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   const toggleWhisper = useCallback(() => {
     // Check if user has enough credits before enabling
     if (!isWhisperEnabled && !hasEnoughCredits) {
-      toast.error('Saldo insuficiente de créditos Whisper. Compre mais créditos para ativar.')
+      toast.error('✨ Ative o Whisper AI para transcrição médica precisa. Termos como "hepatomegalia" e "BI-RADS" são refinados automaticamente.', {
+        duration: 6000,
+      })
       return
     }
     
     setIsWhisperEnabled(prev => {
       const newState = !prev
-      toast.info(newState ? 'Whisper ativado ✅' : 'Whisper desativado ⏸️')
+      toast.info(newState ? 'Whisper AI ativado ✅' : 'Whisper AI desativado ⏸️')
       return newState
     })
   }, [isWhisperEnabled, hasEnoughCredits])

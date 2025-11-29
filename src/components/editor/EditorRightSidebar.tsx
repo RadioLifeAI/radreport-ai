@@ -1,4 +1,4 @@
-import { FileText, History, ChevronLeft, MessageSquare, Sparkles, CheckCircle2, XCircle, Zap, ShoppingCart } from 'lucide-react'
+import { MessageSquare, History, ChevronLeft, Sparkles, Zap } from 'lucide-react'
 import { Editor } from '@tiptap/react'
 import { useState } from 'react'
 import VoiceButton from '@/components/voice/VoiceButton'
@@ -7,10 +7,13 @@ import EditorAIButton from '@/components/editor/EditorAIButton'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { useFrasesModelo, FraseModelo } from '@/hooks/useFrasesModelo'
 import { Badge } from '@/components/ui/badge'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { Switch } from '@/components/ui/switch'
+import { Button } from '@/components/ui/button'
+import { toast } from 'sonner'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useVariableProcessor } from '@/hooks/useVariableProcessor'
 import { useWhisperCredits } from '@/hooks/useWhisperCredits'
-import { Button } from '@/components/ui/button'
 
 interface EditorRightSidebarProps {
   collapsed: boolean
@@ -50,7 +53,11 @@ export function EditorRightSidebar({
   const [frasesOpen, setFrasesOpen] = useState(false)
   const { recentFrases, favoriteFrases } = useFrasesModelo()
   const { hasVariables } = useVariableProcessor()
-  const { balance, isLoading: isLoadingBalance } = useWhisperCredits()
+  const { balance, isLoading: isLoadingCredits, hasEnoughCredits } = useWhisperCredits()
+
+  const openPurchaseModal = () => {
+    toast.info('🚀 Em breve! Pacotes de créditos Whisper disponíveis em dezembro.', { duration: 4000 })
+  }
 
   const handleFraseClick = (frase: FraseModelo) => {
     // Check if frase has variables
@@ -164,115 +171,83 @@ export function EditorRightSidebar({
             </Popover>
           </div>
 
-          {/* Voice Controls Section */}
-          <div>
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-3">Controles de Voz</h3>
-            <div className="space-y-2">
-              {/* Whisper Credits Balance */}
-              {!isLoadingBalance && (
-                <div className="flex items-center justify-between p-2 bg-card/50 border border-border/30 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <Zap size={14} className={balance > 10 ? 'text-green-500' : balance > 5 ? 'text-yellow-500' : 'text-red-500'} />
-                    <span className="text-xs font-medium">Créditos Whisper</span>
-                  </div>
-                  <Badge 
-                    variant="secondary" 
-                    className={`text-xs ${
-                      balance > 10 
-                        ? 'bg-green-500/10 text-green-500' 
-                        : balance > 5 
-                        ? 'bg-yellow-500/10 text-yellow-500' 
-                        : 'bg-red-500/10 text-red-500'
-                    }`}
-                  >
-                    {balance}
-                  </Badge>
-                </div>
-              )}
-              
-              {/* Buy Credits Button (if balance is low) */}
-              {balance === 0 && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full text-xs gap-2"
-                  onClick={() => {
-                    // TODO: Implement purchase flow
-                    alert('Sistema de compra de créditos em desenvolvimento')
-                  }}
+          {/* Whisper AI Premium Section */}
+          <div className="p-3 bg-gradient-to-br from-cyan-500/5 to-indigo-500/5 border border-cyan-500/20 rounded-lg space-y-3">
+            <div className="flex items-center gap-2">
+              <Sparkles size={16} className="text-cyan-500" />
+              <span className="text-sm font-medium">Whisper AI</span>
+            </div>
+            
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              Refinamento inteligente de termos médicos radiológicos com precisão profissional
+            </p>
+            
+            {/* Saldo atual */}
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-muted-foreground">Saldo:</span>
+              {isLoadingCredits ? (
+                <span className="text-xs text-muted-foreground">...</span>
+              ) : (
+                <Badge 
+                  variant={balance > 10 ? 'default' : balance > 5 ? 'secondary' : 'destructive'}
+                  className="text-xs"
                 >
-                  <ShoppingCart size={14} />
-                  Comprar créditos
-                </Button>
-              )}
-              <VoiceButton 
-                isActive={isVoiceActive}
-                status={voiceStatus}
-                onStart={onVoiceStart}
-                onStop={onVoiceStop}
-                isTranscribing={isTranscribing}
-              />
-              <SpeechStatusPanel mediaStream={mediaStream} />
-              
-              {/* Whisper Toggle */}
-              {toggleWhisper && (
-                <button
-                  onClick={toggleWhisper}
-                  disabled={balance === 0 && !isWhisperEnabled}
-                  className={`w-full flex items-center justify-between gap-2 p-3 border rounded-lg transition-all ${
-                    balance === 0 && !isWhisperEnabled
-                      ? 'bg-card border-border/40 opacity-50 cursor-not-allowed'
-                      : isWhisperEnabled
-                      ? 'bg-gradient-to-r from-cyan-500/10 to-indigo-500/10 border-cyan-500/30 hover:border-cyan-500/50'
-                      : 'bg-card border-border/40 hover:bg-muted/50'
-                  }`}
-                  title={
-                    balance === 0 && !isWhisperEnabled
-                      ? 'Saldo insuficiente - compre créditos para ativar'
-                      : isWhisperEnabled 
-                      ? 'Whisper ativado' 
-                      : 'Whisper desativado'
-                  }
-                >
-                  <div className="flex items-center gap-2">
-                    <Sparkles size={16} className={isWhisperEnabled ? 'text-cyan-500' : 'text-muted-foreground'} />
-                    <span className="text-xs font-medium">Whisper</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    {isTranscribing && (
-                      <span className="text-[10px] px-1.5 py-0.5 bg-cyan-500/20 text-cyan-500 rounded animate-pulse">
-                        Transcrevendo...
-                      </span>
-                    )}
-                    {isWhisperEnabled ? (
-                      <CheckCircle2 size={14} className="text-green-500" />
-                    ) : (
-                      <XCircle size={14} className="text-muted-foreground" />
-                    )}
-                  </div>
-                </button>
-              )}
-              
-              {/* Whisper Stats (optional) */}
-              {whisperStats && whisperStats.total > 0 && (
-                <div className="text-[10px] text-muted-foreground space-y-0.5 px-2">
-                  <div className="flex justify-between">
-                    <span>Total:</span>
-                    <span className="font-medium">{whisperStats.total}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Sucesso:</span>
-                    <span className="font-medium text-green-500">{whisperStats.success}</span>
-                  </div>
-                  {whisperStats.failed > 0 && (
-                    <div className="flex justify-between">
-                      <span>Falhas:</span>
-                      <span className="font-medium text-red-500">{whisperStats.failed}</span>
-                    </div>
-                  )}
-                </div>
+                  {balance} créditos
+                </Badge>
               )}
             </div>
+            
+            {/* Botão de upgrade */}
+            {balance < 10 && (
+              <Button 
+                variant="default"
+                size="sm"
+                className="w-full bg-gradient-to-r from-cyan-500 to-indigo-500 hover:from-cyan-600 hover:to-indigo-600 text-xs"
+                onClick={openPurchaseModal}
+              >
+                <Zap size={14} className="mr-1" />
+                {balance === 0 ? 'Obter créditos' : 'Recarregar créditos'}
+              </Button>
+            )}
+
+            {/* Whisper Toggle com Tooltip */}
+            {toggleWhisper && (
+              <TooltipProvider>
+                <div className="flex items-center justify-between p-2 bg-background/50 rounded border border-border/50">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="text-xs cursor-help">Ativar Whisper</span>
+                    </TooltipTrigger>
+                    <TooltipContent side="left" className="max-w-[200px]">
+                      <p className="text-xs">
+                        Melhora precisão de termos médicos como hepatomegalia, BI-RADS, esplenomegalia
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                  <Switch
+                    checked={isWhisperEnabled}
+                    onCheckedChange={toggleWhisper}
+                    disabled={!hasEnoughCredits}
+                  />
+                </div>
+              </TooltipProvider>
+            )}
+          </div>
+
+          {/* Voice Controls */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-medium">Controle de Voz</h3>
+
+            <VoiceButton
+              isActive={isVoiceActive}
+              status={voiceStatus}
+              onStart={onVoiceStart}
+              onStop={onVoiceStop}
+            />
+
+            <SpeechStatusPanel 
+              mediaStream={mediaStream}
+            />
           </div>
 
           {/* AI Assistant Section */}
