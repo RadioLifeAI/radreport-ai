@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 import { supabaseService } from '../services/SupabaseService'
 import { useReportStore } from '../store'
 import { formatarAchadosParagrafos, formatarAchadosMedicos, formatarTecnica, dividirEmSentencas } from '@/utils/templateFormatter'
+import { normalizeTemplateVariables, hasTemplateVariables, hasMultipleTechniques } from '@/utils/templateVariableProcessor'
 
 export interface Template {
   id: string
@@ -16,6 +17,8 @@ export interface Template {
   }
   tags: string[]
   ativo: boolean
+  variaveis?: any[]  // Dynamic variables from database
+  condicoes_logicas?: any[]  // Conditional logic rules
   isFavorite?: boolean
   lastUsed?: string
   usageCount?: number
@@ -35,6 +38,8 @@ interface UseTemplatesReturn {
   setSelectedModality: (modality: string) => void
   loadTemplates: () => Promise<void>
   applyTemplate: (template: Template) => void
+  applyTemplateWithVariables: (template: Template, selectedTechnique: string | null, variableValues: Record<string, any>) => void
+  needsVariableInput: (template: Template) => boolean
   addToFavorites: (templateId: string) => void
   removeFromFavorites: (templateId: string) => void
   isFavorite: (templateId: string) => boolean
@@ -105,6 +110,8 @@ export function useTemplates(): UseTemplatesReturn {
         },
         tags: template.tags || [],
         ativo: template.ativo,
+        variaveis: normalizeTemplateVariables(template.variaveis),
+        condicoes_logicas: template.condicoes_logicas || [],
         isFavorite: favorites.includes(template.id),
         lastUsed: new Date().toISOString(),
         usageCount: 0
@@ -296,6 +303,11 @@ export function useTemplates(): UseTemplatesReturn {
     return templates.filter(template => isFavorite(template.id))
   }, [templates, favorites])
 
+  // Check if template needs variable input
+  const needsVariableInput = useCallback((template: Template): boolean => {
+    return hasTemplateVariables(template) || hasMultipleTechniques(template)
+  }, [])
+
   // Aplicar template no editor e registrar uso
   const applyTemplate = useCallback(async (template: Template) => {
     setModalidade(template.modalidade)
@@ -320,6 +332,76 @@ export function useTemplates(): UseTemplatesReturn {
     const html = [
       tituloHtml,
       tecnicaHtml, // Já inclui <h3>TÉCNICA</h3>
+      `<h3 style="text-transform: uppercase;">ACHADOS</h3>`,
+      achadosHtml,
+      `<h3 style="text-transform: uppercase;">IMPRESSÃO</h3>`,
+      impressaoHtml,
+      adicionaisHtml ? `<h3 style="text-transform: uppercase;">ADICIONAIS</h3>${adicionaisHtml}` : ''
+    ].filter(Boolean).join('')
+    
+    setContent(html)
+    
+    // Registrar uso no Supabase
+    await supabaseService.recordTemplateUsage(template.id, currentReportId)
+    
+    // Recarregar histórico de uso
+    const usageData = await supabaseService.getRecentTemplates(10)
+    setRecentUsageData(usageData)
+  }, [setContent, setModalidade, currentReportId])
+
+  // Apply template with variables and technique selection
+  const applyTemplateWithVariables = useCallback(async (
+    template: Template,
+    selectedTechnique: string | null,
+    variableValues: Record<string, any>
+  ) => {
+    setModalidade(template.modalidade)
+    
+    // Process variable substitution
+    const processText = (text: string) => {
+      return text.replace(/\{\{(\w+)\}\}/g, (match, varName) => {
+        const value = variableValues[varName]
+        if (value !== undefined && value !== null) {
+          if (typeof value === 'number') {
+            return value.toLocaleString('pt-BR', { 
+              minimumFractionDigits: 1,
+              maximumFractionDigits: 1 
+            })
+          }
+          return value.toString()
+        }
+        return match
+      })
+    }
+    
+    // Título centralizado e em maiúsculas
+    const tituloHtml = `<h2 style="text-align: center; text-transform: uppercase;">${template.titulo}</h2>`
+    
+    // Técnica - use selected technique or format all
+    let tecnicaHtml = ''
+    if (selectedTechnique && template.conteudo.tecnica[selectedTechnique]) {
+      const tecnicaText = template.conteudo.tecnica[selectedTechnique]
+      tecnicaHtml = `<h3 style="text-transform: uppercase;">TÉCNICA</h3>${dividirEmSentencas(processText(tecnicaText))}`
+    } else {
+      tecnicaHtml = formatarTecnica(template.conteudo.tecnica)
+    }
+    
+    // Achados - process variables
+    const achadosProcessed = processText(template.conteudo.achados)
+    const achadosHtml = dividirEmSentencas(achadosProcessed)
+    
+    // Impressão - process variables
+    const impressaoProcessed = processText(template.conteudo.impressao)
+    const impressaoHtml = dividirEmSentencas(impressaoProcessed)
+    
+    // Adicionais - process variables
+    const adicionaisHtml = template.conteudo.adicionais 
+      ? dividirEmSentencas(processText(template.conteudo.adicionais))
+      : ''
+    
+    const html = [
+      tituloHtml,
+      tecnicaHtml,
       `<h3 style="text-transform: uppercase;">ACHADOS</h3>`,
       achadosHtml,
       `<h3 style="text-transform: uppercase;">IMPRESSÃO</h3>`,
@@ -372,6 +454,8 @@ export function useTemplates(): UseTemplatesReturn {
     setSelectedModality,
     loadTemplates,
     applyTemplate,
+    applyTemplateWithVariables,
+    needsVariableInput,
     addToFavorites,
     removeFromFavorites,
     isFavorite,
