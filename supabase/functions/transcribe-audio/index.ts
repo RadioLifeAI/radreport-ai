@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.84.0';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -42,11 +43,69 @@ serve(async (req) => {
   }
 
   try {
+    // Extract user_id from JWT
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader) {
+      throw new Error('No authorization header');
+    }
+
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      {
+        global: {
+          headers: { Authorization: authHeader },
+        },
+      }
+    );
+
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+    
+    if (userError || !user) {
+      throw new Error('Unauthorized');
+    }
+
+    const userId = user.id;
+    
     const { audio, language = 'pt' } = await req.json();
     
     if (!audio) {
       throw new Error('No audio data provided');
     }
+
+    // Estimate audio duration: base64 string length / 1.33 (base64 overhead) / 16000 bytes/sec (WebM ~16KB/s)
+    const audioSizeBytes = (audio.length * 0.75); // base64 to bytes
+    const estimatedDurationSeconds = Math.ceil(audioSizeBytes / 16000);
+    
+    // Calculate credits: 1 credit per minute, min 1, max 5
+    const creditsToConsume = Math.min(Math.max(Math.ceil(estimatedDurationSeconds / 60), 1), 5);
+    
+    console.log(`Estimated duration: ${estimatedDurationSeconds}s, Credits needed: ${creditsToConsume}`);
+
+    // Consume credits BEFORE transcription
+    const { data: consumeResult, error: consumeError } = await supabaseClient.rpc(
+      'consume_whisper_credits',
+      { 
+        p_user_id: userId,
+        p_credits_to_consume: creditsToConsume 
+      }
+    );
+
+    if (consumeError || !consumeResult) {
+      console.error('Failed to consume credits:', consumeError);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Saldo insuficiente de créditos Whisper',
+          credits_needed: creditsToConsume 
+        }),
+        {
+          status: 402, // Payment Required
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    const creditsRemaining = consumeResult;
 
     console.log('Transcribing audio with Groq Whisper API...');
     
@@ -102,12 +161,23 @@ serve(async (req) => {
 
     console.log('Transcription successful:', finalText);
 
+    // Log usage
+    await supabaseClient.from('whisper_usage_log').insert({
+      user_id: userId,
+      credits_consumed: creditsToConsume,
+      audio_duration_seconds: result.duration || estimatedDurationSeconds,
+      segments_filtered: segmentsFiltered,
+      language: result.language || language,
+    });
+
     return new Response(
       JSON.stringify({ 
         text: finalText,
         language: result.language || language,
         duration: result.duration,
-        segments_filtered: segmentsFiltered
+        segments_filtered: segmentsFiltered,
+        credits_consumed: creditsToConsume,
+        credits_remaining: creditsRemaining
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
