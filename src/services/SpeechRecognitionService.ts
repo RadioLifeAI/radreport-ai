@@ -37,7 +37,8 @@ export class SpeechRecognitionService {
     this.recognition.continuous = true;
     this.recognition.interimResults = true;
     this.recognition.lang = 'pt-BR';
-    this.recognition.maxAlternatives = (this.config as any).maxAlternatives ?? 1;
+    // 🆕 FASE 6: Aumentar maxAlternatives para 3 alternativas de correção
+    this.recognition.maxAlternatives = (this.config as any).maxAlternatives ?? 3;
     
     this.setupEventHandlers();
   }
