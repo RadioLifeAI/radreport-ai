@@ -13,6 +13,12 @@ export interface TemplateVariable {
   maximo?: number  // Validação max para números
 }
 
+export interface ConditionalLogic {
+  quando: string  // Variable name to check
+  igual: string | number | boolean  // Value to match
+  derivar: Record<string, string | number | boolean>  // Derived variables
+}
+
 export interface TemplateWithVariables {
   id: string
   titulo: string
@@ -27,7 +33,7 @@ export interface TemplateWithVariables {
   tags: string[]
   ativo: boolean
   variaveis?: TemplateVariable[]
-  condicoes_logicas?: any[]
+  condicoes_logicas?: ConditionalLogic[]
 }
 
 export interface TemplateVariableValues {

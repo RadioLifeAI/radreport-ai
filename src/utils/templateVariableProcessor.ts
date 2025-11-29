@@ -1,7 +1,7 @@
 // Template variable processing utilities
 // Handles extraction and substitution of {{variable}} placeholders in templates
 
-import { TemplateVariable, TemplateVariableValues, TemplateWithVariables } from '@/types/templateVariables'
+import { TemplateVariable, TemplateVariableValues, TemplateWithVariables, ConditionalLogic } from '@/types/templateVariables'
 
 /**
  * Extract variable names from text with {{variable}} placeholders
@@ -139,4 +139,41 @@ export function getDefaultTechnique(template: TemplateWithVariables): string | n
   
   // Otherwise return first available
   return techniques[0]
+}
+
+/**
+ * Process conditional logic to derive variables based on selected values
+ * 
+ * Example structure:
+ * {
+ *   "quando": "grau_esteatose",
+ *   "igual": "I",
+ *   "derivar": {
+ *     "achados_figado": "text...",
+ *     "impressao_grau": "leve (grau I)"
+ *   }
+ * }
+ */
+export function processConditionalLogic(
+  condicoes: any[] | undefined,
+  values: TemplateVariableValues
+): TemplateVariableValues {
+  if (!condicoes || condicoes.length === 0) return values
+
+  const derivedValues = { ...values }
+
+  condicoes.forEach(condicao => {
+    // Check if condition is met
+    const sourceValue = values[condicao.quando]
+    if (sourceValue !== undefined && sourceValue === condicao.igual) {
+      // Add derived variables
+      if (condicao.derivar && typeof condicao.derivar === 'object') {
+        Object.entries(condicao.derivar).forEach(([key, value]) => {
+          derivedValues[key] = value as string | number | boolean
+        })
+      }
+    }
+  })
+
+  return derivedValues
 }
