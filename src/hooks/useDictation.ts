@@ -16,7 +16,7 @@ interface UseDictationReturn {
   isActive: boolean
   status: 'idle' | 'waiting' | 'listening'
   startDictation: () => Promise<MediaStream | null>
-  stopDictation: () => void
+  stopDictation: () => Promise<void> // 🔧 Agora retorna Promise
   
   // Whisper features integradas
   isWhisperEnabled: boolean
@@ -275,75 +275,6 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   }, [isWhisperEnabled])
 
   /**
-   * 🆕 SMART BUFFERING: Envia chunk atual baseado em triggers inteligentes
-   * 🔧 CORREÇÃO WHISPER: Para e reinicia MediaRecorder para garantir header WebM válido
-   */
-  const sendCurrentChunkToWhisper = useCallback(async () => {
-    const currentEditor = editorRef.current
-    const stream = streamRef.current
-    if (!currentEditor || audioChunksRef.current.length === 0 || !stream) return
-    
-    // 1. 🆕 PARAR MediaRecorder para finalizar container WebM
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-      await new Promise<void>(resolve => {
-        if (mediaRecorderRef.current) {
-          mediaRecorderRef.current.onstop = () => resolve()
-          mediaRecorderRef.current.stop()
-        } else {
-          resolve()
-        }
-      })
-    }
-    
-    // 2. Criar blob completo (com header WebM válido)
-    const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' })
-    
-    // 3. Verificar tamanho mínimo (10s = 80KB para WebM Opus)
-    const MIN_CHUNK_SIZE = MIN_BUFFER_DURATION * 8 // ~80KB
-    if (audioBlob.size < MIN_CHUNK_SIZE) {
-      console.log('⏭️ Buffer too small (', Math.round(audioBlob.size / 1024), 'KB, need', Math.round(MIN_CHUNK_SIZE / 1024), 'KB)')
-      // 🆕 Reiniciar gravação mesmo assim para próximo chunk
-      audioChunksRef.current = []
-      await startAudioRecording(stream, true)
-      return
-    }
-    
-    // 4. Capturar posições atuais
-    const endPos = currentEditor.state.selection.from
-    const webSpeechText = lastFinalTranscriptRef.current || ''
-    const textLength = webSpeechText.length
-    const startPos = Math.max(0, lastSegmentEndRef.current || (endPos - textLength - 10))
-    
-    const bufferDuration = Date.now() - bufferStartTimeRef.current
-    
-    console.log('📤 Smart buffer sent:', {
-      size: Math.round(audioBlob.size / 1024) + 'KB',
-      duration: Math.round(bufferDuration / 1000) + 's',
-      startPos,
-      endPos,
-      text: webSpeechText.substring(0, 40) + '...'
-    })
-    
-    // 5. Enfileirar para processamento
-    enqueueWhisperProcessing({
-      audioBlob,
-      startPos,
-      endPos,
-      webSpeechText
-    })
-    
-    // 6. Atualizar refs
-    lastSegmentEndRef.current = endPos
-    lastFinalTranscriptRef.current = ''
-    bufferStartTimeRef.current = Date.now()
-    
-    // 7. 🆕 REINICIAR MediaRecorder para novo segmento com header WebM
-    audioChunksRef.current = []
-    await startAudioRecording(stream, true)
-    
-  }, [startAudioRecording])
-
-  /**
    * Envia chunk de áudio para Whisper com validação e processamento
    */
   const sendChunkToWhisper = useCallback(async (params: {
@@ -560,6 +491,141 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     // Iniciar processamento de forma assíncrona
     Promise.resolve().then(() => processNextInQueue())
   }, [sendChunkToWhisper, processNextInQueue])
+
+  /**
+   * 🆕 CORREÇÃO WHISPER: Para MediaRecorder e aguarda último chunk
+   */
+  const stopMediaRecorderAsync = useCallback(async (): Promise<void> => {
+    return new Promise<void>((resolve) => {
+      if (!mediaRecorderRef.current || mediaRecorderRef.current.state === 'inactive') {
+        resolve()
+        return
+      }
+
+      // Configurar handler para capturar último chunk
+      mediaRecorderRef.current.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data)
+          console.log('📦 Final chunk captured:', event.data.size, 'bytes')
+        }
+      }
+
+      // Resolver quando parar completamente
+      mediaRecorderRef.current.onstop = () => {
+        console.log('🎙️ MediaRecorder stopped with all data captured')
+        mediaRecorderRef.current = null
+        resolve()
+      }
+
+      mediaRecorderRef.current.stop()
+    })
+  }, [])
+
+  /**
+   * 🆕 CORREÇÃO WHISPER: Envia chunk final sem restart
+   */
+  const sendFinalChunkToWhisper = useCallback(async () => {
+    const currentEditor = editorRef.current
+    if (!currentEditor || audioChunksRef.current.length === 0) return
+    
+    // Criar blob completo (com header WebM válido)
+    const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' })
+    
+    // Verificar tamanho mínimo
+    const MIN_CHUNK_SIZE = MIN_BUFFER_DURATION * 8
+    if (audioBlob.size < MIN_CHUNK_SIZE) {
+      console.log('⏭️ Final buffer too small, skipping')
+      return
+    }
+    
+    // Capturar posições
+    const endPos = currentEditor.state.selection.from
+    const webSpeechText = lastFinalTranscriptRef.current || ''
+    const textLength = webSpeechText.length
+    const startPos = Math.max(0, lastSegmentEndRef.current || (endPos - textLength - 10))
+    
+    console.log('📤 Sending FINAL chunk to Whisper:', Math.round(audioBlob.size / 1024) + 'KB')
+    
+    // Enfileirar para processamento
+    enqueueWhisperProcessing({
+      audioBlob,
+      startPos,
+      endPos,
+      webSpeechText
+    })
+    
+    // NÃO reiniciar MediaRecorder - estamos parando!
+    audioChunksRef.current = []
+  }, [enqueueWhisperProcessing])
+
+  /**
+   * 🆕 SMART BUFFERING: Envia chunk atual baseado em triggers inteligentes
+   * 🔧 CORREÇÃO WHISPER: Para e reinicia MediaRecorder para garantir header WebM válido
+   */
+  const sendCurrentChunkToWhisper = useCallback(async () => {
+    const currentEditor = editorRef.current
+    const stream = streamRef.current
+    if (!currentEditor || audioChunksRef.current.length === 0 || !stream) return
+    
+    // 1. 🆕 PARAR MediaRecorder para finalizar container WebM
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      await new Promise<void>(resolve => {
+        if (mediaRecorderRef.current) {
+          mediaRecorderRef.current.onstop = () => resolve()
+          mediaRecorderRef.current.stop()
+        } else {
+          resolve()
+        }
+      })
+    }
+    
+    // 2. Criar blob completo (com header WebM válido)
+    const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' })
+    
+    // 3. Verificar tamanho mínimo (10s = 80KB para WebM Opus)
+    const MIN_CHUNK_SIZE = MIN_BUFFER_DURATION * 8 // ~80KB
+    if (audioBlob.size < MIN_CHUNK_SIZE) {
+      console.log('⏭️ Buffer too small (', Math.round(audioBlob.size / 1024), 'KB, need', Math.round(MIN_CHUNK_SIZE / 1024), 'KB)')
+      // 🆕 Reiniciar gravação mesmo assim para próximo chunk
+      audioChunksRef.current = []
+      await startAudioRecording(stream, true)
+      return
+    }
+    
+    // 4. Capturar posições atuais
+    const endPos = currentEditor.state.selection.from
+    const webSpeechText = lastFinalTranscriptRef.current || ''
+    const textLength = webSpeechText.length
+    const startPos = Math.max(0, lastSegmentEndRef.current || (endPos - textLength - 10))
+    
+    const bufferDuration = Date.now() - bufferStartTimeRef.current
+    
+    console.log('📤 Smart buffer sent:', {
+      size: Math.round(audioBlob.size / 1024) + 'KB',
+      duration: Math.round(bufferDuration / 1000) + 's',
+      startPos,
+      endPos,
+      text: webSpeechText.substring(0, 40) + '...'
+    })
+    
+    // 5. Enfileirar para processamento
+    enqueueWhisperProcessing({
+      audioBlob,
+      startPos,
+      endPos,
+      webSpeechText
+    })
+    
+    // 6. Atualizar refs
+    lastSegmentEndRef.current = endPos
+    lastFinalTranscriptRef.current = ''
+    bufferStartTimeRef.current = Date.now()
+    
+    // 7. 🆕 REINICIAR MediaRecorder para novo segmento com header WebM
+    audioChunksRef.current = []
+    await startAudioRecording(stream, true)
+    
+  }, [startAudioRecording, enqueueWhisperProcessing])
 
   /**
    * Apaga a última palavra digitada (comando de voz "apagar isso")
@@ -1033,42 +1099,59 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
 
   /**
    * Para o ditado por voz e envia chunk final se necessário
-   * 🆕 SMART BUFFERING: Envia apenas se buffer >= 10s (mínimo econômico)
+   * 🔧 CORREÇÃO WHISPER: Agora async para aguardar último chunk
    */
-  const stopDictation = useCallback(() => {
+  const stopDictation = useCallback(async () => {
     if (!speechServiceRef.current) return
 
     speechServiceRef.current.stopListening()
     setIsActive(false)
     setStatus('idle')
     
-    // Parar MediaRecorder PRIMEIRO (sem cancelar requests)
-    stopMediaRecorder()
-    
-    // 🆕 SMART BUFFERING: Enviar apenas se buffer atende requisitos econômicos
-    if (isWhisperEnabled && audioChunksRef.current.length > 0) {
-      const finalChunk = new Blob(audioChunksRef.current, { type: 'audio/webm' })
-      const bufferDuration = Date.now() - bufferStartTimeRef.current
-      
-      // Só enviar se buffer >= 10s (mínimo cobrado pelo Groq)
-      if (finalChunk.size > 80000 && bufferDuration >= MIN_BUFFER_DURATION) {
-        console.log('📤 Sending final buffer:', Math.round(finalChunk.size / 1024), 'KB,', Math.round(bufferDuration / 1000), 's')
-        sendCurrentChunkToWhisper()
-      } else {
-        console.log('⏭️ Final buffer too small, skipping (', Math.round(finalChunk.size / 1024), 'KB,', Math.round(bufferDuration / 1000), 's)')
-      }
+    // Limpar intervals ANTES de parar MediaRecorder
+    if (silenceCheckIntervalRef.current) {
+      clearInterval(silenceCheckIntervalRef.current)
+      silenceCheckIntervalRef.current = null
     }
     
-    // Resetar estado de âncora
+    // 🆕 AGUARDAR último chunk de dados
+    if (isWhisperEnabled && mediaRecorderRef.current) {
+      await stopMediaRecorderAsync()
+      
+      // Agora audioChunksRef.current tem TODOS os chunks incluindo o último
+      if (audioChunksRef.current.length > 0) {
+        const finalChunk = new Blob(audioChunksRef.current, { type: 'audio/webm' })
+        const bufferDuration = Date.now() - bufferStartTimeRef.current
+        
+        if (finalChunk.size > 80000 && bufferDuration >= MIN_BUFFER_DURATION) {
+          console.log('📤 Sending final buffer:', Math.round(finalChunk.size / 1024), 'KB')
+          await sendFinalChunkToWhisper()
+        } else {
+          console.log('⏭️ Final buffer too small, skipping')
+        }
+      }
+    } else {
+      // Se Whisper não habilitado, apenas para normalmente
+      stopMediaRecorder()
+    }
+    
+    // Limpar AudioContext e outros recursos
+    if (audioContextRef.current) {
+      audioContextRef.current.close()
+      audioContextRef.current = null
+      analyserRef.current = null
+    }
+    
+    // Resetar estado
     anchorRef.current = null
     selectionEndRef.current = null
     interimLengthRef.current = 0
     whisperFallbackToastShownRef.current = false
     lastFinalTranscriptRef.current = ''
-    audioChunksRef.current = []
+    streamRef.current = null
     
     console.log('🛑 Smart Buffering dictation stopped')
-  }, [stopMediaRecorder, isWhisperEnabled, sendCurrentChunkToWhisper])
+  }, [stopMediaRecorder, stopMediaRecorderAsync, isWhisperEnabled, sendFinalChunkToWhisper])
 
   /**
    * 🆕 FASE 6: Callbacks estabilizados - sem dependências no array
