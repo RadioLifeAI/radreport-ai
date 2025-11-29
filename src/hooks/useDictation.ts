@@ -72,12 +72,15 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   // 🎙️ Refs para sistema Whisper integrado
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const audioChunksRef = useRef<Blob[]>([])
+  const accumulatedAudioRef = useRef<Blob[]>([]) // 🆕 Buffer acumulado durante sessão
   const chunkIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const lastSegmentEndRef = useRef<number>(0)
   const textSegmentsRef = useRef<TextSegment[]>([])
   const isProcessingRef = useRef<boolean>(false) // 🔒 Mutex para evitar race conditions
   const processingQueueRef = useRef<Array<() => Promise<void>>>([]) // 📋 Fila de processamento
   const abortControllerRef = useRef<AbortController | null>(null) // 🛑 Cancelamento de requests
+  const whisperDebounceRef = useRef<NodeJS.Timeout | null>(null) // 🆕 Debounce timer
+  const lastFinalTranscriptRef = useRef<string>('') // 🆕 Track last transcript
   
   // 🆕 FASE 3: Mapa de segmentos de áudio isolados
   const audioSegmentsRef = useRef<Map<string, AudioSegment>>(new Map())
@@ -134,7 +137,35 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   }, [])
 
   /**
-   * 🆕 FASE 1-5: Envia chunk de áudio para Whisper com reconciliador inteligente
+   * 🆕 VAD: Detecta atividade de áudio (filtrar silêncio)
+   */
+  const detectAudioActivity = useCallback(async (blob: Blob): Promise<boolean> => {
+    try {
+      const arrayBuffer = await blob.arrayBuffer()
+      const audioContext = new AudioContext()
+      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
+      
+      const channelData = audioBuffer.getChannelData(0)
+      const rms = Math.sqrt(channelData.reduce((sum, val) => sum + val * val, 0) / channelData.length)
+      
+      await audioContext.close()
+      
+      const SILENCE_THRESHOLD = 0.01
+      const hasActivity = rms > SILENCE_THRESHOLD
+      
+      if (!hasActivity) {
+        console.log('🔇 Silent audio detected, skipping (RMS:', rms.toFixed(4), ')')
+      }
+      
+      return hasActivity
+    } catch (error) {
+      console.warn('⚠️ VAD check failed, assuming active:', error)
+      return true // Fallback: assume audio is active
+    }
+  }, [])
+
+  /**
+   * 🆕 Envia áudio acumulado para Whisper (chamado apenas em stop ou após debounce)
    */
   const sendChunkToWhisper = useCallback(async (params: {
     audioBlob: Blob
@@ -147,10 +178,19 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
 
     const { audioBlob, startPos, endPos, webSpeechText } = params
     
-    const MIN_AUDIO_SIZE = 10 * 1024 // 10KB
+    // 🆕 Tamanho mínimo otimizado para ~10s (alinhado com cobrança mínima Groq)
+    const MIN_AUDIO_DURATION_SECONDS = 10
+    const MIN_AUDIO_SIZE = MIN_AUDIO_DURATION_SECONDS * 16000 // ~160KB para 10s @ 16KB/s
+    
     if (audioBlob.size < MIN_AUDIO_SIZE) {
-      console.log('⚠️ Audio too short, skipping Whisper')
-      // 🆕 FASE 4: Fallback - manter texto Web Speech
+      console.log('⏭️ Audio too short for Whisper (', Math.round(audioBlob.size / 1024), 'KB, need', Math.round(MIN_AUDIO_SIZE / 1024), 'KB), skipping')
+      return
+    }
+    
+    // 🆕 VAD: Filtrar áudio silencioso
+    const hasActivity = await detectAudioActivity(audioBlob)
+    if (!hasActivity) {
+      console.log('⏭️ Skipping silent audio chunk')
       return
     }
     
@@ -670,19 +710,21 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     // 🆕 FASE 2: Capturar posição DEPOIS (corrigido)
     const webSpeechEndPos = currentEditor.state.selection.from
     
-    // 🆕 FASE 3: Associar áudio às posições EXATAS
+    // 🆕 Acumular áudio durante ditado (não enviar ainda)
     if (isWhisperEnabled && audioChunksRef.current.length > 0) {
-      const audioBlob = new Blob(audioChunksRef.current)
-      
-      enqueueWhisperProcessing({
-        audioBlob,
-        startPos: webSpeechStartPos,
-        endPos: webSpeechEndPos,
-        webSpeechText: transcript
-      })
-      
-      // 🆕 FASE 3: Limpar buffer imediatamente para isolamento
+      // Adicionar chunks atuais ao buffer acumulado
+      accumulatedAudioRef.current.push(...audioChunksRef.current)
       audioChunksRef.current = []
+      
+      // 🆕 Resetar e iniciar timer de debounce (5s de silêncio)
+      if (whisperDebounceRef.current) {
+        clearTimeout(whisperDebounceRef.current)
+      }
+      
+      lastFinalTranscriptRef.current = transcript
+      
+      // Não enviar agora - esperar 5s de silêncio ou stopDictation
+      console.log('📦 Audio accumulated, waiting for silence or stop...')
     }
 
     // Resetar estado
@@ -805,8 +847,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   }, [isWhisperEnabled, startAudioRecording])
 
   /**
-   * Para o ditado por voz
-   * 🆕 Sem envio de chunk final - processamento já acontece em handleFinalTranscript
+   * Para o ditado por voz e envia áudio acumulado final para Whisper
    */
   const stopDictation = useCallback(() => {
     if (!speechServiceRef.current) return
@@ -815,7 +856,35 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     setIsActive(false)
     setStatus('idle')
     
-    // ❌ Não envia chunk final - já processado em handleFinalTranscript
+    // 🆕 Enviar todo áudio acumulado ao parar
+    if (isWhisperEnabled && accumulatedAudioRef.current.length > 0) {
+      const finalAudioBlob = new Blob(accumulatedAudioRef.current)
+      const currentEditor = editorRef.current
+      
+      if (currentEditor && lastFinalTranscriptRef.current) {
+        console.log('📤 Sending accumulated audio on stop (', Math.round(finalAudioBlob.size / 1024), 'KB)')
+        
+        // Capturar posições aproximadas do conteúdo ditado
+        const endPos = currentEditor.state.selection.from
+        const textLength = lastFinalTranscriptRef.current.length
+        const startPos = Math.max(0, endPos - textLength - 50) // Aproximação
+        
+        enqueueWhisperProcessing({
+          audioBlob: finalAudioBlob,
+          startPos,
+          endPos,
+          webSpeechText: lastFinalTranscriptRef.current
+        })
+      }
+      
+      accumulatedAudioRef.current = []
+    }
+    
+    // Limpar debounce timer
+    if (whisperDebounceRef.current) {
+      clearTimeout(whisperDebounceRef.current)
+      whisperDebounceRef.current = null
+    }
     
     // Para gravação de áudio e limpa fila
     stopAudioRecording()
@@ -824,10 +893,11 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     anchorRef.current = null
     selectionEndRef.current = null
     interimLengthRef.current = 0
-    whisperFallbackToastShownRef.current = false // Reset toast flag
+    whisperFallbackToastShownRef.current = false
+    lastFinalTranscriptRef.current = ''
     
-    console.log('🛑 Unified dictation stopped')
-  }, [stopAudioRecording])
+    console.log('🛑 Dictation stopped and final audio sent')
+  }, [stopAudioRecording, isWhisperEnabled, enqueueWhisperProcessing])
 
   /**
    * 🆕 FASE 6: Callbacks estabilizados - sem dependências no array
@@ -868,15 +938,16 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   }, []) // 🆕 FASE 6: Array de dependências vazio - callbacks estabilizados
 
   /**
-   * 🆕 FASE 8: Privacidade - parar microfone quando aba não está visível
+   * 🆕 Privacidade - parar microfone quando aba não está visível
    */
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden && isActive) {
         console.log('🔒 Tab hidden - stopping dictation for privacy')
         stopDictation()
-        // 🆕 FASE 8: Limpar áudio da memória
+        // Limpar áudio da memória
         audioChunksRef.current = []
+        accumulatedAudioRef.current = []
         toast.info('Ditado pausado (aba em segundo plano)')
       }
     }

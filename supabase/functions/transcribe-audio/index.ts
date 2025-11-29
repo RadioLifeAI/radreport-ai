@@ -80,40 +80,37 @@ serve(async (req) => {
     // Calculate credits: 1 credit per minute, min 1, max 5
     const creditsToConsume = Math.min(Math.max(Math.ceil(estimatedDurationSeconds / 60), 1), 5);
     
-    console.log(`Estimated duration: ${estimatedDurationSeconds}s, Credits needed: ${creditsToConsume}`);
+    console.log(`📊 Estimated duration: ${estimatedDurationSeconds}s, Credits needed: ${creditsToConsume}`);
 
-    // Consume credits BEFORE transcription
-    const { data: consumeResult, error: consumeError } = await supabaseClient.rpc(
-      'consume_whisper_credits',
-      { 
-        p_user_id: userId,
-        p_credits_to_consume: creditsToConsume 
-      }
-    );
+    // Check balance BEFORE consuming (don't consume yet)
+    const { data: balanceCheck, error: balanceError } = await supabaseClient
+      .from('user_whisper_balance')
+      .select('balance')
+      .eq('user_id', userId)
+      .single();
 
-    if (consumeError || !consumeResult) {
-      console.error('Failed to consume credits:', consumeError);
+    if (balanceError || !balanceCheck || balanceCheck.balance < creditsToConsume) {
+      console.error('Insufficient credits:', balanceCheck?.balance || 0);
       return new Response(
         JSON.stringify({ 
           error: 'Saldo insuficiente de créditos Whisper',
-          credits_needed: creditsToConsume 
+          credits_needed: creditsToConsume,
+          current_balance: balanceCheck?.balance || 0
         }),
         {
-          status: 402, // Payment Required
+          status: 402,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         }
       );
     }
-
-    const creditsRemaining = consumeResult;
 
     console.log('Transcribing audio with Groq Whisper API...');
     
     // Process audio in chunks
     const binaryAudio = processBase64Chunks(audio);
     
-    // 🆕 FASE 5: Prompt atualizado para ignorar comandos de voz
-    const medicalPrompt = 'Transcrição de laudo radiológico médico brasileiro. Termos técnicos frequentes: hepatomegalia, esplenomegalia, esteatose hepática, cirrose, fibrose, colecistite, colelitíase, coledocolitíase, colangite, pancreatite, nefrolitíase, hidronefrose, pielonefrite, cistite, ascite, derrame pleural, pneumotórax, atelectasia, consolidação pulmonar, bronquiectasia, enfisema, hipoecogênico, hiperecogênico, isoecogênico, anecogênico, heterogêneo, homogêneo, parênquima, ecogenicidade, ecotextura, BI-RADS, TI-RADS, PI-RADS, LI-RADS, O-RADS, Lung-RADS, CAD-RADS, linfonodomegalia, adenomegalia, espessamento parietal, neoplasia, metástase, nódulo, cisto, pólipo, massa, lesão, calcificação, diverticulose, diverticulite, apendicite, hérnia, linfoma, carcinoma, adenocarcinoma, melanoma, sarcoma, lipoma, hemangioma, angioma, teratoma, adenoma, mioma, endometriose, adenomiose, ovário policístico, hérnia discal, espondilose, espondilólise, espondilolistese, osteófito, artrose, artrite, tendinopatia, bursite, sinovite, meniscopatia, condropatia, estenose, aneurisma, trombose, embolia, isquemia, infarto, edema, hematoma, abscesso, fístula, úlcera, erosão, perfuração, obstrução, dilatação. IGNORAR palavras de comando: nova linha, próxima linha, linha, novo parágrafo, próximo parágrafo, parágrafo, ponto parágrafo, ponto final, vírgula, ponto e vírgula, dois pontos. Medidas em centímetros (cm), milímetros (mm), mililitros (ml).';
+    // Optimized prompt: <224 tokens (~850 chars) to comply with Groq limit
+    const medicalPrompt = 'Laudo radiológico brasileiro. Termos: hepatomegalia, esplenomegalia, esteatose, colecistite, colelitíase, pancreatite, hidronefrose, hipoecogênico, hiperecogênico, heterogêneo, linfonodomegalia, BI-RADS, TI-RADS, PI-RADS, LI-RADS, parênquima, neoplasia, nódulo, cisto, lesão, dilatação, estenose, trombose, edema, hematoma. Medidas em cm/mm/ml.';
     
     // Prepare form data
     const formData = new FormData();
@@ -125,7 +122,7 @@ serve(async (req) => {
     formData.append('temperature', '0.0');
     formData.append('response_format', 'verbose_json');
 
-    // Send to Groq Whisper API (10x cheaper than OpenAI)
+    // Send to Groq Whisper API
     const response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
       method: 'POST',
       headers: {
@@ -159,7 +156,23 @@ serve(async (req) => {
       }
     }
 
-    console.log('Transcription successful:', finalText);
+    console.log('✅ Transcription successful:', finalText.substring(0, 50));
+
+    // NOW consume credits AFTER successful transcription
+    const { data: consumeResult, error: consumeError } = await supabaseClient.rpc(
+      'consume_whisper_credits',
+      { 
+        p_user_id: userId,
+        p_credits_to_consume: creditsToConsume 
+      }
+    );
+
+    if (consumeError) {
+      console.error('Failed to consume credits after transcription:', consumeError);
+      // Transcription succeeded but couldn't deduct credits - log and continue
+    }
+
+    const creditsRemaining = consumeResult || (balanceCheck.balance - creditsToConsume);
 
     // Log usage
     await supabaseClient.from('whisper_usage_log').insert({
