@@ -5,7 +5,7 @@ import { useSpeechCorrectionBuffer } from './useSpeechCorrectionBuffer'
 import { supabase } from '@/integrations/supabase/client'
 import { calculateDiff, filterSignificantDiffs, sortDiffsByPosition, mergeDiffs } from '@/utils/diffUtils'
 import { applyDiffToEditor } from '@/utils/applyDiffToTipTap'
-import { fullRadiologyProcess } from '@/utils/radiologyPostProcessor'
+import { prepareForLLM } from '@/utils/radiologyPostProcessor'
 import { toast } from 'sonner'
 
 export interface UseHybridDictationReturn {
@@ -132,8 +132,8 @@ export function useHybridDictation(editor: Editor | null): UseHybridDictationRet
     try {
       console.log('🔄 Processing buffer:', unsentText.substring(0, 50) + '...')
 
-      // 1. Aplicar pós-processamento radiológico local
-      const postProcessed = fullRadiologyProcess(unsentText)
+      // 1. Preparar texto para LLM (correções locais completas)
+      const postProcessed = prepareForLLM(unsentText)
 
       // 2. Enviar para correção IA via Groq LLM
       const corrected = await callTextCorrection(postProcessed)
