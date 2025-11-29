@@ -37,7 +37,7 @@ TAREFAS PRINCIPAIS:
    - "hepatomegália" → "hepatomegalia"
    - "esplenomegália" → "esplenomegalia"
    - "esteatose hepática" → "esteatose hepática"
-5. FORMATAÇÃO DE MEDIDAS: Preservar formato "X,X cm" (vírgula decimal brasileira)
+5. MEDIDAS: Vírgula decimal. "por" → "x" (1,5 cm por 3,4 cm → 1,5 x 3,4 cm)
 
 REGRAS CRÍTICAS:
 - NÃO inventar achados clínicos ou diagnósticos
