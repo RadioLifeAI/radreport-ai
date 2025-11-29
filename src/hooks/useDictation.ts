@@ -87,6 +87,19 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   // 🆕 FASE 2: Flag para detectar edição manual pelo usuário
   const userEditedRef = useRef<boolean>(false)
   
+  // 🆕 SMART BUFFERING: Refs para detecção de pausa natural
+  const lastSpeechTimestampRef = useRef<number>(Date.now())
+  const bufferStartTimeRef = useRef<number>(Date.now())
+  const audioContextRef = useRef<AudioContext | null>(null)
+  const analyserRef = useRef<AnalyserNode | null>(null)
+  const silenceCheckIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  
+  // 🆕 SMART BUFFERING: Configuração otimizada
+  const MIN_BUFFER_DURATION = 10000 // 10s - cobrança mínima Groq
+  const MAX_BUFFER_DURATION = 25000 // 25s - eficiência ótima
+  const SILENCE_THRESHOLD = 1500 // 1.5s de silêncio → enviar
+  const AUDIO_THRESHOLD = -50 // dB para VAD
+  
   // Estados Whisper
   const [isWhisperEnabled, setIsWhisperEnabled] = useState(false)
   const [isTranscribing, setIsTranscribing] = useState(false)
@@ -166,8 +179,49 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   }, [])
 
   /**
-   * 🆕 RESTAURADO: Envia chunk atual para Whisper durante ditado ativo
-   * Chamado periodicamente (a cada 5s) pelo interval
+   * 🆕 SMART BUFFERING: Verifica se deve enviar buffer baseado em pausas naturais
+   */
+  const checkAndTriggerWhisper = useCallback(() => {
+    const currentEditor = editorRef.current
+    if (!currentEditor || audioChunksRef.current.length === 0) return false
+    
+    const now = Date.now()
+    const silenceDuration = now - lastSpeechTimestampRef.current
+    const bufferDuration = now - bufferStartTimeRef.current
+    
+    // Trigger 1: Silêncio natural > 1.5s (pausa entre frases)
+    if (silenceDuration >= SILENCE_THRESHOLD && bufferDuration >= MIN_BUFFER_DURATION) {
+      console.log('🎯 Trigger: Natural pause detected (', silenceDuration, 'ms silence)')
+      return true
+    }
+    
+    // Trigger 2: Buffer atingiu tamanho máximo (eficiência econômica)
+    if (bufferDuration >= MAX_BUFFER_DURATION) {
+      console.log('🎯 Trigger: Max buffer duration reached (', bufferDuration, 'ms)')
+      return true
+    }
+    
+    return false
+  }, [])
+
+  /**
+   * 🆕 SMART BUFFERING: Detecta comandos estruturais que devem enviar buffer imediatamente
+   */
+  const hasStructuralCommandTrigger = useCallback((transcript: string): boolean => {
+    const lower = transcript.toLowerCase()
+    const triggers = [
+      'ponto parágrafo',
+      'novo parágrafo',
+      'fim de laudo',
+      'encerrar laudo',
+      'conclusão final'
+    ]
+    
+    return triggers.some(trigger => lower.includes(trigger))
+  }, [])
+
+  /**
+   * 🆕 SMART BUFFERING: Envia chunk atual baseado em triggers inteligentes
    */
   const sendCurrentChunkToWhisper = useCallback(() => {
     const currentEditor = editorRef.current
@@ -176,10 +230,10 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     // Criar blob dos chunks atuais
     const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' })
     
-    // Verificar tamanho mínimo (~3s = 24KB para WebM Opus)
-    const MIN_CHUNK_SIZE = 3 * 8000 // 3 segundos
+    // Verificar tamanho mínimo (10s = 80KB para WebM Opus)
+    const MIN_CHUNK_SIZE = MIN_BUFFER_DURATION * 8 // ~80KB
     if (audioBlob.size < MIN_CHUNK_SIZE) {
-      console.log('⏭️ Chunk too small, waiting for more audio')
+      console.log('⏭️ Buffer too small (', Math.round(audioBlob.size / 1024), 'KB, need', Math.round(MIN_CHUNK_SIZE / 1024), 'KB)')
       return
     }
     
@@ -189,11 +243,14 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     const textLength = webSpeechText.length
     const startPos = Math.max(0, lastSegmentEndRef.current || (endPos - textLength - 10))
     
-    console.log('📤 Sending periodic chunk:', {
+    const bufferDuration = Date.now() - bufferStartTimeRef.current
+    
+    console.log('📤 Smart buffer sent:', {
       size: Math.round(audioBlob.size / 1024) + 'KB',
+      duration: Math.round(bufferDuration / 1000) + 's',
       startPos,
       endPos,
-      text: webSpeechText.substring(0, 30) + '...'
+      text: webSpeechText.substring(0, 40) + '...'
     })
     
     // Enfileirar para processamento
@@ -207,9 +264,10 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     // Atualizar posição do último segmento
     lastSegmentEndRef.current = endPos
     
-    // Limpar chunks processados
+    // Limpar chunks processados e reiniciar buffer
     audioChunksRef.current = []
     lastFinalTranscriptRef.current = ''
+    bufferStartTimeRef.current = Date.now()
     
   }, [])
 
@@ -690,14 +748,16 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
 
   /**
    * Handler para transcrições finais (confirmadas)
-   * 🆕 FASE 2: Correção de posicionamento - capturar ANTES de processVoiceInput
-   * 🆕 FASE 3: Isolamento de áudio por segmento
+   * 🆕 SMART BUFFERING: Atualiza timestamp de fala e verifica triggers
    */
   handleFinalTranscriptRef.current = useCallback((transcript: string) => {
     const currentEditor = editorRef.current
     console.log('✅ Final transcript:', transcript)
     
     if (!currentEditor || !transcript.trim()) return
+
+    // 🆕 SMART BUFFERING: Atualizar timestamp de última fala
+    lastSpeechTimestampRef.current = Date.now()
 
     // Se não tem âncora ainda, verificar se há seleção
     if (anchorRef.current === null) {
@@ -771,10 +831,15 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     // 🆕 FASE 2: Capturar posição DEPOIS (corrigido)
     const webSpeechEndPos = currentEditor.state.selection.from
     
-    // 🔧 RESTAURADO: Salvar transcrição para sincronização (não acumular áudio)
+    // 🔧 RESTAURADO: Salvar transcrição para sincronização
     if (isWhisperEnabled) {
       lastFinalTranscriptRef.current = transcript
-      console.log('📝 Transcript saved for next chunk')
+      
+      // 🆕 SMART BUFFERING: Trigger 3 - Comando estrutural detectado
+      if (hasStructuralCommandTrigger(transcript)) {
+        console.log('🎯 Trigger: Structural command detected')
+        sendCurrentChunkToWhisper()
+      }
     }
 
     // Resetar estado
@@ -783,7 +848,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     interimLengthRef.current = 0
 
     console.log('✏️ Final processed:', webSpeechStartPos, '->', webSpeechEndPos)
-  }, [isWhisperEnabled])
+  }, [isWhisperEnabled, hasStructuralCommandTrigger, sendCurrentChunkToWhisper])
 
   /**
    * Inicia gravação de áudio para Whisper
@@ -830,8 +895,15 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
 
   /**
    * Para apenas o MediaRecorder SEM cancelar requests Whisper
+   * 🆕 SMART BUFFERING: Limpa intervals e AudioContext
    */
   const stopMediaRecorder = useCallback(() => {
+    // 🆕 SMART BUFFERING: Limpar silence check interval
+    if (silenceCheckIntervalRef.current) {
+      clearInterval(silenceCheckIntervalRef.current)
+      silenceCheckIntervalRef.current = null
+    }
+
     if (chunkIntervalRef.current) {
       clearInterval(chunkIntervalRef.current)
       chunkIntervalRef.current = null
@@ -841,6 +913,14 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       mediaRecorderRef.current.stop()
       mediaRecorderRef.current = null
       console.log('🎙️ Audio recording stopped')
+    }
+    
+    // 🆕 SMART BUFFERING: Limpar AudioContext
+    if (audioContextRef.current) {
+      audioContextRef.current.close()
+      audioContextRef.current = null
+      analyserRef.current = null
+      console.log('🔊 AudioContext closed')
     }
   }, [])
 
@@ -866,7 +946,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
 
   /**
    * Inicia o ditado por voz com captura de audio stream e Whisper
-   * 🆕 RESTAURADO: Chunking temporal a cada 5s para refinamento contínuo
+   * 🆕 SMART BUFFERING: Sistema baseado em pausas naturais, não intervalo fixo
    */
   const startDictation = useCallback(async (): Promise<MediaStream | null> => {
     const currentEditor = editorRef.current
@@ -875,7 +955,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       return null
     }
 
-    console.log('🎤 Starting unified dictation (Web Speech + Whisper)...')
+    console.log('🎤 Starting unified dictation with Smart Buffering...')
     
     const result = await speechServiceRef.current.startListeningWithAudio()
     if (result.started) {
@@ -886,23 +966,43 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
         // Iniciar gravação de áudio para Whisper
         await startAudioRecording(stream)
         
-        // 🆕 RESTAURADO: Chunking temporal a cada 5 segundos
-        chunkIntervalRef.current = setInterval(() => {
-          sendCurrentChunkToWhisper()
-        }, 5000) // 5 segundos
+        // 🆕 SMART BUFFERING: Inicializar timestamps
+        lastSpeechTimestampRef.current = Date.now()
+        bufferStartTimeRef.current = Date.now()
+        
+        // 🆕 SMART BUFFERING: AudioContext para VAD em tempo real
+        if (!audioContextRef.current) {
+          audioContextRef.current = new AudioContext()
+          const analyser = audioContextRef.current.createAnalyser()
+          analyser.fftSize = 2048
+          analyser.smoothingTimeConstant = 0.8
+          
+          const source = audioContextRef.current.createMediaStreamSource(stream)
+          source.connect(analyser)
+          
+          analyserRef.current = analyser
+          console.log('🔊 AudioContext initialized for real-time VAD')
+        }
+        
+        // 🆕 SMART BUFFERING: Verificação contínua de pausa natural (500ms)
+        silenceCheckIntervalRef.current = setInterval(() => {
+          if (checkAndTriggerWhisper()) {
+            sendCurrentChunkToWhisper()
+          }
+        }, 500) // Check every 500ms for natural pauses
       }
       
-      console.log('✓ Dictation started successfully with Whisper integration')
+      console.log('✓ Smart Buffering dictation started (10-25s adaptive chunks)')
       return stream || null
     }
     
     console.error('✗ Failed to start dictation')
     return null
-  }, [isWhisperEnabled, startAudioRecording, sendCurrentChunkToWhisper])
+  }, [isWhisperEnabled, startAudioRecording, checkAndTriggerWhisper, sendCurrentChunkToWhisper])
 
   /**
-   * Para o ditado por voz e envia apenas chunks restantes não processados
-   * 🆕 RESTAURADO: Envia apenas chunk final restante (não blob gigante acumulado)
+   * Para o ditado por voz e envia chunk final se necessário
+   * 🆕 SMART BUFFERING: Envia apenas se buffer >= 10s (mínimo econômico)
    */
   const stopDictation = useCallback(() => {
     if (!speechServiceRef.current) return
@@ -914,13 +1014,17 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     // Parar MediaRecorder PRIMEIRO (sem cancelar requests)
     stopMediaRecorder()
     
-    // 🆕 RESTAURADO: Enviar apenas chunks finais não processados
+    // 🆕 SMART BUFFERING: Enviar apenas se buffer atende requisitos econômicos
     if (isWhisperEnabled && audioChunksRef.current.length > 0) {
       const finalChunk = new Blob(audioChunksRef.current, { type: 'audio/webm' })
+      const bufferDuration = Date.now() - bufferStartTimeRef.current
       
-      // ~2.5s mínimo
-      if (finalChunk.size > 20000) {
+      // Só enviar se buffer >= 10s (mínimo cobrado pelo Groq)
+      if (finalChunk.size > 80000 && bufferDuration >= MIN_BUFFER_DURATION) {
+        console.log('📤 Sending final buffer:', Math.round(finalChunk.size / 1024), 'KB,', Math.round(bufferDuration / 1000), 's')
         sendCurrentChunkToWhisper()
+      } else {
+        console.log('⏭️ Final buffer too small, skipping (', Math.round(finalChunk.size / 1024), 'KB,', Math.round(bufferDuration / 1000), 's)')
       }
     }
     
@@ -932,7 +1036,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     lastFinalTranscriptRef.current = ''
     audioChunksRef.current = []
     
-    console.log('🛑 Dictation stopped')
+    console.log('🛑 Smart Buffering dictation stopped')
   }, [stopMediaRecorder, isWhisperEnabled, sendCurrentChunkToWhisper])
 
   /**
