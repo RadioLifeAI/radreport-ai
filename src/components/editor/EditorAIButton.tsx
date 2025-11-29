@@ -25,7 +25,13 @@ export default function EditorAIButton({ editor }: { editor: Editor | null }){
       })
       if (error) throw error
       
+      console.log('AI suggestion response:', data)
       const { improved, notes } = data
+      
+      if (!improved && !notes) {
+        toast.warning('IA não retornou sugestões')
+        return
+      }
       
       if (improved) {
         const { from, to } = editor.state.selection
