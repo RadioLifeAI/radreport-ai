@@ -13,7 +13,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { ChevronDown, FileText } from 'lucide-react'
 import { TemplateVariable, TemplateVariableValues, TemplateWithVariables } from '@/types/templateVariables'
-import { processTemplateText, getAvailableTechniques, getDefaultTechnique } from '@/utils/templateVariableProcessor'
+import { processTemplateText, getAvailableTechniques, getDefaultTechnique, processConditionalLogic } from '@/utils/templateVariableProcessor'
 import { dividirEmSentencas } from '@/utils/templateFormatter'
 
 interface TemplateVariablesModalProps {
@@ -62,11 +62,14 @@ export function TemplateVariablesModal({
   const previewHtml = useMemo(() => {
     if (!template) return ''
 
-    // Process each section with variable substitution
-    const processedAchados = processTemplateText(template.conteudo.achados, values)
-    const processedImpressao = processTemplateText(template.conteudo.impressao, values)
+    // Process conditional logic to derive additional variables
+    const processedValues = processConditionalLogic(template.condicoes_logicas, values)
+
+    // Process each section with variable substitution (including derived variables)
+    const processedAchados = processTemplateText(template.conteudo.achados, processedValues)
+    const processedImpressao = processTemplateText(template.conteudo.impressao, processedValues)
     const processedAdicionais = template.conteudo.adicionais 
-      ? processTemplateText(template.conteudo.adicionais, values)
+      ? processTemplateText(template.conteudo.adicionais, processedValues)
       : ''
 
     // Get selected technique text
@@ -124,7 +127,9 @@ export function TemplateVariablesModal({
 
   const handleSubmit = () => {
     if (!validate()) return
-    onSubmit(selectedTechnique, values)
+    // Process conditional logic before submitting
+    const processedValues = processConditionalLogic(template?.condicoes_logicas, values)
+    onSubmit(selectedTechnique, processedValues)
     onOpenChange(false)
   }
 
