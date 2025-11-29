@@ -710,21 +710,16 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     // 🆕 FASE 2: Capturar posição DEPOIS (corrigido)
     const webSpeechEndPos = currentEditor.state.selection.from
     
-    // 🆕 Acumular áudio durante ditado (não enviar ainda)
+    // 🔧 Acumular áudio durante ditado (não enviar)
     if (isWhisperEnabled && audioChunksRef.current.length > 0) {
       // Adicionar chunks atuais ao buffer acumulado
       accumulatedAudioRef.current.push(...audioChunksRef.current)
       audioChunksRef.current = []
       
-      // 🆕 Resetar e iniciar timer de debounce (5s de silêncio)
-      if (whisperDebounceRef.current) {
-        clearTimeout(whisperDebounceRef.current)
-      }
-      
+      // Salvar última transcrição para envio posterior
       lastFinalTranscriptRef.current = transcript
       
-      // Não enviar agora - esperar 5s de silêncio ou stopDictation
-      console.log('📦 Audio accumulated, waiting for silence or stop...')
+      console.log('📦 Audio accumulated, will send on stop')
     }
 
     // Resetar estado
@@ -733,7 +728,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     interimLengthRef.current = 0
 
     console.log('✏️ Final processed:', webSpeechStartPos, '->', webSpeechEndPos)
-  }, [isWhisperEnabled, enqueueWhisperProcessing])
+  }, [isWhisperEnabled])
 
   /**
    * Inicia gravação de áudio para Whisper
@@ -779,10 +774,9 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   }, [isWhisperEnabled])
 
   /**
-   * Para gravação de áudio Whisper
-   * 🆕 FASE 4: Cancela requests em andamento e limpa fila
+   * Para apenas o MediaRecorder SEM cancelar requests Whisper
    */
-  const stopAudioRecording = useCallback(() => {
+  const stopMediaRecorder = useCallback(() => {
     if (chunkIntervalRef.current) {
       clearInterval(chunkIntervalRef.current)
       chunkIntervalRef.current = null
@@ -793,21 +787,28 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       mediaRecorderRef.current = null
       console.log('🎙️ Audio recording stopped')
     }
+  }, [])
+
+  /**
+   * Limpeza completa de recursos (usar apenas em unmount)
+   */
+  const cleanupAllResources = useCallback(() => {
+    stopMediaRecorder()
     
-    // 🆕 FASE 4: Cancelar request Whisper em andamento
+    // Cancelar requests Whisper em andamento (apenas em cleanup)
     if (abortControllerRef.current) {
       abortControllerRef.current.abort()
       abortControllerRef.current = null
     }
     
-    // Limpar fila de processamento
+    // Limpar fila e refs
     processingQueueRef.current = []
     isProcessingRef.current = false
-    
     audioChunksRef.current = []
+    accumulatedAudioRef.current = []
     textSegmentsRef.current = []
     lastSegmentEndRef.current = 0
-  }, [])
+  }, [stopMediaRecorder])
 
   /**
    * ❌ REMOVIDO: Chunking temporal substituído por sincronização em handleFinalTranscript
@@ -848,6 +849,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
 
   /**
    * Para o ditado por voz e envia áudio acumulado final para Whisper
+   * 🔧 CORREÇÃO: Para MediaRecorder primeiro, depois envia diretamente para Whisper
    */
   const stopDictation = useCallback(() => {
     if (!speechServiceRef.current) return
@@ -856,7 +858,10 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     setIsActive(false)
     setStatus('idle')
     
-    // 🆕 Enviar todo áudio acumulado ao parar
+    // 🔧 Parar MediaRecorder PRIMEIRO (sem cancelar requests)
+    stopMediaRecorder()
+    
+    // 🔧 Enviar áudio diretamente para Whisper (não enfileirar)
     if (isWhisperEnabled && accumulatedAudioRef.current.length > 0) {
       const finalAudioBlob = new Blob(accumulatedAudioRef.current)
       const currentEditor = editorRef.current
@@ -867,9 +872,10 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
         // Capturar posições aproximadas do conteúdo ditado
         const endPos = currentEditor.state.selection.from
         const textLength = lastFinalTranscriptRef.current.length
-        const startPos = Math.max(0, endPos - textLength - 50) // Aproximação
+        const startPos = Math.max(0, endPos - textLength - 50)
         
-        enqueueWhisperProcessing({
+        // 🔧 Chamar diretamente sendChunkToWhisper ao invés de enfileirar
+        sendChunkToWhisper({
           audioBlob: finalAudioBlob,
           startPos,
           endPos,
@@ -886,18 +892,16 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       whisperDebounceRef.current = null
     }
     
-    // Para gravação de áudio e limpa fila
-    stopAudioRecording()
-    
     // Resetar estado de âncora
     anchorRef.current = null
     selectionEndRef.current = null
     interimLengthRef.current = 0
     whisperFallbackToastShownRef.current = false
     lastFinalTranscriptRef.current = ''
+    audioChunksRef.current = []
     
-    console.log('🛑 Dictation stopped and final audio sent')
-  }, [stopAudioRecording, isWhisperEnabled, enqueueWhisperProcessing])
+    console.log('🛑 Dictation stopped and final audio sent directly')
+  }, [stopMediaRecorder, isWhisperEnabled, sendChunkToWhisper])
 
   /**
    * 🆕 FASE 6: Callbacks estabilizados - sem dependências no array
@@ -979,13 +983,13 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   }, [isWhisperEnabled, hasEnoughCredits])
 
   /**
-   * Cleanup ao desmontar
+   * Cleanup ao desmontar - agora usa limpeza completa
    */
   useEffect(() => {
     return () => {
-      stopAudioRecording()
+      cleanupAllResources()
     }
-  }, [stopAudioRecording])
+  }, [cleanupAllResources])
 
   return {
     isActive,
