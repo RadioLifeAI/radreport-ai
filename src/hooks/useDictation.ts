@@ -302,12 +302,23 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
         setIsTranscribing(true)
         
         try {
+          // Obter user_id para logging
+          const { data: { user } } = await supabase.auth.getUser()
+          
           const { data, error } = await supabase.functions.invoke('ai-dictation-polish', {
-            body: { text: rawText }
+            body: { text: rawText, user_id: user?.id }
           })
           
-          if (!error && data?.corrected) {
-            // Converter \n para HTML estruturado ← NOVO
+          if (!error && data?.corrected !== undefined) {
+            // Tratar fallback (texto mantido sem alterações)
+            if (data.fallback) {
+              console.log('ℹ️ Usando texto original (fallback):', data.reason)
+              toast.info('Texto mantido (sem alterações necessárias)')
+              setIsTranscribing(false)
+              return
+            }
+            
+            // Converter \n para HTML estruturado
             const htmlContent = convertNewlinesToHTML(data.corrected)
             
             // Substituir texto pelo corrigido com HTML
