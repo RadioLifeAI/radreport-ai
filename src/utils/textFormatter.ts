@@ -37,6 +37,24 @@ export function normalizeSpacing(text: string): string {
 }
 
 /**
+ * Converte newlines do texto da IA em HTML estruturado
+ * - \n\n → novo parágrafo <p>
+ * - \n → quebra de linha <br/>
+ */
+export function convertNewlinesToHTML(text: string): string {
+  // Dividir por parágrafos duplos
+  return text
+    .split('\n\n')
+    .filter(para => para.trim())
+    .map(para => {
+      // Converter quebras simples em <br/>
+      const withBreaks = para.replace(/\n/g, '<br/>')
+      return `<p>${withBreaks}</p>`
+    })
+    .join('')
+}
+
+/**
  * Converte Blob de áudio para base64
  */
 export function blobToBase64(blob: Blob): Promise<string> {
