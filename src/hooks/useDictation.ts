@@ -185,7 +185,15 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
           }
 
           processVoiceInput(transcript, editorRef.current)
-          bufferTextRef.current += (bufferTextRef.current ? ' ' : '') + transcript
+          
+          // Acumular texto processado no buffer para o Whisper
+          const processedText = editorRef.current.state.doc.textBetween(
+            anchorRef.current || 0,
+            editorRef.current.state.selection.from,
+            ' ',
+            ' '
+          )
+          bufferTextRef.current = processedText
 
           // Reset anchor
           anchorRef.current = null
