@@ -47,7 +47,7 @@ serve(async (req: Request) => {
       },
       body: JSON.stringify({
         model: "gpt-5-nano-2025-08-07",
-        max_completion_tokens: 600,
+        max_completion_tokens: 2000,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: `Laudo completo para revisão:\n"""${text}"""` },
