@@ -3,29 +3,66 @@ import { Editor } from '@tiptap/react'
 import { getSpeechRecognitionService, SpeechRecognitionService } from '@/services/SpeechRecognitionService'
 import { VOICE_COMMANDS_CONFIG } from '@/lib/voiceCommandsConfig'
 import { processMedicalText } from '@/utils/medicalTextProcessor'
+import { supabase } from '@/integrations/supabase/client'
+import { toast } from 'sonner'
 
 interface UseDictationReturn {
   isActive: boolean
   status: 'idle' | 'waiting' | 'listening'
   startDictation: () => Promise<MediaStream | null>
   stopDictation: () => void
-  getAnchorInfo: () => { anchor: number | null; interimLength: number }
+  
+  // Whisper features integradas
+  isWhisperEnabled: boolean
+  toggleWhisper: () => void
+  isTranscribing: boolean
+  whisperStats: {
+    total: number
+    success: number
+    failed: number
+  }
+}
+
+interface TextSegment {
+  id: string           // UUID único
+  startPos: number     // Posição inicial no editor
+  endPos: number       // Posição final no editor
+  webSpeechText: string // Texto do Web Speech
+  whisperText?: string // Texto do Whisper (quando retornar)
+  status: 'pending' | 'processing' | 'refined'
 }
 
 /**
- * Hook simplificado para ditado por voz contínuo
- * Padrão baseado na documentação oficial do Web Speech API
+ * Hook unificado para ditado por voz contínuo com refinamento Whisper
+ * Camada 1: Web Speech API → preview em tempo real no TipTap
+ * Camada 2: MediaRecorder → chunking temporal 3s → Whisper → substituição progressiva
  */
 export function useDictation(editor: Editor | null): UseDictationReturn {
   const [isActive, setIsActive] = useState(false)
   const [status, setStatus] = useState<'idle' | 'waiting' | 'listening'>('idle')
 
-  // Refs para sistema de âncora dinâmica
+  // Refs para sistema de âncora dinâmica (Web Speech)
   const editorRef = useRef<Editor | null>(null)
   const speechServiceRef = useRef<SpeechRecognitionService | null>(null)
   const anchorRef = useRef<number | null>(null)      // Posição inicial do ditado
   const selectionEndRef = useRef<number | null>(null) // Posição final da seleção (se houver)
   const interimLengthRef = useRef<number>(0)          // Tamanho do texto provisório
+
+  // 🎙️ Refs para sistema Whisper integrado
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const audioChunksRef = useRef<Blob[]>([])
+  const chunkIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const lastSegmentEndRef = useRef<number>(0)
+  const textSegmentsRef = useRef<TextSegment[]>([])
+  
+  // Estados Whisper
+  const [isWhisperEnabled, setIsWhisperEnabled] = useState(true)
+  const [isTranscribing, setIsTranscribing] = useState(false)
+  const [whisperStats, setWhisperStats] = useState({
+    total: 0,
+    success: 0,
+    failed: 0,
+  })
 
   // Sincronizar ref do editor sempre que mudar
   useEffect(() => {
@@ -380,7 +417,210 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   }, [])
 
   /**
-   * Inicia o ditado por voz com captura de audio stream
+   * Converte Blob de áudio para base64
+   */
+  const blobToBase64 = useCallback((blob: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        const base64 = reader.result as string
+        const base64Data = base64.split(',')[1]
+        resolve(base64Data)
+      }
+      reader.onerror = reject
+      reader.readAsDataURL(blob)
+    })
+  }, [])
+
+  /**
+   * Inicia gravação de áudio para Whisper
+   */
+  const startAudioRecording = useCallback(async (stream: MediaStream) => {
+    if (!isWhisperEnabled) return
+
+    try {
+      const SUPPORTED_MIMETYPES = [
+        'audio/webm;codecs=opus',
+        'audio/webm',
+        'audio/ogg;codecs=opus',
+        'audio/mp4'
+      ]
+
+      const mimeType = SUPPORTED_MIMETYPES.find(type => 
+        MediaRecorder.isTypeSupported(type)
+      )
+
+      if (!mimeType) {
+        throw new Error('Nenhum formato de áudio suportado')
+      }
+
+      const mediaRecorder = new MediaRecorder(stream, { mimeType })
+      audioChunksRef.current = []
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data)
+        }
+      }
+
+      mediaRecorder.start(100)
+      mediaRecorderRef.current = mediaRecorder
+
+      console.log('🎙️ Audio recording started for Whisper with', mimeType)
+    } catch (error) {
+      console.error('❌ Failed to start audio recording:', error)
+      toast.error('Erro ao iniciar gravação de áudio')
+    }
+  }, [isWhisperEnabled])
+
+  /**
+   * Para gravação de áudio Whisper
+   */
+  const stopAudioRecording = useCallback(() => {
+    if (chunkIntervalRef.current) {
+      clearInterval(chunkIntervalRef.current)
+      chunkIntervalRef.current = null
+    }
+
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop()
+      mediaRecorderRef.current = null
+      console.log('🎙️ Audio recording stopped')
+    }
+    
+    audioChunksRef.current = []
+    textSegmentsRef.current = []
+    lastSegmentEndRef.current = 0
+  }, [])
+
+  /**
+   * Envia chunk de áudio para Whisper e substitui progressivamente
+   */
+  const sendChunkToWhisper = useCallback(async (params: {
+    audioBlob: Blob
+    startPos: number
+    endPos: number
+  }) => {
+    const currentEditor = editorRef.current
+    if (!currentEditor || isTranscribing) return
+
+    const { audioBlob, startPos, endPos } = params
+    
+    // Validar tamanho
+    const MIN_AUDIO_SIZE = 50 * 1024 // 50KB
+    if (audioBlob.size < MIN_AUDIO_SIZE) {
+      console.log('⚠️ Audio too short, skipping Whisper')
+      return
+    }
+    
+    const MAX_AUDIO_SIZE = 25 * 1024 * 1024 // 25MB
+    if (audioBlob.size > MAX_AUDIO_SIZE) {
+      console.warn('⚠️ Audio too large:', Math.round(audioBlob.size / 1024 / 1024), 'MB')
+      return
+    }
+
+    setIsTranscribing(true)
+    setWhisperStats(prev => ({ ...prev, total: prev.total + 1 }))
+
+    // Criar segmento para rastreamento
+    const segmentId = `segment-${Date.now()}`
+    const webSpeechText = currentEditor.state.doc.textBetween(startPos, endPos, ' ', ' ')
+    
+    textSegmentsRef.current.push({
+      id: segmentId,
+      startPos,
+      endPos,
+      webSpeechText,
+      status: 'processing'
+    })
+
+    try {
+      const base64Audio = await blobToBase64(audioBlob)
+      console.log('🎤 Sending chunk to Whisper (', Math.round(audioBlob.size / 1024), 'KB ) for positions', startPos, '-', endPos)
+
+      const { data, error } = await supabase.functions.invoke('transcribe-audio', {
+        body: { 
+          audio: base64Audio,
+          language: 'pt'
+        }
+      })
+
+      if (error) throw error
+
+      if (data?.text) {
+        const whisperText = processMedicalText(data.text)
+        console.log('✅ Whisper transcription:', whisperText.substring(0, 50) + '...')
+
+        // Encontrar segmento correspondente
+        const segment = textSegmentsRef.current.find(s => s.id === segmentId)
+        if (segment) {
+          segment.whisperText = whisperText
+          segment.status = 'refined'
+
+          // Substituir APENAS este trecho específico
+          currentEditor
+            .chain()
+            .focus()
+            .deleteRange({ from: startPos, to: endPos })
+            .insertContentAt(startPos, whisperText + ' ')
+            .run()
+          
+          console.log('🔄 Replaced segment:', webSpeechText.substring(0, 30), '→', whisperText.substring(0, 30))
+
+          // Ajustar offsets dos segmentos seguintes
+          const lengthDiff = whisperText.length - (endPos - startPos)
+          if (lengthDiff !== 0) {
+            textSegmentsRef.current.forEach(s => {
+              if (s.startPos > endPos) {
+                s.startPos += lengthDiff
+                s.endPos += lengthDiff
+              }
+            })
+          }
+        }
+
+        setWhisperStats(prev => ({ ...prev, success: prev.success + 1 }))
+      }
+
+    } catch (error) {
+      console.error('❌ Whisper transcription error:', error)
+      setWhisperStats(prev => ({ ...prev, failed: prev.failed + 1 }))
+    } finally {
+      setIsTranscribing(false)
+    }
+  }, [blobToBase64, isTranscribing])
+
+  /**
+   * Inicia chunking temporal de 3 segundos
+   */
+  const startChunkingInterval = useCallback(() => {
+    if (!isWhisperEnabled) return
+
+    // Limpar interval anterior se existir
+    if (chunkIntervalRef.current) {
+      clearInterval(chunkIntervalRef.current)
+    }
+
+    chunkIntervalRef.current = setInterval(() => {
+      if (audioChunksRef.current.length > 0 && editorRef.current) {
+        const segmentEnd = editorRef.current.state.selection.from
+        
+        sendChunkToWhisper({
+          audioBlob: new Blob(audioChunksRef.current),
+          startPos: lastSegmentEndRef.current,
+          endPos: segmentEnd
+        })
+        
+        audioChunksRef.current = []
+        lastSegmentEndRef.current = segmentEnd
+      }
+    }, 3000) // A cada 3 segundos
+
+    console.log('⏰ Chunking interval started (3s)')
+  }, [isWhisperEnabled, sendChunkToWhisper])
+
+  /**
+   * Inicia o ditado por voz com captura de audio stream e Whisper
    */
   const startDictation = useCallback(async (): Promise<MediaStream | null> => {
     const currentEditor = editorRef.current
@@ -389,21 +629,30 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       return null
     }
 
-    console.log('🎤 Starting dictation with audio capture...')
+    console.log('🎤 Starting unified dictation (Web Speech + Whisper)...')
     
     const result = await speechServiceRef.current.startListeningWithAudio()
     if (result.started) {
       setIsActive(true)
-      console.log('✓ Dictation started successfully, stream:', !!result.stream)
-      return result.stream || null
+      
+      const stream = result.stream
+      if (stream && isWhisperEnabled) {
+        // Iniciar gravação de áudio para Whisper
+        await startAudioRecording(stream)
+        // Iniciar chunking temporal
+        startChunkingInterval()
+      }
+      
+      console.log('✓ Dictation started successfully with Whisper integration')
+      return stream || null
     }
     
     console.error('✗ Failed to start dictation')
     return null
-  }, [])
+  }, [isWhisperEnabled, startAudioRecording, startChunkingInterval])
 
   /**
-   * Para o ditado por voz
+   * Para o ditado por voz e envia chunk final para Whisper
    */
   const stopDictation = useCallback(() => {
     if (!speechServiceRef.current) return
@@ -412,13 +661,26 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     setIsActive(false)
     setStatus('idle')
     
+    // Enviar áudio final acumulado para Whisper
+    if (audioChunksRef.current.length > 0 && editorRef.current) {
+      const segmentEnd = editorRef.current.state.selection.from
+      sendChunkToWhisper({
+        audioBlob: new Blob(audioChunksRef.current),
+        startPos: lastSegmentEndRef.current,
+        endPos: segmentEnd
+      })
+    }
+    
+    // Para gravação de áudio
+    stopAudioRecording()
+    
     // Resetar estado de âncora
     anchorRef.current = null
     selectionEndRef.current = null
     interimLengthRef.current = 0
     
-    console.log('🛑 Dictation stopped')
-  }, [])
+    console.log('🛑 Unified dictation stopped')
+  }, [stopAudioRecording, sendChunkToWhisper])
 
   /**
    * Inicializa serviço de reconhecimento de voz e configura callbacks
@@ -459,14 +721,36 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     }
   }, [handleInterimTranscript, handleFinalTranscript])
 
+  /**
+   * Toggle Whisper
+   */
+  const toggleWhisper = useCallback(() => {
+    setIsWhisperEnabled(prev => {
+      const newState = !prev
+      toast.info(newState ? 'Whisper ativado ✅' : 'Whisper desativado ⏸️')
+      return newState
+    })
+  }, [])
+
+  /**
+   * Cleanup ao desmontar
+   */
+  useEffect(() => {
+    return () => {
+      stopAudioRecording()
+    }
+  }, [stopAudioRecording])
+
   return {
     isActive,
     status,
     startDictation,
     stopDictation,
-    getAnchorInfo: () => ({
-      anchor: anchorRef.current,
-      interimLength: interimLengthRef.current
-    })
+    
+    // Whisper features integradas
+    isWhisperEnabled,
+    toggleWhisper,
+    isTranscribing,
+    whisperStats,
   }
 }
