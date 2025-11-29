@@ -238,13 +238,6 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
           if (e.data.size > 0 && isWhisperEnabled && editorRef.current) {
             console.log('📦 Audio blob:', Math.round(e.data.size / 1024), 'KB')
             
-            // Validar tamanho mínimo (5s * 8KB/s = 40KB)
-            if (e.data.size < 40000) {
-              console.log('⏭️ Audio too short, keeping WebSpeech text')
-              resolve()
-              return
-            }
-            
             // Enviar para Whisper
             setIsTranscribing(true)
             try {
