@@ -6,6 +6,27 @@ import { useWhisperCredits } from './useWhisperCredits'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from 'sonner'
 
+// Lista de comandos que devem silenciar a gravação (com variações naturais)
+const AUDIO_MUTE_COMMANDS = [
+  // Estruturais - variações
+  'nova linha', 'próxima linha', 'linha', 'quebra de linha', 'linha nova',
+  'novo parágrafo', 'próximo parágrafo', 'parágrafo', 'quebra de parágrafo',
+  // Pontuação
+  'ponto de interrogação', 'ponto de exclamação', 'ponto e vírgula',
+  'ponto parágrafo', 'ponto final', 'dois pontos', 'vírgula', 'ponto',
+  'reticências', 'abre parênteses', 'fecha parênteses', 'hífen', 'travessão',
+  // Edição
+  'apagar isso', 'apague isso', 'desfazer', 'desfaz', 'refazer',
+]
+
+/**
+ * Detecta se transcript contém comando de voz
+ */
+function containsVoiceCommand(text: string): boolean {
+  const lower = text.toLowerCase().trim()
+  return AUDIO_MUTE_COMMANDS.some(cmd => lower.includes(cmd))
+}
+
 interface UseDictationReturn {
   isActive: boolean
   status: 'idle' | 'waiting' | 'listening'
@@ -31,6 +52,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   const recognitionRef = useRef<InstanceType<typeof window.SpeechRecognition | typeof window.webkitSpeechRecognition> | null>(null)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const streamRef = useRef<MediaStream | null>(null)
+  const audioTrackRef = useRef<MediaStreamTrack | null>(null)
   const anchorRef = useRef<number | null>(null)
   const interimLengthRef = useRef<number>(0)
   const dictationStartRef = useRef<number | null>(null)
@@ -79,6 +101,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
 
         const result = event.results[event.results.length - 1]
         const transcript = result[0].transcript
+        const confidence = result[0].confidence
         const isFinal = result.isFinal
 
         if (!isFinal) {
@@ -102,6 +125,16 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
 
           interimLengthRef.current = transcript.length
         } else {
+          // FINAL: detectar comando e silenciar áudio se necessário
+          const hasCommand = containsVoiceCommand(transcript)
+          const isConfident = confidence >= 0.7
+          
+          // Silenciar gravação durante comando
+          if (hasCommand && isConfident && audioTrackRef.current) {
+            audioTrackRef.current.enabled = false
+            console.log('🔇 Audio track muted (command detected)')
+          }
+
           // FINAL: processar e inserir
           if (anchorRef.current !== null && interimLengthRef.current > 0) {
             editorRef.current.view.dispatch(
@@ -113,6 +146,12 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
           }
 
           processVoiceInput(transcript, editorRef.current)
+
+          // Reativar gravação após processar comando
+          if (hasCommand && isConfident && audioTrackRef.current) {
+            audioTrackRef.current.enabled = true
+            console.log('🔊 Audio track unmuted')
+          }
 
           // Reset anchor
           anchorRef.current = null
@@ -144,6 +183,12 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       if (isWhisperEnabled) {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
         streamRef.current = stream
+
+        // Salvar audioTrack para controle de silenciamento
+        const audioTrack = stream.getAudioTracks()[0]
+        if (audioTrack) {
+          audioTrackRef.current = audioTrack
+        }
 
         const mimeTypes = [
           'audio/webm;codecs=opus',
@@ -250,6 +295,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     }
 
     // 4. Reset estados
+    audioTrackRef.current = null
     setIsActive(false)
     setStatus('idle')
     anchorRef.current = null
