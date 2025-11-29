@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react'
 import { useReportStore } from '@/store'
 import { useTemplates } from '@/hooks/useTemplates'
 import { useFrasesModelo, FraseModelo } from '@/hooks/useFrasesModelo'
-import { useHybridDictation } from '@/hooks/useHybridDictation'
+import { useDictation } from '@/hooks/useDictation'
 import { useAuth } from '@/hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
 import { SimpleEditor } from '@/components/tiptap-templates/simple/simple-editor'
@@ -53,7 +53,7 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
     startNewConversation
   } = useChat()
 
-  // Voice dictation hook - hybrid system (Web Speech + Whisper)
+  // Voice dictation hook - unified system (Web Speech + Whisper chunking)
   const { 
     isActive: isVoiceActive, 
     status: voiceStatus, 
@@ -63,7 +63,7 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
     toggleWhisper,
     isTranscribing,
     whisperStats
-  } = useHybridDictation(editorInstance)
+  } = useDictation(editorInstance)
 
   // Template hook
   const {
