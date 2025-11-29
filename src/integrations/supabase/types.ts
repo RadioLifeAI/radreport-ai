@@ -1403,6 +1403,7 @@ export type Database = {
           adicionais: string | null
           ativo: boolean | null
           codigo: string
+          condicoes_logicas: Json | null
           conteudo_template: string | null
           created_at: string | null
           id: string
@@ -1413,6 +1414,7 @@ export type Database = {
           tecnica: Json
           titulo: string
           updated_at: string | null
+          variaveis: Json | null
           version: number | null
         }
         Insert: {
@@ -1420,6 +1422,7 @@ export type Database = {
           adicionais?: string | null
           ativo?: boolean | null
           codigo: string
+          condicoes_logicas?: Json | null
           conteudo_template?: string | null
           created_at?: string | null
           id?: string
@@ -1430,6 +1433,7 @@ export type Database = {
           tecnica: Json
           titulo: string
           updated_at?: string | null
+          variaveis?: Json | null
           version?: number | null
         }
         Update: {
@@ -1437,6 +1441,7 @@ export type Database = {
           adicionais?: string | null
           ativo?: boolean | null
           codigo?: string
+          condicoes_logicas?: Json | null
           conteudo_template?: string | null
           created_at?: string | null
           id?: string
@@ -1447,6 +1452,7 @@ export type Database = {
           tecnica?: Json
           titulo?: string
           updated_at?: string | null
+          variaveis?: Json | null
           version?: number | null
         }
         Relationships: []
