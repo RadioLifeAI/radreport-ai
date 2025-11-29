@@ -1,5 +1,6 @@
 import { Editor } from '@tiptap/react'
 import { applyCapitalization, shouldCapitalizeNext, normalizeSpacing } from '@/utils/textFormatter'
+import { processMedicalText } from '@/utils/medicalTextProcessor'
 
 /**
  * Comandos de pontuação (ordem de maior para menor para evitar conflitos)
@@ -166,6 +167,9 @@ export function processVoiceInput(text: string, editor: Editor): void {
     } else {
       // Processar texto com pontuação
       let processedText = replacePunctuationCommands(segment.content)
+      
+      // Aplicar correções médicas
+      processedText = processMedicalText(processedText)
       
       // Aplicar capitalização se necessário
       const currentPos = editor.state.selection.from
