@@ -65,6 +65,73 @@ const voiceRecognitionFixes: Record<string, string> = {
 }
 
 /**
+ * Remove ruídos de voz (ãh, hm, éh, etc.)
+ */
+export function removeVoiceNoise(text: string): string {
+  let cleaned = text
+
+  // Ruídos vocais comuns
+  const noises = ['ãh', 'ah', 'hm', 'hmm', 'éh', 'eh', 'uhm', 'uh']
+  
+  for (const noise of noises) {
+    const regex = new RegExp(`\\b${noise}\\b`, 'gi')
+    cleaned = cleaned.replace(regex, '')
+  }
+
+  // Limpar espaços duplicados resultantes
+  cleaned = cleaned.replace(/\s{2,}/g, ' ').trim()
+
+  return cleaned
+}
+
+/**
+ * Remove repetições consecutivas de palavras
+ * Ex: "fígado fígado" → "fígado"
+ */
+export function removeRepetitions(text: string): string {
+  // Regex para detectar palavra repetida consecutivamente
+  const regex = /\b(\w+)\s+\1\b/gi
+  return text.replace(regex, '$1')
+}
+
+/**
+ * Normaliza acrônimos radiológicos (capitalização correta)
+ */
+export function normalizeAcronyms(text: string): string {
+  const acronyms: Record<string, string> = {
+    'birads': 'BI-RADS',
+    'bi-rads': 'BI-RADS',
+    'tirads': 'TI-RADS',
+    'ti-rads': 'TI-RADS',
+    'pirads': 'PI-RADS',
+    'pi-rads': 'PI-RADS',
+    'lirads': 'LI-RADS',
+    'li-rads': 'LI-RADS',
+    'orads': 'O-RADS',
+    'o-rads': 'O-RADS',
+    'acr': 'ACR',
+    'inca': 'INCA',
+    'cbr': 'CBR',
+    'lca': 'LCA',
+    'lcp': 'LCP',
+    'tvp': 'TVP',
+    'mav': 'MAV',
+    'avc': 'AVC',
+    'hiv': 'HIV',
+    'dip': 'DIP',
+  }
+
+  let normalized = text
+
+  for (const [wrong, right] of Object.entries(acronyms)) {
+    const regex = new RegExp(`\\b${wrong}\\b`, 'gi')
+    normalized = normalized.replace(regex, right)
+  }
+
+  return normalized
+}
+
+/**
  * Corrige formatação de medidas médicas
  * Ex: "0 , 5 cm" → "0,5 cm"
  */
@@ -103,19 +170,28 @@ function fixMeasurements(text: string): string {
 export function processMedicalText(text: string): string {
   let processed = text
   
-  // 1. Correções específicas de voz (antes das outras para não conflitar)
+  // 1. Remover ruídos de voz primeiro
+  processed = removeVoiceNoise(processed)
+  
+  // 2. Correções específicas de voz
   for (const [wrong, right] of Object.entries(voiceRecognitionFixes)) {
     const regex = new RegExp(wrong, 'gi')
     processed = processed.replace(regex, right)
   }
   
-  // 2. Correções fonéticas do dicionário (hipoecogenico → hipoecogênico)
+  // 3. Correções fonéticas do dicionário (hipoecogenico → hipoecogênico)
   processed = applyPhoneticCorrections(processed)
   
-  // 3. Normalização morfológica (hepato megalia → hepatomegalia)
+  // 4. Normalização morfológica (hepato megalia → hepatomegalia)
   processed = normalizeMorphology(processed)
   
-  // 4. Correções de medidas e formatação
+  // 5. Normalizar acrônimos (consolidado)
+  processed = normalizeAcronyms(processed)
+  
+  // 6. Remover repetições consecutivas
+  processed = removeRepetitions(processed)
+  
+  // 7. Correções de medidas e formatação
   processed = fixMeasurements(processed)
   
   return processed
