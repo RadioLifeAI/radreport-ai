@@ -346,7 +346,16 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
 
       } catch (error) {
         attempt++
-        console.error(`❌ Whisper error (attempt ${attempt}/${MAX_RETRIES}):`, error)
+        const errorMessage = error instanceof Error ? error.message : String(error)
+        console.error(`❌ Whisper error (attempt ${attempt}/${MAX_RETRIES}):`, errorMessage)
+        
+        // Check for corrupted audio file error
+        if (errorMessage.includes('corrompido') || errorMessage.includes('could not process file')) {
+          console.error('❌ Audio file corrupted - clearing chunks and stopping retries')
+          audioChunksRef.current = []
+          toast.error('Áudio não reconhecido. Tente reiniciar o ditado.')
+          break // Don't retry on corrupted files
+        }
         
         if (attempt < MAX_RETRIES) {
           const backoffMs = Math.pow(2, attempt) * 1000
