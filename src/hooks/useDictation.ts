@@ -56,13 +56,13 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
 
   /**
    * Send audio to Whisper Edge Function
+   * Returns the transcribed text for global polish
    */
-  const sendToWhisper = useCallback(async () => {
-    if (!editorRef.current || !isWhisperEnabled || audioChunksRef.current.length === 0) return
-    if (processingRef.current) return
+  const sendToWhisper = useCallback(async (): Promise<string | null> => {
+    if (!editorRef.current || !isWhisperEnabled || audioChunksRef.current.length === 0) return null
+    if (processingRef.current) return null
 
     const chunks = [...audioChunksRef.current]
-    const text = bufferTextRef.current
     const editor = editorRef.current
 
     // Reset for next batch
@@ -79,7 +79,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       const MIN_SIZE = 40000 // 5s * 8000 bytes/s
       if (audioBlob.size < MIN_SIZE) {
         console.log('⏭️ Audio too short, skipping Whisper')
-        return
+        return null
       }
 
       const base64Audio = await blobToBase64(audioBlob)
@@ -92,30 +92,30 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       if (error || !data?.text) {
         setStats(prev => ({ ...prev, total: prev.total + 1, failed: prev.failed + 1 }))
         console.error('❌ Whisper error:', error)
-        return
+        return null
       }
 
       const whisperText = processMedicalText(data.text)
       
-      // Simple reconciliation: only apply if different
-      if (whisperText.toLowerCase() !== text.toLowerCase()) {
-        const currentPos = editor.state.selection.from
-        const startPos = currentPos - text.length
+      // Substituir texto no editor usando posição salva
+      if (dictationStartRef.current !== null) {
+        const startPos = dictationStartRef.current
+        const endPos = editor.state.selection.from
         
-        if (startPos >= 0) {
-          editor.chain()
-            .deleteRange({ from: startPos, to: currentPos })
-            .insertContent(whisperText + ' ')
-            .run()
-          
-          console.log('✅ Whisper refinement applied')
-        }
+        editor.chain()
+          .deleteRange({ from: startPos, to: endPos })
+          .insertContent(whisperText + ' ')
+          .run()
+        
+        console.log('✅ Whisper text applied to editor')
       }
 
       setStats(prev => ({ ...prev, total: prev.total + 1, success: prev.success + 1 }))
+      return whisperText // Retornar texto para global polish
     } catch (err) {
       console.error('❌ Whisper processing error:', err)
       setStats(prev => ({ ...prev, total: prev.total + 1, failed: prev.failed + 1 }))
+      return null
     } finally {
       processingRef.current = false
       setIsTranscribing(false)
@@ -281,23 +281,29 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       recognitionRef.current = null
     }
 
-    // Stop MediaRecorder and send final chunk
+    // Stop MediaRecorder and await Whisper processing
+    let finalWhisperText: string | null = null
+    
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-      mediaRecorderRef.current.stop()
-      
-      // Wait for final chunk
-      await new Promise<void>((resolve) => {
+      // Aguardar chunk final E processamento Whisper
+      finalWhisperText = await new Promise<string | null>((resolve) => {
         const mr = mediaRecorderRef.current
         if (!mr) {
-          resolve()
+          resolve(null)
           return
         }
-        mr.onstop = () => {
+        
+        mr.onstop = async () => {
           if (isWhisperEnabled && audioChunksRef.current.length > 0) {
-            sendToWhisper()
+            // AGUARDAR Whisper processar e retornar texto
+            const text = await sendToWhisper()
+            resolve(text)
+          } else {
+            resolve(null)
           }
-          resolve()
         }
+        
+        mr.stop()
       })
       
       mediaRecorderRef.current = null
@@ -315,14 +321,32 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       const startPos = dictationStartRef.current
       
       if (endPos > startPos) {
-        // Extrair texto ditado
-        const dictatedText = editorRef.current.state.doc.textBetween(startPos, endPos, ' ', ' ')
+        // Se Whisper retornou texto, usar texto atualizado do editor; senão, usar texto atual
+        let textToPolish: string
+        
+        if (finalWhisperText) {
+          // Whisper já substituiu - pegar texto atualizado do editor
+          textToPolish = editorRef.current.state.doc.textBetween(
+            startPos, 
+            editorRef.current.state.selection.from, 
+            ' ', 
+            ' '
+          )
+          console.log('🎯 Using Whisper-refined text for polish')
+        } else {
+          // Sem Whisper - usar texto WebSpeech
+          textToPolish = editorRef.current.state.doc.textBetween(startPos, endPos, ' ', ' ')
+          console.log('📝 Using WebSpeech text for polish')
+        }
         
         // Selecionar trecho visualmente
-        editorRef.current.commands.setTextSelection({ from: startPos, to: endPos })
+        editorRef.current.commands.setTextSelection({ 
+          from: startPos, 
+          to: editorRef.current.state.selection.from 
+        })
         
         // Aplicar correção global final
-        const polishedText = applyGlobalPolish(dictatedText)
+        const polishedText = applyGlobalPolish(textToPolish)
         
         // Substituir seleção com texto polido
         editorRef.current.commands.insertContent(polishedText)
