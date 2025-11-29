@@ -48,31 +48,36 @@ serve(async (req) => {
       throw new Error('No audio data provided');
     }
 
-    console.log('Transcribing audio with Whisper API...');
+    console.log('Transcribing audio with Groq Whisper API...');
     
     // Process audio in chunks
     const binaryAudio = processBase64Chunks(audio);
+    
+    // Medical terminology prompt for better accuracy
+    const medicalPrompt = 'Transcrição de laudo radiológico médico. Termos técnicos: hepatomegalia, esplenomegalia, esteatose, hiperecogênico, hipoecogênico, heterogêneo, homogêneo, BI-RADS, TI-RADS, PI-RADS, LI-RADS, ecogenicidade, parênquima, linfonodomegalia, adenomegalia, neoplasia, metástase.';
     
     // Prepare form data
     const formData = new FormData();
     const blob = new Blob([binaryAudio], { type: 'audio/webm' });
     formData.append('file', blob, 'audio.webm');
-    formData.append('model', 'whisper-1');
+    formData.append('model', 'whisper-large-v3-turbo');
     formData.append('language', language);
+    formData.append('prompt', medicalPrompt);
+    formData.append('temperature', '0.0');
 
-    // Send to OpenAI Whisper API
-    const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+    // Send to Groq Whisper API (10x cheaper than OpenAI)
+    const response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+        'Authorization': `Bearer ${Deno.env.get('GROQ_API_KEY')}`,
       },
       body: formData,
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('OpenAI API error:', errorText);
-      throw new Error(`OpenAI API error: ${errorText}`);
+      console.error('Groq API error:', errorText);
+      throw new Error(`Groq API error: ${errorText}`);
     }
 
     const result = await response.json();
