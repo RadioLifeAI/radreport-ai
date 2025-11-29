@@ -87,13 +87,23 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   const userEditedRef = useRef<boolean>(false)
   
   // Estados Whisper
-  const [isWhisperEnabled, setIsWhisperEnabled] = useState(true)
+  const [isWhisperEnabled, setIsWhisperEnabled] = useState(false)
   const [isTranscribing, setIsTranscribing] = useState(false)
   const [whisperStats, setWhisperStats] = useState({
     total: 0,
     success: 0,
     failed: 0,
   })
+
+  // Auto-desativar Whisper quando créditos acabam
+  useEffect(() => {
+    if (isWhisperEnabled && !hasEnoughCredits) {
+      setIsWhisperEnabled(false)
+      toast.info('Whisper AI desativado - sem créditos disponíveis. Usando transcrição básica.', {
+        duration: 5000,
+      })
+    }
+  }, [hasEnoughCredits, isWhisperEnabled])
 
   // Sincronizar ref do editor sempre que mudar
   useEffect(() => {

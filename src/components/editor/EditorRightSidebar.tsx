@@ -214,16 +214,21 @@ export function EditorRightSidebar({
             {toggleWhisper && (
               <TooltipProvider>
                 <div className="flex items-center justify-between p-2 bg-background/50 rounded border border-border/50">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span className="text-xs cursor-help">Ativar Whisper</span>
-                    </TooltipTrigger>
-                    <TooltipContent side="left" className="max-w-[200px]">
-                      <p className="text-xs">
-                        Melhora precisão de termos médicos como hepatomegalia, BI-RADS, esplenomegalia
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
+                  <div className="flex flex-col">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="text-xs cursor-help">Ativar Whisper</span>
+                      </TooltipTrigger>
+                      <TooltipContent side="left" className="max-w-[200px]">
+                        <p className="text-xs">
+                          Melhora precisão de termos médicos como hepatomegalia, BI-RADS, esplenomegalia
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                    {!hasEnoughCredits && (
+                      <span className="text-[10px] text-orange-400">Sem créditos - compre para ativar</span>
+                    )}
+                  </div>
                   <Switch
                     checked={isWhisperEnabled}
                     onCheckedChange={toggleWhisper}
