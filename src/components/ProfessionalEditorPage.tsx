@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react'
 import { useReportStore } from '@/store'
 import { useTemplates } from '@/hooks/useTemplates'
 import { useFrasesModelo, FraseModelo } from '@/hooks/useFrasesModelo'
-import { useDictation } from '@/hooks/useDictation'
+import { useHybridDictation } from '@/hooks/useHybridDictation'
 import { useAuth } from '@/hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
 import { SimpleEditor } from '@/components/tiptap-templates/simple/simple-editor'
@@ -53,8 +53,18 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
     startNewConversation
   } = useChat()
 
-  // Voice dictation hook - centralized voice logic
-  const { isActive: isVoiceActive, status: voiceStatus, startDictation, stopDictation } = useDictation(editorInstance)
+  // Voice dictation hook - hybrid system (Web Speech + Groq LLM correction)
+  const { 
+    isActive: isVoiceActive, 
+    status: voiceStatus, 
+    startDictation, 
+    stopDictation,
+    isCorrectionEnabled,
+    toggleCorrection,
+    pendingCorrections,
+    correctionStats,
+    manualCorrection
+  } = useHybridDictation(editorInstance)
 
   // Template hook
   const {
@@ -629,6 +639,10 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
             setSelectedFraseForVariables(frase)
             setVariablesModalOpen(true)
           }}
+          isCorrectionEnabled={isCorrectionEnabled}
+          toggleCorrection={toggleCorrection}
+          pendingCorrections={pendingCorrections}
+          correctionStats={correctionStats}
         />
       </div>
       

@@ -1,4 +1,4 @@
-import { FileText, History, ChevronLeft, MessageSquare } from 'lucide-react'
+import { FileText, History, ChevronLeft, MessageSquare, Sparkles, CheckCircle2, XCircle } from 'lucide-react'
 import { Editor } from '@tiptap/react'
 import { useState } from 'react'
 import VoiceButton from '@/components/voice/VoiceButton'
@@ -20,6 +20,14 @@ interface EditorRightSidebarProps {
   onVoiceStop: () => void
   mediaStream?: MediaStream | null
   onOpenVariablesModal?: (frase: FraseModelo) => void
+  isCorrectionEnabled?: boolean
+  toggleCorrection?: () => void
+  pendingCorrections?: number
+  correctionStats?: {
+    total: number
+    applied: number
+    rejected: number
+  }
 }
 
 export function EditorRightSidebar({
@@ -32,6 +40,10 @@ export function EditorRightSidebar({
   onVoiceStop,
   mediaStream,
   onOpenVariablesModal,
+  isCorrectionEnabled = false,
+  toggleCorrection,
+  pendingCorrections = 0,
+  correctionStats,
 }: EditorRightSidebarProps) {
   const [frasesOpen, setFrasesOpen] = useState(false)
   const { recentFrases, favoriteFrases } = useFrasesModelo()
@@ -160,6 +172,50 @@ export function EditorRightSidebar({
                 onStop={onVoiceStop}
               />
               <SpeechStatusPanel mediaStream={mediaStream} />
+              
+              {/* AI Correction Toggle */}
+              {toggleCorrection && (
+                <button
+                  onClick={toggleCorrection}
+                  className={`w-full flex items-center justify-between gap-2 p-3 border rounded-lg transition-all ${
+                    isCorrectionEnabled
+                      ? 'bg-gradient-to-r from-cyan-500/10 to-indigo-500/10 border-cyan-500/30 hover:border-cyan-500/50'
+                      : 'bg-card border-border/40 hover:bg-muted/50'
+                  }`}
+                  title={isCorrectionEnabled ? 'Correção IA ativada' : 'Correção IA desativada'}
+                >
+                  <div className="flex items-center gap-2">
+                    <Sparkles size={16} className={isCorrectionEnabled ? 'text-cyan-500' : 'text-muted-foreground'} />
+                    <span className="text-xs font-medium">Correção IA</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    {pendingCorrections > 0 && (
+                      <span className="text-[10px] px-1.5 py-0.5 bg-cyan-500/20 text-cyan-500 rounded">
+                        {pendingCorrections}
+                      </span>
+                    )}
+                    {isCorrectionEnabled ? (
+                      <CheckCircle2 size={14} className="text-green-500" />
+                    ) : (
+                      <XCircle size={14} className="text-muted-foreground" />
+                    )}
+                  </div>
+                </button>
+              )}
+              
+              {/* Correction Stats (optional) */}
+              {correctionStats && correctionStats.total > 0 && (
+                <div className="text-[10px] text-muted-foreground space-y-0.5 px-2">
+                  <div className="flex justify-between">
+                    <span>Total:</span>
+                    <span className="font-medium">{correctionStats.total}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Aplicadas:</span>
+                    <span className="font-medium text-green-500">{correctionStats.applied}</span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
