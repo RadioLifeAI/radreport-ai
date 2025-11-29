@@ -181,9 +181,10 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
 
     const { audioBlob, startPos, endPos, webSpeechText } = params
     
-    // 🆕 Tamanho mínimo otimizado para ~10s (alinhado com cobrança mínima Groq)
-    const MIN_AUDIO_DURATION_SECONDS = 10
-    const MIN_AUDIO_SIZE = MIN_AUDIO_DURATION_SECONDS * 16000 // ~160KB para 10s @ 16KB/s
+    // 🆕 Tamanho mínimo: 5s (WebM Opus ~8KB/s, não 16KB/s como raw audio)
+    // Groq cobra mínimo 10s, mas aceitamos 5s+ para não perder áudio útil
+    const MIN_AUDIO_DURATION_SECONDS = 5
+    const MIN_AUDIO_SIZE = MIN_AUDIO_DURATION_SECONDS * 8000 // ~40KB para 5s de WebM Opus
     
     if (audioBlob.size < MIN_AUDIO_SIZE) {
       console.log('⏭️ Audio too short for Whisper (', Math.round(audioBlob.size / 1024), 'KB, need', Math.round(MIN_AUDIO_SIZE / 1024), 'KB), skipping')
