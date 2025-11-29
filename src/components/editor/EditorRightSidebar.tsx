@@ -237,6 +237,14 @@ export function EditorRightSidebar({
                 </div>
               </TooltipProvider>
             )}
+
+            {/* Whisper Stats */}
+            {isWhisperEnabled && whisperStats && whisperStats.total > 0 && (
+              <div className="text-[10px] text-muted-foreground mt-2 pt-2 border-t border-border/30">
+                Processados: {whisperStats.success}/{whisperStats.total}
+                {whisperStats.failed > 0 && ` (${whisperStats.failed} falhas)`}
+              </div>
+            )}
           </div>
 
           {/* Voice Controls */}
@@ -248,6 +256,7 @@ export function EditorRightSidebar({
               status={voiceStatus}
               onStart={onVoiceStart}
               onStop={onVoiceStop}
+              isTranscribing={isTranscribing}
             />
 
             <SpeechStatusPanel 
