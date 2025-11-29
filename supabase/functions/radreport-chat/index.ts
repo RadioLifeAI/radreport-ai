@@ -75,7 +75,6 @@ Não invente achados ou informações - baseie-se apenas no que foi descrito.`;
         model: 'gpt-5-nano-2025-08-07',
         messages: fullMessages,
         max_completion_tokens: 800,
-        temperature: 0.7,
         stream: true,
       }),
     });
