@@ -36,7 +36,6 @@ export function useHybridDictation(editor: Editor | null): UseHybridDictationRet
   // 🎙️ Camada 2: Gravação de áudio para Whisper
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const audioChunksRef = useRef<Blob[]>([])
-  const mediaStreamRef = useRef<MediaStream | null>(null)
   
   // Estado Whisper
   const [isWhisperEnabled, setIsWhisperEnabled] = useState(true)
@@ -47,11 +46,12 @@ export function useHybridDictation(editor: Editor | null): UseHybridDictationRet
     failed: 0,
   })
 
-  // Refs para posicionamento
+  // Refs para posicionamento e debounce
   const whisperAnchorRef = useRef<number | null>(null)
   const previewLengthRef = useRef<number>(0)
   const editorRef = useRef<Editor | null>(null)
   const lastStatusRef = useRef<'idle' | 'waiting' | 'listening'>('idle')
+  const silenceTimerRef = useRef<NodeJS.Timeout | null>(null)
 
   // Sincronizar ref do editor
   useEffect(() => {
@@ -76,24 +76,29 @@ export function useHybridDictation(editor: Editor | null): UseHybridDictationRet
   }, [])
 
   /**
-   * Inicia gravação de áudio paralela
+   * Inicia gravação de áudio paralela usando stream do Web Speech
    */
-  const startAudioRecording = useCallback(async () => {
+  const startAudioRecording = useCallback(async (stream: MediaStream) => {
     if (!isWhisperEnabled) return
 
     try {
-      // Usar o mesmo MediaStream do Web Speech se disponível
-      let stream = mediaStreamRef.current
-      
-      if (!stream) {
-        stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-        mediaStreamRef.current = stream
+      // Validar MimeType suportado
+      const SUPPORTED_MIMETYPES = [
+        'audio/webm;codecs=opus',
+        'audio/webm',
+        'audio/ogg;codecs=opus',
+        'audio/mp4'
+      ]
+
+      const mimeType = SUPPORTED_MIMETYPES.find(type => 
+        MediaRecorder.isTypeSupported(type)
+      )
+
+      if (!mimeType) {
+        throw new Error('Nenhum formato de áudio suportado')
       }
 
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'audio/webm;codecs=opus'
-      })
-
+      const mediaRecorder = new MediaRecorder(stream, { mimeType })
       audioChunksRef.current = []
 
       mediaRecorder.ondataavailable = (event) => {
@@ -105,7 +110,7 @@ export function useHybridDictation(editor: Editor | null): UseHybridDictationRet
       mediaRecorder.start(100) // Capturar a cada 100ms
       mediaRecorderRef.current = mediaRecorder
 
-      console.log('🎙️ Audio recording started for Whisper')
+      console.log('🎙️ Audio recording started for Whisper with', mimeType)
     } catch (error) {
       console.error('❌ Failed to start audio recording:', error)
       toast.error('Erro ao iniciar gravação de áudio')
@@ -116,17 +121,21 @@ export function useHybridDictation(editor: Editor | null): UseHybridDictationRet
    * Para gravação de áudio
    */
   const stopAudioRecording = useCallback(() => {
+    // Limpar timer de debounce se existir
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current)
+      silenceTimerRef.current = null
+    }
+
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       mediaRecorderRef.current.stop()
       mediaRecorderRef.current = null
       console.log('🎙️ Audio recording stopped')
     }
-
-    // Não parar o MediaStream aqui, pois pode ser usado pelo Web Speech
   }, [])
 
   /**
-   * Envia áudio para Whisper e substitui preview
+   * Envia áudio para Whisper e substitui preview Web Speech
    */
   const sendToWhisper = useCallback(async () => {
     const currentEditor = editorRef.current
@@ -134,17 +143,27 @@ export function useHybridDictation(editor: Editor | null): UseHybridDictationRet
       return
     }
 
+    // Validar tamanho do áudio (max 25MB)
+    const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' })
+    const MAX_AUDIO_SIZE = 25 * 1024 * 1024 // 25MB
+    
+    if (audioBlob.size > MAX_AUDIO_SIZE) {
+      console.warn('⚠️ Audio too large:', Math.round(audioBlob.size / 1024 / 1024), 'MB')
+      toast.error('Áudio muito longo. Pause e continue ditando.')
+      audioChunksRef.current = []
+      return
+    }
+
     setIsTranscribing(true)
     setWhisperStats(prev => ({ ...prev, total: prev.total + 1 }))
 
-    try {
-      // Criar blob do áudio acumulado
-      const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' })
-      const base64Audio = await blobToBase64(audioBlob)
+    const anchor = whisperAnchorRef.current
+    const previewLength = previewLengthRef.current
 
+    try {
+      const base64Audio = await blobToBase64(audioBlob)
       console.log('🎤 Sending audio to Whisper (', Math.round(audioBlob.size / 1024), 'KB )')
 
-      // Enviar para Whisper
       const { data, error } = await supabase.functions.invoke('transcribe-audio', {
         body: { 
           audio: base64Audio,
@@ -152,41 +171,51 @@ export function useHybridDictation(editor: Editor | null): UseHybridDictationRet
         }
       })
 
-      if (error) {
-        throw error
-      }
+      if (error) throw error
 
       if (data?.text) {
-        // Aplicar correções médicas locais
         const processedText = processMedicalText(data.text)
-
         console.log('✅ Whisper transcription:', processedText.substring(0, 50) + '...')
 
-        // Substituir preview Web Speech pelo texto Whisper (mais preciso)
-        // TODO: Implementar lógica de substituição inteligente
-        // Por enquanto, apenas adicionar ao final
-        currentEditor
-          .chain()
-          .focus()
-          .insertContent(' ' + processedText)
-          .run()
+        // Substituição inteligente: deletar preview Web Speech e inserir texto Whisper
+        if (anchor !== null && previewLength > 0) {
+          currentEditor
+            .chain()
+            .focus()
+            .deleteRange({ from: anchor, to: anchor + previewLength })
+            .insertContentAt(anchor, processedText)
+            .run()
+          
+          console.log('🔄 Replaced Web Speech preview with Whisper text')
+        } else {
+          // Fallback: inserir no cursor atual
+          currentEditor
+            .chain()
+            .focus()
+            .insertContent(' ' + processedText)
+            .run()
+        }
+
+        // Resetar refs de posicionamento
+        whisperAnchorRef.current = null
+        previewLengthRef.current = 0
 
         setWhisperStats(prev => ({ ...prev, success: prev.success + 1 }))
       }
 
-      // Limpar buffer de áudio
       audioChunksRef.current = []
 
     } catch (error) {
       console.error('❌ Whisper transcription error:', error)
       setWhisperStats(prev => ({ ...prev, failed: prev.failed + 1 }))
+      toast.error('Erro na transcrição Whisper')
     } finally {
       setIsTranscribing(false)
     }
   }, [blobToBase64, isTranscribing])
 
   /**
-   * Detectar silêncio (status muda de 'listening' → 'waiting')
+   * Detectar silêncio com debounce de 1.5s
    */
   useEffect(() => {
     if (!isWhisperEnabled || !dictation.isActive) return
@@ -194,35 +223,66 @@ export function useHybridDictation(editor: Editor | null): UseHybridDictationRet
     const currentStatus = dictation.status
     const lastStatus = lastStatusRef.current
 
-    // Detectar transição para silêncio
+    // Transição para silêncio: iniciar timer de debounce
     if (lastStatus === 'listening' && currentStatus === 'waiting') {
-      console.log('🔇 Silence detected - sending to Whisper')
-      sendToWhisper()
+      console.log('🔇 Silence detected - starting 1.5s debounce timer')
+      
+      silenceTimerRef.current = setTimeout(() => {
+        console.log('⏰ Debounce complete - sending to Whisper')
+        sendToWhisper()
+      }, 1500)
+    } 
+    // Voltou a falar: cancelar timer
+    else if (currentStatus === 'listening' && silenceTimerRef.current) {
+      console.log('🎤 Speech resumed - cancelling debounce timer')
+      clearTimeout(silenceTimerRef.current)
+      silenceTimerRef.current = null
     }
 
     lastStatusRef.current = currentStatus
   }, [dictation.status, dictation.isActive, isWhisperEnabled, sendToWhisper])
 
   /**
-   * Iniciar/parar gravação de áudio quando ditado inicia/para
+   * Wrapper para iniciar ditado com Whisper
    */
-  useEffect(() => {
-    if (dictation.isActive && isWhisperEnabled) {
-      startAudioRecording()
-    } else {
-      stopAudioRecording()
+  const startHybridDictation = useCallback(async () => {
+    const stream = await dictation.startDictation()
+    
+    if (stream && isWhisperEnabled) {
+      // Reutilizar MediaStream do Web Speech para MediaRecorder
+      await startAudioRecording(stream)
       
-      // Se parou e ainda tem áudio, enviar para Whisper
-      if (audioChunksRef.current.length > 0) {
-        sendToWhisper()
+      // Salvar âncora inicial para substituição futura
+      if (editorRef.current) {
+        whisperAnchorRef.current = editorRef.current.state.selection.anchor
+        previewLengthRef.current = 0
       }
     }
+    
+    return stream
+  }, [dictation, isWhisperEnabled, startAudioRecording])
 
-    // Cleanup ao desmontar
+  /**
+   * Parar ditado e enviar áudio final
+   */
+  const stopHybridDictation = useCallback(() => {
+    dictation.stopDictation()
+    stopAudioRecording()
+    
+    // Se tem áudio acumulado, enviar para Whisper
+    if (audioChunksRef.current.length > 0) {
+      sendToWhisper()
+    }
+  }, [dictation, stopAudioRecording, sendToWhisper])
+
+  /**
+   * Cleanup ao desmontar
+   */
+  useEffect(() => {
     return () => {
       stopAudioRecording()
     }
-  }, [dictation.isActive, isWhisperEnabled, startAudioRecording, stopAudioRecording, sendToWhisper])
+  }, [stopAudioRecording])
 
   /**
    * Toggle de Whisper
@@ -236,8 +296,11 @@ export function useHybridDictation(editor: Editor | null): UseHybridDictationRet
   }, [])
 
   return {
-    // Passthrough completo do useDictation (Web Speech preview)
-    ...dictation,
+    // Métodos modificados para híbrido
+    isActive: dictation.isActive,
+    status: dictation.status,
+    startDictation: startHybridDictation,
+    stopDictation: stopHybridDictation,
     
     // Novos do sistema híbrido Whisper
     isWhisperEnabled,

@@ -53,8 +53,8 @@ serve(async (req) => {
     // Process audio in chunks
     const binaryAudio = processBase64Chunks(audio);
     
-    // Medical terminology prompt for better accuracy
-    const medicalPrompt = 'Transcrição de laudo radiológico médico. Termos técnicos: hepatomegalia, esplenomegalia, esteatose, hiperecogênico, hipoecogênico, heterogêneo, homogêneo, BI-RADS, TI-RADS, PI-RADS, LI-RADS, ecogenicidade, parênquima, linfonodomegalia, adenomegalia, neoplasia, metástase.';
+    // Expanded medical terminology prompt for better accuracy (up to 448 tokens)
+    const medicalPrompt = 'Transcrição de laudo radiológico médico brasileiro. Termos técnicos frequentes: hepatomegalia, esplenomegalia, esteatose hepática, cirrose, fibrose, colecistite, colelitíase, coledocolitíase, colangite, pancreatite, nefrolitíase, hidronefrose, pielonefrite, cistite, ascite, derrame pleural, pneumotórax, atelectasia, consolidação pulmonar, bronquiectasia, enfisema, hipoecogênico, hiperecogênico, isoecogênico, anecogênico, heterogêneo, homogêneo, parênquima, ecogenicidade, ecotextura, BI-RADS, TI-RADS, PI-RADS, LI-RADS, O-RADS, Lung-RADS, CAD-RADS, linfonodomegalia, adenomegalia, espessamento parietal, neoplasia, metástase, nódulo, cisto, pólipo, massa, lesão, calcificação, diverticulose, diverticulite, apendicite, hérnia, linfoma, carcinoma, adenocarcinoma, melanoma, sarcoma, lipoma, hemangioma, angioma, teratoma, adenoma, mioma, endometriose, adenomiose, ovário policístico, hérnia discal, espondilose, espondilólise, espondilolistese, osteófito, artrose, artrite, tendinopatia, bursite, sinovite, meniscopatia, condropatia, estenose, aneurisma, trombose, embolia, isquemia, infarto, edema, hematoma, abscesso, fístula, úlcera, erosão, perfuração, obstrução, dilatação. Medidas em centímetros (cm), milímetros (mm), mililitros (ml).';
     
     // Prepare form data
     const formData = new FormData();
@@ -64,6 +64,7 @@ serve(async (req) => {
     formData.append('language', language);
     formData.append('prompt', medicalPrompt);
     formData.append('temperature', '0.0');
+    formData.append('response_format', 'verbose_json');
 
     // Send to Groq Whisper API (10x cheaper than OpenAI)
     const response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
@@ -81,12 +82,32 @@ serve(async (req) => {
     }
 
     const result = await response.json();
-    console.log('Transcription successful:', result.text);
+
+    // Filter noise/silence segments using no_speech_prob from verbose_json
+    let finalText = result.text;
+    let segmentsFiltered = 0;
+    
+    if (result.segments && Array.isArray(result.segments)) {
+      const validSegments = result.segments.filter(
+        (segment: any) => segment.no_speech_prob < 0.5
+      );
+      
+      segmentsFiltered = result.segments.length - validSegments.length;
+      
+      if (validSegments.length > 0) {
+        finalText = validSegments.map((s: any) => s.text).join(' ').trim();
+        console.log(`Filtered ${segmentsFiltered} noise segments out of ${result.segments.length}`);
+      }
+    }
+
+    console.log('Transcription successful:', finalText);
 
     return new Response(
       JSON.stringify({ 
-        text: result.text,
-        language: language
+        text: finalText,
+        language: result.language || language,
+        duration: result.duration,
+        segments_filtered: segmentsFiltered
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
