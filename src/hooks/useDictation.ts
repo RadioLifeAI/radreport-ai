@@ -36,6 +36,8 @@ interface UseDictationReturn {
   toggleWhisper: () => void
   isTranscribing: boolean
   whisperStats: { total: number; success: number; failed: number }
+  isAICorrectorEnabled: boolean
+  toggleAICorrector: () => void
 }
 
 export function useDictation(editor: Editor | null): UseDictationReturn {
@@ -44,6 +46,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   const [isWhisperEnabled, setIsWhisperEnabled] = useState(false)
   const [isTranscribing, setIsTranscribing] = useState(false)
   const [stats, setStats] = useState({ total: 0, success: 0, failed: 0 })
+  const [isAICorrectorEnabled, setIsAICorrectorEnabled] = useState(false)
 
   const { balance, hasEnoughCredits, checkQuota } = useWhisperCredits()
 
@@ -229,7 +232,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       recognitionRef.current = null
     }
 
-    // 2. Parar MediaRecorder e obter blob ÚNICO
+    // 2. Parar MediaRecorder e obter blob ÚNICO (Whisper)
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       await new Promise<void>((resolve) => {
         const mr = mediaRecorderRef.current!
@@ -279,13 +282,52 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       mediaRecorderRef.current = null
     }
 
-    // 3. Parar stream de áudio
+    // 3. Aplicar Corretor AI (se ativo e não estiver usando Whisper)
+    if (isAICorrectorEnabled && !isWhisperEnabled && editorRef.current && dictationStartRef.current !== null) {
+      const startPos = dictationStartRef.current
+      const endPos = editorRef.current.state.selection.from
+      
+      // Extrair texto ditado
+      const dictatedText = editorRef.current.state.doc.textBetween(startPos, endPos)
+      
+      if (dictatedText.length > 10) {
+        console.log('🪄 Enviando para Corretor AI:', dictatedText.substring(0, 100))
+        setIsTranscribing(true)
+        
+        try {
+          const { data, error } = await supabase.functions.invoke('ai-dictation-polish', {
+            body: { text: dictatedText }
+          })
+          
+          if (!error && data?.corrected) {
+            // Substituir texto pelo corrigido
+            editorRef.current.chain()
+              .deleteRange({ from: startPos, to: endPos })
+              .insertContent(data.corrected)
+              .run()
+            
+            console.log('✅ Corretor AI aplicado:', data.corrected.substring(0, 80) + '...')
+            toast.success('Texto corrigido com IA')
+          } else if (error) {
+            console.error('❌ Erro no Corretor AI:', error)
+            toast.error('Erro ao corrigir texto')
+          }
+        } catch (err) {
+          console.error('❌ Erro ao processar Corretor AI:', err)
+          toast.error('Erro ao corrigir texto')
+        } finally {
+          setIsTranscribing(false)
+        }
+      }
+    }
+
+    // 4. Parar stream de áudio
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop())
       streamRef.current = null
     }
 
-    // 4. Reset estados
+    // 5. Reset estados
     audioTrackRef.current = null
     setIsActive(false)
     setStatus('idle')
@@ -294,7 +336,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     dictationStartRef.current = null
 
     console.log('🛑 Dictation stopped')
-  }, [isWhisperEnabled])
+  }, [isWhisperEnabled, isAICorrectorEnabled])
 
   /**
    * Toggle Whisper
@@ -312,6 +354,19 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       toast.info('Whisper AI desativado')
     }
   }, [isWhisperEnabled, checkQuota])
+
+  /**
+   * Toggle AI Corrector
+   */
+  const toggleAICorrector = useCallback(() => {
+    if (!isAICorrectorEnabled) {
+      setIsAICorrectorEnabled(true)
+      toast.success('Corretor AI ativado')
+    } else {
+      setIsAICorrectorEnabled(false)
+      toast.info('Corretor AI desativado')
+    }
+  }, [isAICorrectorEnabled])
 
   // Privacy: stop on tab hidden
   useEffect(() => {
@@ -334,6 +389,8 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     toggleWhisper,
     isTranscribing,
     whisperStats: stats,
+    isAICorrectorEnabled,
+    toggleAICorrector,
   }
 }
 
