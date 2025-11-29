@@ -104,6 +104,20 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
         const confidence = result[0].confidence
         const isFinal = result.isFinal
 
+        // DETECÇÃO ANTECIPADA - funciona em interim E final
+        const hasCommand = containsVoiceCommand(transcript)
+        
+        // Silenciar/reativar baseado em detecção de comando (antecipado)
+        if (audioTrackRef.current) {
+          if (hasCommand && audioTrackRef.current.enabled) {
+            audioTrackRef.current.enabled = false
+            console.log('🔇 Audio muted (command pattern detected)', transcript)
+          } else if (!hasCommand && !audioTrackRef.current.enabled) {
+            audioTrackRef.current.enabled = true
+            console.log('🔊 Audio unmuted (no command)')
+          }
+        }
+
         if (!isFinal) {
           // INTERIM: preview em tempo real
           if (anchorRef.current === null) {
@@ -125,16 +139,6 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
 
           interimLengthRef.current = transcript.length
         } else {
-          // FINAL: detectar comando e silenciar áudio se necessário
-          const hasCommand = containsVoiceCommand(transcript)
-          const isConfident = confidence >= 0.7
-          
-          // Silenciar gravação durante comando
-          if (hasCommand && isConfident && audioTrackRef.current) {
-            audioTrackRef.current.enabled = false
-            console.log('🔇 Audio track muted (command detected)')
-          }
-
           // FINAL: processar e inserir
           if (anchorRef.current !== null && interimLengthRef.current > 0) {
             editorRef.current.view.dispatch(
@@ -146,12 +150,6 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
           }
 
           processVoiceInput(transcript, editorRef.current)
-
-          // Reativar gravação após processar comando
-          if (hasCommand && isConfident && audioTrackRef.current) {
-            audioTrackRef.current.enabled = true
-            console.log('🔊 Audio track unmuted')
-          }
 
           // Reset anchor
           anchorRef.current = null
