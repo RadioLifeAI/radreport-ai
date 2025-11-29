@@ -71,6 +71,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
 
   // 🎙️ Refs para sistema Whisper integrado
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const streamRef = useRef<MediaStream | null>(null) // 🆕 Para restart do MediaRecorder
   const audioChunksRef = useRef<Blob[]>([])
   const chunkIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const lastSegmentEndRef = useRef<number>(0)
@@ -221,23 +222,93 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   }, [])
 
   /**
-   * 🆕 SMART BUFFERING: Envia chunk atual baseado em triggers inteligentes
+   * Inicia gravação de áudio para Whisper
+   * 🆕 FASE 3: Timeslice aumentado de 100ms para 500ms
+   * 🔧 CORREÇÃO WHISPER: Aceita flag isRestart para reiniciar MediaRecorder
    */
-  const sendCurrentChunkToWhisper = useCallback(() => {
+  const startAudioRecording = useCallback(async (stream: MediaStream, isRestart = false) => {
+    if (!isWhisperEnabled) return
+
+    try {
+      // Cleanup anterior se for restart
+      if (isRestart && mediaRecorderRef.current) {
+        mediaRecorderRef.current = null
+      }
+      
+      const SUPPORTED_MIMETYPES = [
+        'audio/webm;codecs=opus',
+        'audio/webm',
+        'audio/ogg;codecs=opus',
+        'audio/mp4'
+      ]
+
+      const mimeType = SUPPORTED_MIMETYPES.find(type => 
+        MediaRecorder.isTypeSupported(type)
+      )
+
+      if (!mimeType) {
+        throw new Error('Nenhum formato de áudio suportado')
+      }
+
+      const mediaRecorder = new MediaRecorder(stream, { mimeType })
+      audioChunksRef.current = [] // Limpar para garantir novo header
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data)
+        }
+      }
+
+      // 🆕 FASE 3: Timeslice otimizado de 100ms → 500ms (menos overhead)
+      mediaRecorder.start(500)
+      mediaRecorderRef.current = mediaRecorder
+
+      if (!isRestart) {
+        console.log('🎙️ Audio recording started for Whisper with', mimeType)
+      } else {
+        console.log('🔄 MediaRecorder restarted for new segment')
+      }
+    } catch (error) {
+      console.error('❌ Failed to start audio recording:', error)
+      toast.error('Erro ao iniciar gravação de áudio')
+    }
+  }, [isWhisperEnabled])
+
+  /**
+   * 🆕 SMART BUFFERING: Envia chunk atual baseado em triggers inteligentes
+   * 🔧 CORREÇÃO WHISPER: Para e reinicia MediaRecorder para garantir header WebM válido
+   */
+  const sendCurrentChunkToWhisper = useCallback(async () => {
     const currentEditor = editorRef.current
-    if (!currentEditor || audioChunksRef.current.length === 0) return
+    const stream = streamRef.current
+    if (!currentEditor || audioChunksRef.current.length === 0 || !stream) return
     
-    // Criar blob dos chunks atuais
+    // 1. 🆕 PARAR MediaRecorder para finalizar container WebM
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      await new Promise<void>(resolve => {
+        if (mediaRecorderRef.current) {
+          mediaRecorderRef.current.onstop = () => resolve()
+          mediaRecorderRef.current.stop()
+        } else {
+          resolve()
+        }
+      })
+    }
+    
+    // 2. Criar blob completo (com header WebM válido)
     const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' })
     
-    // Verificar tamanho mínimo (10s = 80KB para WebM Opus)
+    // 3. Verificar tamanho mínimo (10s = 80KB para WebM Opus)
     const MIN_CHUNK_SIZE = MIN_BUFFER_DURATION * 8 // ~80KB
     if (audioBlob.size < MIN_CHUNK_SIZE) {
       console.log('⏭️ Buffer too small (', Math.round(audioBlob.size / 1024), 'KB, need', Math.round(MIN_CHUNK_SIZE / 1024), 'KB)')
+      // 🆕 Reiniciar gravação mesmo assim para próximo chunk
+      audioChunksRef.current = []
+      await startAudioRecording(stream, true)
       return
     }
     
-    // Capturar posições atuais
+    // 4. Capturar posições atuais
     const endPos = currentEditor.state.selection.from
     const webSpeechText = lastFinalTranscriptRef.current || ''
     const textLength = webSpeechText.length
@@ -253,7 +324,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       text: webSpeechText.substring(0, 40) + '...'
     })
     
-    // Enfileirar para processamento
+    // 5. Enfileirar para processamento
     enqueueWhisperProcessing({
       audioBlob,
       startPos,
@@ -261,15 +332,16 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       webSpeechText
     })
     
-    // Atualizar posição do último segmento
+    // 6. Atualizar refs
     lastSegmentEndRef.current = endPos
-    
-    // Limpar chunks processados e reiniciar buffer
-    audioChunksRef.current = []
     lastFinalTranscriptRef.current = ''
     bufferStartTimeRef.current = Date.now()
     
-  }, [])
+    // 7. 🆕 REINICIAR MediaRecorder para novo segmento com header WebM
+    audioChunksRef.current = []
+    await startAudioRecording(stream, true)
+    
+  }, [startAudioRecording])
 
   /**
    * Envia chunk de áudio para Whisper com validação e processamento
@@ -851,49 +923,6 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   }, [isWhisperEnabled, hasStructuralCommandTrigger, sendCurrentChunkToWhisper])
 
   /**
-   * Inicia gravação de áudio para Whisper
-   * 🆕 FASE 3: Timeslice aumentado de 100ms para 500ms
-   */
-  const startAudioRecording = useCallback(async (stream: MediaStream) => {
-    if (!isWhisperEnabled) return
-
-    try {
-      const SUPPORTED_MIMETYPES = [
-        'audio/webm;codecs=opus',
-        'audio/webm',
-        'audio/ogg;codecs=opus',
-        'audio/mp4'
-      ]
-
-      const mimeType = SUPPORTED_MIMETYPES.find(type => 
-        MediaRecorder.isTypeSupported(type)
-      )
-
-      if (!mimeType) {
-        throw new Error('Nenhum formato de áudio suportado')
-      }
-
-      const mediaRecorder = new MediaRecorder(stream, { mimeType })
-      audioChunksRef.current = []
-
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data)
-        }
-      }
-
-      // 🆕 FASE 3: Timeslice otimizado de 100ms → 500ms (menos overhead)
-      mediaRecorder.start(500)
-      mediaRecorderRef.current = mediaRecorder
-
-      console.log('🎙️ Audio recording started for Whisper with', mimeType)
-    } catch (error) {
-      console.error('❌ Failed to start audio recording:', error)
-      toast.error('Erro ao iniciar gravação de áudio')
-    }
-  }, [isWhisperEnabled])
-
-  /**
    * Para apenas o MediaRecorder SEM cancelar requests Whisper
    * 🆕 SMART BUFFERING: Limpa intervals e AudioContext
    */
@@ -963,6 +992,8 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       
       const stream = result.stream
       if (stream && isWhisperEnabled) {
+        // 🆕 Salvar referência do stream para restarts
+        streamRef.current = stream
         // Iniciar gravação de áudio para Whisper
         await startAudioRecording(stream)
         
