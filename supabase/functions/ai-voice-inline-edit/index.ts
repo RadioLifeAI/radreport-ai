@@ -1,19 +1,39 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import "https://deno.land/x/xhr@0.1.0/mod.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
-}
+import { getCorsHeaders, getAllHeaders } from '../_shared/cors.ts'
 
 serve(async (req: Request) => {
+  const corsHeaders = getCorsHeaders(req);
+  
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders })
-  if (req.method !== "POST") return new Response("Method not allowed", { status: 405, headers: corsHeaders })
+  if (req.method !== "POST") return new Response("Method not allowed", { status: 405, headers: { ...getAllHeaders(req), "Content-Type": "application/json" } })
 
   const apiKey = Deno.env.get("OPENAI_API_KEY") || ""
-  if (!apiKey) return new Response(JSON.stringify({ error: "OPENAI_API_KEY not configured" }), { status: 500, headers: corsHeaders })
+  if (!apiKey) return new Response(JSON.stringify({ error: "OPENAI_API_KEY not configured" }), { status: 500, headers: { ...getAllHeaders(req), "Content-Type": "application/json" } })
+
+  // JWT Validation
+  const authHeader = req.headers.get('authorization');
+  if (!authHeader) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), { 
+      status: 401, 
+      headers: { ...getAllHeaders(req), "Content-Type": "application/json" }
+    });
+  }
+
+  const supabaseClient = createClient(
+    Deno.env.get('SUPABASE_URL') ?? '',
+    Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+    { global: { headers: { Authorization: authHeader } } }
+  );
+
+  const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+  if (userError || !user) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), { 
+      status: 401, 
+      headers: { ...getAllHeaders(req), "Content-Type": "application/json" }
+    });
+  }
 
   try {
     const { voiceText, selectedField, currentSectionText, user_id } = await req.json()
@@ -86,13 +106,13 @@ Tarefa:
 
     return new Response(JSON.stringify(parsed), {
       status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getAllHeaders(req), "Content-Type": "application/json" },
     })
   } catch (err) {
     console.error("ai/voice-inline-edit error:", err)
     return new Response(JSON.stringify({ error: "Erro interno", details: String((err as any)?.message || err) }), {
       status: 500,
-      headers: corsHeaders,
+      headers: { ...getAllHeaders(req), "Content-Type": "application/json" },
     })
   }
 })
