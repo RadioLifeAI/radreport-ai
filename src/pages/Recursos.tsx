@@ -6,68 +6,68 @@ export default function Recursos() {
     {
       icon: Brain,
       title: 'Editor Inteligente com IA',
-      description: 'Editor médico profissional com correções automáticas, sugestões inteligentes e formatação especializada para radiologia.',
+      description: 'Editor médico profissional com dicionário de 4.300+ termos, correções automáticas e sugestões inteligentes.',
       details: [
-        'Correção ortográfica médica especializada',
+        'Dicionário médico especializado (4.300+ termos)',
+        'Correção ortográfica radiológica em tempo real',
         'Sugestões automáticas de melhoria',
-        'Formatação profissional instantânea',
-        'Integração com nomenclatura RADS'
+        'Formatação profissional instantânea'
       ]
     },
     {
       icon: FileText,
-      title: '159 Templates Profissionais',
-      description: 'Biblioteca completa de templates de laudos para todas as modalidades radiológicas.',
+      title: '149 Templates Profissionais',
+      description: 'Biblioteca completa de templates com variáveis dinâmicas para todas as modalidades radiológicas.',
       details: [
-        'Ultrassonografia (USG)',
-        'Tomografia Computadorizada (TC)',
-        'Ressonância Magnética (RM)',
-        'Radiografia (RX)',
-        'Mamografia (MG)'
+        'Ultrassonografia (USG) - 8 templates',
+        'Tomografia Computadorizada (TC) - 43 templates',
+        'Ressonância Magnética (RM) - 44 templates',
+        'Radiografia (RX) - 51 templates',
+        'Mamografia (MG) - 3 templates'
       ]
     },
     {
       icon: Mic,
-      title: 'Ditado por Voz Avançado',
-      description: 'Sistema híbrido Web Speech + Whisper AI para transcrição médica de alta precisão.',
+      title: 'Ditado por Voz Premium',
+      description: 'Sistema híbrido Web Speech + Whisper AI com comandos de voz estruturais e correção automática.',
       details: [
-        'Transcrição em tempo real',
-        'Comandos de voz estruturais',
-        'Correção automática de termos médicos',
-        'Suporte a português brasileiro'
+        'Transcrição em tempo real (Web Speech)',
+        'Refinamento Whisper AI opcional',
+        'Comandos estruturais (nova linha, parágrafo)',
+        'Correção automática de termos médicos'
       ]
     },
     {
       icon: Table2,
-      title: '28+ Tabelas de Referência',
-      description: 'Acesso rápido a tabelas de classificação e medidas de referência internacional.',
+      title: '100+ Tabelas de Referência',
+      description: 'Acesso rápido a classificações RADS e referências internacionais completas com bibliografia.',
       details: [
-        'BI-RADS, TI-RADS, PI-RADS',
-        'Lung-RADS, LI-RADS, O-RADS',
-        'Tabelas pediátricas (Hadlock, Graf)',
-        'Escores e classificações (Agatston, Bosniak)'
+        'RADS: BI-RADS, TI-RADS, PI-RADS, LI-RADS',
+        'Neuroimagem: ASPECTS, Fisher, Fazekas',
+        'Tórax: Lung-RADS, Fleischner, TNM',
+        'Obstetrícia: Hadlock, ILA, Doppler'
       ]
     },
     {
       icon: Sparkles,
-      title: 'IA Conclusão Automática',
-      description: 'Geração inteligente de conclusões e impressões diagnósticas baseadas nos achados.',
+      title: '25 Calculadoras Médicas',
+      description: 'Calculadoras especializadas com inserção automática no laudo e interpretação em tempo real.',
       details: [
-        'Análise semântica dos achados',
-        'Sugestões diagnósticas contextuais',
-        'Classificação RADS automática',
-        'Formatação profissional'
+        'Obstetrícia: IG, DPP, Peso Fetal, ILA',
+        'Volumes: Elipsoide, Hepático, Esplênico',
+        'Cardio: Agatston, Índice Cardiotorácico',
+        'Neuro: Hematoma ABC/2, Índice Evans'
       ]
     },
     {
       icon: Zap,
-      title: '245 Frases Modelo',
-      description: 'Banco de frases modelo com variáveis dinâmicas para agilizar a elaboração de laudos.',
+      title: '400 Frases Modelo',
+      description: 'Banco de frases com variáveis dinâmicas, sistema de favoritos e histórico de uso.',
       details: [
         'Frases personalizáveis com variáveis',
         'Organização por modalidade e região',
-        'Sistema de favoritos',
-        'Histórico de uso'
+        'Sistema de favoritos e recentes',
+        'Formulários dinâmicos para preenchimento'
       ]
     }
   ];
