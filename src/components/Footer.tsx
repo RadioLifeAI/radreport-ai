@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Mail } from 'lucide-react';
+import { Mail, Linkedin, Twitter } from 'lucide-react';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -17,18 +17,31 @@ export default function Footer() {
             <p className="text-sm text-muted-foreground">
               Sistema inteligente de laudos radiológicos com IA
             </p>
-            <div className="space-y-1 text-xs text-muted-foreground">
-              <p>Uma plataforma <strong>RadAi Labs</strong></p>
-              <p>RadAi Labs LTDA</p>
-              <p>CNPJ: 63.762.346/0001-47</p>
-            </div>
             <div className="flex gap-4">
               <a
-                href="mailto:contato@radreport.com.br"
+                href="mailto:contato@radreport.com"
                 className="text-muted-foreground hover:text-primary transition-colors"
                 aria-label="Email"
               >
                 <Mail size={20} />
+              </a>
+              <a
+                href="https://linkedin.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-primary transition-colors"
+                aria-label="LinkedIn"
+              >
+                <Linkedin size={20} />
+              </a>
+              <a
+                href="https://twitter.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-primary transition-colors"
+                aria-label="Twitter"
+              >
+                <Twitter size={20} />
               </a>
             </div>
           </div>
@@ -38,23 +51,23 @@ export default function Footer() {
             <h3 className="font-semibold mb-4">Produto</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link to="/recursos" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Funcionalidades
-                </Link>
+                <a href="#servicos" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Serviços
+                </a>
               </li>
               <li>
-                <Link to="/precos" className="text-muted-foreground hover:text-foreground transition-colors">
+                <a href="#precos" className="text-muted-foreground hover:text-foreground transition-colors">
                   Preços
-                </Link>
-              </li>
-              <li>
-                <Link to="/sobre" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Sobre
-                </Link>
+                </a>
               </li>
               <li>
                 <Link to="/login" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Entrar
+                  Login
+                </Link>
+              </li>
+              <li>
+                <Link to="/signup" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Cadastre-se
                 </Link>
               </li>
             </ul>
@@ -65,24 +78,24 @@ export default function Footer() {
             <h3 className="font-semibold mb-4">Recursos</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <a href="/#faq" className="text-muted-foreground hover:text-foreground transition-colors">
+                <a href="#faq" className="text-muted-foreground hover:text-foreground transition-colors">
                   FAQ
                 </a>
               </li>
               <li>
-                <Link to="/recursos" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Editor IA
-                </Link>
+                <a href="#assistente" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Assistente IA
+                </a>
               </li>
               <li>
-                <Link to="/recursos" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Templates
-                </Link>
+                <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Documentação
+                </a>
               </li>
               <li>
-                <Link to="/recursos" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Ditado por Voz
-                </Link>
+                <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Blog
+                </a>
               </li>
             </ul>
           </div>
@@ -92,32 +105,31 @@ export default function Footer() {
             <h3 className="font-semibold mb-4">Legal</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link to="/privacidade" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Privacidade
-                </Link>
+                <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Política de Privacidade
+                </a>
               </li>
               <li>
-                <Link to="/termos" className="text-muted-foreground hover:text-foreground transition-colors">
+                <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
                   Termos de Uso
-                </Link>
+                </a>
               </li>
               <li>
-                <Link to="/lgpd" className="text-muted-foreground hover:text-foreground transition-colors">
+                <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
                   LGPD
-                </Link>
+                </a>
               </li>
               <li>
-                <Link to="/contato" className="text-muted-foreground hover:text-foreground transition-colors">
+                <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
                   Contato
-                </Link>
+                </a>
               </li>
             </ul>
           </div>
         </div>
 
         <div className="mt-12 pt-8 border-t border-border/40 text-center text-sm text-muted-foreground">
-          <p>© {currentYear} RadReport – Uma plataforma RadAi Labs</p>
-          <p className="mt-1">RadAi Labs LTDA · CNPJ: 63.762.346/0001-47</p>
+          <p>© {currentYear} RadReport. Todos os direitos reservados.</p>
         </div>
       </div>
     </footer>

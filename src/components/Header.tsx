@@ -19,18 +19,18 @@ export default function Header() {
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-6">
-          <Link to="/recursos" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-            Recursos
-          </Link>
-          <Link to="/precos" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+          <a href="#servicos" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            Serviços
+          </a>
+          <a href="#precos" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             Preços
-          </Link>
-          <Link to="/sobre" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-            Sobre
-          </Link>
-          <Link to="/contato" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-            Contato
-          </Link>
+          </a>
+          <a href="#faq" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            FAQ
+          </a>
+          <a href="#assistente" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            Assistente IA
+          </a>
         </div>
 
         {/* CTA Buttons */}
@@ -63,34 +63,34 @@ export default function Header() {
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-border/40 bg-background/95 backdrop-blur">
           <div className="container py-4 space-y-4">
-            <Link
-              to="/recursos"
+            <a
+              href="#servicos"
               className="block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
-              Recursos
-            </Link>
-            <Link
-              to="/precos"
+              Serviços
+            </a>
+            <a
+              href="#precos"
               className="block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
               Preços
-            </Link>
-            <Link
-              to="/sobre"
+            </a>
+            <a
+              href="#faq"
               className="block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
-              Sobre
-            </Link>
-            <Link
-              to="/contato"
+              FAQ
+            </a>
+            <a
+              href="#assistente"
               className="block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
-              Contato
-            </Link>
+              Assistente IA
+            </a>
             <div className="pt-4 space-y-2 border-t border-border/40">
               <Link
                 to="/login"

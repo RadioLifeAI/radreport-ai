@@ -62,9 +62,7 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
     isWhisperEnabled,
     toggleWhisper,
     isTranscribing,
-    whisperStats,
-    isAICorrectorEnabled,
-    toggleAICorrector
+    whisperStats
   } = useDictation(editorInstance)
 
   // Template hook
@@ -644,8 +642,6 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
           toggleWhisper={toggleWhisper}
           isTranscribing={isTranscribing}
           whisperStats={whisperStats}
-          isAICorrectorEnabled={isAICorrectorEnabled}
-          toggleAICorrector={toggleAICorrector}
         />
       </div>
       

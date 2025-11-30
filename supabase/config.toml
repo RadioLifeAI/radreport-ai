@@ -20,6 +20,3 @@ verify_jwt = false
 
 [functions.transcribe-audio]
 verify_jwt = false
-
-[functions.ai-dictation-polish]
-verify_jwt = false

@@ -33,12 +33,6 @@ const voiceRecognitionFixes: Record<string, string> = {
   'orads': 'O-RADS',
   'o rads': 'O-RADS',
   
-  // Erros comuns de transcrição Whisper
-  'rachados': 'achados',
-  'rachado': 'achado',
-  'impresão': 'impressão',
-  'tecnica': 'técnica',
-  
   // Separações incorretas comuns em voz
   'hipo ecogênico': 'hipoecogênico',
   'hiper ecogênico': 'hiperecogênico',

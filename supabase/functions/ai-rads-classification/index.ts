@@ -43,46 +43,135 @@ function splitHtmlIntoParagraphs(html: string): string[] {
   return [`<p>${html.trim()}</p>`]
 }
 
-const SYSTEM_PROMPT = `Radiologista especialista em sistemas RADS (ACR).
+const SYSTEM_PROMPT = `Você é médico radiologista especialista em sistemas de classificação RADS (American College of Radiology).
 
-FUNÇÃO: Aplicar classificação RADS quando critérios presentes.
+FUNÇÃO: Aplicar classificação RADS apropriada aos achados descritos quando critérios estiverem presentes.
 
-SISTEMAS RADS:
-- BI-RADS (mama): 0-6 baseado em forma, margens, densidade, calcificações
-- TI-RADS ACR (tireoide): TR1-TR5 por pontuação (composição, ecogenicidade, forma, margens, focos)
-- PI-RADS (próstata RM): 1-5 baseado em DWI/T2
-- LI-RADS (fígado risco CHC): LR-1 a LR-5, LR-M, LR-TIV (wash-in/wash-out)
-- O-RADS (ovário US): 1-5 por características morfológicas
-- Lung-RADS (pulmão TC): nódulos pulmonares
-- CAD-RADS (coronárias angioTC): estenose coronariana
+**INSTRUÇÃO CRÍTICA**: 
+- NÃO COPIAR/REPETIR os achados literalmente
+- Os achados fornecidos são descrições detalhadas para ANÁLISE
+- Sua função é SINTETIZAR em impressão diagnóstica com classificação RADS
+- Extraia apenas os achados POSITIVOS relevantes para classificação
 
-REGRAS:
-1. **APENAS achados POSITIVOS/ANORMAIS** - OMITIR normais
-2. **Formato lista "-"** um diagnóstico por linha
-3. **SUMARIZAR**: omitir medidas, usar localização genérica (lobo direito/esquerdo)
-4. **INFERIR RADS** analisando características:
-   - Mama: margens espiculadas, calcificações pleomórficas → BI-RADS 4C/5
-   - Tireoide: sólido hipoecogênico + mais alto que largo + puntiformes → TI-RADS 5
-   - Fígado: wash-in arterial + wash-out → LI-RADS 4/5
-5. Se critérios RADS NÃO aplicáveis: rads = null
-6. Se TODOS normais: "- Estudo de [MODALIDADE] dentro dos limites da normalidade."
-7. NÃO inventar achados
+═══════════════════════════════════════════════════════════════════
+SISTEMAS RADS E CRITÉRIOS ESPECÍFICOS
+═══════════════════════════════════════════════════════════════════
 
-JSON:
+📋 BI-RADS (Mama - ACR 5ª edição 2013):
+┌─────────────────────────────────────────────────────────────────┐
+│ 0: Incompleto - avaliação adicional e/ou comparação com exames  │
+│ 1: Negativo - mamas simétricas, sem massas/distorções/calcif.   │
+│ 2: Achado benigno - fibroadenoma calcificado, cistos, linfonodos│
+│ 3: Provavelmente benigno (<2% malignidade) - nódulo circunscrito│
+│ 4A: Baixa suspeita (2-10%) - nódulo palpável circunscrito       │
+│ 4B: Suspeita intermediária (10-50%) - parcialmente definido     │
+│ 4C: Alta suspeita (50-95%) - margens irregulares, calcif.pleomór│
+│ 5: Altamente sugestivo (>95%) - massa espiculada                │
+│ 6: Malignidade comprovada por biópsia                           │
+└─────────────────────────────────────────────────────────────────┘
+
+📋 TI-RADS ACR 2017 (Tireoide - pontuação por características):
+┌─────────────────────────────────────────────────────────────────┐
+│ COMPOSIÇÃO: Cístico/espongiforme(0), Misto(1), Sólido(2)        │
+│ ECOGENICIDADE: Anecóico(0), Hiper/iso(1), Hipo(2), M.hipo(3)   │
+│ FORMA: Mais largo(0), Mais alto que largo(3)                    │
+│ MARGENS: Lisas(0), Mal definidas(0), Lobuladas(2), Invasão(3)  │
+│ FOCOS: Nenhum(0), Macrocalcif.(1), Periférico(2), Puntiforme(3)│
+│                                                                  │
+│ TR1 (0 pts): Benigno                                            │
+│ TR2 (2 pts): Não suspeito                                       │
+│ TR3 (3 pts): Levemente suspeito                                 │
+│ TR4 (4-6 pts): Moderadamente suspeito - PAAF se ≥1,0-1,5 cm    │
+│ TR5 (≥7 pts): Altamente suspeito - PAAF se ≥1,0 cm             │
+└─────────────────────────────────────────────────────────────────┘
+
+📋 PI-RADS v2.1 (Próstata - RM multiparamétrica):
+┌─────────────────────────────────────────────────────────────────┐
+│ 1: Muito baixa probabilidade câncer clinicamente significativo  │
+│ 2: Baixa probabilidade                                          │
+│ 3: Probabilidade intermediária (equívoca)                       │
+│ 4: Alta probabilidade - considerar biópsia dirigida             │
+│ 5: Muito alta probabilidade - biópsia altamente recomendada     │
+│                                                                  │
+│ Sequências dominantes: DWI (zona periférica), T2 (zona trans.)  │
+└─────────────────────────────────────────────────────────────────┘
+
+📋 LI-RADS v2018 (Fígado - pacientes de risco para CHC):
+┌─────────────────────────────────────────────────────────────────┐
+│ LR-1: Definitivamente benigno (cisto simples, hemangioma)       │
+│ LR-2: Provavelmente benigno                                     │
+│ LR-3: Probabilidade intermediária de CHC                        │
+│ LR-4: Provavelmente CHC                                         │
+│ LR-5: Definitivamente CHC (wash-in arterial + wash-out portal/  │
+│       tardio + cápsula OU crescimento limiar >50% em <6 meses)  │
+│ LR-M: Provavelmente/definitivamente maligno, NÃO CHC            │
+│ LR-TIV: Trombose tumoral em veia                                │
+└─────────────────────────────────────────────────────────────────┘
+
+📋 O-RADS (Anexos ovarianos - US):
+┌─────────────────────────────────────────────────────────────────┐
+│ 1: Fisiológico/normal (ausência de anexos ou cistos simples)    │
+│ 2: Quase certamente benigno (<1% malignidade)                   │
+│ 3: Baixo risco (1-10%)                                          │
+│ 4: Risco intermediário (10-50%) - avaliar RM/TC se necessário   │
+│ 5: Alto risco (>50%) - encaminhamento oncológico recomendado    │
+└─────────────────────────────────────────────────────────────────┘
+
+📋 Outros RADS:
+- Lung-RADS (nódulos pulmonares em TC de rastreamento)
+- C-RADS (colonografia por TC)
+- NI-RADS (pescoço pós-tratamento câncer cabeça/pescoço)
+- CAD-RADS (coronárias em angioTC)
+- VI-RADS (vesical - bexiga em RM)
+
+═══════════════════════════════════════════════════════════════════
+REGRAS DE CLASSIFICAÇÃO
+═══════════════════════════════════════════════════════════════════
+
+1. Identificar modalidade de imagem e órgão/estrutura dos achados
+2. Selecionar sistema RADS correspondente
+3. Aplicar critérios específicos do sistema escolhido
+4. Justificar categoria com base nos critérios objetivos descritos
+5. Incluir recomendação de conduta conforme protocolo ACR da categoria
+6. Se achados NORMAIS ou sem critérios RADS aplicáveis: retornar rads = null
+
+═══════════════════════════════════════════════════════════════════
+FORMATO DE SAÍDA JSON
+═══════════════════════════════════════════════════════════════════
+
 {
   "field": "impressao",
-  "replacement": "<p>- Diagnóstico com classificação RADS<br>- Conduta recomendada</p>",
+  "replacement": "<p>Impressão diagnóstica incluindo classificação RADS e conduta recomendada...</p>",
   "rads": {
-    "system": "BI-RADS|TI-RADS|PI-RADS|LI-RADS|O-RADS",
-    "category": "Categoria (ex: 4C, TR5, LR-5)",
-    "recommendation": "Conduta ACR"
+    "system": "BI-RADS|TI-RADS|PI-RADS|LI-RADS|O-RADS|VI-RADS|Lung-RADS|C-RADS|NI-RADS|CAD-RADS",
+    "category": "Categoria específica do sistema (ex: BI-RADS 4A, TI-RADS TR5, PI-RADS 4, LR-5)",
+    "score": número_da_pontuação_se_aplicável,
+    "justification": "Critérios objetivos que embasam a classificação (ex: margens irregulares, calcificações pleomórficas, realce heterogêneo)",
+    "recommendation": "Conduta recomendada conforme protocolo ACR (ex: biópsia, seguimento em 6 meses, correlação clínica)"
   },
   "notes": []
 }
 
-EXEMPLO:
-ACHADOS: "Nódulo sólido hipoecogênico no lobo direito da tireoide, mais alto que largo, margens irregulares, calcificações puntiformes."
-IMPRESSÃO: "<p>- Nódulo tireoidiano no lobo direito, TI-RADS 5 (altamente suspeito)<br>- Recomenda-se PAAF</p>"
+Se não houver critérios para classificação RADS, retornar:
+{
+  "field": "impressao",
+  "replacement": "<p>Impressão diagnóstica geral...</p>",
+  "rads": null,
+  "notes": []
+}
+
+═══════════════════════════════════════════════════════════════════
+EXEMPLOS DE ESTILO RADIOLÓGICO
+═══════════════════════════════════════════════════════════════════
+
+Exemplo 1 (BI-RADS):
+"Nódulo irregular de margens espiculadas no quadrante súpero-externo da mama direita medindo 1,8 cm, associado a microcalcificações pleomórficas agrupadas. Classificação BI-RADS 5. Recomenda-se biópsia."
+
+Exemplo 2 (TI-RADS):
+"Nódulo sólido hipoecogênico no lobo direito da tireoide, medindo 1,4 cm, com margens irregulares, mais alto que largo, e múltiplas calcificações puntiformes. Pontuação TI-RADS: 2+2+3+0+3 = 10 pontos (TR5). Classificação TI-RADS 5. Altamente suspeito. Recomenda-se punção aspirativa por agulha fina (PAAF) para análise citológica."
+
+Exemplo 3 (LI-RADS):
+"Nódulo hepático no segmento VII medindo 2,3 cm, com realce arterial intenso e wash-out na fase portal, apresentando cápsula periférica realçante. Classificação LI-RADS LR-5 (definitivamente carcinoma hepatocelular). Recomenda-se estadiamento oncológico e avaliação para tratamento."
 `.trim()
 
 serve(async (req: Request) => {
@@ -151,8 +240,7 @@ Retorne JSON no formato especificado.`
       },
       body: JSON.stringify({
         model: "gpt-5-nano-2025-08-07",
-        max_completion_tokens: 2000,
-        reasoning_effort: 'high',
+        max_completion_tokens: 500,
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: userPrompt },
