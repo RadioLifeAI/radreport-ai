@@ -52,7 +52,7 @@ export function TableViewerModal({ open, onOpenChange, table, editor, onInsertTa
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col bg-card/95 backdrop-blur-md border-border/50">
+      <DialogContent className="z-[200] max-w-4xl max-h-[90vh] flex flex-col bg-card/95 backdrop-blur-md border-border/50">
         <DialogHeader className="border-b border-border/40 pb-4">
           <div className="flex items-center justify-between">
             <div className="space-y-1">

@@ -32,12 +32,14 @@ const iconMap: Record<string, any> = {
 }
 
 export function TablesDropdown({ editor, onInsertTable }: TablesDropdownProps) {
+  const [dropdownOpen, setDropdownOpen] = useState(false)
   const [viewerOpen, setViewerOpen] = useState(false)
   const [selectedTable, setSelectedTable] = useState<RadiologyTable | null>(null)
 
   if (!editor) return null
 
   const handleViewTable = (table: RadiologyTable) => {
+    setDropdownOpen(false)
     setSelectedTable(table)
     setViewerOpen(true)
   }
@@ -89,7 +91,7 @@ export function TablesDropdown({ editor, onInsertTable }: TablesDropdownProps) {
 
   return (
     <>
-      <DropdownMenu>
+      <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="sm" className="gap-2 text-foreground hover:text-foreground">
             <Table2 size={16} />
