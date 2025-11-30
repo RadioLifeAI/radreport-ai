@@ -1248,5 +1248,783 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
 </table>`
       }
     ]
+  },
+  {
+    id: 'neuroradiology',
+    name: 'Neurorradiologia',
+    icon: 'Brain',
+    tables: [
+      {
+        id: 'aspects_score',
+        name: 'ASPECTS Score (AVC)',
+        category: 'neuroradiology',
+        subcategory: 'AVC / Isquemia',
+        type: 'informative',
+        modality: ['TC'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">ASPECTS Score - Alberta Stroke Program Early CT Score</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px;">Região</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Pontuação</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;">C - Cápsula Interna</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1 ponto</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;">L - Núcleo Lenticular</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1 ponto</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;">I - Ínsula</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1 ponto</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;">IC - Córtex da Ínsula</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1 ponto</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;">M1 - ACM anterior</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1 ponto</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;">M2 - ACM lateral</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1 ponto</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;">M3 - ACM posterior</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1 ponto</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;">M4 - M5 - M6 (território ACM)</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">3 pontos</td></tr>
+  </tbody>
+  <tfoot>
+    <tr><td colspan="2" style="border:1px solid #ddd; padding:8px; font-size:9pt;">
+      <strong>Interpretação:</strong> Score 10 = normal | Score ≤7 = prognóstico desfavorável | Cada região comprometida subtrai 1 ponto do total de 10
+    </td></tr>
+    <tr>
+      <td colspan="2" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Barber PA et al. Validity and reliability of a quantitative computed tomography score in predicting outcome of hyperacute stroke. Lancet 2000;355:1670-1674.</span>
+        <br/>
+        <a href="https://www.ahajournals.org/doi/10.1161/STROKEAHA.119.026698" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 AHA/ASA ASPECTS Guidelines
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'fisher_scale',
+        name: 'Escala de Fisher (HSA)',
+        category: 'neuroradiology',
+        subcategory: 'Hemorragia Intracraniana',
+        type: 'informative',
+        modality: ['TC'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Escala de Fisher - Hemorragia Subaracnóidea (HSA)</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Grau</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Achados TC</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Risco Vasoespasmo</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1</td><td style="border:1px solid #ddd; padding:6px 8px;">Sem HSA visível</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">Baixo</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">2</td><td style="border:1px solid #ddd; padding:6px 8px;">HSA difusa <1mm espessura</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">Baixo</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">3</td><td style="border:1px solid #ddd; padding:6px 8px;">HSA localizada/coágulo >1mm</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">Alto (70%)</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">4</td><td style="border:1px solid #ddd; padding:6px 8px;">HSA intraventricular ou parenquimatosa</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">Variável</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="3" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Fisher CM et al. Relation of cerebral vasospasm to subarachnoid hemorrhage visualized by CT scanning. Neurosurgery 1980;6:1-9.</span>
+        <br/>
+        <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6738452/" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 Neurocritical Care Guidelines
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'modified_fisher',
+        name: 'Fisher Modificada (HSA)',
+        category: 'neuroradiology',
+        subcategory: 'Hemorragia Intracraniana',
+        type: 'informative',
+        modality: ['TC'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Escala de Fisher Modificada (Predição de Vasoespasmo)</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Grau</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Achados TC</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Vasoespasmo (%)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">0</td><td style="border:1px solid #ddd; padding:6px 8px;">Sem HSA ou HVI</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">6%</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1</td><td style="border:1px solid #ddd; padding:6px 8px;">HSA fina sem HVI</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">24%</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">2</td><td style="border:1px solid #ddd; padding:6px 8px;">HSA fina com HVI</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">33%</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">3</td><td style="border:1px solid #ddd; padding:6px 8px;">HSA espessa sem HVI</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">33%</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">4</td><td style="border:1px solid #ddd; padding:6px 8px;">HSA espessa com HVI</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">40%</td></tr>
+  </tbody>
+  <tfoot>
+    <tr><td colspan="3" style="border:1px solid #ddd; padding:6px; font-size:9pt; font-style:italic;">HSA espessa: >1mm em qualquer cisterna. HVI = Hemorragia intraventricular. Escala preditora mais acurada que Fisher original.</td></tr>
+    <tr>
+      <td colspan="3" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Frontera JA et al. Prediction of symptomatic vasospasm after subarachnoid hemorrhage: the modified Fisher scale. Neurosurgery 2006;59:21-27.</span>
+        <br/>
+        <a href="https://www.neurosurgery-online.com/article/S0090-3019(06)00443-8" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 Modified Fisher Original Article
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'hunt_hess',
+        name: 'Hunt e Hess (HSA)',
+        category: 'neuroradiology',
+        subcategory: 'Hemorragia Intracraniana',
+        type: 'informative',
+        modality: ['Clínico'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Escala de Hunt e Hess - Graduação Clínica da HSA</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Grau</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Apresentação Clínica</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Mortalidade</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">I</td><td style="border:1px solid #ddd; padding:6px 8px;">Assintomático ou cefaleia leve, rigidez de nuca leve</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">0-5%</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">II</td><td style="border:1px solid #ddd; padding:6px 8px;">Cefaleia moderada/intensa, rigidez de nuca, sem déficit exceto paralisia de nervos cranianos</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">5-10%</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">III</td><td style="border:1px solid #ddd; padding:6px 8px;">Sonolência, confusão, déficit focal leve</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">10-15%</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">IV</td><td style="border:1px solid #ddd; padding:6px 8px;">Estupor, hemiparesia moderada/grave, rigidez de descerebração precoce</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">60-70%</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">V</td><td style="border:1px solid #ddd; padding:6px 8px;">Coma profundo, rigidez de descerebração, aparência moribunda</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">70-100%</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="3" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Hunt WE, Hess RM. Surgical risk as related to time of intervention in the repair of intracranial aneurysms. J Neurosurg 1968;28:14-20.</span>
+        <br/>
+        <a href="https://thejns.org/view/journals/j-neurosurg/28/1/article-p14.xml" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 J Neurosurgery Original Article
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'ich_score',
+        name: 'ICH Score (HIC)',
+        category: 'neuroradiology',
+        subcategory: 'Hemorragia Intracraniana',
+        type: 'informative',
+        modality: ['TC'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">ICH Score - Prognóstico de Hemorragia Intracerebral</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px;">Variável</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Pontuação</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;"><strong>Glasgow ≥13</strong></td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">0</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;"><strong>Glasgow 5-12</strong></td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;"><strong>Glasgow 3-4</strong></td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">2</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;"><strong>Volume HIC ≥30 cm³</strong></td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;"><strong>Hemorragia intraventricular</strong></td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;"><strong>Localização infratentorial</strong></td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;"><strong>Idade ≥80 anos</strong></td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1</td></tr>
+  </tbody>
+  <tfoot>
+    <tr><td colspan="2" style="border:1px solid #ddd; padding:8px; font-size:9pt;">
+      <strong>Mortalidade 30 dias:</strong> Score 0=0% | 1=13% | 2=26% | 3=72% | 4=97% | 5-6=100%
+    </td></tr>
+    <tr>
+      <td colspan="2" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Hemphill JC et al. The ICH Score: a simple, reliable grading scale for intracerebral hemorrhage. Stroke 2001;32:891-897.</span>
+        <br/>
+        <a href="https://www.ahajournals.org/doi/10.1161/01.STR.32.4.891" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 AHA Stroke Original Article
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'abc2_formula',
+        name: 'Fórmula ABC/2 (Volume)',
+        category: 'neuroradiology',
+        subcategory: 'Hemorragia Intracraniana',
+        type: 'informative',
+        modality: ['TC'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Fórmula ABC/2 - Cálculo de Volume de Hematoma</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px;">Medida</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Descrição</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;"><strong>A</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Maior diâmetro da lesão (cm)</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;"><strong>B</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Diâmetro perpendicular a A (cm)</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;"><strong>C</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Número de cortes com hematoma × espessura do corte (cm)</td></tr>
+    <tr style="background:#f8f8f8;"><td colspan="2" style="border:1px solid #ddd; padding:12px; text-align:center; font-size:14pt; font-weight:bold; color:#1e3a5f;">
+      Volume (cm³) = (A × B × C) / 2
+    </td></tr>
+  </tbody>
+  <tfoot>
+    <tr><td colspan="2" style="border:1px solid #ddd; padding:8px; font-size:9pt; font-style:italic;">
+      Método rápido e acurado (correlação r=0.96 com volumetria). Volume >30cm³ associado a pior prognóstico. Válido para lesões elipsoides/ovoides.
+    </td></tr>
+    <tr>
+      <td colspan="2" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Kothari RU et al. The ABCs of measuring intracerebral hemorrhage volumes. Stroke 1996;27:1304-1305.</span>
+        <br/>
+        <a href="https://www.ahajournals.org/doi/10.1161/01.STR.27.8.1304" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 AHA Stroke Original Article
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'graeb_score',
+        name: 'Escala de Graeb (HVI)',
+        category: 'neuroradiology',
+        subcategory: 'Hemorragia Intracraniana',
+        type: 'informative',
+        modality: ['TC'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Escala de Graeb - Hemorragia Intraventricular (HVI)</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px;">Região Ventricular</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Pontuação</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;"><strong>Ventrículo lateral D/E</strong> (cada)</td><td style="border:1px solid #ddd; padding:6px 8px;">0: sem sangue | 1: traço | 2: <50% | 3: >50% | 4: expansão</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;"><strong>III ventrículo</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">0: sem sangue | 1: traço | 2: preenchido com sangue</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;"><strong>IV ventrículo</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">0: sem sangue | 1: traço | 2: preenchido com sangue</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold;">Score Total</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">0-12 pontos</td></tr>
+  </tbody>
+  <tfoot>
+    <tr><td colspan="2" style="border:1px solid #ddd; padding:8px; font-size:9pt;">
+      <strong>Interpretação:</strong> Score 0-4=leve | 5-8=moderado | 9-12=grave. Score ≥5 associado a hidrocefalia e pior prognóstico.
+    </td></tr>
+    <tr>
+      <td colspan="2" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Graeb DA et al. Computed tomographic diagnosis of intraventricular hemorrhage. Etiology and prognosis. Radiology 1982;143:91-96.</span>
+        <br/>
+        <a href="https://pubs.rsna.org/doi/10.1148/radiology.143.1.6977795" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 Radiology Original Article
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'fazekas_scale',
+        name: 'Escala de Fazekas',
+        category: 'neuroradiology',
+        subcategory: 'Substância Branca / Demência',
+        type: 'informative',
+        modality: ['RM'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Escala de Fazekas - Lesões de Substância Branca</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Grau</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Lesões Periventriculares</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Lesões Subcorticais</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">0</td><td style="border:1px solid #ddd; padding:6px 8px;">Ausentes</td><td style="border:1px solid #ddd; padding:6px 8px;">Ausentes</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1</td><td style="border:1px solid #ddd; padding:6px 8px;">"Caps" ou fina borda</td><td style="border:1px solid #ddd; padding:6px 8px;">Focos puntiformes</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">2</td><td style="border:1px solid #ddd; padding:6px 8px;">Halo suave</td><td style="border:1px solid #ddd; padding:6px 8px;">Focos começando a confluir</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">3</td><td style="border:1px solid #ddd; padding:6px 8px;">Extensão irregular para a substância branca profunda</td><td style="border:1px solid #ddd; padding:6px 8px;">Grandes áreas confluentes</td></tr>
+  </tbody>
+  <tfoot>
+    <tr><td colspan="3" style="border:1px solid #ddd; padding:8px; font-size:9pt; font-style:italic;">
+      Avaliação em FLAIR ou T2. Graduação separada para lesões periventriculares e subcorticais (profundas). Grau ≥2 associado a risco aumentado de demência e AVC.
+    </td></tr>
+    <tr>
+      <td colspan="3" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Fazekas F et al. MR signal abnormalities at 1.5T in Alzheimer's dementia and normal aging. AJR 1987;149:351-356.</span>
+        <br/>
+        <a href="https://www.ajronline.org/doi/10.2214/ajr.149.2.351" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 AJR Original Article
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'mta_scheltens',
+        name: 'MTA Score (Scheltens)',
+        category: 'neuroradiology',
+        subcategory: 'Substância Branca / Demência',
+        type: 'informative',
+        modality: ['RM'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">MTA Score - Medial Temporal Atrophy (Scheltens)</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Score</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Fissura Coroidea</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Corno Temporal</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Hipocampo</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">0</td><td style="border:1px solid #ddd; padding:6px 8px;">Normal</td><td style="border:1px solid #ddd; padding:6px 8px;">Normal</td><td style="border:1px solid #ddd; padding:6px 8px;">Normal</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1</td><td style="border:1px solid #ddd; padding:6px 8px;">Alargamento leve</td><td style="border:1px solid #ddd; padding:6px 8px;">Leve alargamento</td><td style="border:1px solid #ddd; padding:6px 8px;">Volume normal</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">2</td><td style="border:1px solid #ddd; padding:6px 8px;">Alargamento moderado</td><td style="border:1px solid #ddd; padding:6px 8px;">Alargamento moderado</td><td style="border:1px solid #ddd; padding:6px 8px;">Redução volumétrica</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">3</td><td style="border:1px solid #ddd; padding:6px 8px;">Alargamento acentuado</td><td style="border:1px solid #ddd; padding:6px 8px;">Alargamento acentuado</td><td style="border:1px solid #ddd; padding:6px 8px;">Atrofia grave</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">4</td><td style="border:1px solid #ddd; padding:6px 8px;">Perda da arquitetura</td><td style="border:1px solid #ddd; padding:6px 8px;">Alargamento severo</td><td style="border:1px solid #ddd; padding:6px 8px;">Atrofia final</td></tr>
+  </tbody>
+  <tfoot>
+    <tr><td colspan="4" style="border:1px solid #ddd; padding:8px; font-size:9pt;">
+      <strong>Valores de referência:</strong> <65 anos: score ≥2 anormal | 65-75 anos: score ≥3 anormal | >75 anos: score 4 anormal. Avaliar em coronal T1 perpendicular ao hipocampo.
+    </td></tr>
+    <tr>
+      <td colspan="4" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Scheltens P et al. Atrophy of medial temporal lobes on MRI in "probable" Alzheimer's disease and normal ageing. J Neurol Neurosurg Psychiatry 1992;55:967-972.</span>
+        <br/>
+        <a href="https://jnnp.bmj.com/content/55/10/967" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 JNNP Original Article
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'gca_scale',
+        name: 'GCA Scale (Atrofia Global)',
+        category: 'neuroradiology',
+        subcategory: 'Substância Branca / Demência',
+        type: 'informative',
+        modality: ['RM', 'TC'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">GCA Scale - Global Cortical Atrophy Scale</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Grau</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Sulcos Corticais</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Ventrículos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">0</td><td style="border:1px solid #ddd; padding:6px 8px;">Sulcos finos, giros cheios</td><td style="border:1px solid #ddd; padding:6px 8px;">Ventrículos normais</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1</td><td style="border:1px solid #ddd; padding:6px 8px;">Abertura discreta dos sulcos</td><td style="border:1px solid #ddd; padding:6px 8px;">Ventrículos levemente alargados</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">2</td><td style="border:1px solid #ddd; padding:6px 8px;">Alargamento moderado dos sulcos</td><td style="border:1px solid #ddd; padding:6px 8px;">Alargamento ventricular moderado</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">3</td><td style="border:1px solid #ddd; padding:6px 8px;">Sulcos extremamente alargados, giros afilados</td><td style="border:1px solid #ddd; padding:6px 8px;">Ventriculomegalia acentuada</td></tr>
+  </tbody>
+  <tfoot>
+    <tr><td colspan="3" style="border:1px solid #ddd; padding:8px; font-size:9pt; font-style:italic;">
+      Avaliação visual global, não específica para regiões. Útil para triagem rápida. Grau ≥2 sugere atrofia significativa.
+    </td></tr>
+    <tr>
+      <td colspan="3" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Pasquier F et al. Inter- and intraobserver reproducibility of cerebral atrophy assessment on MRI scans with hemispheric infarcts. Eur Neurol 1996;36:268-272.</span>
+        <br/>
+        <a href="https://www.karger.com/Article/Abstract/117270" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 European Neurology Reference
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'koedam_score',
+        name: 'Koedam Score (Atrofia Parietal)',
+        category: 'neuroradiology',
+        subcategory: 'Substância Branca / Demência',
+        type: 'informative',
+        modality: ['RM'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Koedam Score - Atrofia Cortical Posterior (Parietal)</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Score</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Sulco Parieto-Occipital</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Precuneus / Cuneus</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">0</td><td style="border:1px solid #ddd; padding:6px 8px;">Sem atrofia</td><td style="border:1px solid #ddd; padding:6px 8px;">Normal</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1</td><td style="border:1px solid #ddd; padding:6px 8px;">Alargamento leve</td><td style="border:1px solid #ddd; padding:6px 8px;">Atrofia leve</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">2</td><td style="border:1px solid #ddd; padding:6px 8px;">Alargamento moderado/acentuado</td><td style="border:1px solid #ddd; padding:6px 8px;">Atrofia moderada</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">3</td><td style="border:1px solid #ddd; padding:6px 8px;">"Knife-blade" atrophy</td><td style="border:1px solid #ddd; padding:6px 8px;">Atrofia grave</td></tr>
+  </tbody>
+  <tfoot>
+    <tr><td colspan="3" style="border:1px solid #ddd; padding:8px; font-size:9pt; font-style:italic;">
+      Útil para Atrofia Cortical Posterior (ACP) e variante posterior da doença de Alzheimer. Avaliar em cortes sagitais T1. Score ≥2 sugere ACP.
+    </td></tr>
+    <tr>
+      <td colspan="3" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Koedam EL et al. Visual assessment of posterior atrophy development of a MRI rating scale. Eur Radiol 2011;21:2618-2625.</span>
+        <br/>
+        <a href="https://link.springer.com/article/10.1007/s00330-011-2205-4" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 European Radiology Original Article
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'who_gliomas_2021',
+        name: 'WHO Gliomas 2021',
+        category: 'neuroradiology',
+        subcategory: 'Tumores Cerebrais',
+        type: 'informative',
+        modality: ['RM'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Classificação WHO 2021 - Gliomas (Simplificada)</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px;">Tipo</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Grau</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Marcador Molecular</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;"><strong>Astrocitoma IDH-mutante</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">2, 3, 4</td><td style="border:1px solid #ddd; padding:6px 8px;">IDH1/2 mutado</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;"><strong>Oligodendroglioma IDH-mutante</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">2, 3</td><td style="border:1px solid #ddd; padding:6px 8px;">IDH + 1p/19q codeleted</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;"><strong>Glioblastoma IDH-wildtype</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">4</td><td style="border:1px solid #ddd; padding:6px 8px;">IDH selvagem, TERT+, EGFR+, +7/-10</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;"><strong>Astrocitoma pilocítico</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">1</td><td style="border:1px solid #ddd; padding:6px 8px;">BRAF fusão ou mutação</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;"><strong>Ependimoma</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">2, 3</td><td style="border:1px solid #ddd; padding:6px 8px;">Subgrupos moleculares (RELA, YAP1)</td></tr>
+  </tbody>
+  <tfoot>
+    <tr><td colspan="3" style="border:1px solid #ddd; padding:8px; font-size:9pt; font-style:italic;">
+      Classificação WHO 2021 integra histologia + marcadores moleculares. IDH-mutante: melhor prognóstico. IDH-wildtype (glioblastoma): agressivo.
+    </td></tr>
+    <tr>
+      <td colspan="3" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Louis DN et al. The 2021 WHO Classification of Tumors of the Central Nervous System: a summary. Neuro Oncol 2021;23(8):1231-1251.</span>
+        <br/>
+        <a href="https://academic.oup.com/neuro-oncology/article/23/8/1231/6311214" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 WHO CNS5 Official Publication
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'btrads',
+        name: 'BT-RADS (Brain Tumor)',
+        category: 'neuroradiology',
+        subcategory: 'Tumores Cerebrais',
+        type: 'informative',
+        modality: ['RM'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">BT-RADS - Brain Tumor Reporting and Data System (Proposta)</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Categoria</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Achados RM</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Conduta</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">0</td><td style="border:1px solid #ddd; padding:6px 8px;">Incompleto/Indeterminado</td><td style="border:1px solid #ddd; padding:6px 8px;">Exames adicionais</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1</td><td style="border:1px solid #ddd; padding:6px 8px;">Benigno (sem realce, sem efeito de massa)</td><td style="border:1px solid #ddd; padding:6px 8px;">Seguimento opcional</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">2</td><td style="border:1px solid #ddd; padding:6px 8px;">Provavelmente benigno (realce homogêneo, bem delimitado)</td><td style="border:1px solid #ddd; padding:6px 8px;">Seguimento curto prazo (3-6m)</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">3</td><td style="border:1px solid #ddd; padding:6px 8px;">Indeterminado (realce heterogêneo, suspeito)</td><td style="border:1px solid #ddd; padding:6px 8px;">Biópsia ou seguimento rigoroso</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">4</td><td style="border:1px solid #ddd; padding:6px 8px;">Suspeito de malignidade (realce irregular, edema, necrose)</td><td style="border:1px solid #ddd; padding:6px 8px;">Biópsia recomendada</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">5</td><td style="border:1px solid #ddd; padding:6px 8px;">Altamente sugestivo de malignidade (necrose, realce anelar)</td><td style="border:1px solid #ddd; padding:6px 8px;">Biópsia/tratamento urgente</td></tr>
+  </tbody>
+  <tfoot>
+    <tr><td colspan="3" style="border:1px solid #ddd; padding:8px; font-size:9pt; font-style:italic;">
+      Sistema proposto para padronização de laudos. Baseado em características de imagem (realce, necrose, edema, difusão restrita, perfusão).
+    </td></tr>
+    <tr>
+      <td colspan="3" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">ACR Brain Tumor Reporting Initiative 2022. American College of Radiology.</span>
+        <br/>
+        <a href="https://www.acr.org/Clinical-Resources/Reporting-and-Data-Systems" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 ACR Reporting Systems
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'phases_score',
+        name: 'PHASES Score (Aneurisma)',
+        category: 'neuroradiology',
+        subcategory: 'Aneurismas e Vascular',
+        type: 'informative',
+        modality: ['AngioTC', 'AngioRM'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">PHASES Score - Risco de Ruptura de Aneurisma Intracraniano</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px;">Fator</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Pontos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;"><strong>P</strong>opulation: América do Norte/Europa (vs. Japão/Finlândia)</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">0 vs. 3-5</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;"><strong>H</strong>ypertension (Hipertensão arterial)</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;"><strong>A</strong>ge: <70 anos (0) | 70-79 anos (1) | ≥80 anos (0)</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">0-1</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;"><strong>S</strong>ize: <7mm (0) | 7-9.9mm (3) | 10-19.9mm (6) | ≥20mm (10)</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">0-10</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;"><strong>E</strong>arlier SAH (história prévia de HSA de outro aneurisma)</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;"><strong>S</strong>ite: ACI (0) | ACM (2) | Circ. posterior (4) | AcomA/AcomP (0-2)</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">0-4</td></tr>
+  </tbody>
+  <tfoot>
+    <tr><td colspan="2" style="border:1px solid #ddd; padding:8px; font-size:9pt;">
+      <strong>Risco 5 anos:</strong> Score 0-2=0.4% | 3-4=0.7% | 5-6=0.9% | 7-9=1.3% | 10-11=1.7% | 12-14=2.4% | ≥15=4.3%
+    </td></tr>
+    <tr>
+      <td colspan="2" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Greving JP et al. Development of the PHASES score for prediction of risk of rupture of intracranial aneurysms: a pooled analysis of six prospective cohort studies. Lancet Neurol 2014;13:59-66.</span>
+        <br/>
+        <a href="https://www.thelancet.com/journals/laneur/article/PIIS1474-4422(13)70263-1/fulltext" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 Lancet Neurology Original Study
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'wfns_scale',
+        name: 'WFNS Scale (HSA)',
+        category: 'neuroradiology',
+        subcategory: 'Aneurismas e Vascular',
+        type: 'informative',
+        modality: ['Clínico'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">WFNS Scale - World Federation of Neurological Surgeons</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Grau</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Glasgow (GCS)</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Déficit Motor</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">I</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">15</td><td style="border:1px solid #ddd; padding:6px 8px;">Ausente</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">II</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">13-14</td><td style="border:1px solid #ddd; padding:6px 8px;">Ausente</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">III</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">13-14</td><td style="border:1px solid #ddd; padding:6px 8px;">Presente</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">IV</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">7-12</td><td style="border:1px solid #ddd; padding:6px 8px;">Presente ou ausente</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">V</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">3-6</td><td style="border:1px solid #ddd; padding:6px 8px;">Presente ou ausente</td></tr>
+  </tbody>
+  <tfoot>
+    <tr><td colspan="3" style="border:1px solid #ddd; padding:8px; font-size:9pt; font-style:italic;">
+      Graduação clínica mais utilizada mundialmente para HSA. Correlaciona-se com prognóstico: Grau I-II (bom), Grau III (moderado), Grau IV-V (reservado).
+    </td></tr>
+    <tr>
+      <td colspan="3" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Drake CG et al. Report of World Federation of Neurological Surgeons Committee on a Universal Subarachnoid Hemorrhage Grading Scale. J Neurosurg 1988;68:985-986.</span>
+        <br/>
+        <a href="https://thejns.org/view/journals/j-neurosurg/68/6/article-p985.xml" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 J Neurosurgery WFNS Classification
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'nihss_scale',
+        name: 'NIHSS (AVC Clínico)',
+        category: 'neuroradiology',
+        subcategory: 'AVC / Isquemia',
+        type: 'informative',
+        modality: ['Clínico'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">NIHSS - National Institutes of Health Stroke Scale</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px;">Domínio</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Pontuação Máxima</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;">1. Nível de consciência</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">3</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;">2. Questões LOC</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">2</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;">3. Comandos LOC</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">2</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;">4. Melhor olhar</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">2</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;">5. Campos visuais</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">3</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;">6. Paresia facial</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">3</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;">7. Motor MSD / 8. Motor MSE</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">4 cada</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;">9. Motor MID / 10. Motor MIE</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">4 cada</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;">11. Ataxia de membros</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">2</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;">12. Sensibilidade</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">2</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;">13. Melhor linguagem</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">3</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;">14. Disartria</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">2</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;">15. Extinção/desatenção</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">2</td></tr>
+    <tr style="background:#ffeb3b;"><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold;">TOTAL</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">0-42 pontos</td></tr>
+  </tbody>
+  <tfoot>
+    <tr><td colspan="2" style="border:1px solid #ddd; padding:8px; font-size:9pt;">
+      <strong>Interpretação:</strong> 0=sem déficit | 1-4=leve | 5-15=moderado | 16-20=moderado/grave | 21-42=grave. Score >15 sugere benefício de trombólise/trombectomia.
+    </td></tr>
+    <tr>
+      <td colspan="2" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Brott T et al. Measurements of acute cerebral infarction: a clinical examination scale. Stroke 1989;20:864-870.</span>
+        <br/>
+        <a href="https://www.ahajournals.org/doi/10.1161/01.STR.20.7.864" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 AHA/ASA NIHSS Reference
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'toast_classification',
+        name: 'Classificação TOAST (Etiologia AVC)',
+        category: 'neuroradiology',
+        subcategory: 'AVC / Isquemia',
+        type: 'informative',
+        modality: ['Clínico'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Classificação TOAST - Etiologia do AVC Isquêmico</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px;">Categoria</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Características</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;"><strong>1. Aterosclerose de grande vaso</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Estenose >50% artéria extracraniana/intracraniana | Placa aterosclerótica</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;"><strong>2. Cardioembolismo</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">FA, flutter, prótese valvar, trombo atrial, IAM recente, mixoma</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;"><strong>3. Oclusão de pequeno vaso (lacunar)</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Infarto <1,5cm subcortical/tronco | Hipertensão, diabetes</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;"><strong>4. Outra etiologia determinada</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Dissecção arterial, vasculite, hipercoagulabilidade, drogas</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;"><strong>5. Etiologia indeterminada</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Investigação negativa | Múltiplas causas possíveis | Investigação incompleta</td></tr>
+  </tbody>
+  <tfoot>
+    <tr><td colspan="2" style="border:1px solid #ddd; padding:8px; font-size:9pt; font-style:italic;">
+      Sistema de classificação etiológica mais utilizado para AVC isquêmico. Orienta prevenção secundária específica.
+    </td></tr>
+    <tr>
+      <td colspan="2" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Adams HP Jr et al. Classification of subtype of acute ischemic stroke (TOAST). Stroke 1993;24:35-41.</span>
+        <br/>
+        <a href="https://www.ahajournals.org/doi/10.1161/01.STR.24.1.35" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 AHA Stroke TOAST Classification
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'bamford_classification',
+        name: 'Classificação de Bamford/Oxford',
+        category: 'neuroradiology',
+        subcategory: 'AVC / Isquemia',
+        type: 'informative',
+        modality: ['TC', 'RM'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Classificação de Bamford/Oxford - Síndromes Clínicas do AVC</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px;">Síndrome</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Critérios Clínicos</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Prognóstico</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;"><strong>TACS</strong> (Total Anterior Circulation)</td><td style="border:1px solid #ddd; padding:6px 8px;">Todos 3: disfunção cortical + defeito hemianóptico + déficit motor/sensitivo em ≥2 áreas</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">Grave</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;"><strong>PACS</strong> (Partial Anterior Circulation)</td><td style="border:1px solid #ddd; padding:6px 8px;">2 de 3 critérios TACS | OU disfunção cortical isolada | OU déficit motor/sensitivo limitado</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">Moderado</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;"><strong>LACS</strong> (Lacunar)</td><td style="border:1px solid #ddd; padding:6px 8px;">Síndrome lacunar pura: hemiparesia motora pura, AVC sensitivo puro, hemiparesia atáxica, disartria-mão desajeitada</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">Bom</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;"><strong>POCS</strong> (Posterior Circulation)</td><td style="border:1px solid #ddd; padding:6px 8px;">Qualquer: paralisia de nervo craniano + déficit contralateral motor/sensitivo | déficit motor/sensitivo bilateral | distúrbio conjugado do olhar | disfunção cerebelar | hemianopsia isolada</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">Variável</td></tr>
+  </tbody>
+  <tfoot>
+    <tr><td colspan="3" style="border:1px solid #ddd; padding:8px; font-size:9pt; font-style:italic;">
+      Classificação clínica correlacionada com território vascular e prognóstico. TACS: pior (60% mortalidade 1 ano) | LACS: melhor (10% mortalidade).
+    </td></tr>
+    <tr>
+      <td colspan="3" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Bamford J et al. Classification and natural history of clinically identifiable subtypes of cerebral infarction. Lancet 1991;337:1521-1526.</span>
+        <br/>
+        <a href="https://www.thelancet.com/journals/lancet/article/PII0140-6736(91)93206-O/fulltext" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 Lancet Bamford Original Article
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      }
+    ]
   }
 ]
