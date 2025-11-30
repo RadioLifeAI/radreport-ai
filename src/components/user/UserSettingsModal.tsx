@@ -108,7 +108,7 @@ export const UserSettingsModal = ({ open, onOpenChange, defaultTab = 'profile' }
     
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
-        redirectTo: `${window.location.origin}/editor`,
+        redirectTo: `${window.location.origin}/reset-password`,
       });
       
       if (error) throw error;
