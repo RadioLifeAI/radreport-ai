@@ -1,6 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { ScrollArea } from '@/components/ui/scroll-area'
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
 import { Copy, FileInput, X } from 'lucide-react'
 import { RadiologyTable } from '@/lib/radiologyTables'
@@ -52,31 +52,20 @@ export function TableViewerModal({ open, onOpenChange, table, editor, onInsertTa
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="z-[200] max-w-4xl max-h-[90vh] flex flex-col bg-card/95 backdrop-blur-md border-border/50">
+      <DialogContent className="z-[200] max-w-4xl max-h-[90vh] min-h-0 flex flex-col bg-card/95 backdrop-blur-md border-border/50">
         <DialogHeader className="border-b border-border/40 pb-4">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <DialogTitle className="text-xl font-semibold text-foreground">
-                {table.name}
-              </DialogTitle>
-              <DialogDescription className="flex items-center gap-2 flex-wrap">
-                <span className="text-muted-foreground text-sm">{table.category}</span>
-                {table.modality && table.modality.map((mod) => (
-                  <Badge key={mod} variant="secondary" className="text-xs">
-                    {mod}
-                  </Badge>
-                ))}
-              </DialogDescription>
-            </div>
-          </div>
+...
         </DialogHeader>
 
         {/* Área de Visualização da Tabela */}
-        <ScrollArea className="flex-1 -mx-6 px-6 py-4">
-          <div 
-            className="table-viewer-container bg-white rounded-xl p-6 shadow-lg border border-slate-200"
-            dangerouslySetInnerHTML={{ __html: table.htmlContent }}
-          />
+        <ScrollArea className="flex-1 min-h-0 -mx-6 px-6 py-4">
+          <div className="min-w-max">
+            <div 
+              className="table-viewer-container bg-white rounded-xl p-6 shadow-lg border border-slate-200"
+              dangerouslySetInnerHTML={{ __html: table.htmlContent }}
+            />
+          </div>
+          <ScrollBar orientation="horizontal" />
         </ScrollArea>
 
         {/* Footer com Ações */}
