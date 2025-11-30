@@ -39,7 +39,6 @@ export function TablesDropdown({ editor, onInsertTable }: TablesDropdownProps) {
   if (!editor) return null
 
   const handleViewTable = (table: RadiologyTable) => {
-    setDropdownOpen(false)
     setSelectedTable(table)
     setViewerOpen(true)
   }
