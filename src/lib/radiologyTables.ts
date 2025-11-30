@@ -6195,6 +6195,751 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
       },
     ],
   },
+  {
+    id: 'vascular',
+    name: 'Vascular',
+    icon: 'HeartPulse',
+    tables: [
+      // ============ CORONÁRIAS ============
+      {
+        id: 'cad-rads',
+        name: 'CAD-RADS 2.0 (Coronárias)',
+        category: 'vascular',
+        subcategory: 'Coronárias',
+        type: 'informative',
+        modality: ['TC'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">CAD-RADS 2.0 - Angiotomografia Coronariana</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Categoria</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Estenose</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Significado</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Conduta</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">CAD-RADS 0</td><td style="border:1px solid #ddd; padding:6px 8px;">Zero</td><td style="border:1px solid #ddd; padding:6px 8px;">Sem placa ou estenose</td><td style="border:1px solid #ddd; padding:6px 8px;">Prevenção primária</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">CAD-RADS 1</td><td style="border:1px solid #ddd; padding:6px 8px;">1-24%</td><td style="border:1px solid #ddd; padding:6px 8px;">Estenose mínima</td><td style="border:1px solid #ddd; padding:6px 8px;">Prevenção secundária</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">CAD-RADS 2</td><td style="border:1px solid #ddd; padding:6px 8px;">25-49%</td><td style="border:1px solid #ddd; padding:6px 8px;">Estenose leve</td><td style="border:1px solid #ddd; padding:6px 8px;">Terapia medicamentosa otimizada</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">CAD-RADS 3</td><td style="border:1px solid #ddd; padding:6px 8px;">50-69%</td><td style="border:1px solid #ddd; padding:6px 8px;">Estenose moderada</td><td style="border:1px solid #ddd; padding:6px 8px;">Considerar teste funcional</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">CAD-RADS 4A</td><td style="border:1px solid #ddd; padding:6px 8px;">70-99%</td><td style="border:1px solid #ddd; padding:6px 8px;">Estenose grave (1-2 vasos)</td><td style="border:1px solid #ddd; padding:6px 8px;">Teste funcional ou angiografia invasiva</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">CAD-RADS 4B</td><td style="border:1px solid #ddd; padding:6px 8px;">70-99%</td><td style="border:1px solid #ddd; padding:6px 8px;">Estenose grave (3 vasos ou TCE)</td><td style="border:1px solid #ddd; padding:6px 8px;">Angiografia invasiva</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">CAD-RADS 5</td><td style="border:1px solid #ddd; padding:6px 8px;">100%</td><td style="border:1px solid #ddd; padding:6px 8px;">Oclusão total</td><td style="border:1px solid #ddd; padding:6px 8px;">Angiografia invasiva</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="4" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Cury RC et al. CAD-RADS 2.0 - 2022 Coronary Artery Disease - Reporting and Data System. SCCT/ACC/ACR/NASCI. JACC Cardiovasc Imaging. 2022;15(11):1974-2001.</span>
+        <br/>
+        <a href="https://www.scct.org/page/CAD-RADS" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 SCCT CAD-RADS Official
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'carga-placa-coronaria',
+        name: 'Carga de Placa Coronária',
+        category: 'vascular',
+        subcategory: 'Coronárias',
+        type: 'informative',
+        modality: ['TC'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Classificação da Carga de Placa Coronariana</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px;">Grau</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Definição</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Número de Segmentos</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Significado Clínico</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;">Ausente</td><td style="border:1px solid #ddd; padding:6px 8px;">Sem placa</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">0</td><td style="border:1px solid #ddd; padding:6px 8px;">Risco cardiovascular muito baixo</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;">Mínima</td><td style="border:1px solid #ddd; padding:6px 8px;">Placas isoladas</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1-2</td><td style="border:1px solid #ddd; padding:6px 8px;">Aterosclerose inicial</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;">Leve</td><td style="border:1px solid #ddd; padding:6px 8px;">Placas focais</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">3-4</td><td style="border:1px solid #ddd; padding:6px 8px;">Aterosclerose estabelecida</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;">Moderada</td><td style="border:1px solid #ddd; padding:6px 8px;">Doença difusa</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">5-6</td><td style="border:1px solid #ddd; padding:6px 8px;">Risco cardiovascular aumentado</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;">Extensa</td><td style="border:1px solid #ddd; padding:6px 8px;">Doença difusa multivascular</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">≥7</td><td style="border:1px solid #ddd; padding:6px 8px;">Alto risco cardiovascular</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="4" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Min JK et al. Prognostic Value of Multidetector Coronary CT Angiography. JACC. 2007;50(12):1161-1170.</span>
+        <br/>
+        <a href="https://doi.org/10.1016/j.jacc.2007.03.067" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 JACC Full Article
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      // ============ AORTA - DISSECÇÃO ============
+      {
+        id: 'stanford-disseccao',
+        name: 'Stanford (Dissecção Aórtica)',
+        category: 'vascular',
+        subcategory: 'Aorta - Dissecção',
+        type: 'informative',
+        modality: ['TC', 'RM'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Classificação de Stanford para Dissecção Aórtica</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Tipo</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Envolvimento</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Localização</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Tratamento</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">Tipo A</td><td style="border:1px solid #ddd; padding:6px 8px;">Aorta ascendente (com ou sem extensão distal)</td><td style="border:1px solid #ddd; padding:6px 8px;">Proximal à artéria subclávia esquerda</td><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold; color:#c00;">Cirúrgico emergencial</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">Tipo B</td><td style="border:1px solid #ddd; padding:6px 8px;">Aorta descendente (sem ascendente)</td><td style="border:1px solid #ddd; padding:6px 8px;">Distal à artéria subclávia esquerda</td><td style="border:1px solid #ddd; padding:6px 8px;">Clínico (endovascular se complicada)</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="4" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Daily PO et al. Management of Acute Aortic Dissections. Ann Thorac Surg. 1970;10(3):237-247.</span>
+        <br/>
+        <a href="https://doi.org/10.1016/S0003-4975(10)65594-4" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 Original Stanford Classification
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'debakey-disseccao',
+        name: 'DeBakey (Dissecção Aórtica)',
+        category: 'vascular',
+        subcategory: 'Aorta - Dissecção',
+        type: 'informative',
+        modality: ['TC', 'RM'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Classificação de DeBakey para Dissecção Aórtica</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Tipo</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Origem</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Extensão</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Equivalente Stanford</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">Tipo I</td><td style="border:1px solid #ddd; padding:6px 8px;">Aorta ascendente</td><td style="border:1px solid #ddd; padding:6px 8px;">Estende-se até aorta descendente/abdominal</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">Tipo A</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">Tipo II</td><td style="border:1px solid #ddd; padding:6px 8px;">Aorta ascendente</td><td style="border:1px solid #ddd; padding:6px 8px;">Confinada à aorta ascendente</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">Tipo A</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">Tipo III</td><td style="border:1px solid #ddd; padding:6px 8px;">Aorta descendente</td><td style="border:1px solid #ddd; padding:6px 8px;">Distal à subclávia esquerda (IIIa: tórax / IIIb: abdominal)</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">Tipo B</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="4" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">DeBakey ME et al. Surgical Management of Dissecting Aneurysms of the Aorta. J Thorac Cardiovasc Surg. 1965;49:130-149.</span>
+        <br/>
+        <a href="https://www.jtcvs.org/" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 JTCVS Archive
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'classificacao-temporal-disseccao',
+        name: 'Classificação Temporal (Dissecção)',
+        category: 'vascular',
+        subcategory: 'Aorta - Dissecção',
+        type: 'informative',
+        modality: ['TC', 'RM'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Classificação Temporal da Dissecção Aórtica</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px;">Fase</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Tempo desde o início</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Características</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Implicações</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold;">Hiperaguda</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">&lt;24 horas</td><td style="border:1px solid #ddd; padding:6px 8px;">Formação inicial do retalho intimal</td><td style="border:1px solid #ddd; padding:6px 8px;">Maior mortalidade (1-2% por hora)</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold;">Aguda</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">2-7 dias</td><td style="border:1px solid #ddd; padding:6px 8px;">Retalho friável, risco de ruptura</td><td style="border:1px solid #ddd; padding:6px 8px;">Tratamento emergencial necessário</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold;">Subaguda</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">8-30 dias</td><td style="border:1px solid #ddd; padding:6px 8px;">Início de organização do trombo</td><td style="border:1px solid #ddd; padding:6px 8px;">Risco ainda elevado</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold;">Crônica</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">&gt;30 dias</td><td style="border:1px solid #ddd; padding:6px 8px;">Retalho fibrosado, luz falsa trombosada ou patente</td><td style="border:1px solid #ddd; padding:6px 8px;">Manejo eletivo conforme complicações</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="4" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Erbel R et al. ESC Guidelines on Aortic Diseases. Eur Heart J. 2014;35(41):2873-2926.</span>
+        <br/>
+        <a href="https://academic.oup.com/eurheartj/article/35/41/2873/407693" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 ESC Guidelines Full Text
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      // ============ AORTA - ANEURISMAS ============
+      {
+        id: 'criterios-aaa-esvs',
+        name: 'Critérios AAA (ESVS 2024)',
+        category: 'vascular',
+        subcategory: 'Aorta - Aneurismas',
+        type: 'informative',
+        modality: ['TC', 'US'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Aneurisma de Aorta Abdominal (AAA) - Critérios ESVS 2024</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px;">Diâmetro</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Classificação</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Vigilância</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Indicação Cirúrgica</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">&lt;3,0 cm</td><td style="border:1px solid #ddd; padding:6px 8px;">Aorta normal</td><td style="border:1px solid #ddd; padding:6px 8px;">Sem seguimento</td><td style="border:1px solid #ddd; padding:6px 8px;">Não indicado</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">3,0-3,9 cm</td><td style="border:1px solid #ddd; padding:6px 8px;">AAA pequeno</td><td style="border:1px solid #ddd; padding:6px 8px;">Anual (US)</td><td style="border:1px solid #ddd; padding:6px 8px;">Não indicado</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">4,0-4,9 cm</td><td style="border:1px solid #ddd; padding:6px 8px;">AAA moderado</td><td style="border:1px solid #ddd; padding:6px 8px;">6-12 meses (US/TC)</td><td style="border:1px solid #ddd; padding:6px 8px;">Não indicado</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">5,0-5,4 cm</td><td style="border:1px solid #ddd; padding:6px 8px;">AAA grande</td><td style="border:1px solid #ddd; padding:6px 8px;">3-6 meses (TC)</td><td style="border:1px solid #ddd; padding:6px 8px;">Considerar em pacientes selecionados</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">≥5,5 cm (homens)</td><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold; color:#c00;">AAA crítico</td><td style="border:1px solid #ddd; padding:6px 8px;">Avaliação cirúrgica imediata</td><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold;">Indicado (EVAR ou cirurgia aberta)</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">≥5,0 cm (mulheres)</td><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold; color:#c00;">AAA crítico</td><td style="border:1px solid #ddd; padding:6px 8px;">Avaliação cirúrgica imediata</td><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold;">Indicado (EVAR ou cirurgia aberta)</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">Crescimento &gt;1 cm/ano</td><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold; color:#c00;">AAA em expansão</td><td style="border:1px solid #ddd; padding:6px 8px;">Avaliação cirúrgica imediata</td><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold;">Indicado (independente do diâmetro)</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="4" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Wanhainen A et al. European Society for Vascular Surgery (ESVS) 2024 Clinical Practice Guidelines on the Management of Abdominal Aorto-Iliac Artery Aneurysms. Eur J Vasc Endovasc Surg. 2024;67(2):192-331.</span>
+        <br/>
+        <a href="https://www.ejves.com/article/S1078-5884(23)00871-4/fulltext" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 ESVS Guidelines 2024
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'crawford-taaa',
+        name: 'Crawford TAAA',
+        category: 'vascular',
+        subcategory: 'Aorta - Aneurismas',
+        type: 'informative',
+        modality: ['TC', 'RM'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Classificação de Crawford para Aneurismas Toracoabdominais (TAAA)</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Tipo</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Envolvimento</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Complexidade Cirúrgica</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">Tipo I</td><td style="border:1px solid #ddd; padding:6px 8px;">Aorta descendente torácica proximal até aorta abdominal (acima das renais)</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">Alta</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">Tipo II</td><td style="border:1px solid #ddd; padding:6px 8px;">Aorta descendente torácica até aorta abdominal (abaixo das renais)</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold; color:#c00;">Muito alta (maior extensão)</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">Tipo III</td><td style="border:1px solid #ddd; padding:6px 8px;">Aorta descendente distal (T6 ou abaixo) até aorta abdominal</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">Moderada</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">Tipo IV</td><td style="border:1px solid #ddd; padding:6px 8px;">Aorta abdominal (desde diafragma até bifurcação)</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">Baixa</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">Tipo V</td><td style="border:1px solid #ddd; padding:6px 8px;">Aorta descendente torácica (T6 até diafragma)</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">Moderada</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="3" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Crawford ES et al. Thoracoabdominal Aortic Aneurysms. Ann Surg. 1986;203(1):32-45.</span>
+        <br/>
+        <a href="https://pubmed.ncbi.nlm.nih.gov/3942415/" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 PubMed Original Article
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      // ============ CARÓTIDAS ============
+      {
+        id: 'nascet',
+        name: 'NASCET (Carótidas)',
+        category: 'vascular',
+        subcategory: 'Carótidas',
+        type: 'informative',
+        modality: ['TC', 'RM', 'US'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">NASCET - Estenose Carotídea</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px;">Grau de Estenose</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Porcentagem</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Significado Clínico</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Conduta</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;">Normal</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">0%</td><td style="border:1px solid #ddd; padding:6px 8px;">Sem estenose</td><td style="border:1px solid #ddd; padding:6px 8px;">Controle de fatores de risco</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;">Leve</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">&lt;50%</td><td style="border:1px solid #ddd; padding:6px 8px;">Aterosclerose não hemodinamicamente significativa</td><td style="border:1px solid #ddd; padding:6px 8px;">Tratamento clínico (antiagregante, estatina)</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;">Moderada</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">50-69%</td><td style="border:1px solid #ddd; padding:6px 8px;">Estenose hemodinamicamente significativa</td><td style="border:1px solid #ddd; padding:6px 8px;">Considerar endarterectomia se sintomático</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold;">Grave</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">70-99%</td><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold; color:#c00;">Alto risco de AVC</td><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold;">Endarterectomia indicada (sintomático ou assintomático selecionado)</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold;">Oclusão</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">100%</td><td style="border:1px solid #ddd; padding:6px 8px;">Oclusão completa</td><td style="border:1px solid #ddd; padding:6px 8px;">Tratamento clínico, revascularização raramente indicada</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="4" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">NASCET Collaborators. Beneficial Effect of Carotid Endarterectomy in Symptomatic Patients with High-Grade Carotid Stenosis. N Engl J Med. 1991;325(7):445-453.</span>
+        <br/>
+        <a href="https://www.nejm.org/doi/full/10.1056/NEJM199108153250701" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 NEJM Original NASCET Trial
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'doppler-carotideo-sru',
+        name: 'Doppler Carotídeo (SRU 2003)',
+        category: 'vascular',
+        subcategory: 'Carótidas',
+        type: 'informative',
+        modality: ['US'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Critérios Doppler para Estenose Carotídea (SRU Consensus 2003)</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px;">Estenose</th>
+      <th style="border:1px solid #333; padding:6px 8px;">VP ACI (cm/s)</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Razão ACI/ACC</th>
+      <th style="border:1px solid #333; padding:6px 8px;">VP Final Diástole (cm/s)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;">Normal</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">&lt;125</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">&lt;2,0</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">&lt;40</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;">&lt;50%</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">&lt;125</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">&lt;2,0</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">&lt;40</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;">50-69%</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">125-230</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">2,0-4,0</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">40-100</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold;">≥70%</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold; color:#c00;">&gt;230</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">&gt;4,0</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">&gt;100</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;">Pré-oclusão (≥95%)</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">Variável (pode ser baixa)</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">Variável</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">Variável</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;">Oclusão</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">Sem fluxo</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">-</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">-</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="4" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Grant EG et al. Carotid Artery Stenosis: Gray-Scale and Doppler US Diagnosis - Society of Radiologists in Ultrasound Consensus Conference. Radiology. 2003;229(2):340-346.</span>
+        <br/>
+        <a href="https://pubs.rsna.org/doi/10.1148/radiol.2292030516" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 SRU Consensus 2003
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      // ============ DOENÇA ARTERIAL PERIFÉRICA ============
+      {
+        id: 'fontaine',
+        name: 'Fontaine (DAP)',
+        category: 'vascular',
+        subcategory: 'Doença Arterial Periférica',
+        type: 'informative',
+        modality: ['TC', 'RM', 'US'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Classificação de Fontaine para Doença Arterial Periférica</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Estágio</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Sintomas</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Descrição</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">I</td><td style="border:1px solid #ddd; padding:6px 8px;">Assintomático</td><td style="border:1px solid #ddd; padding:6px 8px;">Doença arterial periférica sem sintomas clínicos</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">IIa</td><td style="border:1px solid #ddd; padding:6px 8px;">Claudicação leve</td><td style="border:1px solid #ddd; padding:6px 8px;">Distância de claudicação &gt;200 metros</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">IIb</td><td style="border:1px solid #ddd; padding:6px 8px;">Claudicação moderada a grave</td><td style="border:1px solid #ddd; padding:6px 8px;">Distância de claudicação &lt;200 metros</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold; color:#c00;">III</td><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold;">Dor em repouso</td><td style="border:1px solid #ddd; padding:6px 8px;">Isquemia crítica - dor em repouso (principalmente à noite)</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold; color:#c00;">IV</td><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold;">Necrose/Gangrena</td><td style="border:1px solid #ddd; padding:6px 8px;">Isquemia crítica - úlceras ou gangrena</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="3" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Fontaine R et al. Surgical Treatment of Peripheral Circulation Disorders. Helv Chir Acta. 1954;21(5-6):499-533.</span>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'rutherford',
+        name: 'Rutherford (DAP)',
+        category: 'vascular',
+        subcategory: 'Doença Arterial Periférica',
+        type: 'informative',
+        modality: ['TC', 'RM', 'US'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Classificação de Rutherford para Doença Arterial Periférica</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Grau</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Categoria</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Sintomas</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">0</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">0</td><td style="border:1px solid #ddd; padding:6px 8px;">Assintomático</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">I</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1</td><td style="border:1px solid #ddd; padding:6px 8px;">Claudicação leve</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">I</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">2</td><td style="border:1px solid #ddd; padding:6px 8px;">Claudicação moderada</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">I</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">3</td><td style="border:1px solid #ddd; padding:6px 8px;">Claudicação grave</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold; color:#c00;">II</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">4</td><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold;">Dor isquêmica em repouso</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold; color:#c00;">III</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">5</td><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold;">Perda tecidual menor (&lt;5 cm²)</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold; color:#c00;">III</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">6</td><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold;">Perda tecidual maior (&gt;5 cm²)</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="3" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Rutherford RB et al. Recommended Standards for Reports Dealing with Lower Extremity Ischemia. J Vasc Surg. 1997;26(3):517-538.</span>
+        <br/>
+        <a href="https://doi.org/10.1016/S0741-5214(97)70045-4" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 JVS Original Article
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'wifi',
+        name: 'WIfI (Isquemia Crítica)',
+        category: 'vascular',
+        subcategory: 'Doença Arterial Periférica',
+        type: 'informative',
+        modality: ['TC', 'RM', 'US'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Classificação WIfI - Wound, Ischemia, foot Infection (SVS 2014)</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Grau</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Wound (Ferida)</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Ischemia (Isquemia)</th>
+      <th style="border:1px solid #333; padding:6px 8px;">foot Infection (Infecção)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">0</td><td style="border:1px solid #ddd; padding:6px 8px;">Sem úlcera</td><td style="border:1px solid #ddd; padding:6px 8px;">ITB &gt;0,8 / PA tornozelo &gt;100 mmHg</td><td style="border:1px solid #ddd; padding:6px 8px;">Sem infecção</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">1</td><td style="border:1px solid #ddd; padding:6px 8px;">Úlcera pequena, superficial</td><td style="border:1px solid #ddd; padding:6px 8px;">ITB 0,6-0,79 / PA tornozelo 70-100 mmHg</td><td style="border:1px solid #ddd; padding:6px 8px;">Infecção local superficial</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">2</td><td style="border:1px solid #ddd; padding:6px 8px;">Úlcera profunda com exposição óssea/tendinosa</td><td style="border:1px solid #ddd; padding:6px 8px;">ITB 0,4-0,59 / PA tornozelo 50-70 mmHg</td><td style="border:1px solid #ddd; padding:6px 8px;">Infecção local profunda (celulite, abscesso)</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold; color:#c00;">3</td><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold;">Úlcera extensa ou gangrena</td><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold;">ITB &lt;0,4 / PA tornozelo &lt;50 mmHg</td><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold;">Infecção sistêmica (SIRS)</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="4" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Mills JL et al. The Society for Vascular Surgery Lower Extremity Threatened Limb Classification System. J Vasc Surg. 2014;59(1):220-234.</span>
+        <br/>
+        <a href="https://doi.org/10.1016/j.jvs.2013.08.003" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 SVS WIfI Classification
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      // ============ LESÕES ARTERIAIS - TASC II ============
+      {
+        id: 'tasc-ii-aortoiliacas',
+        name: 'TASC II Aortoilíacas',
+        category: 'vascular',
+        subcategory: 'Lesões Arteriais - TASC II',
+        type: 'informative',
+        modality: ['TC', 'RM'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">TASC II - Lesões Aortoilíacas</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Tipo</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Descrição da Lesão</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Tratamento Recomendado</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">A</td><td style="border:1px solid #ddd; padding:6px 8px;">Estenose unilateral ou bilateral de artéria ilíaca comum; Estenose curta (&lt;3 cm) de ilíaca externa</td><td style="border:1px solid #ddd; padding:6px 8px; background:#e8f5e9;">Endovascular (primeira linha)</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">B</td><td style="border:1px solid #ddd; padding:6px 8px;">Estenose curta (&lt;3 cm) de aorta infrarrenal; Oclusão unilateral de ilíaca comum; Lesão única ou múltipla totalizing 3-10 cm envolvendo ilíaca externa não estendendo até ilíaca comum ou femoral comum</td><td style="border:1px solid #ddd; padding:6px 8px; background:#fff9c4;">Endovascular preferencial</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">C</td><td style="border:1px solid #ddd; padding:6px 8px;">Oclusão bilateral de ilíacas comuns; Estenoses bilaterais de ilíacas externas 3-10 cm não estendendo até ilíaca comum ou femoral comum; Estenose unilateral de ilíaca externa estendendo até ilíaca comum e/ou femoral comum; Oclusão unilateral de ilíaca externa</td><td style="border:1px solid #ddd; padding:6px 8px; background:#ffe0b2;">Cirurgia preferencial</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">D</td><td style="border:1px solid #ddd; padding:6px 8px;">Aorta infrarrenal e ambas ilíacas ocluídas; Doença ilíaca difusa (estenoses múltiplas unilaterais &gt;10 cm); Oclusão ilíaca bilateral difusa; Lesão ilíaca em paciente com AAA requerendo tratamento aberto; Lesão ilíaca em paciente requerendo cirurgia aortoilíaca aberta</td><td style="border:1px solid #ddd; padding:6px 8px; background:#ffccbc; font-weight:bold;">Cirurgia (primeira linha)</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="3" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Norgren L et al. Inter-Society Consensus for the Management of Peripheral Arterial Disease (TASC II). J Vasc Surg. 2007;45(Suppl S):S5-S67.</span>
+        <br/>
+        <a href="https://doi.org/10.1016/j.jvs.2006.12.037" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 TASC II Full Guidelines
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'tasc-ii-femoropopliteas',
+        name: 'TASC II Femoropoplíteas',
+        category: 'vascular',
+        subcategory: 'Lesões Arteriais - TASC II',
+        type: 'informative',
+        modality: ['TC', 'RM'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">TASC II - Lesões Femoropoplíteas</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Tipo</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Descrição da Lesão</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Tratamento Recomendado</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">A</td><td style="border:1px solid #ddd; padding:6px 8px;">Estenose única ≤10 cm; Oclusão única ≤5 cm</td><td style="border:1px solid #ddd; padding:6px 8px; background:#e8f5e9;">Endovascular (primeira linha)</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">B</td><td style="border:1px solid #ddd; padding:6px 8px;">Lesões múltiplas (estenoses ou oclusões), cada uma ≤5 cm; Estenose ou oclusão única ≤15 cm não envolvendo poplítea infra-genicular; Lesões únicas ou múltiplas na ausência de vasos de runoff tibial contínuo para melhorar runoff para bypass distal</td><td style="border:1px solid #ddd; padding:6px 8px; background:#fff9c4;">Endovascular preferencial</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">C</td><td style="border:1px solid #ddd; padding:6px 8px;">Oclusão recorrente ou estenose necessitando tratamento após dois procedimentos endovasculares; Estenose ou oclusão única &gt;15 cm; Oclusões recorrentes ou múltiplas totalizando &gt;15 cm com ou sem calcificação; Oclusões de poplítea e trifurcação proximal</td><td style="border:1px solid #ddd; padding:6px 8px; background:#ffe0b2;">Cirurgia preferencial</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">D</td><td style="border:1px solid #ddd; padding:6px 8px;">Oclusão total de femoral comum ou superficial (&gt;20 cm envolvendo poplítea); Oclusão total de artéria poplítea e vasos trifurcação proximal</td><td style="border:1px solid #ddd; padding:6px 8px; background:#ffccbc; font-weight:bold;">Cirurgia (primeira linha)</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="3" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Norgren L et al. Inter-Society Consensus for the Management of Peripheral Arterial Disease (TASC II). J Vasc Surg. 2007;45(Suppl S):S5-S67.</span>
+        <br/>
+        <a href="https://doi.org/10.1016/j.jvs.2006.12.037" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 TASC II Full Guidelines
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      // ============ DOENÇA VENOSA ============
+      {
+        id: 'ceap-2020',
+        name: 'CEAP 2020',
+        category: 'vascular',
+        subcategory: 'Doença Venosa',
+        type: 'informative',
+        modality: ['US'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">CEAP 2020 - Classificação de Doença Venosa Crônica</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Classe (C)</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Achados Clínicos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">C0</td><td style="border:1px solid #ddd; padding:6px 8px;">Sem sinais visíveis ou palpáveis de doença venosa</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">C1</td><td style="border:1px solid #ddd; padding:6px 8px;">Telangiectasias ou veias reticulares</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">C2</td><td style="border:1px solid #ddd; padding:6px 8px;">Veias varicosas (≥3 mm diâmetro)</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">C3</td><td style="border:1px solid #ddd; padding:6px 8px;">Edema</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">C4a</td><td style="border:1px solid #ddd; padding:6px 8px;">Alterações pigmentares, eczema venoso</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">C4b</td><td style="border:1px solid #ddd; padding:6px 8px;">Lipodermatoesclerose, atrofia branca</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">C5</td><td style="border:1px solid #ddd; padding:6px 8px;">Úlcera venosa cicatrizada</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold; color:#c00;">C6</td><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold;">Úlcera venosa ativa</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="2" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong>Nota:</strong> CEAP completo: C (clínica), E (etiologia), A (anatomia), P (patofisiologia)<br/>
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Lurie F et al. The 2020 Update of the CEAP Classification System. J Vasc Surg Venous Lymphat Disord. 2020;8(3):342-352.</span>
+        <br/>
+        <a href="https://doi.org/10.1016/j.jvsv.2019.04.075" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 CEAP 2020 Update
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'segmentos-tvp',
+        name: 'Segmentos TVP',
+        category: 'vascular',
+        subcategory: 'Doença Venosa',
+        type: 'informative',
+        modality: ['US'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Segmentos Venosos para Avaliação de TVP (Trombose Venosa Profunda)</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px;">Segmento</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Localização Anatômica</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Significância Clínica</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr style="background:#ffebee;"><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold;">Veia femoral comum</td><td style="border:1px solid #ddd; padding:6px 8px;">Triângulo femoral</td><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold; color:#c00;">TVP proximal - Alto risco embólico</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold;">Veia femoral profunda (femoral superficial)</td><td style="border:1px solid #ddd; padding:6px 8px;">Coxa (junção safeno-femoral até hiato de Hunter)</td><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold; color:#c00;">TVP proximal - Alto risco embólico</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold;">Veia poplítea</td><td style="border:1px solid #ddd; padding:6px 8px;">Fossa poplítea</td><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold; color:#c00;">TVP proximal - Alto risco embólico</td></tr>
+    <tr style="background:#fff9c4;"><td style="border:1px solid #ddd; padding:6px 8px;">Veias tibiais anteriores</td><td style="border:1px solid #ddd; padding:6px 8px;">Perna (compartimento anterior)</td><td style="border:1px solid #ddd; padding:6px 8px;">TVP distal - Risco embólico menor</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;">Veias tibiais posteriores</td><td style="border:1px solid #ddd; padding:6px 8px;">Perna (compartimento posterior)</td><td style="border:1px solid #ddd; padding:6px 8px;">TVP distal - Risco embólico menor</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;">Veias fibulares (peroneais)</td><td style="border:1px solid #ddd; padding:6px 8px;">Perna (compartimento lateral)</td><td style="border:1px solid #ddd; padding:6px 8px;">TVP distal - Risco embólico menor</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;">Veias musculares da panturrilha (gastrocnêmio, sóleo)</td><td style="border:1px solid #ddd; padding:6px 8px;">Perna (músculos)</td><td style="border:1px solid #ddd; padding:6px 8px;">TVP distal isolada - Seguimento conforme sintomas</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="3" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong>Nota:</strong> TVP proximal (femoral comum, femoral profunda, poplítea) tem maior risco de embolia pulmonar e requer anticoagulação. TVP distal isolada pode ser seguida seriamente conforme sintomas e fatores de risco.<br/>
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Stevens SM et al. Antithrombotic Therapy for VTE Disease: CHEST Guideline 2021. Chest. 2021;160(6):e545-e608.</span>
+        <br/>
+        <a href="https://journal.chestnet.org/article/S0012-3692(21)03703-3/fulltext" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 CHEST VTE Guidelines 2021
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      // ============ VALORES DE REFERÊNCIA DOPPLER ============
+      {
+        id: 'velocidades-doppler-arteriais',
+        name: 'Velocidades Doppler Arteriais',
+        category: 'vascular',
+        subcategory: 'Valores de Referência Doppler',
+        type: 'informative',
+        modality: ['US'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Valores de Referência - Velocidades Doppler Arteriais Normais</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px;">Artéria</th>
+      <th style="border:1px solid #333; padding:6px 8px;">VP Sistólica (cm/s)</th>
+      <th style="border:1px solid #333; padding:6px 8px;">VP Final Diástole (cm/s)</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Padrão de Fluxo</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold;">Carótida Comum</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">60-100</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">15-30</td><td style="border:1px solid #ddd; padding:6px 8px;">Baixa resistência</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold;">Carótida Interna</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">60-100</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">20-40</td><td style="border:1px solid #ddd; padding:6px 8px;">Baixa resistência</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold;">Carótida Externa</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">60-100</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">0-10</td><td style="border:1px solid #ddd; padding:6px 8px;">Alta resistência</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold;">Vertebral</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">30-70</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">10-25</td><td style="border:1px solid #ddd; padding:6px 8px;">Baixa resistência</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold;">Aorta Abdominal</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">100-180</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">20-50</td><td style="border:1px solid #ddd; padding:6px 8px;">Trifásico</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold;">Ilíaca Comum</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">110-180</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">Reversa ou zero</td><td style="border:1px solid #ddd; padding:6px 8px;">Trifásico</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold;">Femoral Comum</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">90-120</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">Reversa ou zero</td><td style="border:1px solid #ddd; padding:6px 8px;">Trifásico</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold;">Poplítea</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">70-100</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">Reversa ou zero</td><td style="border:1px solid #ddd; padding:6px 8px;">Trifásico</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold;">Tibial Anterior</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">40-70</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">0-10</td><td style="border:1px solid #ddd; padding:6px 8px;">Bifásico/Trifásico</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold;">Tibial Posterior</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">40-70</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">0-10</td><td style="border:1px solid #ddd; padding:6px 8px;">Bifásico/Trifásico</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold;">Pedioso</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">40-70</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">0-10</td><td style="border:1px solid #ddd; padding:6px 8px;">Bifásico/Trifásico</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="4" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong>Nota:</strong> Valores normais podem variar conforme idade, biotipo e condição hemodinâmica. Padrão trifásico (sístole aguda, refluxo protodiastólico, fluxo diastólico anterógrado) típico de artérias periféricas normais. Fluxo monofásico sugere doença arterial proximal.<br/>
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Pellerito JS, Polak JF. Introduction to Vascular Ultrasonography, 7th Edition. Elsevier, 2019.</span>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      // ============ ÍNDICES VASCULARES ============
+      {
+        id: 'itb',
+        name: 'ITB (Índice Tornozelo-Braquial)',
+        category: 'vascular',
+        subcategory: 'Índices Vasculares',
+        type: 'informative',
+        modality: ['US'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">ITB - Índice Tornozelo-Braquial (Ankle-Brachial Index - ABI)</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px;">Valor do ITB</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Interpretação</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Significado Clínico</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">&gt;1,40</td><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold;">Não compressível</td><td style="border:1px solid #ddd; padding:6px 8px;">Calcificação arterial (comum em diabéticos e insuficiência renal). ITB não confiável.</td></tr>
+    <tr style="background:#e8f5e9;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1,0-1,40</td><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold;">Normal</td><td style="border:1px solid #ddd; padding:6px 8px;">Circulação arterial normal</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">0,91-0,99</td><td style="border:1px solid #ddd; padding:6px 8px;">Limítrofe</td><td style="border:1px solid #ddd; padding:6px 8px;">Doença arterial periférica inicial possível, seguimento recomendado</td></tr>
+    <tr style="background:#fff9c4;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">0,7-0,90</td><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold;">DAP leve</td><td style="border:1px solid #ddd; padding:6px 8px;">Doença arterial periférica estabelecida</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">0,4-0,69</td><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold;">DAP moderada</td><td style="border:1px solid #ddd; padding:6px 8px;">Claudicação tipicamente presente</td></tr>
+    <tr style="background:#ffccbc;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold; color:#c00;">&lt;0,40</td><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold; color:#c00;">DAP grave</td><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold;">Isquemia crítica - dor em repouso, risco de perda do membro</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="3" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong>Cálculo:</strong> ITB = (PA sistólica tornozelo) / (PA sistólica braquial maior). Usar maior valor entre tibial posterior e pedioso de cada membro.<br/>
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Aboyans V et al. 2017 ESC Guidelines on Peripheral Arterial Diseases. Eur Heart J. 2018;39(9):763-816.</span>
+        <br/>
+        <a href="https://academic.oup.com/eurheartj/article/39/9/763/4095038" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 ESC PAD Guidelines 2017
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+    ],
+  },
 ]
 
 export default RADIOLOGY_TABLES;
