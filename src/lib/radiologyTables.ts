@@ -2995,6 +2995,1889 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
       },
     ],
   },
+  {
+    id: 'thorax',
+    name: 'Tórax',
+    icon: 'Activity',
+    tables: [
+      {
+        id: 'lung_rads_v2022',
+        name: 'Lung-RADS v2022 (ACR)',
+        category: 'thorax',
+        subcategory: 'Sistemas RADS',
+        type: 'informative',
+        modality: ['TC'],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">Lung-RADS v2022 - Rastreamento de Câncer de Pulmão (ACR)</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Categoria</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Achados</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Risco Câncer</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Conduta</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>0</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Incompleto - avaliação adicional necessária</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">-</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">TC de tórax adicional ou comparação com exames prévios</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>1</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Negativo - sem nódulos</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">&lt;1%</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Rastreamento anual</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>2</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Benigno - nódulos calcificados, cicatrizes</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">&lt;1%</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Rastreamento anual</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>3</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Provavelmente benigno - nódulos &lt;6mm ou subsólidos estáveis</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">1-2%</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">TC em 6 meses</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>4A</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Suspeito - nódulos sólidos 6-8mm ou subsólidos com crescimento</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">5-15%</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">TC em 3 meses; considerar PET-CT</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>4B</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Muito suspeito - nódulos ≥8mm ou com características malignas</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">&gt;15%</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">TC em 3 meses ou PET-CT/biópsia</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>4X</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Categoria adicional para achados suspeitos não pulmonares</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">-</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Avaliação apropriada para achado específico</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="4" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Referência:</strong> ACR Lung-RADS v2022. American College of Radiology. 
+                  <a href="https://www.acr.org/Clinical-Resources/Reporting-and-Data-Systems/Lung-Rads" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">ACR Lung-RADS</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      {
+        id: 'co_rads',
+        name: 'CO-RADS (Classificação COVID-19)',
+        category: 'thorax',
+        subcategory: 'Sistemas RADS',
+        type: 'informative',
+        modality: ['TC'],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">CO-RADS - Classificação de Suspeita de COVID-19 na TC de Tórax</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Categoria</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Nível de Suspeita</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Achados Típicos</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>0</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Não interpretável</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Qualidade inadequada para interpretação</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>1</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Muito baixa</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">TC normal ou achados não infecciosos</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>2</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Baixa</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Achados típicos de outras infecções (pneumonia lobar, broncopneumonia, cavitações)</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>3</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Indeterminada</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Opacidades em vidro fosco perihilares, padrão de pneumonia em organização</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>4</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Alta</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Opacidades em vidro fosco multifocais, bilaterais, periféricas</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>5</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Muito alta</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Padrão pavimentoso (crazy-paving), consolidações periféricas, sinal do halo reverso</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>6</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">RT-PCR positivo</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Confirmação laboratorial de COVID-19</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Referência:</strong> Prokop M, et al. CO-RADS: A Categorical CT Assessment Scheme for Patients Suspected of Having COVID-19. Radiology 2020. 
+                  <a href="https://www.radiologyassistant.nl/chest/covid-19/corads-classification" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">CO-RADS Official</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      {
+        id: 'fleischner_solid_2017',
+        name: 'Fleischner 2017 - Nódulos Sólidos',
+        category: 'thorax',
+        subcategory: 'Nódulos Pulmonares',
+        type: 'informative',
+        modality: ['TC'],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">Fleischner Society 2017 - Seguimento de Nódulos Pulmonares Sólidos</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Tamanho</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Baixo Risco<br/><span style="font-weight: normal; font-size: 9pt;">(sem fatores de risco)</span></th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Alto Risco<br/><span style="font-weight: normal; font-size: 9pt;">(tabagismo, história familiar)</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>&lt;6mm</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Sem seguimento de rotina</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Opcional: TC em 12 meses</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>6-8mm</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">TC em 6-12 meses, depois considerar TC em 18-24 meses</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">TC em 6-12 meses, depois TC em 18-24 meses</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>&gt;8mm</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Considerar TC em 3 meses, PET-CT ou biópsia</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Considerar TC em 3 meses, PET-CT ou biópsia</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>Múltiplos</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;" colspan="2;">Seguir baseado no nódulo de maior tamanho e características mais suspeitas</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Nota:</strong> Fatores de alto risco incluem: tabagismo, história familiar de câncer pulmonar, exposição a radon, asbesto ou radioatividade.<br/>
+                  <strong>Referência:</strong> MacMahon H, et al. Guidelines for Management of Incidental Pulmonary Nodules. Radiology 2017;284(1):228-243. 
+                  <a href="https://pubs.rsna.org/doi/10.1148/radiol.2017161659" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">RSNA Radiology</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      {
+        id: 'fleischner_subsolid_2017',
+        name: 'Fleischner 2017 - Nódulos Subsólidos',
+        category: 'thorax',
+        subcategory: 'Nódulos Pulmonares',
+        type: 'informative',
+        modality: ['TC'],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">Fleischner Society 2017 - Seguimento de Nódulos Subsólidos (Vidro Fosco)</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Tipo</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Tamanho</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Conduta Recomendada</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;" rowspan="2"><strong>Único<br/>Vidro Fosco Puro</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">&lt;6mm</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Sem seguimento de rotina</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">≥6mm</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">TC em 6-12 meses para confirmar persistência, depois TC a cada 2 anos até 5 anos</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Único<br/>Parcialmente Sólido</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">-</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">TC em 3-6 meses para confirmar persistência. Se persistir, vigilância anual por 5 anos</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;" rowspan="2"><strong>Múltiplos<br/>Vidro Fosco Puro</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">&lt;6mm</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Considerar TC em 3-6 meses; se estáveis, considerar vigilância anual por 5 anos</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">≥6mm</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">TC em 3-6 meses; subsequentes vigilâncias a cada 2-4 anos</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Múltiplos<br/>Parcialmente Sólidos</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">-</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">TC em 3-6 meses; vigilância subsequente baseada no nódulo mais suspeito</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Nota:</strong> Nódulos subsólidos têm maior probabilidade de representar adenocarcinoma ou lesões pré-invasivas (AAH/AIS).<br/>
+                  <strong>Referência:</strong> MacMahon H, et al. Guidelines for Management of Incidental Pulmonary Nodules. Radiology 2017;284(1):228-243. 
+                  <a href="https://pubs.rsna.org/doi/10.1148/radiol.2017161659" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">RSNA Radiology</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      {
+        id: 'uip_criteria_2022',
+        name: 'Critérios UIP ATS/ERS/JRS/ALAT 2022',
+        category: 'thorax',
+        subcategory: 'Doenças Intersticiais',
+        type: 'informative',
+        modality: ['TC'],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">Critérios de Pneumonia Intersticial Usual (UIP) na TC - ATS/ERS/JRS/ALAT 2022</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Padrão</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Achados na TC</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Diagnóstico FPI</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>UIP</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  - Faveolamento subpleural e basal predominante<br/>
+                  - Reticulação periférica<br/>
+                  - Distribuição heterogênea<br/>
+                  - Ausência de achados inconsistentes
+                </td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; background-color: #d4edda;"><strong>Definitivo</strong></td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>Provável UIP</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  - Reticulação subpleural e basal<br/>
+                  - Faveolamento pode estar ausente<br/>
+                  - Distribuição heterogênea<br/>
+                  - Ausência de achados inconsistentes
+                </td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; background-color: #fff3cd;"><strong>Provável</strong><br/><span style="font-size: 9pt;">(considerar biópsia)</span></td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>Indeterminado</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  - Fibrose sutil com vidro fosco<br/>
+                  - Reticulação sem faveolamento claro<br/>
+                  - Padrão geográfico ou difuso
+                </td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; background-color: #fff3cd;"><strong>Incerto</strong><br/><span style="font-size: 9pt;">(biópsia recomendada)</span></td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>Padrão Alternativo</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  - Predomínio peribroncovascular ou superior<br/>
+                  - Consolidações extensas<br/>
+                  - Cistos múltiplos<br/>
+                  - Mosaico de atenuação proeminente<br/>
+                  - Vidro fosco extenso
+                </td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; background-color: #f8d7da;"><strong>Improvável FPI</strong><br/><span style="font-size: 9pt;">(considerar outras ILD)</span></td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Abreviações:</strong> UIP = Usual Interstitial Pneumonia; FPI = Fibrose Pulmonar Idiopática; ILD = Interstitial Lung Disease.<br/>
+                  <strong>Referência:</strong> Raghu G, et al. Diagnosis of Idiopathic Pulmonary Fibrosis. ATS/ERS/JRS/ALAT Clinical Practice Guideline 2022. Am J Respir Crit Care Med 2022;205(9):e18-e47. 
+                  <a href="https://www.atsjournals.org/doi/10.1164/rccm.202203-0468ST" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">AJRCCM 2022</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      {
+        id: 'ild_classification',
+        name: 'Classificação das Pneumonias Intersticiais',
+        category: 'thorax',
+        subcategory: 'Doenças Intersticiais',
+        type: 'informative',
+        modality: ['TC'],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">Classificação das Pneumonias Intersticiais Idiopáticas (ATS/ERS 2013)</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Categoria</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Tipo</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Achados Principais na TC</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;" rowspan="3"><strong>Crônicas Fibrosantes</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>FPI/UIP</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Faveolamento subpleural basal, reticulação, distribuição heterogênea</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>PINE</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Vidro fosco subpleural periférico, reticulação, faveolamento ocasional</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>PIf (fibrosante não classificável)</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Fibrose sem padrão definido de UIP ou PINE</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;" rowspan="2"><strong>Agudas/Subagudas</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>PO</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Consolidações periféricas e peribrônquicas migratórias, padrão "atolamide inverso"</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>PIA</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Opacidades bilaterais difusas em vidro fosco, consolidação, fase exsudativa DAD</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;" rowspan="2"><strong>Relacionadas ao Tabagismo</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>PILD</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Cistos de paredes finas, nódulos centrolobulares, vidro fosco</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>BRID</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Bronquiectasias de tração, vidro fosco centrolobular, nódulos centrilobulares</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Rara</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>PID</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Cistos irregulares difusos de paredes espessas, vidro fosco</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Abreviações:</strong> FPI = Fibrose Pulmonar Idiopática; UIP = Usual Interstitial Pneumonia; PINE = Pneumonia Intersticial Não Específica; PIf = Pneumonia Intersticial fibrosante; PO = Pneumonia em Organização; PIA = Pneumonia Intersticial Aguda; DAD = Dano Alveolar Difuso; PILD = Pneumonia Intersticial Linfoide; BRID = Doença Respiratória Intersticial Relacionada a Bronquiolite; PID = Pneumonia Intersticial Descamativa.<br/>
+                  <strong>Referência:</strong> Travis WD, et al. An Official ATS/ERS Statement: Update of the International Multidisciplinary Classification of the Idiopathic Interstitial Pneumonias. Am J Respir Crit Care Med 2013;188(6):733-748. 
+                  <a href="https://www.atsjournals.org/doi/10.1164/rccm.201308-1483ST" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">AJRCCM 2013</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      {
+        id: 'wells_tep',
+        name: 'Critérios de Wells (TEP)',
+        category: 'thorax',
+        subcategory: 'Tromboembolismo Pulmonar',
+        type: 'informative',
+        modality: ['Clínico'],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">Critérios de Wells para Tromboembolismo Pulmonar (TEP)</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Critério Clínico</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Pontos</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Sinais e sintomas de TVP (edema, dor à palpação em trajeto venoso profundo)</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">3,0</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;">TEP é o diagnóstico mais provável ou igualmente provável que alternativas</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">3,0</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Frequência cardíaca &gt;100 bpm</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">1,5</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Imobilização ≥3 dias ou cirurgia nas últimas 4 semanas</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">1,5</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;">TEP ou TVP prévios</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">1,5</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Hemoptise</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">1,0</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Malignidade ativa (tratamento em andamento ou paliativo, ou diagnóstico nos últimos 6 meses)</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">1,0</td>
+              </tr>
+            </tbody>
+          </table>
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt; margin-top: 10px;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">Interpretação do Score de Wells</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Pontuação</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Probabilidade Clínica</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Conduta</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #d4edda;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>&lt;2,0</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Baixa probabilidade</strong> (TEP improvável)</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">D-dímero; se negativo, exclui TEP</td>
+              </tr>
+              <tr style="background-color: #fff3cd;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>2,0-6,0</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Probabilidade moderada</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">D-dímero; se positivo, angioTC</td>
+              </tr>
+              <tr style="background-color: #f8d7da;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>&gt;6,0</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Alta probabilidade</strong> (TEP provável)</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">AngioTC diretamente</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Abreviações:</strong> TEP = Tromboembolismo Pulmonar; TVP = Trombose Venosa Profunda; bpm = batimentos por minuto.<br/>
+                  <strong>Referência:</strong> Wells PS, et al. Derivation of a Simple Clinical Model to Categorize Patients Probability of Pulmonary Embolism. Thrombosis and Haemostasis 2000;83(3):416-420. 
+                  <a href="https://pubmed.ncbi.nlm.nih.gov/10760023/" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">PubMed</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      {
+        id: 'geneva_revised',
+        name: 'Geneva Revisado (TEP)',
+        category: 'thorax',
+        subcategory: 'Tromboembolismo Pulmonar',
+        type: 'informative',
+        modality: ['Clínico'],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">Geneva Score Revisado para Tromboembolismo Pulmonar</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Critério Clínico</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Pontos</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Idade &gt;65 anos</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">1</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;">TEP ou TVP prévios</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">3</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Cirurgia ou fratura no último mês</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">2</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Malignidade ativa</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">2</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Dor unilateral em membro inferior</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">3</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Hemoptise</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">2</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Frequência cardíaca 75-94 bpm</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">3</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Frequência cardíaca ≥95 bpm</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">5</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Dor à palpação de veias profundas de MMII e edema unilateral</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">4</td>
+              </tr>
+            </tbody>
+          </table>
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt; margin-top: 10px;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">Interpretação do Geneva Revisado</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Pontuação</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Probabilidade Clínica</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Prevalência TEP</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #d4edda;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>0-3</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Baixa probabilidade</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">8%</td>
+              </tr>
+              <tr style="background-color: #fff3cd;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>4-10</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Probabilidade intermediária</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">28%</td>
+              </tr>
+              <tr style="background-color: #f8d7da;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>≥11</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Alta probabilidade</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">74%</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Vantagens:</strong> Não requer julgamento clínico subjetivo (ao contrário do Wells). Critérios objetivos.<br/>
+                  <strong>Referência:</strong> Le Gal G, et al. Prediction of Pulmonary Embolism in the Emergency Department: The Revised Geneva Score. Ann Intern Med 2006;144(3):165-171. 
+                  <a href="https://www.acpjournals.org/doi/10.7326/0003-4819-144-3-200602070-00004" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">Ann Intern Med</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      {
+        id: 'pesi_score',
+        name: 'PESI Score (Índice de Gravidade TEP)',
+        category: 'thorax',
+        subcategory: 'Tromboembolismo Pulmonar',
+        type: 'informative',
+        modality: ['Clínico'],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">PESI - Pulmonary Embolism Severity Index (Prognóstico)</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Variável</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Pontos</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Idade (anos)</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">Idade em anos</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Sexo masculino</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">+10</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Câncer</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">+30</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Insuficiência cardíaca crônica</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">+10</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Doença pulmonar crônica</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">+10</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Frequência cardíaca ≥110 bpm</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">+20</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Pressão arterial sistólica &lt;100 mmHg</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">+30</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Frequência respiratória ≥30 rpm</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">+20</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Temperatura &lt;36°C</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">+20</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Alteração do estado mental</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">+60</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;">SpO₂ &lt;90%</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">+20</td>
+              </tr>
+            </tbody>
+          </table>
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt; margin-top: 10px;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">Classificação de Risco - PESI</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Classe</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Pontuação</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Mortalidade 30d</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Conduta</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #d4edda;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>I (Muito baixo)</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">≤65</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">0-1,6%</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Considerar alta precoce/ambulatorial</td>
+              </tr>
+              <tr style="background-color: #d4edda;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>II (Baixo)</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">66-85</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">1,7-3,5%</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Considerar alta precoce/ambulatorial</td>
+              </tr>
+              <tr style="background-color: #fff3cd;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>III (Intermediário)</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">86-105</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">3,2-7,1%</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Internação hospitalar</td>
+              </tr>
+              <tr style="background-color: #f8d7da;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>IV (Alto)</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">106-125</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">4,0-11,4%</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Internação hospitalar + monitorização intensiva</td>
+              </tr>
+              <tr style="background-color: #f8d7da;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>V (Muito alto)</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">≥126</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">10,0-24,5%</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">UTI + considerar terapias avançadas (trombólise, etc.)</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="4" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Nota:</strong> PESI é útil para estratificar risco de morte em 30 dias e decidir local de tratamento (ambulatorial vs hospitalar).<br/>
+                  <strong>Referência:</strong> Aujesky D, et al. Derivation and Validation of a Prognostic Model for Pulmonary Embolism. Am J Respir Crit Care Med 2005;172(8):1041-1046. 
+                  <a href="https://www.atsjournals.org/doi/10.1164/rccm.200506-862OC" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">AJRCCM</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      {
+        id: 'ct_signs_pe',
+        name: 'Sinais de TEP na TC',
+        category: 'thorax',
+        subcategory: 'Tromboembolismo Pulmonar',
+        type: 'informative',
+        modality: ['TC'],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">Sinais de Tromboembolismo Pulmonar na Angiotomografia</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Sinal</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Descrição</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Sensibilidade</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Falha de enchimento central</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Trombo no lúmen arterial pulmonar, rodeado por contraste (sinal direto, padrão-ouro)</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">95-100%</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Sinal da "ferradura" ou "trombo flutuante"</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Trombo circundado por contraste em formato de ferradura (alto risco embolização)</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">-</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Amputação vascular</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Interrupção abrupta do ramo arterial pulmonar (oclusão completa)</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">-</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Aumento do diâmetro do tronco pulmonar</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Diâmetro &gt;29mm sugere hipertensão pulmonar aguda</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">-</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Relação VD/VE &gt;1,0</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Dilatação do ventrículo direito (sobrecarga aguda, sinal de gravidade)</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">-</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Retificação do septo interventricular</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Desvio septal em direção ao VE por sobrecarga do VD</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">-</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Refluxo de contraste para VCI/hepáticas</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Disfunção ventricular direita grave (refluxo retrógrado)</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">-</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Infarto pulmonar</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Consolidação periférica em cunha/triangular com base pleural (Hampton's hump)</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">20-30%</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Oligoemia regional (Westermark)</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Área de redução da vascularização pulmonar distal ao trombo</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">10-15%</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Derrame pleural</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Pequeno derrame geralmente unilateral (inespecífico)</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">30-40%</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Nota:</strong> Sinais de sobrecarga ventricular direita (VD/VE &gt;1, retificação septal, refluxo) indicam TEP de alto risco com pior prognóstico.<br/>
+                  <strong>Referência:</strong> Remy-Jardin M, et al. CT Angiography of Pulmonary Embolism. Radiology 2012;263(2):315-340. 
+                  <a href="https://pubs.rsna.org/doi/10.1148/radiol.12111625" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">RSNA Radiology</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      {
+        id: 'berlin_ards',
+        name: 'Definição de Berlin (SDRA)',
+        category: 'thorax',
+        subcategory: 'SDRA e Lesão Pulmonar',
+        type: 'informative',
+        modality: ['Clínico', 'RX', 'TC'],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">Definição de Berlin para Síndrome do Desconforto Respiratório Agudo (SDRA)</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Critério</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Definição</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Tempo</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Início em até 1 semana após insulto clínico conhecido ou piora de sintomas respiratórios</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Imagem (RX ou TC de tórax)</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Opacidades bilaterais não totalmente explicadas por derrame pleural, colapso lobar/pulmonar ou nódulos</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Origem do edema</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Insuficiência respiratória não totalmente explicada por insuficiência cardíaca ou sobrecarga hídrica. Avaliação objetiva necessária (ex: ecocardiograma) se não há fator de risco</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Oxigenação</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Ver tabela de gravidade abaixo</td>
+              </tr>
+            </tbody>
+          </table>
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt; margin-top: 10px;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">Classificação de Gravidade da SDRA (Berlin)</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Gravidade</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">PaO₂/FiO₂</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">PEEP mínima</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Mortalidade</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #fff3cd;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>Leve</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">200-300 mmHg</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">≥5 cmH₂O</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">27%</td>
+              </tr>
+              <tr style="background-color: #ffc107;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>Moderada</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">100-200 mmHg</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">≥5 cmH₂O</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">32%</td>
+              </tr>
+              <tr style="background-color: #f8d7da;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>Grave</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">&lt;100 mmHg</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">≥5 cmH₂O</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">45%</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="4" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Abreviações:</strong> PaO₂/FiO₂ = Relação pressão arterial de oxigênio/fração inspirada de oxigênio; PEEP = Positive End-Expiratory Pressure.<br/>
+                  <strong>Nota:</strong> Definição de Berlin substitui classificação anterior de ALI (Acute Lung Injury).<br/>
+                  <strong>Referência:</strong> ARDS Definition Task Force. Acute Respiratory Distress Syndrome: The Berlin Definition. JAMA 2012;307(23):2526-2533. 
+                  <a href="https://jamanetwork.com/journals/jama/fullarticle/1160659" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">JAMA</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      {
+        id: 'murray_score',
+        name: 'Murray Score (Lesão Pulmonar Aguda)',
+        category: 'thorax',
+        subcategory: 'SDRA e Lesão Pulmonar',
+        type: 'informative',
+        modality: ['RX'],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">Murray Score - Índice de Lesão Pulmonar Aguda</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Componente</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Pontuação</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;" colspan="2"><strong>1. Infiltrados na Radiografia de Tórax</strong></td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; padding-left: 24px;">Sem infiltrados alveolares</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">0</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; padding-left: 24px;">Infiltrados alveolares em 1 quadrante</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">1</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; padding-left: 24px;">Infiltrados alveolares em 2 quadrantes</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">2</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; padding-left: 24px;">Infiltrados alveolares em 3 quadrantes</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">3</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; padding-left: 24px;">Infiltrados alveolares em 4 quadrantes</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">4</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;" colspan="2"><strong>2. Hipoxemia (PaO₂/FiO₂)</strong></td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; padding-left: 24px;">≥300</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">0</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; padding-left: 24px;">225-299</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">1</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; padding-left: 24px;">175-224</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">2</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; padding-left: 24px;">100-174</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">3</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; padding-left: 24px;">&lt;100</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">4</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;" colspan="2"><strong>3. Complacência Pulmonar (se ventilado)</strong></td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; padding-left: 24px;">≥80 mL/cmH₂O</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">0</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; padding-left: 24px;">60-79 mL/cmH₂O</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">1</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; padding-left: 24px;">40-59 mL/cmH₂O</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">2</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; padding-left: 24px;">20-39 mL/cmH₂O</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">3</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; padding-left: 24px;">&lt;20 mL/cmH₂O</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">4</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;" colspan="2"><strong>4. PEEP (se ventilado)</strong></td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; padding-left: 24px;">≤5 cmH₂O</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">0</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; padding-left: 24px;">6-8 cmH₂O</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">1</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; padding-left: 24px;">9-11 cmH₂O</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">2</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; padding-left: 24px;">12-14 cmH₂O</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">3</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; padding-left: 24px;">≥15 cmH₂O</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">4</td>
+              </tr>
+            </tbody>
+          </table>
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt; margin-top: 10px;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">Interpretação do Murray Score</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Score Final</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Interpretação</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #d4edda;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>0</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Sem lesão pulmonar</td>
+              </tr>
+              <tr style="background-color: #fff3cd;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>0,1-2,5</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Lesão pulmonar leve a moderada</td>
+              </tr>
+              <tr style="background-color: #f8d7da;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>&gt;2,5</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Lesão pulmonar aguda grave (SDRA)</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="2" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Cálculo:</strong> Score final = Soma dos 4 componentes ÷ Número de componentes utilizados (geralmente 4).<br/>
+                  <strong>Nota:</strong> Murray Score é histórico; Definição de Berlin (2012) é o padrão atual para SDRA.<br/>
+                  <strong>Referência:</strong> Murray JF, et al. An Expanded Definition of the Adult Respiratory Distress Syndrome. Am Rev Respir Dis 1988;138(3):720-723. 
+                  <a href="https://pubmed.ncbi.nlm.nih.gov/3202424/" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">PubMed</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      {
+        id: 'tnm_lung_t_8th',
+        name: 'TNM Pulmão 8ª Ed - Descriptor T',
+        category: 'thorax',
+        subcategory: 'TNM Câncer de Pulmão',
+        type: 'informative',
+        modality: ['TC', 'PET'],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">TNM Câncer de Pulmão 8ª Edição IASLC - Tumor Primário (T)</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Categoria T</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Descrição</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>TX</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Tumor primário não pode ser avaliado, ou tumor comprovado por citologia de escarro/lavado mas não visualizado</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>T0</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Sem evidência de tumor primário</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>Tis</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Carcinoma in situ (adenocarcinoma in situ [AIS] e carcinoma escamoso in situ)</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>T1</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Tumor ≤3 cm em maior dimensão, cercado por pulmão/pleura visceral, sem invasão brônquica proximal ao lobar</strong></td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; padding-left: 24px;"><strong>T1mi</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Adenocarcinoma minimamente invasivo (≤3 cm, predominantemente lepídico, invasão ≤5 mm)</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; padding-left: 24px;"><strong>T1a</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Tumor ≤1 cm</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; padding-left: 24px;"><strong>T1b</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Tumor &gt;1 cm mas ≤2 cm</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; padding-left: 24px;"><strong>T1c</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Tumor &gt;2 cm mas ≤3 cm</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>T2</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Tumor &gt;3 cm mas ≤5 cm OU com envolvimento brônquico ≥2 cm da carina, invasão pleural visceral, atelectasia/pneumonite obstrutiva até hilo</strong></td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; padding-left: 24px;"><strong>T2a</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Tumor &gt;3 cm mas ≤4 cm</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; padding-left: 24px;"><strong>T2b</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Tumor &gt;4 cm mas ≤5 cm</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>T3</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Tumor &gt;5 cm mas ≤7 cm OU invasão de parede torácica, nervo frênico, pericárdio parietal OU nódulo(s) no mesmo lobo</strong></td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>T4</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Tumor &gt;7 cm OU invasão de mediastino, diafragma, coração, grandes vasos, traqueia, nervo laríngeo, esôfago, corpos vertebrais, carina OU nódulo(s) em lobo ipsilateral diferente</strong></td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="2" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Nota:</strong> Mudanças principais da 8ª Ed: subdivisão de T1 em T1a/T1b/T1c, subdivisão de T2 em T2a/T2b, reclassificação de tumores &gt;7 cm para T4.<br/>
+                  <strong>Referência:</strong> Goldstraw P, et al. The IASLC Lung Cancer Staging Project: Proposals for Revision of the TNM Stage Groupings in the Forthcoming (Eighth) Edition of the TNM Classification for Lung Cancer. JTO 2016;11(1):39-51. 
+                  <a href="https://www.jto.org/article/S1556-0864(15)00027-4/fulltext" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">JTO IASLC 8th</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      {
+        id: 'tnm_lung_n_8th',
+        name: 'TNM Pulmão 8ª Ed - Descriptor N',
+        category: 'thorax',
+        subcategory: 'TNM Câncer de Pulmão',
+        type: 'informative',
+        modality: ['TC', 'PET'],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">TNM Câncer de Pulmão 8ª Edição IASLC - Linfonodos Regionais (N)</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Categoria N</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Descrição</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>NX</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Linfonodos regionais não podem ser avaliados</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>N0</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Sem metástases em linfonodos regionais</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>N1</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Metástases em linfonodos peribronquicos e/ou hilares ipsilaterais e intrapulmonares</strong><br/>
+                  <span style="font-size: 9pt;">Incluindo envolvimento por extensão direta (Estações 10-14 IASLC)</span>
+                </td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>N2</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Metástases em linfonodos mediastinais ipsilaterais e/ou subcarinais</strong><br/>
+                  <span style="font-size: 9pt;">Estações 1, 2, 3, 4, 5, 6, 7, 8, 9 ipsilaterais (IASLC)</span>
+                </td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>N3</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Metástases em linfonodos mediastinais contralaterais, hilares contralaterais, escalenos ou supraclaviculares (ipsi ou contralaterais)</strong><br/>
+                  <span style="font-size: 9pt;">Inclui: mediastinais contralaterais (Estações 1-9), hilares contralaterais (Estação 10), escalenos (Estação 1), supraclaviculares (Estação 1)</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt; margin-top: 10px;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">Estações Linfonodais IASLC (Resumo por Categoria N)</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Categoria</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Estações IASLC</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>N1</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  <strong>10</strong> - Hilares<br/>
+                  <strong>11</strong> - Interlobares<br/>
+                  <strong>12</strong> - Lobares<br/>
+                  <strong>13</strong> - Segmentares<br/>
+                  <strong>14</strong> - Subsegmentares
+                </td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>N2<br/>(ipsilaterais)</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  <strong>1</strong> - Supraclaviculares baixos<br/>
+                  <strong>2R/2L</strong> - Paratraqueais superiores<br/>
+                  <strong>3a/3p</strong> - Pré-vasculares e retrotraqueais<br/>
+                  <strong>4R/4L</strong> - Paratraqueais inferiores<br/>
+                  <strong>5</strong> - Subaórticos (janela aortopulmonar)<br/>
+                  <strong>6</strong> - Paraaórticos<br/>
+                  <strong>7</strong> - Subcarinais<br/>
+                  <strong>8</strong> - Paraesofágicos<br/>
+                  <strong>9</strong> - Ligamento pulmonar inferior
+                </td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>N3</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  - Qualquer estação mediastinal <strong>contralateral</strong> (1-9 contralaterais)<br/>
+                  - Hilares <strong>contralaterais</strong> (Estação 10 contralateral)<br/>
+                  - <strong>Escalenos</strong> (Estação 1, ipsi ou contra)<br/>
+                  - <strong>Supraclaviculares</strong> (Estação 1, ipsi ou contra)
+                </td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="2" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Nota:</strong> Classificação N não mudou da 7ª para 8ª Edição. Apenas mapa linfonodal IASLC (2009) foi refinado.<br/>
+                  <strong>Referência:</strong> Rusch VW, et al. The IASLC Lung Cancer Staging Project: A Proposal for a New International Lymph Node Map in the Forthcoming Seventh Edition of the TNM Classification for Lung Cancer. JTO 2009;4(5):568-577. 
+                  <a href="https://www.jto.org/article/S1556-0864(15)31506-0/fulltext" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">JTO IASLC Map</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      {
+        id: 'iaslc_lymph_nodes',
+        name: 'Estações Linfonodais IASLC',
+        category: 'thorax',
+        subcategory: 'Linfonodos Mediastinais',
+        type: 'informative',
+        modality: ['TC'],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">Mapa de Linfonodos Mediastinais IASLC 2009</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Estação</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Nome</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Localização Anatômica</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #e8f4f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;" colspan="3"><strong>MEDIASTINAIS SUPERIORES (N2/N3)</strong></td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>1</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Supraclaviculares baixos</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Acima da clavícula, abaixo da borda superior do manúbrio esternal</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>2R</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Paratraqueal superior direito</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Lateral à traqueia, entre borda superior do manúbrio e borda inferior do tronco braquiocefálico</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>2L</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Paratraqueal superior esquerdo</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Lateral à traqueia, entre borda superior do manúbrio e borda superior do arco aórtico</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>3a</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Pré-vascular</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Anterior aos grandes vasos, medial aos nervos frênicos</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>3p</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Retrotraqueal</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Posterior à traqueia</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>4R</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Paratraqueal inferior direito</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Lateral à traqueia, entre borda inferior do tronco braquiocefálico e borda inferior da veia ázigos</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>4L</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Paratraqueal inferior esquerdo</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Lateral à traqueia, entre borda superior do arco aórtico e borda superior da artéria pulmonar esquerda</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>5</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Subaórticos (janela aortopulmonar)</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Laterais ao ligamento arterioso, inferiores ao arco aórtico</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>6</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Paraaórticos (aorta ascendente)</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Anteriores e laterais à aorta ascendente e arco aórtico</td>
+              </tr>
+              <tr style="background-color: #e8f4f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;" colspan="3"><strong>MEDIASTINAIS INFERIORES (N2)</strong></td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>7</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Subcarinais</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Abaixo da carina traqueal</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>8</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Paraesofágicos</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Adjacentes à parede esofágica, abaixo da carina</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>9</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Ligamento pulmonar inferior</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Ao longo do ligamento pulmonar inferior</td>
+              </tr>
+              <tr style="background-color: #e8f4f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;" colspan="3"><strong>HILARES E INTRAPULMONARES (N1)</strong></td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>10</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Hilares</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Próximos aos brônquios principais e vasos hilares</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>11</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Interlobares</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Entre brônquios lobares</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>12</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Lobares</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Ao longo dos brônquios lobares</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>13</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Segmentares</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Ao longo dos brônquios segmentares</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>14</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Subsegmentares</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Ao longo dos brônquios subsegmentares</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Nota:</strong> Estações 1-9 são mediastinais (N2 se ipsilaterais, N3 se contralaterais). Estações 10-14 são hilares/intrapulmonares (N1).<br/>
+                  <strong>Referência:</strong> Rusch VW, et al. The IASLC Lung Cancer Staging Project: A Proposal for a New International Lymph Node Map. JTO 2009;4(5):568-577. 
+                  <a href="https://www.jto.org/article/S1556-0864(15)31506-0/fulltext" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">JTO IASLC Map</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      {
+        id: 'lymph_node_criteria',
+        name: 'Critérios de Linfonodo Suspeito',
+        category: 'thorax',
+        subcategory: 'Linfonodos Mediastinais',
+        type: 'informative',
+        modality: ['TC', 'PET'],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">Critérios de Linfonodo Mediastinal Suspeito na TC e PET-CT</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Critério</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">TC</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">PET-CT</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Tamanho (eixo curto)</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  ≥10 mm: suspeito<br/>
+                  <span style="font-size: 9pt; color: #666;">Sensibilidade 60-70%, Especificidade 70-80%</span>
+                </td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  Tamanho isolado não é critério confiável no PET-CT
+                </td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Morfologia</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  - Margens irregulares<br/>
+                  - Perda do hilo gorduroso<br/>
+                  - Agrupamento/conglomerado<br/>
+                  - Realce heterogêneo<br/>
+                  - Necrose central
+                </td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  Morfologia é secundária ao critério metabólico
+                </td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>SUVmax (PET-CT)</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  N/A
+                </td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  <strong>SUVmax &gt;2,5</strong>: suspeito para malignidade<br/>
+                  <span style="font-size: 9pt; color: #666;">Sensibilidade 85-90%, Especificidade 85-90%</span><br/>
+                  <span style="font-size: 9pt; color: #b00;">Atenção: falsos-positivos (inflamação, granulomas, sarcoidose)</span>
+                </td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Número de linfonodos comprometidos</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  Múltiplas estações envolvidas aumenta probabilidade de malignidade
+                </td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  Captação em múltiplas estações mediastinais sugere N2/N3
+                </td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Localização</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  Avaliar se ipsilateral (N2) ou contralateral (N3)
+                </td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  Ipsilateral (N2) vs contralateral/supraclavicular (N3)
+                </td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Confirmação histológica</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;" colspan="2;">
+                  <strong>Recomendada quando altera o estadiamento/conduta:</strong><br/>
+                  - Mediastinoscopia<br/>
+                  - EBUS (Endobronchial Ultrasound) - biópsia transbrônquica<br/>
+                  - EUS (Endoscopic Ultrasound) - biópsia transesofágica<br/>
+                  - Biópsia por agulha guiada por TC
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt; margin-top: 10px;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">Limitações dos Critérios</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Falsos-Positivos</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Falsos-Negativos</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  - Sarcoidose<br/>
+                  - Tuberculose<br/>
+                  - Histoplasmose<br/>
+                  - Silicose/pneumoconioses<br/>
+                  - Linfoma<br/>
+                  - Infecções ativas
+                </td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  - Micrometástases em linfonodos &lt;10mm<br/>
+                  - Tumores pouco metabólicos (carcinoide, adenocarcinoma in situ)<br/>
+                  - Hiperglicemia (reduz SUV)<br/>
+                  - Necrose central extensa
+                </td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="2" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Recomendação:</strong> Combinação de TC (tamanho/morfologia) + PET-CT (SUVmax) + confirmação histológica quando necessário.<br/>
+                  <strong>Referência:</strong> Silvestri GA, et al. Methods for Staging Non-small Cell Lung Cancer: Diagnosis and Management of Lung Cancer, 3rd ed. ACCP Guidelines. Chest 2013;143(5):e211S-e250S. 
+                  <a href="https://journal.chestnet.org/article/S0012-3692(15)33009-7/fulltext" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">ACCP Chest</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      {
+        id: 'light_criteria',
+        name: 'Critérios de Light (Derrame Pleural)',
+        category: 'thorax',
+        subcategory: 'Derrame Pleural',
+        type: 'informative',
+        modality: ['Lab', 'US'],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">Critérios de Light - Diferenciação Transudato vs Exsudato</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Critério</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Valor</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;" colspan="2">
+                  <strong>EXSUDATO</strong> se preencher <strong>≥1 dos critérios abaixo:</strong>
+                </td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;">1. Proteína no líquido pleural / Proteína sérica</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>&gt;0,5</strong></td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;">2. LDH no líquido pleural / LDH sérica</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>&gt;0,6</strong></td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;">3. LDH no líquido pleural</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>&gt;2/3 do limite superior normal da LDH sérica</strong></td>
+              </tr>
+            </tbody>
+          </table>
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt; margin-top: 10px;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">Interpretação dos Resultados</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Tipo</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Causas Comuns</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #d4edda;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>TRANSUDATO</strong><br/><span style="font-size: 9pt;">(nenhum critério de Light)</span></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  - Insuficiência cardíaca congestiva (mais comum)<br/>
+                  - Cirrose hepática<br/>
+                  - Síndrome nefrótica<br/>
+                  - Hipoalbuminemia<br/>
+                  - Embolia pulmonar (20% dos casos)<br/>
+                  - Diálise peritoneal
+                </td>
+              </tr>
+              <tr style="background-color: #fff3cd;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>EXSUDATO</strong><br/><span style="font-size: 9pt;">(≥1 critério de Light)</span></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  - Pneumonia bacteriana/parapneumônico<br/>
+                  - Neoplasias (pulmão, mama, linfoma, metástases)<br/>
+                  - Embolia pulmonar (80% dos casos)<br/>
+                  - Tuberculose<br/>
+                  - Pós-cirurgia cardíaca (Síndrome de Dressler)<br/>
+                  - Doenças autoimunes (LES, AR)<br/>
+                  - Pancreatite<br/>
+                  - Quilotórax<br/>
+                  - Empiema
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt; margin-top: 10px;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">Parâmetros Adicionais para Classificação</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Parâmetro</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Transudato</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Exsudato</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Glicose (mg/dL)</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">Normal (semelhante ao sérico)</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">&lt;60 (empiema, TB, AR, neoplasia)</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;">pH</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">≥7,30</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">&lt;7,30 (empiema, TB, neoplasia avançada)</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Leucócitos (células/mm³)</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">&lt;1000</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">&gt;1000 (infecção/inflamação)</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Aspecto</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">Claro, amarelo-citrino</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">Turvo, hemorrágico, purulento, quiloso</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Sensibilidade:</strong> 98% para identificação de exsudatos. <strong>Especificidade:</strong> ~80% (pode classificar erroneamente alguns transudatos como exsudatos).<br/>
+                  <strong>Nota:</strong> Uso prolongado de diuréticos pode converter transudatos em "pseudoexsudatos" pelos critérios de Light.<br/>
+                  <strong>Referência:</strong> Light RW, et al. Pleural Effusions: The Diagnostic Separation of Transudates and Exudates. Ann Intern Med 1972;77(4):507-513. 
+                  <a href="https://www.acpjournals.org/doi/10.7326/0003-4819-77-4-507" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">Ann Intern Med</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      {
+        id: 'masaoka_koga',
+        name: 'Masaoka-Koga (Timoma)',
+        category: 'thorax',
+        subcategory: 'Tumores Mediastinais',
+        type: 'informative',
+        modality: ['TC', 'RM'],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">Classificação de Masaoka-Koga para Timoma (Estadiamento Cirúrgico)</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Estágio</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Descrição</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Sobrevida 5 anos</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #d4edda;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>I</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  <strong>Tumor encapsulado</strong><br/>
+                  Sem invasão macroscópica ou microscópica da cápsula
+                </td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">90-95%</td>
+              </tr>
+              <tr style="background-color: #d4edda;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>IIA</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  <strong>Invasão microscópica da cápsula</strong><br/>
+                  Invasão identificada apenas no exame histopatológico
+                </td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">85-90%</td>
+              </tr>
+              <tr style="background-color: #fff3cd;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>IIB</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  <strong>Invasão macroscópica da gordura mediastinal ou pleura mediastinal</strong><br/>
+                  Infiltração visível macroscopicamente dos tecidos pericapsulares
+                </td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">70-80%</td>
+              </tr>
+              <tr style="background-color: #fff3cd;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>III</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  <strong>Invasão macroscópica de órgãos vizinhos</strong><br/>
+                  Pericárdio, grandes vasos, pulmão (sem invasão de pleura parietal, parede torácica ou estruturas cardíacas)
+                </td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">50-70%</td>
+              </tr>
+              <tr style="background-color: #ffc107;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>IVA</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  <strong>Disseminação pleural ou pericárdica</strong><br/>
+                  Implantes pleurais ou pericárdicos (não continuo com tumor primário)
+                </td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">30-50%</td>
+              </tr>
+              <tr style="background-color: #f8d7da;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>IVB</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  <strong>Metástases linfáticas ou hematogênicas</strong><br/>
+                  Disseminação para linfonodos ou órgãos distantes
+                </td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">10-30%</td>
+              </tr>
+            </tbody>
+          </table>
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt; margin-top: 10px;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">Achados por Imagem (TC/RM) Sugestivos de Estadiamento</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Estágio</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Achados de Imagem</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #d4edda;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>I</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Massa mediastinal anterior homogênea, bem delimitada, cápsula íntegra, sem sinais de invasão</td>
+              </tr>
+              <tr style="background-color: #fff3cd;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>IIA/IIB</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Irregularidade capsular, infiltração sutil de gordura mediastinal adjacente, margens mal definidas</td>
+              </tr>
+              <tr style="background-color: #ffc107;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>III</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  Invasão de pericárdio (espessamento, derrame), grandes vasos (perda de plano gorduroso, distorção de contorno), pulmão (consolidação adjacente)
+                </td>
+              </tr>
+              <tr style="background-color: #f8d7da;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>IVA</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Nódulos/implantes pleurais ou pericárdicos separados do tumor primário, derrame pleural/pericárdico neoplásico</td>
+              </tr>
+              <tr style="background-color: #f8d7da;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>IVB</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Metástases pulmonares, hepáticas, ósseas, cerebrais; linfonodos cervicais, supraclaviculares ou abdominais aumentados</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="2" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Nota:</strong> Masaoka-Koga é o sistema de estadiamento cirúrgico mais utilizado. Correlação radiológica nem sempre é precisa; confirmação cirúrgica é padrão-ouro.<br/>
+                  <strong>Associação:</strong> ~30-50% dos timomas associados com miastenia gravis. ~10-15% com aplasia pura de células vermelhas ou hipogamaglobulinemia.<br/>
+                  <strong>Referências:</strong> Masaoka A, et al. (1981); Koga K, et al. (1994). 
+                  <a href="https://pubmed.ncbi.nlm.nih.gov/7034409/" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">PubMed Masaoka</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      {
+        id: 'who_thymic',
+        name: 'WHO Tumores Tímicos 2021',
+        category: 'thorax',
+        subcategory: 'Tumores Mediastinais',
+        type: 'informative',
+        modality: ['TC', 'RM'],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">WHO Classificação de Tumores Tímicos 2021 (5ª Edição)</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Tipo WHO</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Descrição Histológica</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Comportamento</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #d4edda;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>A</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  <strong>Timoma medular</strong><br/>
+                  Células epiteliais fusiformes/ovais, ausência ou raros linfócitos
+                </td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">Benigno</td>
+              </tr>
+              <tr style="background-color: #d4edda;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>AB</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  <strong>Timoma misto</strong><br/>
+                  Componentes de tipo A + áreas ricas em linfócitos (tipo B)
+                </td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">Benigno</td>
+              </tr>
+              <tr style="background-color: #fff3cd;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>B1</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  <strong>Timoma linfocítico</strong><br/>
+                  Predomínio de linfócitos, células epiteliais em pequenos agregados, semelhante a timo normal
+                </td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">Baixo risco</td>
+              </tr>
+              <tr style="background-color: #fff3cd;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>B2</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  <strong>Timoma cortical</strong><br/>
+                  Células epiteliais poligonais com núcleos vesiculares, linfócitos imaturos abundantes
+                </td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">Risco intermediário</td>
+              </tr>
+              <tr style="background-color: #ffc107;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>B3</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  <strong>Timoma epitelial/atípico</strong><br/>
+                  Predomínio de células epiteliais arredondadas/poligonais com atipia leve, poucos linfócitos
+                </td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">Alto risco</td>
+              </tr>
+              <tr style="background-color: #f8d7da;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>C</strong><br/><span style="font-size: 9pt;">(Carcinoma Tímico)</span></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  <strong>Carcinoma tímico</strong><br/>
+                  Atipia citológica franca, alto índice mitótico, necrose. Subtipos: escamoso (mais comum), basoloide, linfoepitelioma-like, sarcomatoide, mucoepidermoide, adenocarcinoma, outros
+                </td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">Maligno</td>
+              </tr>
+            </tbody>
+          </table>
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt; margin-top: 10px;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">Achados de Imagem Sugestivos (TC/RM)</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Tipo</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Achados Típicos</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #d4edda;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>A/AB</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Lesões pequenas (&lt;5 cm), homogêneas, bem delimitadas, sem calcificações, realce homogêneo, encapsuladas</td>
+              </tr>
+              <tr style="background-color: #fff3cd;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>B1/B2</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Lesões maiores, lobuladas, realce heterogêneo moderado, pode haver septações internas, contornos relativamente lisos</td>
+              </tr>
+              <tr style="background-color: #ffc107;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>B3</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Lesões grandes (&gt;7 cm), contornos irregulares, infiltração de gordura mediastinal, pode invadir estruturas adjacentes (pericárdio, grandes vasos)</td>
+              </tr>
+              <tr style="background-color: #f8d7da;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>C (Carcinoma)</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  Massa irregular, infiltrativa, necrose central comum, calcificações, realce heterogêneo intenso, invasão de mediastino/pulmão/pleura, metástases pleurais/pulmonares/linfonodais frequentes, derrame pleural/pericárdico
+                </td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="2" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Nota:</strong> Tipos A/AB têm melhor prognóstico. B3 e C têm comportamento mais agressivo e frequentemente requerem quimioterapia/radioterapia adjuvante.<br/>
+                  <strong>Associação com Miastenia Gravis:</strong> Tipo B2/B3 (50-60%), Tipo A (10-20%), Tipo C (raro).<br/>
+                  <strong>Referência:</strong> WHO Classification of Tumours of the Lung, Pleura, Thymus and Heart, 5th Edition. 2021. 
+                  <a href="https://publications.iarc.fr/Book-And-Report-Series/Who-Classification-Of-Tumours/Thoracic-Tumours-2021" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">WHO Thoracic 5th Ed</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      {
+        id: 'brixia_score',
+        name: 'Brixia Score (COVID-19 RX)',
+        category: 'thorax',
+        subcategory: 'COVID-19 Scoring',
+        type: 'informative',
+        modality: ['RX'],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">Brixia Score - Avaliação de Gravidade COVID-19 em Radiografia de Tórax</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Zona Pulmonar</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Localização Anatômica</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Pontuação</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>A</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Zona <strong>superior</strong> direita (acima do arco anterior da 2ª costela)</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;" rowspan="6">
+                  <strong>0</strong> - Sem comprometimento<br/>
+                  <strong>1</strong> - Opacidades intersticiais<br/>
+                  <strong>2</strong> - Opacidades intersticiais + alveolares (&lt;50%)<br/>
+                  <strong>3</strong> - Opacidades intersticiais + alveolares (≥50%)
+                </td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>B</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Zona <strong>inferior</strong> direita (abaixo do arco anterior da 2ª costela)</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>C</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Zona <strong>superior</strong> esquerda (acima do arco anterior da 2ª costela)</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>D</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Zona <strong>inferior</strong> esquerda (abaixo do arco anterior da 2ª costela)</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>E</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Zona <strong>inferior direita abaixo do diafragma</strong> (recesso costofrênico direito)</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>F</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Zona <strong>inferior esquerda abaixo do diafragma</strong> (recesso costofrênico esquerdo)</td>
+              </tr>
+            </tbody>
+          </table>
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt; margin-top: 10px;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">Interpretação do Score Total (Soma das 6 zonas: A+B+C+D+E+F)</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Score Total</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Classificação de Gravidade</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Correlação Clínica</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #d4edda;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>0</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Radiografia normal</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Sem comprometimento pulmonar visível</td>
+              </tr>
+              <tr style="background-color: #d4edda;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>1-5</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Leve</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Alterações discretas, geralmente não requer suporte ventilatório</td>
+              </tr>
+              <tr style="background-color: #fff3cd;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>6-9</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Moderada</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Pode necessitar oxigenoterapia suplementar</td>
+              </tr>
+              <tr style="background-color: #ffc107;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>10-12</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Moderada a grave</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Frequentemente requer oxigenoterapia de alto fluxo ou ventilação não invasiva</td>
+              </tr>
+              <tr style="background-color: #f8d7da;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>13-18</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Grave a crítica</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Alto risco de intubação orotraqueal e ventilação mecânica invasiva</td>
+              </tr>
+            </tbody>
+          </table>
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt; margin-top: 10px;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">Descrição dos Achados Radiográficos</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Pontuação</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Achados na Radiografia</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>0</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Sem anormalidades visíveis</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>1</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Opacidades intersticiais (padrão reticular, reticulonodular, linhas B de Kerley)</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>2</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Opacidades intersticiais + opacidades alveolares ocupando &lt;50% da zona (vidro fosco, consolidações focais)</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>3</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Opacidades intersticiais + opacidades alveolares ocupando ≥50% da zona (consolidações extensas, "white lung")</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="2" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Nota:</strong> Brixia Score correlaciona-se com necessidade de ventilação mecânica e mortalidade em pacientes COVID-19.<br/>
+                  <strong>Vantagens:</strong> Método simples, rápido, reprodutível, utiliza radiografia de tórax padrão (PA ou AP).<br/>
+                  <strong>Referência:</strong> Borghesi A, Maroldi R. COVID-19 Outbreak in Italy: Experimental Chest X-Ray Scoring System for Quantifying and Monitoring Disease Progression. Radiol Med 2020;125(5):509-513. 
+                  <a href="https://link.springer.com/article/10.1007/s11547-020-01200-3" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">Radiol Med</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+    ],
+  },
 ]
 
 export default RADIOLOGY_TABLES;
