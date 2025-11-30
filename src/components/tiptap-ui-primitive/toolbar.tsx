@@ -9,7 +9,7 @@ export const Toolbar = React.forwardRef<HTMLDivElement, ToolbarProps>(
       <div
         ref={ref}
         className={cn(
-          'tiptap-toolbar sticky top-0 z-50 flex items-center gap-1 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-2',
+          'tiptap-toolbar sticky top-0 z-40 flex items-center gap-1 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-2',
           className
         )}
         {...props}
