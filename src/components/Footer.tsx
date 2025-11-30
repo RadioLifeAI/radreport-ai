@@ -120,6 +120,11 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link to="/cookies" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Cookies
+                </Link>
+              </li>
+              <li>
                 <Link to="/contato" className="text-muted-foreground hover:text-foreground transition-colors">
                   Contato
                 </Link>
