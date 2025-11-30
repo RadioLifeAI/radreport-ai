@@ -19,29 +19,11 @@ export default function Footer() {
             </p>
             <div className="flex gap-4">
               <a
-                href="mailto:contato@radreport.com"
+                href="mailto:contato@radreport.com.br"
                 className="text-muted-foreground hover:text-primary transition-colors"
                 aria-label="Email"
               >
                 <Mail size={20} />
-              </a>
-              <a
-                href="https://linkedin.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-muted-foreground hover:text-primary transition-colors"
-                aria-label="LinkedIn"
-              >
-                <Linkedin size={20} />
-              </a>
-              <a
-                href="https://twitter.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-muted-foreground hover:text-primary transition-colors"
-                aria-label="Twitter"
-              >
-                <Twitter size={20} />
               </a>
             </div>
           </div>

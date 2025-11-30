@@ -14,7 +14,7 @@ export default function Termos() {
               Termos de Uso
             </h1>
             <p className="text-muted-foreground">
-              Última atualização: {new Date().toLocaleDateString('pt-BR')}
+              Última atualização: 30 de novembro de 2025
             </p>
           </div>
 
@@ -22,7 +22,7 @@ export default function Termos() {
             <section>
               <h2 className="text-2xl font-bold mb-4 text-foreground">1. Aceitação dos Termos</h2>
               <p className="text-muted-foreground leading-relaxed">
-                Ao acessar e usar a plataforma RadReport, você concorda em cumprir e estar vinculado aos presentes 
+                Ao acessar e usar a plataforma RadReport, operado pela <strong>RadAi Labs LTDA</strong> (CNPJ: 63.762.346/0001-47), você concorda em cumprir e estar vinculado aos presentes 
                 Termos de Uso. Se você não concorda com qualquer parte destes termos, não deve usar nosso serviço.
               </p>
             </section>
@@ -169,18 +169,20 @@ export default function Termos() {
               <h2 className="text-2xl font-bold mb-4 text-foreground">11. Lei Aplicável e Foro</h2>
               <p className="text-muted-foreground leading-relaxed">
                 Estes Termos de Uso são regidos pelas leis da República Federativa do Brasil. Qualquer disputa será 
-                resolvida no foro da comarca de [Cidade], com exclusão de qualquer outro, por mais privilegiado que seja.
+                resolvida no foro da comarca de Guanambi, Estado da Bahia, com exclusão de qualquer outro, por mais privilegiado que seja.
               </p>
             </section>
 
             <section>
               <h2 className="text-2xl font-bold mb-4 text-foreground">12. Contato</h2>
-              <p className="text-muted-foreground leading-relaxed">
+              <p className="text-muted-foreground leading-relaxed mb-4">
                 Para questões sobre estes Termos de Uso, entre em contato:
               </p>
-              <p className="text-foreground mt-3">
-                E-mail: <a href="mailto:juridico@radreport.com.br" className="text-primary hover:underline">juridico@radreport.com.br</a>
-              </p>
+              <div className="bg-primary/10 border border-primary/20 rounded-lg p-6">
+                <p className="text-foreground mb-2"><strong>E-mail:</strong> <a href="mailto:contato@radreport.com.br" className="text-primary hover:underline">contato@radreport.com.br</a></p>
+                <p className="text-foreground mb-2"><strong>WhatsApp:</strong> +55 77 98864-0691</p>
+                <p className="text-sm text-muted-foreground mt-3">Prazo de resposta: até 15 dias úteis</p>
+              </div>
             </section>
           </div>
         </div>

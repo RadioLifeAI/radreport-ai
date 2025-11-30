@@ -110,7 +110,7 @@ export default function LGPD() {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-primary">•</span>
-                  <span>Autenticação multifator e controle de acesso baseado em função (RBAC)</span>
+                  <span>Autenticação segura via Supabase Auth e controle de acesso por usuário</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-primary">•</span>
@@ -194,37 +194,42 @@ export default function LGPD() {
             </section>
 
             <section>
-              <h2 className="text-2xl font-bold mb-4 text-foreground">Encarregado de Proteção de Dados (DPO)</h2>
-              <p className="text-muted-foreground leading-relaxed">
+              <h2 className="text-2xl font-bold mb-4 text-foreground">9. Encarregado de Proteção de Dados (DPO)</h2>
+              <p className="text-muted-foreground leading-relaxed mb-4">
                 Conforme Art. 41 da LGPD, nomeamos um Encarregado de Proteção de Dados:
               </p>
-              <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 mt-3">
-                <p className="text-foreground font-semibold mb-1">Encarregado: [Nome do DPO]</p>
-                <p className="text-foreground">E-mail: <a href="mailto:dpo@radreport.com.br" className="text-primary hover:underline">dpo@radreport.com.br</a></p>
+              <div className="bg-primary/10 border border-primary/20 rounded-lg p-6">
+                <p className="text-foreground font-semibold mb-2">Encarregado (DPO): Dr. Nailson Costa (CRM-BA 28286)</p>
+                <p className="text-foreground mb-2">E-mail: <a href="mailto:contato@radreport.com.br" className="text-primary hover:underline">contato@radreport.com.br</a></p>
+                <p className="text-foreground">WhatsApp: +55 77 98864-0691</p>
               </div>
             </section>
 
             <section>
-              <h2 className="text-2xl font-bold mb-4 text-foreground">Como Exercer Seus Direitos</h2>
-              <p className="text-muted-foreground leading-relaxed">
+              <h2 className="text-2xl font-bold mb-4 text-foreground">10. Como Exercer Seus Direitos</h2>
+              <p className="text-muted-foreground leading-relaxed mb-4">
                 Para exercer qualquer dos direitos previstos na LGPD:
               </p>
-              <ol className="space-y-2 text-muted-foreground mt-3">
+              <ol className="space-y-2 text-muted-foreground">
                 <li className="flex items-start gap-2">
                   <span className="text-primary font-bold">1.</span>
-                  <span>Envie solicitação para <a href="mailto:dpo@radreport.com.br" className="text-primary hover:underline">dpo@radreport.com.br</a></span>
+                  <span>Envie solicitação para <a href="mailto:contato@radreport.com.br" className="text-primary hover:underline">contato@radreport.com.br</a></span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-primary font-bold">2.</span>
-                  <span>Identifique-se adequadamente e especifique o direito que deseja exercer</span>
+                  <span>Ou entre em contato via WhatsApp: +55 77 98864-0691</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-primary font-bold">3.</span>
-                  <span>Responderemos em até 15 dias úteis</span>
+                  <span>Identifique-se adequadamente e especifique o direito que deseja exercer</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-primary font-bold">4.</span>
-                  <span>O atendimento da solicitação é gratuito (salvo casos previstos em lei)</span>
+                  <span>Responderemos em até 15 dias úteis</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary font-bold">5.</span>
+                  <span>Caso não esteja satisfeito com nossa resposta, você pode registrar reclamação junto à ANPD: <a href="https://www.gov.br/anpd" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">www.gov.br/anpd</a></span>
                 </li>
               </ol>
             </section>
@@ -236,7 +241,7 @@ export default function LGPD() {
                 revise regularmente para se manter informado sobre como protegemos seus dados.
               </p>
               <p className="text-muted-foreground mt-3">
-                Última atualização: {new Date().toLocaleDateString('pt-BR')}
+                Última atualização: 30 de novembro de 2025
               </p>
             </section>
           </div>

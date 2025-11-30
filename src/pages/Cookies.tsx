@@ -16,7 +16,7 @@ export default function Cookies() {
             <Cookie className="w-16 h-16 text-primary mx-auto" />
             <h1 className="text-4xl font-bold">Política de Cookies</h1>
             <p className="text-muted-foreground">
-              Última atualização: {new Date().toLocaleDateString('pt-BR')}
+              Última atualização: 30 de novembro de 2025
             </p>
             <Button onClick={() => setShowModal(true)}>
               Gerenciar Preferências de Cookies
@@ -226,13 +226,21 @@ export default function Cookies() {
           {/* Contato */}
           <section className="p-6 rounded-lg bg-card border border-border space-y-3">
             <h2 className="text-2xl font-semibold">Dúvidas sobre cookies?</h2>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground mb-4">
               Se você tiver dúvidas sobre nossa política de cookies ou sobre como utilizamos 
               seus dados, entre em contato conosco:
             </p>
-            <div className="space-y-1 text-sm">
-              <p><strong>Email:</strong> contato@radreport.com.br</p>
-              <p><strong>DPO:</strong> dpo@radreport.com.br</p>
+            <div className="bg-primary/10 border border-primary/20 rounded-lg p-6">
+              <p className="mb-2"><strong>DPO:</strong> Dr. Nailson Costa (CRM-BA 28286)</p>
+              <p className="mb-2"><strong>E-mail:</strong> contato@radreport.com.br</p>
+              <p className="mb-2"><strong>WhatsApp:</strong> +55 77 98864-0691</p>
+              <p className="text-sm text-muted-foreground mt-3 mb-4">Prazo de resposta: até 15 dias úteis</p>
+              <button
+                onClick={() => setShowModal(true)}
+                className="mt-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+              >
+                Gerenciar Preferências
+              </button>
             </div>
           </section>
 
