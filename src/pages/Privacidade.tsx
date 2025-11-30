@@ -14,7 +14,7 @@ export default function Privacidade() {
               Política de Privacidade
             </h1>
             <p className="text-muted-foreground">
-              Última atualização: {new Date().toLocaleDateString('pt-BR')}
+              Última atualização: 30 de novembro de 2025
             </p>
           </div>
 
@@ -22,7 +22,7 @@ export default function Privacidade() {
             <section>
               <h2 className="text-2xl font-bold mb-4 text-foreground">1. Introdução</h2>
               <p className="text-muted-foreground leading-relaxed">
-                O RadReport ("nós", "nosso") está comprometido em proteger a privacidade e segurança dos dados pessoais 
+                O RadReport, operado pela <strong>RadAi Labs LTDA</strong> (CNPJ: 63.762.346/0001-47), está comprometido em proteger a privacidade e segurança dos dados pessoais 
                 de nossos usuários. Esta Política de Privacidade descreve como coletamos, usamos, armazenamos e protegemos 
                 suas informações pessoais de acordo com a Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018).
               </p>
@@ -36,7 +36,7 @@ export default function Privacidade() {
               <ul className="space-y-2 text-muted-foreground">
                 <li className="flex items-start gap-2">
                   <span className="text-primary">•</span>
-                  <span><strong>Dados de Cadastro:</strong> nome completo, e-mail institucional, senha criptografada</span>
+                  <span><strong>Dados de Cadastro:</strong> nome completo, e-mail, senha criptografada, CRM (opcional), instituição (opcional), especialidade (opcional)</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-primary">•</span>
@@ -90,7 +90,7 @@ export default function Privacidade() {
               <ul className="space-y-2 text-muted-foreground">
                 <li className="flex items-start gap-2">
                   <span className="text-primary">•</span>
-                  <span><strong>Provedores de Serviços:</strong> OpenAI (processamento de IA), Groq (transcrição Whisper), Supabase (infraestrutura)</span>
+                  <span><strong>Provedores de Serviços:</strong> OpenAI (processamento de IA), Groq (transcrição Whisper), Supabase (infraestrutura), Cloudflare (verificação de segurança anti-bot)</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-primary">•</span>
@@ -148,13 +148,16 @@ export default function Privacidade() {
 
             <section>
               <h2 className="text-2xl font-bold mb-4 text-foreground">8. Contato - Encarregado de Dados</h2>
-              <p className="text-muted-foreground leading-relaxed">
+              <p className="text-muted-foreground leading-relaxed mb-4">
                 Para exercer seus direitos ou esclarecer dúvidas sobre esta política, entre em contato com nosso 
                 Encarregado de Proteção de Dados (DPO):
               </p>
-              <p className="text-foreground mt-3">
-                E-mail: <a href="mailto:dpo@radreport.com.br" className="text-primary hover:underline">dpo@radreport.com.br</a>
-              </p>
+              <div className="bg-primary/10 border border-primary/20 rounded-lg p-6">
+                <p className="text-foreground mb-2"><strong>Encarregado (DPO):</strong> Dr. Nailson Costa (CRM-BA 28286)</p>
+                <p className="text-foreground mb-2"><strong>E-mail:</strong> <a href="mailto:contato@radreport.com.br" className="text-primary hover:underline">contato@radreport.com.br</a></p>
+                <p className="text-foreground mb-2"><strong>WhatsApp:</strong> +55 77 98864-0691</p>
+                <p className="text-sm text-muted-foreground mt-3">Prazo de resposta: até 15 dias úteis</p>
+              </div>
             </section>
 
             <section>

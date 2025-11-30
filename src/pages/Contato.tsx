@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import PageLayout from '@/components/layout/PageLayout';
-import { Mail, MessageSquare, Send } from 'lucide-react';
+import { Mail, Clock, Phone, ShieldCheck, HelpCircle, DollarSign, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -121,18 +121,16 @@ export default function Contato() {
             <div className="space-y-6">
               <div className="glass-card rounded-xl p-6">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center flex-shrink-0 shadow-glow">
-                    <Mail className="w-6 h-6 text-primary-foreground" />
+                  <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-cyan-400/20 to-indigo-500/20 flex items-center justify-center flex-shrink-0">
+                    <Mail className="w-6 h-6 text-cyan-400" />
                   </div>
                   <div>
                     <h3 className="text-lg font-bold mb-2 text-foreground">E-mail</h3>
-                    <p className="text-muted-foreground mb-1">Suporte Técnico</p>
-                    <a href="mailto:suporte@radreport.com.br" className="text-primary hover:underline">
-                      suporte@radreport.com.br
-                    </a>
-                    <p className="text-muted-foreground mt-3 mb-1">Comercial</p>
-                    <a href="mailto:comercial@radreport.com.br" className="text-primary hover:underline">
-                      comercial@radreport.com.br
+                    <p className="text-muted-foreground text-sm mb-2">
+                      contato@radreport.com.br
+                    </p>
+                    <a href="mailto:contato@radreport.com.br" className="text-primary hover:underline text-sm">
+                      Enviar e-mail
                     </a>
                   </div>
                 </div>
@@ -140,19 +138,52 @@ export default function Contato() {
 
               <div className="glass-card rounded-xl p-6">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center flex-shrink-0 shadow-glow">
-                    <MessageSquare className="w-6 h-6 text-primary-foreground" />
+                  <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-green-400/20 to-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                    <Phone className="w-6 h-6 text-green-400" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold mb-2 text-foreground">Horário de Atendimento</h3>
-                    <p className="text-muted-foreground">
-                      Segunda a Sexta: 8h às 18h
+                    <h3 className="text-lg font-bold mb-2 text-foreground">WhatsApp</h3>
+                    <p className="text-muted-foreground text-sm mb-2">
+                      +55 77 98864-0691
                     </p>
-                    <p className="text-muted-foreground">
-                      Sábados: 9h às 13h
+                    <a 
+                      href="https://wa.me/5577988640691" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline text-sm"
+                    >
+                      Abrir WhatsApp
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <div className="glass-card rounded-xl p-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-indigo-400/20 to-purple-500/20 flex items-center justify-center flex-shrink-0">
+                    <ShieldCheck className="w-6 h-6 text-indigo-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold mb-2 text-foreground">DPO (Proteção de Dados)</h3>
+                    <p className="text-muted-foreground text-sm mb-1">
+                      Dr. Nailson Costa (CRM-BA 28286)
                     </p>
-                    <p className="text-sm text-muted-foreground/70 mt-2">
-                      * Planos Premium têm suporte prioritário 24/7
+                    <p className="text-muted-foreground text-sm">
+                      Para questões sobre LGPD e privacidade
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="glass-card rounded-xl p-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-400/20 to-pink-500/20 flex items-center justify-center flex-shrink-0">
+                    <Clock className="w-6 h-6 text-purple-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold mb-2 text-foreground">Prazo de Resposta</h3>
+                    <p className="text-muted-foreground text-sm">
+                      Até 15 dias úteis para todas as solicitações
                     </p>
                   </div>
                 </div>
@@ -160,25 +191,32 @@ export default function Contato() {
 
               {/* FAQ Quick Links */}
               <div className="glass-card rounded-xl p-6">
-                <h3 className="text-lg font-bold mb-4 text-foreground">Perguntas Frequentes</h3>
+                <div className="flex items-start gap-4 mb-4">
+                  <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-pink-400/20 to-cyan-500/20 flex items-center justify-center flex-shrink-0">
+                    <HelpCircle className="w-6 h-6 text-pink-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-foreground">Perguntas Frequentes</h3>
+                  </div>
+                </div>
                 <ul className="space-y-2">
                   <li>
-                    <a href="/#faq" className="text-primary hover:underline flex items-center gap-2">
+                    <a href="/#faq" className="text-primary hover:underline flex items-center gap-2 text-sm">
                       → Como funcionam os tokens?
                     </a>
                   </li>
                   <li>
-                    <a href="/#faq" className="text-primary hover:underline flex items-center gap-2">
+                    <a href="/#faq" className="text-primary hover:underline flex items-center gap-2 text-sm">
                       → Como usar o ditado por voz?
                     </a>
                   </li>
                   <li>
-                    <a href="/#faq" className="text-primary hover:underline flex items-center gap-2">
+                    <a href="/#faq" className="text-primary hover:underline flex items-center gap-2 text-sm">
                       → Posso cancelar meu plano?
                     </a>
                   </li>
                   <li>
-                    <a href="/precos" className="text-primary hover:underline flex items-center gap-2">
+                    <a href="/precos" className="text-primary hover:underline flex items-center gap-2 text-sm">
                       → Ver todos os planos
                     </a>
                   </li>
