@@ -47,6 +47,45 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_credits_ledger: {
+        Row: {
+          amount: number
+          balance_after: number
+          balance_before: number
+          created_at: string | null
+          description: string | null
+          feature_used: string | null
+          id: string
+          metadata: Json | null
+          transaction_type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          balance_after: number
+          balance_before: number
+          created_at?: string | null
+          description?: string | null
+          feature_used?: string | null
+          id?: string
+          metadata?: Json | null
+          transaction_type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          balance_after?: number
+          balance_before?: number
+          created_at?: string | null
+          description?: string | null
+          feature_used?: string | null
+          id?: string
+          metadata?: Json | null
+          transaction_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ai_inline_edits_log: {
         Row: {
           command: string
@@ -1146,6 +1185,39 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          crm: string | null
+          full_name: string | null
+          id: string
+          institution: string | null
+          specialty: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          crm?: string | null
+          full_name?: string | null
+          id: string
+          institution?: string | null
+          specialty?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          crm?: string | null
+          full_name?: string | null
+          id?: string
+          institution?: string | null
+          specialty?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       regioes_anatomicas: {
         Row: {
           ativa: boolean | null
@@ -1776,6 +1848,39 @@ export type Database = {
           id?: string
           nome?: string
           prioridade?: number | null
+        }
+        Relationships: []
+      }
+      user_ai_balance: {
+        Row: {
+          balance: number
+          created_at: string | null
+          id: string
+          monthly_limit: number | null
+          plan_expires_at: string | null
+          plan_type: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string | null
+          id?: string
+          monthly_limit?: number | null
+          plan_expires_at?: string | null
+          plan_type?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string | null
+          id?: string
+          monthly_limit?: number | null
+          plan_expires_at?: string | null
+          plan_type?: string | null
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
