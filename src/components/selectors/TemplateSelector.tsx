@@ -137,7 +137,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
               ))}
             </div>
 
-            <div className="overflow-y-auto max-h-[520px]">
+            <div className="overflow-y-auto max-h-[520px] scrollbar-thin">
 
               {/* Content based on loading/error states */}
               {loading && (
