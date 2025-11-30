@@ -103,7 +103,7 @@ export function EditorRightSidebar({
         <ChevronLeft size={16} className="rotate-180" />
       </button>
 
-      <aside className="w-64 bg-card/50 backdrop-blur-sm">
+      <aside className="w-64 border-l border-border/40 bg-card/50 backdrop-blur-sm overflow-y-auto">
         <div className="p-4 space-y-6">
           {/* Frases Section */}
           <div>
