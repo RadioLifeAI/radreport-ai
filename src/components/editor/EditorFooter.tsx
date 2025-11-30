@@ -1,6 +1,7 @@
 import { RotateCcw, Copy, Sparkles } from 'lucide-react'
 import { Editor } from '@tiptap/react'
 import { TablesDropdown } from './TablesDropdown'
+import { CalculatorsDropdown } from './CalculatorsDropdown'
 
 interface EditorFooterProps {
   editor: Editor | null
@@ -32,6 +33,7 @@ export function EditorFooter({ editor, onRestart, onCopy }: EditorFooterProps) {
         </button>
         
         <TablesDropdown editor={editor} onInsertTable={handleInsertTable} />
+        <CalculatorsDropdown editor={editor} />
       </div>
 
       <div className="flex items-center gap-3">
