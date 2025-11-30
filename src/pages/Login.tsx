@@ -7,7 +7,7 @@ import EmailVerificationNotice from '@/components/EmailVerificationNotice';
 import LoginHeroBackground from '@/components/LoginHeroBackground';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { isValidMedicalEmail, sanitizeInput } from '@/utils/validation';
+import { isValidEmail, sanitizeInput } from '@/utils/validation';
 
 export default function Login() {
   const { login, user, isAuthenticated } = useAuth();
@@ -64,7 +64,7 @@ export default function Login() {
 
   const emailError = useMemo(() => {
     if (!email) return null;
-    if (!isValidMedicalEmail(email)) return 'Por favor, use um email válido de instituição médica';
+    if (!isValidEmail(email)) return 'Por favor, insira um email válido';
     return null;
   }, [email]);
 
@@ -122,14 +122,14 @@ export default function Login() {
 
             <div>
               <label className="block text-foreground text-sm font-medium mb-2">
-                Email institucional
+                Email
               </label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-3 form-input-enhanced rounded-lg"
-                placeholder="seu@hospital.com"
+                placeholder="seu@email.com"
                 required
               />
               {emailError && <p className="text-destructive text-sm mt-1">{emailError}</p>}

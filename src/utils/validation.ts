@@ -1,24 +1,13 @@
 import DOMPurify from 'dompurify';
 
 /**
- * Validates if an email belongs to a valid medical institution
+ * Validates if an email has a valid format
  */
-export const isValidMedicalEmail = (email: string): boolean => {
+export const isValidEmail = (email: string): boolean => {
   if (!email) return false;
   
-  // Basic email validation
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) return false;
-  
-  // Check for common medical institution domains
-  const medicalDomains = [
-    'hospital', 'clinic', 'med', 'health', 'saude', 
-    'medicina', 'radiology', 'radiologia', 'diagnostico',
-    '.edu', '.gov', 'unimed', 'hsl', 'hc', 'inca'
-  ];
-  
-  const domain = email.split('@')[1].toLowerCase();
-  return medicalDomains.some(d => domain.includes(d));
+  return emailRegex.test(email);
 };
 
 /**
