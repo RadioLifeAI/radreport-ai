@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import TurnstileWidget from '@/components/TurnstileWidget';
 import LoginHeroBackground from '@/components/LoginHeroBackground';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 import { isValidMedicalEmail, validateMedicalPassword, sanitizeInput } from '@/utils/validation';
 
 export default function SignUp() {
@@ -72,29 +74,21 @@ export default function SignUp() {
   }
 
   return (
-    <div className="login-hero-container relative overflow-hidden">
-      <LoginHeroBackground />
-      <div className="login-hero-glow" />
+    <div className="min-h-screen flex flex-col">
+      <Header />
+      <main className="flex-1 login-hero-container relative overflow-hidden">
+        <LoginHeroBackground />
+        <div className="login-hero-glow" />
 
-      <div className="relative z-float w-full max-w-md mx-auto px-4 py-16">
-        <div className="mb-8">
-          <Link
-            to="/"
-            className="flex items-center gap-2 text-foreground hover:text-primary transition-colors"
-          >
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-cyan-400/80 to-indigo-500/60 shadow-glow" />
-            <span className="font-semibold tracking-tight">RadReport</span>
-          </Link>
-        </div>
+        <div className="relative z-float w-full max-w-md mx-auto px-4 py-16">
+          <div className="mb-12 text-center animate-fade-in">
+            <h1 className="text-4xl md:text-5xl font-extrabold mb-4 gradient-text-medical">
+              Criar conta
+            </h1>
+            <p className="text-muted-foreground text-xl">Cadastre-se para começar a usar</p>
+          </div>
 
-        <div className="mb-12 text-center animate-fade-in">
-          <h1 className="text-4xl md:text-5xl font-extrabold mb-4 gradient-text-medical">
-            Criar conta
-          </h1>
-          <p className="text-muted-foreground text-xl">Cadastre-se para começar a usar</p>
-        </div>
-
-        <div className="glass-card rounded-2xl p-8 animate-scale-in">
+          <div className="glass-card rounded-2xl p-8 animate-scale-in">
           <form onSubmit={onSubmit} className="space-y-4">
             <div>
               <label className="block text-foreground text-sm font-medium mb-2">Nome completo</label>
@@ -195,7 +189,9 @@ export default function SignUp() {
             </p>
           </div>
         </div>
-      </div>
+        </div>
+      </main>
+      <Footer />
     </div>
   );
 }
