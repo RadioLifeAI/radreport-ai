@@ -8,6 +8,7 @@ import LoginHeroBackground from '@/components/LoginHeroBackground';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { isValidEmail, sanitizeInput } from '@/utils/validation';
+import { useRateLimit } from '@/hooks/useRateLimit';
 
 export default function Login() {
   const { login, user, isAuthenticated } = useAuth();
@@ -19,10 +20,24 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [showEmailVerification, setShowEmailVerification] = useState(false);
+  const { checkRateLimit, remainingTime } = useRateLimit({ maxAttempts: 5, windowMs: 60000 });
 
   useEffect(() => {
-    const last = localStorage.getItem('rr.lastEmail');
-    if (last) setEmail(last);
+    const stored = localStorage.getItem('rr.lastEmail');
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (parsed.expires && parsed.expires > Date.now()) {
+          setEmail(parsed.email);
+          setRemember(true);
+        } else {
+          localStorage.removeItem('rr.lastEmail');
+        }
+      } catch {
+        // Legacy format - just use as is
+        setEmail(stored);
+      }
+    }
   }, []);
 
   useEffect(() => {
@@ -73,12 +88,28 @@ export default function Login() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (disabled) return;
+    
+    // Rate limiting check
+    if (!checkRateLimit()) {
+      setErr(`Muitas tentativas. Aguarde ${remainingTime()} segundos.`);
+      return;
+    }
+    
     setErr(null);
     setLoading(true);
     try {
       const sanitizedEmail = sanitizeInput(email);
       await login(sanitizedEmail, password);
-      if (remember) localStorage.setItem('rr.lastEmail', email);
+      
+      // Save email with TTL (30 days)
+      if (remember) {
+        localStorage.setItem('rr.lastEmail', JSON.stringify({
+          email: sanitizedEmail,
+          expires: Date.now() + (30 * 24 * 60 * 60 * 1000)
+        }));
+      } else {
+        localStorage.removeItem('rr.lastEmail');
+      }
     } catch (error: any) {
       setErr(error.message || 'Não foi possível entrar. Verifique as credenciais.');
     } finally {
@@ -126,6 +157,7 @@ export default function Login() {
               </label>
               <input
                 type="email"
+                autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-3 form-input-enhanced rounded-lg"
@@ -142,6 +174,7 @@ export default function Login() {
               <div className="relative">
                 <input
                   type={showPass ? 'text' : 'password'}
+                  autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full px-4 py-3 form-input-enhanced rounded-lg pr-12"

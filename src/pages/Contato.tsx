@@ -5,13 +5,64 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { sanitizeInput, isValidEmail, validateLength } from '@/utils/validation';
+import { useRateLimit } from '@/hooks/useRateLimit';
 
 export default function Contato() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const { checkRateLimit, remainingTime } = useRateLimit({ maxAttempts: 3, windowMs: 60000 });
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setErrors({});
+
+    // Rate limiting check
+    if (!checkRateLimit()) {
+      toast({
+        title: 'Muitas tentativas',
+        description: `Aguarde ${remainingTime()} segundos antes de tentar novamente.`,
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const formData = new FormData(e.currentTarget);
+    
+    // Sanitize inputs
+    const cleanName = sanitizeInput(formData.get('name') as string);
+    const cleanEmail = sanitizeInput(formData.get('email') as string);
+    const cleanSubject = sanitizeInput(formData.get('subject') as string);
+    const cleanMessage = sanitizeInput(formData.get('message') as string);
+    
+    // Validate fields
+    const newErrors: Record<string, string> = {};
+    
+    const nameValidation = validateLength(cleanName, 2, 100);
+    if (!nameValidation.isValid) {
+      newErrors.name = nameValidation.error || 'Nome inválido';
+    }
+    
+    if (!isValidEmail(cleanEmail)) {
+      newErrors.email = 'E-mail inválido';
+    }
+    
+    const subjectValidation = validateLength(cleanSubject, 5, 200);
+    if (!subjectValidation.isValid) {
+      newErrors.subject = subjectValidation.error || 'Assunto inválido';
+    }
+    
+    const messageValidation = validateLength(cleanMessage, 10, 2000);
+    if (!messageValidation.isValid) {
+      newErrors.message = messageValidation.error || 'Mensagem inválida';
+    }
+    
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
     setIsSubmitting(true);
 
     // Simular envio
@@ -56,10 +107,14 @@ export default function Contato() {
                     id="name"
                     name="name"
                     type="text"
+                    autoComplete="name"
                     required
                     placeholder="Dr. João Silva"
                     className="bg-background/50"
                   />
+                  {errors.name && (
+                    <p className="text-destructive text-sm mt-1">{errors.name}</p>
+                  )}
                 </div>
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium mb-2 text-foreground">
@@ -69,10 +124,14 @@ export default function Contato() {
                     id="email"
                     name="email"
                     type="email"
+                    autoComplete="email"
                     required
-                    placeholder="joao.silva@hospital.com.br"
+                    placeholder="seu.email@gmail.com"
                     className="bg-background/50"
                   />
+                  {errors.email && (
+                    <p className="text-destructive text-sm mt-1">{errors.email}</p>
+                  )}
                 </div>
                 <div>
                   <label htmlFor="subject" className="block text-sm font-medium mb-2 text-foreground">
@@ -86,6 +145,9 @@ export default function Contato() {
                     placeholder="Dúvida sobre planos"
                     className="bg-background/50"
                   />
+                  {errors.subject && (
+                    <p className="text-destructive text-sm mt-1">{errors.subject}</p>
+                  )}
                 </div>
                 <div>
                   <label htmlFor="message" className="block text-sm font-medium mb-2 text-foreground">
@@ -99,6 +161,9 @@ export default function Contato() {
                     rows={5}
                     className="bg-background/50"
                   />
+                  {errors.message && (
+                    <p className="text-destructive text-sm mt-1">{errors.message}</p>
+                  )}
                 </div>
                 <Button
                   type="submit"

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { sanitizeInput, isValidEmail } from '@/utils/validation';
 
 export default function ForgotPassword() {
   const { toast } = useToast();
@@ -16,8 +17,20 @@ export default function ForgotPassword() {
     e.preventDefault();
     setIsSubmitting(true);
 
+    const cleanEmail = sanitizeInput(email);
+    
+    if (!isValidEmail(cleanEmail)) {
+      toast({
+        title: 'E-mail inválido',
+        description: 'Por favor, insira um e-mail válido.',
+        variant: 'destructive',
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
 
@@ -65,10 +78,11 @@ export default function ForgotPassword() {
                   <Input
                     id="email"
                     type="email"
+                    autoComplete="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="seu.email@hospital.com.br"
+                    placeholder="seu.email@gmail.com"
                     className="bg-background/50"
                   />
                 </div>

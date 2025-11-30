@@ -94,6 +94,7 @@ export default function SignUp() {
               <label className="block text-foreground text-sm font-medium mb-2">Nome completo</label>
               <input
                 type="text"
+                autoComplete="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="w-full px-4 py-3 form-input-enhanced rounded-lg"
@@ -106,6 +107,7 @@ export default function SignUp() {
               <label className="block text-foreground text-sm font-medium mb-2">Email</label>
               <input
                 type="email"
+                autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-3 form-input-enhanced rounded-lg"
@@ -120,6 +122,7 @@ export default function SignUp() {
               <div className="relative">
                 <input
                   type={showPass ? 'text' : 'password'}
+                  autoComplete="new-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full px-4 py-3 form-input-enhanced rounded-lg pr-12"
@@ -141,6 +144,7 @@ export default function SignUp() {
               <div className="relative">
                 <input
                   type={showConfirmPass ? 'text' : 'password'}
+                  autoComplete="new-password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className="w-full px-4 py-3 form-input-enhanced rounded-lg pr-12"
