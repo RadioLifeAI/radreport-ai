@@ -199,7 +199,7 @@ export default function LGPD() {
                 Conforme Art. 41 da LGPD, nomeamos um Encarregado de Proteção de Dados:
               </p>
               <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 mt-3">
-                <p className="text-foreground font-semibold mb-1">Encarregado: [Nome do DPO]</p>
+                <p className="text-foreground font-semibold mb-1">Encarregado: Responsável designado pela empresa</p>
                 <p className="text-foreground">E-mail: <a href="mailto:dpo@radreport.com.br" className="text-primary hover:underline">dpo@radreport.com.br</a></p>
               </div>
             </section>

@@ -126,13 +126,9 @@ export default function Contato() {
                   </div>
                   <div>
                     <h3 className="text-lg font-bold mb-2 text-foreground">E-mail</h3>
-                    <p className="text-muted-foreground mb-1">Suporte Técnico</p>
-                    <a href="mailto:suporte@radreport.com.br" className="text-primary hover:underline">
-                      suporte@radreport.com.br
-                    </a>
-                    <p className="text-muted-foreground mt-3 mb-1">Comercial</p>
-                    <a href="mailto:comercial@radreport.com.br" className="text-primary hover:underline">
-                      comercial@radreport.com.br
+                    <p className="text-muted-foreground mb-1">Contato Geral</p>
+                    <a href="mailto:contato@radreport.com.br" className="text-primary hover:underline">
+                      contato@radreport.com.br
                     </a>
                   </div>
                 </div>
