@@ -19,8 +19,12 @@ import {
 } from '@/components/ui/select';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { useEditorSettings } from '@/hooks/useEditorSettings';
+import { useAuth } from '@/hooks/useAuth';
+import { Slider } from '@/components/ui/slider';
+import { Lock, AlertTriangle } from 'lucide-react';
 import { useState } from 'react';
 import { User, Edit3, Sparkles, Mic, Shield } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface UserSettingsModalProps {
   open: boolean;
@@ -30,6 +34,7 @@ interface UserSettingsModalProps {
 export const UserSettingsModal = ({ open, onOpenChange }: UserSettingsModalProps) => {
   const { profile, updateProfile } = useUserProfile();
   const { settings, updateSettings } = useEditorSettings();
+  const { user } = useAuth();
   const [isSaving, setIsSaving] = useState(false);
 
   const handleProfileUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -136,7 +141,7 @@ export const UserSettingsModal = ({ open, onOpenChange }: UserSettingsModalProps
           <TabsContent value="editor" className="space-y-4 pt-4">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <Label htmlFor="auto_save">Auto-salvar</Label>
+                <Label htmlFor="auto_save">Auto-salvar ativado</Label>
                 <Switch
                   id="auto_save"
                   checked={settings?.auto_save_enabled ?? true}
@@ -147,6 +152,68 @@ export const UserSettingsModal = ({ open, onOpenChange }: UserSettingsModalProps
               </div>
 
               <div className="space-y-2">
+                <Label htmlFor="auto_save_interval">Intervalo de Auto-salvar</Label>
+                <Select
+                  value={settings?.auto_save_interval?.toString() || '30'}
+                  onValueChange={(value) => 
+                    updateSettings({ auto_save_interval: parseInt(value) })
+                  }
+                  disabled={!settings?.auto_save_enabled}
+                >
+                  <SelectTrigger id="auto_save_interval">
+                    <SelectValue placeholder="Selecione o intervalo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="15">15 segundos</SelectItem>
+                    <SelectItem value="30">30 segundos</SelectItem>
+                    <SelectItem value="60">1 minuto</SelectItem>
+                    <SelectItem value="120">2 minutos</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="theme">Tema do Editor</Label>
+                <Select
+                  value={settings?.theme || 'dark'}
+                  onValueChange={(value) => 
+                    updateSettings({ theme: value })
+                  }
+                >
+                  <SelectTrigger id="theme">
+                    <SelectValue placeholder="Selecione o tema" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="light">☀️ Claro</SelectItem>
+                    <SelectItem value="dark">🌙 Escuro</SelectItem>
+                    <SelectItem value="system">💻 Sistema</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="font_family">Família da Fonte</Label>
+                <Select
+                  value={settings?.font_family || 'Inter'}
+                  onValueChange={(value) => 
+                    updateSettings({ font_family: value })
+                  }
+                >
+                  <SelectTrigger id="font_family">
+                    <SelectValue placeholder="Selecione a fonte" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Inter">Inter</SelectItem>
+                    <SelectItem value="Roboto">Roboto</SelectItem>
+                    <SelectItem value="Open Sans">Open Sans</SelectItem>
+                    <SelectItem value="Lato">Lato</SelectItem>
+                    <SelectItem value="Arial">Arial</SelectItem>
+                    <SelectItem value="Georgia">Georgia (Serif)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="font_size">Tamanho da Fonte</Label>
                 <Select
                   value={settings?.font_size?.toString() || '14'}
@@ -154,7 +221,7 @@ export const UserSettingsModal = ({ open, onOpenChange }: UserSettingsModalProps
                     updateSettings({ font_size: parseInt(value) })
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger id="font_size">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -174,7 +241,7 @@ export const UserSettingsModal = ({ open, onOpenChange }: UserSettingsModalProps
                     updateSettings({ line_height: parseFloat(value) })
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger id="line_height">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -209,7 +276,32 @@ export const UserSettingsModal = ({ open, onOpenChange }: UserSettingsModalProps
                   onCheckedChange={(checked) => 
                     updateSettings({ ai_auto_suggest: checked })
                   }
+                  disabled={!settings?.ai_enabled}
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="ai_confidence">Confiança Mínima para Sugestões</Label>
+                <div className="flex items-center gap-4">
+                  <Slider
+                    id="ai_confidence"
+                    value={[settings?.ai_confidence_threshold ?? 0.7]}
+                    onValueChange={([value]) => 
+                      updateSettings({ ai_confidence_threshold: value })
+                    }
+                    min={0.5}
+                    max={1.0}
+                    step={0.05}
+                    className="flex-1"
+                    disabled={!settings?.ai_enabled}
+                  />
+                  <span className="text-sm text-muted-foreground w-12 text-right">
+                    {Math.round((settings?.ai_confidence_threshold ?? 0.7) * 100)}%
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Sugestões com confiança abaixo deste valor serão ignoradas
+                </p>
               </div>
             </div>
           </TabsContent>
@@ -235,16 +327,119 @@ export const UserSettingsModal = ({ open, onOpenChange }: UserSettingsModalProps
                   onCheckedChange={(checked) => 
                     updateSettings({ voice_auto_punctuation: checked })
                   }
+                  disabled={!settings?.voice_enabled}
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="voice_language">Idioma do Reconhecimento</Label>
+                <Select
+                  value={settings?.voice_language || 'pt-BR'}
+                  onValueChange={(value) => 
+                    updateSettings({ voice_language: value })
+                  }
+                  disabled={!settings?.voice_enabled}
+                >
+                  <SelectTrigger id="voice_language">
+                    <SelectValue placeholder="Selecione o idioma" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pt-BR">🇧🇷 Português (Brasil)</SelectItem>
+                    <SelectItem value="pt-PT">🇵🇹 Português (Portugal)</SelectItem>
+                    <SelectItem value="en-US">🇺🇸 Inglês (EUA)</SelectItem>
+                    <SelectItem value="es-ES">🇪🇸 Espanhol</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="voice_sensitivity">Sensibilidade do Microfone</Label>
+                <div className="flex items-center gap-4">
+                  <Slider
+                    id="voice_sensitivity"
+                    value={[settings?.voice_sensitivity ?? 0.8]}
+                    onValueChange={([value]) => 
+                      updateSettings({ voice_sensitivity: value })
+                    }
+                    min={0.3}
+                    max={1.0}
+                    step={0.05}
+                    className="flex-1"
+                    disabled={!settings?.voice_enabled}
+                  />
+                  <span className="text-sm text-muted-foreground w-12 text-right">
+                    {Math.round((settings?.voice_sensitivity ?? 0.8) * 100)}%
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Valores mais altos captam sons mais baixos
+                </p>
               </div>
             </div>
           </TabsContent>
 
           <TabsContent value="security" className="space-y-4 pt-4">
             <div className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Configurações de segurança e privacidade serão implementadas em breve.
-              </p>
+              {/* Informações da Conta */}
+              <div className="p-4 rounded-lg bg-muted/30 space-y-2">
+                <Label className="text-muted-foreground text-xs uppercase tracking-wider">
+                  Conta
+                </Label>
+                <p className="text-sm font-medium">{user?.email}</p>
+                <p className="text-xs text-muted-foreground">
+                  Criada em: {user?.created_at ? new Date(user.created_at).toLocaleDateString('pt-BR', {
+                    day: '2-digit',
+                    month: 'long',
+                    year: 'numeric'
+                  }) : '—'}
+                </p>
+              </div>
+
+              {/* Alterar Senha */}
+              <div className="space-y-2">
+                <Label>Alterar Senha</Label>
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={async () => {
+                    const { supabase } = await import('@/integrations/supabase/client');
+                    const { error } = await supabase.auth.resetPasswordForEmail(user?.email || '', {
+                      redirectTo: `${window.location.origin}/reset-password`,
+                    });
+                    if (error) {
+                      toast.error('Erro ao enviar email de redefinição');
+                    } else {
+                      toast.success('Email de redefinição enviado com sucesso');
+                    }
+                  }}
+                >
+                  <Lock size={14} className="mr-2" />
+                  Enviar email para redefinir senha
+                </Button>
+                <p className="text-xs text-muted-foreground">
+                  Você receberá um email com instruções para criar nova senha
+                </p>
+              </div>
+
+              {/* Excluir Conta */}
+              <div className="pt-4 border-t border-border/40">
+                <Label className="text-destructive">Zona de Perigo</Label>
+                <Button 
+                  variant="destructive" 
+                  className="w-full mt-2"
+                  onClick={() => {
+                    toast.error('Funcionalidade em desenvolvimento', {
+                      description: 'Por favor, entre em contato com o suporte para excluir sua conta.'
+                    });
+                  }}
+                >
+                  <AlertTriangle size={14} className="mr-2" />
+                  Excluir Minha Conta
+                </Button>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Esta ação é irreversível e excluirá todos os seus dados
+                </p>
+              </div>
             </div>
           </TabsContent>
         </Tabs>
