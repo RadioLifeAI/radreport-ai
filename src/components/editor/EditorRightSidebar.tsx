@@ -1,6 +1,7 @@
 import { MessageSquare, History, ChevronLeft, Sparkles, Zap, Wand2 } from 'lucide-react'
 import { Editor } from '@tiptap/react'
 import { useState } from 'react'
+import { cn } from '@/lib/utils'
 import VoiceButton from '@/components/voice/VoiceButton'
 import SpeechStatusPanel from '@/components/voice/SpeechStatusPanel'
 import EditorAIButton from '@/components/editor/EditorAIButton'
@@ -35,6 +36,7 @@ interface EditorRightSidebarProps {
   }
   isAICorrectorEnabled?: boolean
   toggleAICorrector?: () => void
+  isMobile?: boolean
 }
 
 export function EditorRightSidebar({
@@ -53,6 +55,7 @@ export function EditorRightSidebar({
   whisperStats,
   isAICorrectorEnabled = false,
   toggleAICorrector,
+  isMobile = false,
 }: EditorRightSidebarProps) {
   const [frasesOpen, setFrasesOpen] = useState(false)
   const { recentFrases, favoriteFrases } = useFrasesModelo()
@@ -97,13 +100,28 @@ export function EditorRightSidebar({
     <>
       <button
         onClick={onToggleCollapse}
-        className="absolute right-64 top-20 z-40 bg-card border border-border/40 rounded-l-lg p-1 hover:bg-muted transition-colors"
+        className={cn(
+          "absolute top-20 z-40 bg-card border border-border/40 rounded-l-lg p-1 hover:bg-muted transition-colors",
+          isMobile ? "right-[280px]" : "right-64 md:right-64"
+        )}
         title="Colapsar painel de controles"
       >
         <ChevronLeft size={16} className="rotate-180" />
       </button>
 
-      <aside className="w-64 border-l border-border/40 bg-card/50 backdrop-blur-sm overflow-y-auto">
+      {/* Backdrop for mobile */}
+      {isMobile && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={onToggleCollapse}
+        />
+      )}
+
+      <aside className={cn(
+        "border-l border-border/40 bg-card/50 backdrop-blur-sm overflow-y-auto transition-all duration-300",
+        "fixed md:relative inset-y-0 right-0 z-50 md:z-auto",
+        "w-[280px] md:w-64"
+      )}>
         <div className="p-4 space-y-6">
           {/* Frases Section */}
           <div>

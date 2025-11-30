@@ -131,82 +131,84 @@ export function EditorHeader({
 
   return (
     <>
-      <header className="h-14 border-b border-border/40 bg-card/95 backdrop-blur-sm flex items-center justify-between px-6 z-50">
-        <div className="flex items-center gap-6">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-cyan-400/80 to-indigo-500/60 shadow-glow" />
-            <span className="font-bold text-xl gradient-text-medical">RadReport</span>
+      <header className="h-12 md:h-14 border-b border-border/40 bg-card/95 backdrop-blur-sm flex items-center justify-between px-3 md:px-6 z-50">
+        <div className="flex items-center gap-2 md:gap-6 min-w-0 flex-1 overflow-x-auto scrollbar-hide">
+          <div className="flex items-center gap-2 cursor-pointer flex-shrink-0" onClick={() => navigate('/')}>
+            <div className="h-6 w-6 md:h-8 md:w-8 rounded-lg bg-gradient-to-br from-cyan-400/80 to-indigo-500/60 shadow-glow" />
+            <span className="font-bold text-lg md:text-xl gradient-text-medical hidden sm:inline">RadReport</span>
           </div>
+
+          <div className="flex items-center gap-2 md:gap-4 overflow-x-auto scrollbar-hide">
+            <div className="relative">
+              <TemplateSelector
+                selectedTemplate={selectedTemplate}
+                searchTerm={searchTerm}
+                onTemplateSearch={onTemplateSearch}
+                onTemplateSelect={handleTemplateSelect}
+                onModalityClick={onModalityClick}
+                onFavoriteToggle={onFavoriteToggle}
+                dropdownVisible={dropdownVisible}
+                setDropdownVisible={setDropdownVisible}
+                templates={templates}
+                filteredTemplates={filteredTemplates}
+                recentTemplates={recentTemplates}
+                favoriteTemplates={favoriteTemplates}
+                loading={loading}
+                error={error}
+                selectedModality={selectedModality}
+                isFavorite={isFavorite}
+                modalities={modalities}
+              />
+            </div>
 
           <div className="relative">
-            <TemplateSelector
-              selectedTemplate={selectedTemplate}
-              searchTerm={searchTerm}
-              onTemplateSearch={onTemplateSearch}
-              onTemplateSelect={handleTemplateSelect}
-              onModalityClick={onModalityClick}
-              onFavoriteToggle={onFavoriteToggle}
-              dropdownVisible={dropdownVisible}
-              setDropdownVisible={setDropdownVisible}
-              templates={templates}
-              filteredTemplates={filteredTemplates}
-              recentTemplates={recentTemplates}
-              favoriteTemplates={favoriteTemplates}
-              loading={loading}
-              error={error}
-              selectedModality={selectedModality}
-              isFavorite={isFavorite}
-              modalities={modalities}
+            <MacroSelector
+              selectedMacro={selectedMacro}
+              searchTerm={fraseSearchTerm}
+              onMacroSearch={onMacroSearch}
+              onMacroSelect={onMacroSelect}
+              onCategoryClick={onCategoryClick}
+              onModalityClick={onMacroModalityClick}
+              onFavoriteToggle={onMacroFavoriteToggle}
+              macros={macros}
+              filteredMacros={filteredMacros}
+              recentMacros={recentMacros}
+              favoriteMacros={favoriteMacros}
+              loading={macrosLoading}
+              error={macrosError}
+              selectedCategory={selectedCategory}
+              selectedModality={macroSelectedModality}
+              isFavorite={isMacroFavorite}
+              dropdownVisible={macroDropdownVisible}
+              setDropdownVisible={setMacroDropdownVisible}
+              categories={categories}
+              modalities={macroModalities}
             />
           </div>
-
-        <div className="relative">
-          <MacroSelector
-            selectedMacro={selectedMacro}
-            searchTerm={fraseSearchTerm}
-            onMacroSearch={onMacroSearch}
-            onMacroSelect={onMacroSelect}
-            onCategoryClick={onCategoryClick}
-            onModalityClick={onMacroModalityClick}
-            onFavoriteToggle={onMacroFavoriteToggle}
-            macros={macros}
-            filteredMacros={filteredMacros}
-            recentMacros={recentMacros}
-            favoriteMacros={favoriteMacros}
-            loading={macrosLoading}
-            error={macrosError}
-            selectedCategory={selectedCategory}
-            selectedModality={macroSelectedModality}
-            isFavorite={isMacroFavorite}
-            dropdownVisible={macroDropdownVisible}
-            setDropdownVisible={setMacroDropdownVisible}
-            categories={categories}
-            modalities={macroModalities}
-          />
+          </div>
         </div>
-      </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
         <button 
           onClick={onChatToggle}
-          className="p-2 hover:bg-muted rounded-lg transition-colors"
+          className="p-1.5 md:p-2 hover:bg-muted rounded-lg transition-colors"
           title="Chat IA"
         >
-          <MessageSquare size={18} />
+          <MessageSquare size={16} className="md:w-[18px] md:h-[18px]" />
         </button>
         <button 
           onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-          className="p-2 hover:bg-muted rounded-lg transition-colors"
+          className="p-1.5 md:p-2 hover:bg-muted rounded-lg transition-colors"
           title="Toggle theme"
         >
-          {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+          {theme === 'dark' ? <Sun size={16} className="md:w-[18px] md:h-[18px]" /> : <Moon size={16} className="md:w-[18px] md:h-[18px]" />}
         </button>
           <button 
             onClick={onLogout}
-            className="p-2 hover:bg-muted rounded-lg transition-colors"
+            className="p-1.5 md:p-2 hover:bg-muted rounded-lg transition-colors"
             title="Sair"
           >
-            <LogOut size={18} />
+            <LogOut size={16} className="md:w-[18px] md:h-[18px]" />
           </button>
         </div>
       </header>

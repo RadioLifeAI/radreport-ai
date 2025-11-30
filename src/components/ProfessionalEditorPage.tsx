@@ -1,10 +1,11 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useReportStore } from '@/store'
 import { useTemplates } from '@/hooks/useTemplates'
 import { useFrasesModelo, FraseModelo } from '@/hooks/useFrasesModelo'
 import { useDictation } from '@/hooks/useDictation'
 import { useAuth } from '@/hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
+import { useIsMobile } from '@/hooks/use-mobile'
 import { SimpleEditor } from '@/components/tiptap-templates/simple/simple-editor'
 import { supabaseService } from '@/services/SupabaseService'
 import { toast } from 'sonner'
@@ -27,6 +28,7 @@ interface ProfessionalEditorPageProps {
 export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEditorPageProps) {
   const { logout } = useAuth()
   const { content, setContent, modalidade, setModalidade } = useReportStore()
+  const isMobile = useIsMobile()
   
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [rightSidebarCollapsed, setRightSidebarCollapsed] = useState(false)
@@ -125,6 +127,14 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
   const filteredFrasesAsMacros = filteredFrasesForDisplay.map(convertFraseToMacro)
   const recentFrasesAsMacros = recentFrases.map(convertFraseToMacro)
   const favoriteFrasesAsMacros = favoriteFrases.map(convertFraseToMacro)
+
+  // Auto-collapse sidebars on mobile
+  useEffect(() => {
+    if (isMobile) {
+      setSidebarCollapsed(true)
+      setRightSidebarCollapsed(true)
+    }
+  }, [isMobile])
 
   // Copy formatted report function
   const copyFormattedReport = useCallback(async () => {
@@ -582,6 +592,7 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
           recentFrases={recentFrasesAsMacros}
           onTemplateSelect={handleTemplateSelect}
           onFraseSelect={handleFraseSelect}
+          isMobile={isMobile}
         />
 
         <main className="flex-1 flex flex-col overflow-hidden relative">
@@ -646,6 +657,7 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
           whisperStats={whisperStats}
           isAICorrectorEnabled={isAICorrectorEnabled}
           toggleAICorrector={toggleAICorrector}
+          isMobile={isMobile}
         />
       </div>
       

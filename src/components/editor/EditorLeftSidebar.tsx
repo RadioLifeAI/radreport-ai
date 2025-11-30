@@ -1,4 +1,5 @@
 import { ChevronLeft } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 interface EditorLeftSidebarProps {
   collapsed: boolean
@@ -7,6 +8,7 @@ interface EditorLeftSidebarProps {
   recentFrases: any[]
   onTemplateSelect: (template: any) => void
   onFraseSelect: (frase: any) => void
+  isMobile?: boolean
 }
 
 export function EditorLeftSidebar({
@@ -16,6 +18,7 @@ export function EditorLeftSidebar({
   recentFrases,
   onTemplateSelect,
   onFraseSelect,
+  isMobile = false,
 }: EditorLeftSidebarProps) {
   if (collapsed) {
     return (
@@ -31,7 +34,19 @@ export function EditorLeftSidebar({
 
   return (
     <>
-      <aside className="w-64 border-r border-border/40 bg-card/50 backdrop-blur-sm overflow-y-auto">
+      {/* Backdrop for mobile */}
+      {isMobile && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={onToggleCollapse}
+        />
+      )}
+      
+      <aside className={cn(
+        "border-r border-border/40 bg-card/50 backdrop-blur-sm overflow-y-auto transition-all duration-300",
+        "fixed md:relative inset-y-0 left-0 z-50 md:z-auto",
+        "w-[280px] md:w-64"
+      )}>
         <div className="p-4 space-y-6">
           {/* Templates Recentes */}
           <div>
@@ -95,7 +110,10 @@ export function EditorLeftSidebar({
 
       <button
         onClick={onToggleCollapse}
-        className="absolute left-64 top-20 z-40 bg-card border border-border/40 rounded-r-lg p-1 hover:bg-muted transition-colors"
+        className={cn(
+          "absolute top-20 z-40 bg-card border border-border/40 rounded-r-lg p-1 hover:bg-muted transition-colors",
+          isMobile ? "left-[280px]" : "left-64 md:left-64"
+        )}
         title="Colapsar sidebar"
       >
         <ChevronLeft size={16} />
