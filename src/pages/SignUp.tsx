@@ -5,7 +5,7 @@ import TurnstileWidget from '@/components/TurnstileWidget';
 import LoginHeroBackground from '@/components/LoginHeroBackground';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { isValidMedicalEmail, validateMedicalPassword, sanitizeInput } from '@/utils/validation';
+import { isValidEmail, validateMedicalPassword, sanitizeInput } from '@/utils/validation';
 
 export default function SignUp() {
   const { register } = useAuth();
@@ -23,7 +23,7 @@ export default function SignUp() {
 
   const emailError = useMemo(() => {
     if (!email) return null;
-    if (!isValidMedicalEmail(email)) return 'Por favor, use um email válido de instituição médica';
+    if (!isValidEmail(email)) return 'Por favor, insira um email válido';
     return null;
   }, [email]);
 
@@ -103,13 +103,13 @@ export default function SignUp() {
             </div>
 
             <div>
-              <label className="block text-foreground text-sm font-medium mb-2">Email institucional</label>
+              <label className="block text-foreground text-sm font-medium mb-2">Email</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-3 form-input-enhanced rounded-lg"
-                placeholder="seu@hospital.com"
+                placeholder="seu@email.com"
                 required
               />
               {emailError && <p className="text-destructive text-sm mt-1">{emailError}</p>}
