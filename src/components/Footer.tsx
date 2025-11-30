@@ -128,8 +128,9 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-12 pt-8 border-t border-border/40 text-center text-sm text-muted-foreground">
-          <p>© {currentYear} RadReport. Todos os direitos reservados.</p>
+        <div className="mt-12 pt-8 border-t border-border/40 text-center text-sm text-muted-foreground space-y-2">
+          <p>© 2025 RadReport – Uma plataforma RadAi Labs</p>
+          <p className="text-xs">RadAi Labs LTDA · CNPJ: 63.762.346/0001-47</p>
         </div>
       </div>
     </footer>
