@@ -113,7 +113,15 @@ export default function Sobre() {
               </li>
               <li className="flex items-start gap-3">
                 <span className="text-primary font-bold mt-1">•</span>
-                <span className="text-foreground"><strong>TipTap Editor:</strong> Editor WYSIWYG profissional com formatação médica especializada</span>
+                <span className="text-foreground"><strong>TipTap Editor:</strong> Editor WYSIWYG profissional com sistema de variáveis dinâmicas</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-primary font-bold mt-1">•</span>
+                <span className="text-foreground"><strong>Dicionário Médico:</strong> 4.300+ termos radiológicos com correção automática</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-primary font-bold mt-1">•</span>
+                <span className="text-foreground"><strong>Calculadoras Médicas:</strong> 25 calculadoras especializadas com inserção automática</span>
               </li>
             </ul>
           </div>
@@ -124,18 +132,26 @@ export default function Sobre() {
       <section className="py-16 px-4 bg-gradient-to-br from-primary/5 to-secondary/5">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-3xl font-bold mb-12 text-center text-foreground">RadReport em Números</h2>
-          <div className="grid md:grid-cols-4 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div className="text-center glass-card rounded-xl p-6">
-              <p className="text-4xl font-bold text-primary mb-2">159</p>
+              <p className="text-4xl font-bold text-primary mb-2">149</p>
               <p className="text-muted-foreground">Templates Profissionais</p>
             </div>
             <div className="text-center glass-card rounded-xl p-6">
-              <p className="text-4xl font-bold text-primary mb-2">245</p>
+              <p className="text-4xl font-bold text-primary mb-2">400</p>
               <p className="text-muted-foreground">Frases Modelo</p>
             </div>
             <div className="text-center glass-card rounded-xl p-6">
-              <p className="text-4xl font-bold text-primary mb-2">28+</p>
-              <p className="text-muted-foreground">Tabelas RADS</p>
+              <p className="text-4xl font-bold text-primary mb-2">100+</p>
+              <p className="text-muted-foreground">Tabelas de Referência</p>
+            </div>
+            <div className="text-center glass-card rounded-xl p-6">
+              <p className="text-4xl font-bold text-primary mb-2">25</p>
+              <p className="text-muted-foreground">Calculadoras Médicas</p>
+            </div>
+            <div className="text-center glass-card rounded-xl p-6">
+              <p className="text-4xl font-bold text-primary mb-2">4.300+</p>
+              <p className="text-muted-foreground">Termos no Dicionário</p>
             </div>
             <div className="text-center glass-card rounded-xl p-6">
               <p className="text-4xl font-bold text-primary mb-2">5</p>

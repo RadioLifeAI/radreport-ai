@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Brain, FileText, Shield, Zap, Check, MessageSquare, ChevronRight } from 'lucide-react';
+import { Brain, FileText, Shield, Zap, Check, MessageSquare, ChevronRight, Mic, Calculator, BookOpen } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import HeroSection from '@/components/hero/HeroSection';
@@ -49,7 +49,7 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* IA Assistente */}
             <Card className="glass-card hover-scale group">
               <CardHeader>
@@ -58,20 +58,46 @@ const Index = () => {
                 </div>
                 <CardTitle>IA Assistente</CardTitle>
                 <CardDescription>
-                  Sugestões inteligentes em tempo real com correção automática
+                  Sugestões inteligentes, conclusões automáticas e correção em tempo real
                 </CardDescription>
               </CardHeader>
             </Card>
 
-            {/* Templates Inteligentes */}
+            {/* Templates */}
             <Card className="glass-card hover-scale group">
               <CardHeader>
                 <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-indigo-400/20 to-purple-500/20 flex items-center justify-center mb-4 group-hover:shadow-glow transition-all">
                   <FileText className="h-6 w-6 text-indigo-400" />
                 </div>
-                <CardTitle>Templates</CardTitle>
+                <CardTitle>149 Templates</CardTitle>
                 <CardDescription>
-                  Biblioteca completa de templates para todas as modalidades
+                  Biblioteca completa para todas as modalidades radiológicas
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            {/* Frases Modelo */}
+            <Card className="glass-card hover-scale group">
+              <CardHeader>
+                <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-purple-400/20 to-pink-500/20 flex items-center justify-center mb-4 group-hover:shadow-glow transition-all">
+                  <MessageSquare className="h-6 w-6 text-purple-400" />
+                </div>
+                <CardTitle>400 Frases Modelo</CardTitle>
+                <CardDescription>
+                  Frases com variáveis dinâmicas para laudos personalizados
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            {/* Tabelas */}
+            <Card className="glass-card hover-scale group">
+              <CardHeader>
+                <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-pink-400/20 to-cyan-500/20 flex items-center justify-center mb-4 group-hover:shadow-glow transition-all">
+                  <Zap className="h-6 w-6 text-pink-400" />
+                </div>
+                <CardTitle>100+ Tabelas RADS</CardTitle>
+                <CardDescription>
+                  Classificações e referências internacionais completas
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -79,25 +105,25 @@ const Index = () => {
             {/* Segurança */}
             <Card className="glass-card hover-scale group">
               <CardHeader>
-                <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-purple-400/20 to-pink-500/20 flex items-center justify-center mb-4 group-hover:shadow-glow transition-all">
-                  <Shield className="h-6 w-6 text-purple-400" />
+                <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-cyan-400/20 to-indigo-500/20 flex items-center justify-center mb-4 group-hover:shadow-glow transition-all">
+                  <Shield className="h-6 w-6 text-cyan-400" />
                 </div>
-                <CardTitle>Segurança</CardTitle>
+                <CardTitle>Segurança LGPD</CardTitle>
                 <CardDescription>
-                  Criptografia de ponta e conformidade com LGPD
+                  Criptografia de ponta e total conformidade com LGPD
                 </CardDescription>
               </CardHeader>
             </Card>
 
-            {/* Velocidade */}
+            {/* Ditado por Voz */}
             <Card className="glass-card hover-scale group">
               <CardHeader>
-                <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-pink-400/20 to-cyan-500/20 flex items-center justify-center mb-4 group-hover:shadow-glow transition-all">
-                  <Zap className="h-6 w-6 text-pink-400" />
+                <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-indigo-400/20 to-purple-500/20 flex items-center justify-center mb-4 group-hover:shadow-glow transition-all">
+                  <FileText className="h-6 w-6 text-indigo-400" />
                 </div>
-                <CardTitle>Velocidade</CardTitle>
+                <CardTitle>Ditado Premium</CardTitle>
                 <CardDescription>
-                  Interface otimizada para máxima produtividade
+                  Whisper AI + Web Speech com comandos de voz estruturais
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -138,11 +164,19 @@ const Index = () => {
                 </div>
                 <div className="flex items-start gap-2">
                   <Check className="h-4 w-4 text-cyan-400 mt-0.5 flex-shrink-0" />
-                  <span className="text-sm">159 templates de laudo</span>
+                  <span className="text-sm">149 templates de laudo</span>
                 </div>
                 <div className="flex items-start gap-2">
                   <Check className="h-4 w-4 text-cyan-400 mt-0.5 flex-shrink-0" />
-                  <span className="text-sm">245 frases modelo</span>
+                  <span className="text-sm">400 frases modelo</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-cyan-400 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm">100+ tabelas de referência</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-cyan-400 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm">25 calculadoras médicas</span>
                 </div>
                 <div className="flex items-start gap-2">
                   <Check className="h-4 w-4 text-cyan-400 mt-0.5 flex-shrink-0" />
@@ -199,7 +233,7 @@ const Index = () => {
                 </div>
                 <div className="flex items-start gap-2">
                   <Check className="h-4 w-4 text-cyan-400 mt-0.5 flex-shrink-0" />
-                  <span className="text-sm">28+ tabelas RADS completas</span>
+                  <span className="text-sm">100+ tabelas RADS completas</span>
                 </div>
                 <div className="flex items-start gap-2 text-muted-foreground/60">
                   <span className="text-xs ml-6">❌ IA RADS automático</span>
@@ -483,12 +517,24 @@ const Index = () => {
                 Posso personalizar os templates?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Sim! Temos 159 templates profissionais e 245 frases modelo pré-configuradas. 
-                Você pode criar favoritos, personalizar variáveis e salvar suas próprias frases modelo.
+                Sim! Temos 149 templates profissionais, 400 frases modelo, 100+ tabelas de referência 
+                e 25 calculadoras médicas. Você pode criar favoritos, personalizar variáveis e 
+                salvar suas próprias frases modelo.
               </AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="item-6" className="glass-card px-6 border-0">
+              <AccordionTrigger className="text-left">
+                O que são as calculadoras médicas?
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground">
+                São 25 calculadoras especializadas (volumes, índices, escores) que calculam automaticamente 
+                e inserem o resultado formatado direto no laudo. Inclui peso fetal (Hadlock), volume elipsoide, 
+                índice cardiotorácico, hematoma ABC/2, entre outras.
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-7" className="glass-card px-6 border-0">
               <AccordionTrigger className="text-left">
                 Há período de teste gratuito?
               </AccordionTrigger>
