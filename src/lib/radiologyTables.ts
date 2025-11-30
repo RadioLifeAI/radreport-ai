@@ -312,6 +312,688 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
     </tr>
   </tfoot>
 </table>`
+      },
+      {
+        id: 'bpd_percentis',
+        name: 'BPD/DBP - Percentis por IG',
+        category: 'obstetrics',
+        subcategory: 'Biometria Fetal',
+        type: 'informative',
+        modality: ['US'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Diâmetro Biparietal (DBP/BPD) - Percentis por Idade Gestacional</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">IG (semanas)</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">P5 (mm)</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">P50 (mm)</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">P95 (mm)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">14</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">24</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">27</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">31</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">18</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">38</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">43</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">48</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">22</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">50</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">56</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">61</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">26</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">61</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">67</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">73</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">30</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">72</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">78</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">84</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">34</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">81</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">87</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">93</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">38</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">87</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">93</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">98</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">40</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">89</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">95</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">100</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="4" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">INTERGROWTH-21st Consortium. Fetal head circumference standards. Ultrasound Obstet Gynecol 2014;44:12-24.</span>
+        <br/>
+        <a href="https://intergrowth21.tghn.org/" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 INTERGROWTH-21st Project
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'cc_hc_percentis',
+        name: 'CC/HC - Percentis por IG',
+        category: 'obstetrics',
+        subcategory: 'Biometria Fetal',
+        type: 'informative',
+        modality: ['US'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Circunferência Cefálica (CC/HC) - Percentis por Idade Gestacional</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">IG (semanas)</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">P5 (mm)</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">P50 (mm)</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">P95 (mm)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">14</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">96</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">106</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">116</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">18</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">142</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">154</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">166</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">22</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">186</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">199</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">212</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">26</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">225</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">239</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">253</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">30</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">263</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">277</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">291</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">34</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">295</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">309</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">322</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">38</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">319</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">332</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">345</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">40</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">328</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">341</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">354</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="4" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">INTERGROWTH-21st Consortium. Fetal head circumference standards. Ultrasound Obstet Gynecol 2014;44:12-24.</span>
+        <br/>
+        <a href="https://intergrowth21.tghn.org/" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 INTERGROWTH-21st Project
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'ca_ac_percentis',
+        name: 'CA/AC - Percentis por IG',
+        category: 'obstetrics',
+        subcategory: 'Biometria Fetal',
+        type: 'informative',
+        modality: ['US'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Circunferência Abdominal (CA/AC) - Percentis por Idade Gestacional</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">IG (semanas)</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">P5 (mm)</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">P50 (mm)</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">P95 (mm)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">14</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">78</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">88</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">99</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">18</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">118</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">131</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">144</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">22</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">160</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">175</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">190</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">26</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">201</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">218</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">235</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">30</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">242</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">260</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">278</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">34</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">280</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">299</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">318</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">38</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">313</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">332</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">352</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">40</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">329</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">348</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">368</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="4" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">INTERGROWTH-21st Consortium. Fetal abdominal circumference standards. Ultrasound Obstet Gynecol 2014;44:50-56.</span>
+        <br/>
+        <a href="https://intergrowth21.tghn.org/" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 INTERGROWTH-21st Project
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'cf_fl_percentis',
+        name: 'CF/FL - Percentis por IG',
+        category: 'obstetrics',
+        subcategory: 'Biometria Fetal',
+        type: 'informative',
+        modality: ['US'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Comprimento do Fêmur (CF/FL) - Percentis por Idade Gestacional</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">IG (semanas)</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">P5 (mm)</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">P50 (mm)</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">P95 (mm)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">14</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">12</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">16</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">20</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">18</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">24</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">28</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">33</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">22</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">35</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">40</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">45</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">26</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">44</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">50</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">56</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">30</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">53</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">59</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">65</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">34</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">60</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">66</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">72</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">38</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">66</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">72</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">78</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">40</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">69</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">75</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">81</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="4" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">INTERGROWTH-21st Consortium. Fetal femur length standards. Ultrasound Obstet Gynecol 2014;44:57-62.</span>
+        <br/>
+        <a href="https://intergrowth21.tghn.org/" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 INTERGROWTH-21st Project
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'ccn_crl_datacao',
+        name: 'CCN/CRL para Datação',
+        category: 'obstetrics',
+        subcategory: 'Datação Gestacional',
+        type: 'informative',
+        modality: ['US'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Comprimento Cabeça-Nádegas (CCN/CRL) para Idade Gestacional</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">CCN (mm)</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">IG (semanas + dias)</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">CCN (mm)</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">IG (semanas + dias)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">10</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">7+2</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">45</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">11+3</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">15</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">8+0</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">50</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">11+6</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">20</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">8+5</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">55</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">12+3</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">25</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">9+2</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">60</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">12+6</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">30</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">9+6</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">65</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">13+2</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">35</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">10+2</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">70</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">13+5</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">40</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">10+6</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">84</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">14+0</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="4" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Robinson HP, Fleming JE. A critical evaluation of sonar crown-rump length measurements. Br J Obstet Gynaecol 1975;82:702-710.</span>
+        <br/>
+        <a href="https://fetalmedicine.org/research/assess/charts" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 Fetal Medicine Foundation
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'tn_translucencia_nucal',
+        name: 'Translucência Nucal (TN)',
+        category: 'obstetrics',
+        subcategory: 'Rastreamento 1º Trimestre',
+        type: 'informative',
+        modality: ['US'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Translucência Nucal (TN) - Valores de Referência por CCN</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">CCN (mm)</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">TN P50 (mm)</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">TN P95 (mm)</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Interpretação</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">45</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1,2</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">2,1</td><td style="border:1px solid #ddd; padding:6px 8px;" rowspan="8">TN &gt;P95 ou &gt;3,5mm:<br/>Aumenta risco cromossomopatias<br/>TN &gt;P99 (percentil 99):<br/>Considerar ecocardiograma fetal</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">50</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1,3</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">2,2</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">55</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1,4</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">2,4</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">60</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1,5</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">2,5</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">65</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1,6</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">2,7</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">70</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1,7</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">2,9</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">75</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1,8</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">3,1</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">84</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">2,0</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">3,4</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="4" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Nicolaides KH et al. Fetal nuchal translucency: ultrasound screening for chromosomal defects in first trimester. BMJ 1992;304:867-869.</span>
+        <br/>
+        <a href="https://fetalmedicine.org/research/assess/nuchal" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 Fetal Medicine Foundation
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'marcadores_primeiro_trimestre',
+        name: 'Marcadores Adicionais 1º Trimestre',
+        category: 'obstetrics',
+        subcategory: 'Rastreamento 1º Trimestre',
+        type: 'informative',
+        modality: ['US'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Marcadores Ultrassonográficos do 1º Trimestre (11-14 semanas)</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px;">Marcador</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Achado Normal</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Achado Anormal</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Significado</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;">Osso Nasal</td><td style="border:1px solid #ddd; padding:6px 8px;">Presente</td><td style="border:1px solid #ddd; padding:6px 8px;">Ausente ou hipoplásico</td><td style="border:1px solid #ddd; padding:6px 8px;">↑ risco Trissomia 21</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;">Ducto Venoso</td><td style="border:1px solid #ddd; padding:6px 8px;">Onda "a" positiva</td><td style="border:1px solid #ddd; padding:6px 8px;">Onda "a" reversa ou ausente</td><td style="border:1px solid #ddd; padding:6px 8px;">↑ risco Aneuploidias, cardiopatias</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;">Regurgitação Tricúspide</td><td style="border:1px solid #ddd; padding:6px 8px;">Ausente ou mínima</td><td style="border:1px solid #ddd; padding:6px 8px;">Presente (jato &gt;60 cm/s)</td><td style="border:1px solid #ddd; padding:6px 8px;">↑ risco Trissomia 21, cardiopatias</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;">Frequência Cardíaca</td><td style="border:1px solid #ddd; padding:6px 8px;">140-170 bpm</td><td style="border:1px solid #ddd; padding:6px 8px;">&lt;120 ou &gt;180 bpm</td><td style="border:1px solid #ddd; padding:6px 8px;">↑ risco Aneuploidias</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;">Ângulo Facial</td><td style="border:1px solid #ddd; padding:6px 8px;">≤85°</td><td style="border:1px solid #ddd; padding:6px 8px;">&gt;85°</td><td style="border:1px solid #ddd; padding:6px 8px;">↑ risco Trissomia 21</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="4" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Nicolaides KH. First-trimester screening for chromosomal abnormalities. Semin Perinatol 2005;29:190-194.</span>
+        <br/>
+        <a href="https://fetalmedicine.org/research/assess" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 Fetal Medicine Foundation
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'doppler_arteria_umbilical',
+        name: 'Artéria Umbilical (AU) - Doppler',
+        category: 'obstetrics',
+        subcategory: 'Doppler Obstétrico',
+        type: 'informative',
+        modality: ['US'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Doppler Artéria Umbilical (AU) - Valores Normais de IP e IR</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">IG (semanas)</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">IP P5</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">IP P50</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">IP P95</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Interpretação</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">20</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">0,85</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1,15</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1,50</td><td style="border:1px solid #ddd; padding:6px 8px;" rowspan="8"><strong>Normal:</strong> IP decresce progressivamente<br/><strong>IP &gt;P95:</strong> Insuficiência placentária<br/><strong>Diástole Zero:</strong> RCIU grave<br/><strong>Diástole Reversa:</strong> Hipóxia fetal iminente</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">24</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">0,75</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1,05</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1,40</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">28</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">0,65</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">0,95</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1,30</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">32</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">0,55</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">0,85</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1,20</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">36</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">0,50</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">0,75</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1,10</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">40</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">0,45</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">0,65</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1,00</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="5" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">INTERGROWTH-21st Consortium, ISUOG Practice Guidelines 2021. Umbilical artery Doppler. Ultrasound Obstet Gynecol 2021;58:159-173.</span>
+        <br/>
+        <a href="https://intergrowth21.tghn.org/" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 INTERGROWTH-21st / ISUOG
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'doppler_acm_psv',
+        name: 'ACM - Pico de Velocidade Sistólica',
+        category: 'obstetrics',
+        subcategory: 'Doppler Obstétrico',
+        type: 'informative',
+        modality: ['US'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">PSV-ACM (Artéria Cerebral Média) - Predição de Anemia Fetal</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">IG (semanas)</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">PSV P50 (cm/s)</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">PSV 1,5 MoM (cm/s)</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Interpretação</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">18</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">25</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">37,5</td><td style="border:1px solid #ddd; padding:6px 8px;" rowspan="10"><strong>PSV &gt;1,5 MoM:</strong><br/>Suspeita de anemia fetal moderada-grave<br/>(Sensibilidade 100%, FP 12%)<br/><br/><strong>Indicações:</strong><br/>- Isoimunização Rh<br/>- Parvovirose<br/>- Gestações múltiplas (STFF)</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">20</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">28</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">42</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">22</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">31</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">46,5</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">24</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">34</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">51</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">26</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">37</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">55,5</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">28</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">40</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">60</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">30</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">43</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">64,5</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">32</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">46</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">69</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">34</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">49</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">73,5</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">36</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">52</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">78</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="4" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Mari G et al. Noninvasive diagnosis by Doppler ultrasonography of fetal anemia due to maternal red-cell alloimmunization. NEJM 2000;342:9-14.</span>
+        <br/>
+        <a href="https://www.nejm.org/doi/full/10.1056/NEJM200001063420102" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 Mari et al. NEJM 2000
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'doppler_rcp',
+        name: 'Razão Cerebroplacentária (RCP)',
+        category: 'obstetrics',
+        subcategory: 'Doppler Obstétrico',
+        type: 'informative',
+        modality: ['US'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Razão Cerebroplacentária (RCP) = IP ACM / IP AU</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">IG (semanas)</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">RCP P5</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">RCP P50</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">RCP P95</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">20-23</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">0,90</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1,45</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">2,00</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">24-27</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">0,95</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1,50</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">2,10</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">28-31</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1,00</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1,60</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">2,30</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">32-35</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1,10</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1,70</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">2,50</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">36-40</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1,20</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1,80</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">2,70</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="4" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Interpretação:</strong><br/>
+        <strong>RCP &lt;P5 ou &lt;1,0:</strong> Redistribuição hemodinâmica fetal (centralização), sugere hipóxia/RCIU<br/>
+        <strong>RCP normal:</strong> ≥1,0 (indica oxigenação fetal adequada)<br/><br/>
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">ISUOG Practice Guidelines. Use of Doppler in obstetrics. Ultrasound Obstet Gynecol 2021;58:331-339.</span>
+        <br/>
+        <a href="https://obgyn.onlinelibrary.wiley.com/doi/10.1002/uog.23698" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 ISUOG Guidelines 2021
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'doppler_arterias_uterinas',
+        name: 'Artérias Uterinas',
+        category: 'obstetrics',
+        subcategory: 'Doppler Obstétrico',
+        type: 'informative',
+        modality: ['US'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Doppler Artérias Uterinas - Rastreamento Pré-Eclâmpsia/RCIU</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">IG (semanas)</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">IP Médio P50</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">IP Médio P95</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Interpretação</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">11-14</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1,70</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">2,55</td><td style="border:1px solid #ddd; padding:6px 8px;" rowspan="4"><strong>IP &gt;P95:</strong> ↑ risco pré-eclâmpsia e RCIU<br/><br/><strong>Incisura protodiastólica bilateral:</strong> Sugere invasão trofoblástica inadequada<br/><br/><strong>Rastreamento combinado 11-14 sem:</strong> TN + IP artérias uterinas + bioquímica materna</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">20-24</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1,10</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1,70</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">28-32</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">0,85</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1,35</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">36-40</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">0,65</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1,15</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="4" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Wright D et al. First-trimester screening for trisomies 21, 18 and 13 by ultrasound and biochemical testing. FMF 2019.</span>
+        <br/>
+        <a href="https://fetalmedicine.org/research/assess/preeclampsia" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 Fetal Medicine Foundation
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'placenta_previa',
+        name: 'Placenta Prévia - Classificação',
+        category: 'obstetrics',
+        subcategory: 'Placenta',
+        type: 'informative',
+        modality: ['US'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Placenta Prévia - Classificação e Distância do Orifício Interno (OI)</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px;">Classificação</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Distância do OI</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Descrição</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Conduta</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;">Placenta Tópica</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">&gt;20mm</td><td style="border:1px solid #ddd; padding:6px 8px;">Borda placentária afastada do OI cervical</td><td style="border:1px solid #ddd; padding:6px 8px;">Gestação sem restrições</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;">Placenta Baixa</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">≤20mm</td><td style="border:1px solid #ddd; padding:6px 8px;">Borda próxima mas não atinge o OI</td><td style="border:1px solid #ddd; padding:6px 8px;">Seguimento US, evitar atividade intensa</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;">Placenta Marginal</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">0mm (tangencia)</td><td style="border:1px solid #ddd; padding:6px 8px;">Borda atinge o OI mas não cobre</td><td style="border:1px solid #ddd; padding:6px 8px;">Repouso relativo, US seriado</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;">Placenta Prévia Parcial</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">-</td><td style="border:1px solid #ddd; padding:6px 8px;">Cobre parcialmente o OI</td><td style="border:1px solid #ddd; padding:6px 8px;">Cesárea indicada, repouso absoluto</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;">Placenta Prévia Total</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">-</td><td style="border:1px solid #ddd; padding:6px 8px;">Cobre completamente o OI</td><td style="border:1px solid #ddd; padding:6px 8px;">Cesárea obrigatória, vigilância</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="4" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">💡 Nota Clínica:</strong> US transvaginal preferível para avaliação precisa da distância OI. Placenta prévia diagnosticada antes de 20 semanas frequentemente migra com crescimento uterino. Reavaliar no 3º trimestre (32-34 semanas).<br/><br/>
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">ISUOG Practice Guidelines. Placenta accreta spectrum disorders. Ultrasound Obstet Gynecol 2024;63:422-436.</span>
+        <br/>
+        <a href="https://obgyn.onlinelibrary.wiley.com/toc/14690705/current" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 ISUOG Guidelines
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'acretismo_placentario',
+        name: 'Acretismo Placentário',
+        category: 'obstetrics',
+        subcategory: 'Placenta',
+        type: 'informative',
+        modality: ['US', 'RM'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Espectro do Acretismo Placentário (Placenta Accreta Spectrum - PAS)</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px;">Tipo</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Extensão da Invasão</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Achados US</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Achados RM</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;"><strong>Placenta Acreta</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Vilosidades aderem ao miométrio (sem decídua)</td><td style="border:1px solid #ddd; padding:6px 8px;">Perda zona hipoecoica retroplacentária, lacunas irregulares</td><td style="border:1px solid #ddd; padding:6px 8px;">Bandas uterinas escuras em T2, protrusão placentária</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;"><strong>Placenta Increta</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Vilosidades invadem o miométrio</td><td style="border:1px solid #ddd; padding:6px 8px;">Aumento vascularização subplacentária (Doppler), adelgaçamento miometrial</td><td style="border:1px solid #ddd; padding:6px 8px;">Interrupção zona juncional, abaulamento serosa</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;"><strong>Placenta Percreta</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Vilosidades atravessam serosa uterina, podem invadir órgãos adjacentes</td><td style="border:1px solid #ddd; padding:6px 8px;">Massa placentária extravasa contorno uterino, neovasos para bexiga/órgãos</td><td style="border:1px solid #ddd; padding:6px 8px;">Invasão vesical/parametrial visível, vascularização exuberante</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="4" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">⚠️ Fatores de Risco:</strong> Cesárea anterior, placenta prévia, curetagens, idade materna avançada, multiparidade.<br/>
+        <strong>💡 Sinais US de Alto Risco:</strong> Múltiplas lacunas irregulares (aspecto "queijo suíço"), vasos placentários cruzam interface útero-vesical, perda da zona hipoecoica retroplacentária.<br/><br/>
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">FIGO Placenta Accreta Diagnosis and Management. Int J Gynaecol Obstet 2018;140:20-28. ISUOG Practice Guidelines 2024.</span>
+        <br/>
+        <a href="https://obgyn.onlinelibrary.wiley.com/doi/full/10.1002/uog.27474" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 ISUOG / FIGO Guidelines
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'vasa_previa',
+        name: 'Vasa Prévia',
+        category: 'obstetrics',
+        subcategory: 'Cordão Umbilical',
+        type: 'informative',
+        modality: ['US'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Vasa Prévia - Diagnóstico e Classificação</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px;">Tipo</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Descrição</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Achados US</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Risco</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;"><strong>Tipo I</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Vasos fetais cruzam sobre o orifício interno cervical, sem inserção velamentosa</td><td style="border:1px solid #ddd; padding:6px 8px;">Vasos fetais visíveis no colo ao Doppler colorido</td><td style="border:1px solid #ddd; padding:6px 8px;">Hemorragia fetal catastrófica na rotura de membranas</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;"><strong>Tipo II</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Inserção velamentosa do cordão com vasos cruzando sobre o OI</td><td style="border:1px solid #ddd; padding:6px 8px;">Vasos livres nas membranas sobre o colo interno, inserção cordonal fora da placenta</td><td style="border:1px solid #ddd; padding:6px 8px;">Risco ainda maior pela fragilidade dos vasos</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="4" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">⚠️ Fatores de Risco:</strong> Placenta prévia/baixa, placenta bilobada, gestação por FIV, gestação múltipla.<br/>
+        <strong>💡 Diagnóstico:</strong> US transvaginal com Doppler colorido mostrando vasos no segmento inferior cruzando o OI. Confirmar pulsação arterial.<br/>
+        <strong>🔴 Conduta:</strong> Cesárea eletiva 34-37 semanas (antes de trabalho de parto espontâneo). Mortalidade fetal ~50% se não diagnosticada.<br/><br/>
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">ISUOG Practice Guidelines. Diagnosis and management of vasa previa. Ultrasound Obstet Gynecol 2019;53:443-453.</span>
+        <br/>
+        <a href="https://obgyn.onlinelibrary.wiley.com/doi/10.1002/uog.20284" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 ISUOG Guidelines 2019
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'rciu_fgr_classificacao',
+        name: 'RCIU - Classificação Delphi',
+        category: 'obstetrics',
+        subcategory: 'Crescimento Fetal',
+        type: 'informative',
+        modality: ['US'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Restrição de Crescimento Intrauterino (RCIU/FGR) - Consenso Delphi 2020</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px;">Tipo</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Idade Gestacional</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Critérios Diagnósticos</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Conduta</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;"><strong>FGR Precoce</strong></td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">&lt;32 semanas</td><td style="border:1px solid #ddd; padding:6px 8px;"><strong>CA ou PFE &lt;P3</strong><br/>OU<br/><strong>CA ou PFE &lt;P10</strong> + pelo menos:<br/>- IP AU &gt;P95<br/>- RCP &lt;P5<br/>- Diástole zero/reversa AU</td><td style="border:1px solid #ddd; padding:6px 8px;">Vigilância intensiva:<br/>- US crescimento semanal<br/>- Doppler 2x/sem<br/>- Cardiotocografia<br/>- Considerar corticoide, sulfato Mg</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;"><strong>FGR Tardio</strong></td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">≥32 semanas</td><td style="border:1px solid #ddd; padding:6px 8px;"><strong>CA ou PFE &lt;P3</strong><br/>OU<br/><strong>CA ou PFE &lt;P10</strong> + pelo menos:<br/>- RCP &lt;P5<br/>- Desaceleração curva crescimento (cruzou 2 quartis)<br/>- IP AU &gt;P95</td><td style="border:1px solid #ddd; padding:6px 8px;">Seguimento moderado:<br/>- US crescimento quinzenal<br/>- Doppler semanal<br/>- RCF após 37 sem<br/>- Indução parto 37-38 sem</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="4" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">💡 Nota Clínica:</strong> FGR Precoce geralmente associado a insuficiência placentária grave (pré-eclâmpsia, trombofilias). FGR Tardio pode ser constitucional ou placentário leve. Avaliar sempre crescimento absoluto + Doppler.<br/><br/>
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Gordijn SJ et al. Consensus definition of fetal growth restriction: a Delphi procedure. Ultrasound Obstet Gynecol 2016;48:333-339. ISUOG 2020.</span>
+        <br/>
+        <a href="https://obgyn.onlinelibrary.wiley.com/doi/10.1002/uog.15884" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 Delphi Consensus / ISUOG
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'ventriculomegalia_fetal',
+        name: 'Ventriculomegalia Fetal',
+        category: 'obstetrics',
+        subcategory: 'Malformações Fetais',
+        type: 'informative',
+        modality: ['US', 'RM'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Ventriculomegalia Cerebral Fetal - Classificação por Diâmetro Atrial</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px;">Classificação</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Diâmetro Atrial (mm)</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Achados Associados</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Conduta</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;">Normal</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">&lt;10mm</td><td style="border:1px solid #ddd; padding:6px 8px;">Ventrículo lateral dentro dos limites normais</td><td style="border:1px solid #ddd; padding:6px 8px;">Seguimento de rotina</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;"><strong>Ventriculomegalia Leve</strong></td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">10,0 - 12,0mm</td><td style="border:1px solid #ddd; padding:6px 8px;">Geralmente isolada, prognóstico favorável se estável</td><td style="border:1px solid #ddd; padding:6px 8px;">US seriado, RM fetal se progressão ou &gt;12mm, investigar TORCH</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;"><strong>Ventriculomegalia Moderada</strong></td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">12,1 - 15,0mm</td><td style="border:1px solid #ddd; padding:6px 8px;">Risco maior de anomalias associadas (agenesia corpo caloso, etc.)</td><td style="border:1px solid #ddd; padding:6px 8px;">RM fetal obrigatória, cariótipo, TORCH, acompanhamento neurológico pós-natal</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;"><strong>Ventriculomegalia Grave (Hidrocefalia)</strong></td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">&gt;15,0mm</td><td style="border:1px solid #ddd; padding:6px 8px;">Frequentemente associada a malformações, obstrução aqueduto, estenose</td><td style="border:1px solid #ddd; padding:6px 8px;">RM fetal completa, cariótipo, TORCH, consulta neurocirúrgica pré-natal, parto em centro terciário</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="4" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📏 Medida Correta:</strong> Diâmetro atrial do ventrículo lateral no plano axial transcerebelar, perpendicular ao eixo longo do ventrículo, ao nível do glomus do plexo coroide.<br/>
+        <strong>💡 Etiologias:</strong> Obstrução (estenose aqueduto, Dandy-Walker), infecção (TORCH), hemorragia, displasias, cromossomopatias.<br/><br/>
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">ISUOG Practice Guidelines. Neurosonography in the second trimester. Ultrasound Obstet Gynecol 2021;57:661-671.</span>
+        <br/>
+        <a href="https://obgyn.onlinelibrary.wiley.com/doi/10.1002/uog.23616" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 ISUOG Neurosonography Guidelines
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
       }
     ]
   },
