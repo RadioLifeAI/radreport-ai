@@ -21,7 +21,7 @@ export interface CalculatorResult {
 export interface RadiologyCalculator {
   id: string
   name: string
-  category: 'geral' | 'obstetricia' | 'neuro' | 'cardio' | 'urologia'
+  category: 'geral' | 'obstetricia' | 'neuro' | 'cardio' | 'urologia' | 'abdome' | 'vascular' | 'oncologia'
   subcategory?: string
   description: string
   inputs: CalculatorInput[]
@@ -431,6 +431,703 @@ export const radiologyCalculators: RadiologyCalculator[] = [
     reference: {
       text: 'Levey AS et al. Ann Intern Med 2009',
       url: 'https://pubmed.ncbi.nlm.nih.gov/19414839/'
+    }
+  },
+
+  // 11. IG por CCN (Crown-Rump Length)
+  {
+    id: 'gestational-age-crl',
+    name: 'IG por CCN',
+    category: 'obstetricia',
+    description: 'Idade gestacional pelo comprimento cabeça-nádega (Robinson 1975)',
+    inputs: [
+      { name: 'crl', label: 'CCN (Crown-Rump Length)', unit: 'mm', type: 'number', min: 5, max: 100, step: 0.1, defaultValue: 45.0 }
+    ],
+    calculate: (values) => {
+      const crl = values.crl as number
+      
+      // Fórmula de Robinson 1975: IG (dias) = 8.052 × √(CRL × 1.037) + 23.73
+      const days = 8.052 * Math.sqrt(crl * 1.037) + 23.73
+      const weeks = Math.floor(days / 7)
+      const remainingDays = Math.round(days % 7)
+      
+      return {
+        value: `${weeks} semanas e ${remainingDays} dias`,
+        interpretation: `CCN de ${crl.toFixed(1)} mm corresponde a ${weeks}+${remainingDays} semanas`,
+        color: 'success',
+        formattedText: `Idade gestacional por CCN (${crl.toFixed(1)} mm): ${weeks} semanas e ${remainingDays} dias (${weeks}+${remainingDays}).`
+      }
+    },
+    reference: {
+      text: 'Robinson HP, Fleming JE. BJOG 1975',
+      url: 'https://pubmed.ncbi.nlm.nih.gov/1156108/'
+    }
+  },
+
+  // 12. DPP (Data Provável do Parto)
+  {
+    id: 'estimated-due-date',
+    name: 'DPP (Data Provável do Parto)',
+    category: 'obstetricia',
+    description: 'Data provável do parto pela regra de Naegele',
+    inputs: [
+      { name: 'lmp', label: 'Data da Última Menstruação (DUM)', type: 'date', placeholder: 'DD/MM/AAAA' }
+    ],
+    calculate: (values) => {
+      const lmpDate = new Date(values.lmp as string)
+      
+      // Regra de Naegele: DUM + 280 dias
+      const dppDate = new Date(lmpDate)
+      dppDate.setDate(dppDate.getDate() + 280)
+      
+      const formatDate = (date: Date) => {
+        return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+      }
+      
+      return {
+        value: formatDate(dppDate),
+        interpretation: 'Data calculada pela regra de Naegele (DUM + 280 dias)',
+        color: 'success',
+        formattedText: `Data provável do parto (DPP): ${formatDate(dppDate)}.`
+      }
+    },
+    reference: {
+      text: 'ACOG Committee Opinion 2017',
+      url: 'https://www.acog.org/clinical/clinical-guidance/committee-opinion/articles/2017/05/methods-for-estimating-the-due-date'
+    }
+  },
+
+  // 13. ILA (Índice de Líquido Amniótico)
+  {
+    id: 'amniotic-fluid-index',
+    name: 'ILA (Índice de Líquido Amniótico)',
+    category: 'obstetricia',
+    description: 'Soma dos 4 quadrantes do líquido amniótico',
+    inputs: [
+      { name: 'q1', label: 'Quadrante 1', unit: 'cm', type: 'number', min: 0, max: 20, step: 0.1, defaultValue: 4.0 },
+      { name: 'q2', label: 'Quadrante 2', unit: 'cm', type: 'number', min: 0, max: 20, step: 0.1, defaultValue: 5.0 },
+      { name: 'q3', label: 'Quadrante 3', unit: 'cm', type: 'number', min: 0, max: 20, step: 0.1, defaultValue: 4.5 },
+      { name: 'q4', label: 'Quadrante 4', unit: 'cm', type: 'number', min: 0, max: 20, step: 0.1, defaultValue: 4.0 }
+    ],
+    calculate: (values) => {
+      const q1 = values.q1 as number
+      const q2 = values.q2 as number
+      const q3 = values.q3 as number
+      const q4 = values.q4 as number
+      
+      const ila = q1 + q2 + q3 + q4
+      
+      let interpretation = ''
+      let color: 'success' | 'warning' | 'danger' = 'success'
+      
+      if (ila < 5) {
+        interpretation = 'Oligoidrâmnio severo'
+        color = 'danger'
+      } else if (ila < 8) {
+        interpretation = 'Oligoidrâmnio limítrofe'
+        color = 'warning'
+      } else if (ila <= 24) {
+        interpretation = 'Líquido amniótico normal'
+        color = 'success'
+      } else {
+        interpretation = 'Polidrâmnio'
+        color = 'warning'
+      }
+      
+      return {
+        value: ila,
+        unit: 'cm',
+        interpretation,
+        color,
+        formattedText: `ILA (Índice de Líquido Amniótico): ${ila.toFixed(1)} cm. ${interpretation}.`
+      }
+    },
+    reference: {
+      text: 'Phelan JP et al. Am J Obstet Gynecol 1987',
+      url: 'https://pubmed.ncbi.nlm.nih.gov/3322321/'
+    }
+  },
+
+  // 14. Percentil Peso Fetal (INTERGROWTH-21st)
+  {
+    id: 'fetal-weight-percentile',
+    name: 'Percentil Peso Fetal',
+    category: 'obstetricia',
+    description: 'Percentil e Z-score do peso fetal (INTERGROWTH-21st)',
+    inputs: [
+      { name: 'weight', label: 'Peso fetal estimado', unit: 'g', type: 'number', min: 500, max: 5000, step: 10, defaultValue: 2500 },
+      { name: 'weeks', label: 'Idade gestacional', unit: 'semanas', type: 'number', min: 24, max: 42, step: 1, defaultValue: 37 }
+    ],
+    calculate: (values) => {
+      const weight = values.weight as number
+      const weeks = values.weeks as number
+      
+      // Valores médios aproximados INTERGROWTH-21st (simplificado)
+      const meanWeights: Record<number, number> = {
+        24: 600, 28: 1000, 32: 1700, 36: 2600, 37: 2850, 38: 3000, 39: 3200, 40: 3400, 41: 3500, 42: 3600
+      }
+      
+      const mean = meanWeights[weeks] || 2500
+      const sd = mean * 0.12 // Desvio padrão aproximado (12% do peso médio)
+      
+      const zScore = (weight - mean) / sd
+      
+      // Conversão Z-score para percentil (aproximado)
+      let percentile = 50
+      if (zScore < -2) percentile = 3
+      else if (zScore < -1) percentile = 16
+      else if (zScore < 0) percentile = 30
+      else if (zScore < 1) percentile = 70
+      else if (zScore < 2) percentile = 84
+      else percentile = 97
+      
+      let interpretation = ''
+      let color: 'success' | 'warning' | 'danger' = 'success'
+      
+      if (percentile < 10) {
+        interpretation = 'Pequeno para idade gestacional (PIG)'
+        color = 'warning'
+      } else if (percentile > 90) {
+        interpretation = 'Grande para idade gestacional (GIG)'
+        color = 'warning'
+      } else {
+        interpretation = 'Adequado para idade gestacional (AIG)'
+        color = 'success'
+      }
+      
+      return {
+        value: percentile,
+        unit: '',
+        interpretation,
+        color,
+        formattedText: `Peso fetal de ${weight.toFixed(0)} g com ${weeks} semanas: percentil ${percentile} (Z-score: ${zScore.toFixed(2)}). ${interpretation}.`
+      }
+    },
+    reference: {
+      text: 'INTERGROWTH-21st Fetal Growth Standards',
+      url: 'https://intergrowth21.tghn.org/'
+    }
+  },
+
+  // 15. Volume Hepático
+  {
+    id: 'liver-volume',
+    name: 'Volume Hepático',
+    category: 'abdome',
+    description: 'Estimativa de volume hepático',
+    inputs: [
+      { name: 'length', label: 'Comprimento (craniocaudal)', unit: 'cm', type: 'number', min: 5, max: 30, step: 0.1, defaultValue: 15.0 },
+      { name: 'width', label: 'Largura (transverso)', unit: 'cm', type: 'number', min: 5, max: 30, step: 0.1, defaultValue: 20.0 },
+      { name: 'height', label: 'Altura (AP)', unit: 'cm', type: 'number', min: 5, max: 20, step: 0.1, defaultValue: 12.0 }
+    ],
+    calculate: (values) => {
+      const L = values.length as number
+      const W = values.width as number
+      const H = values.height as number
+      
+      const volume = L * W * H * 0.52
+      
+      let interpretation = ''
+      let color: 'success' | 'warning' | 'danger' = 'success'
+      
+      if (volume < 1000) {
+        interpretation = 'Volume hepático reduzido'
+        color = 'warning'
+      } else if (volume <= 1800) {
+        interpretation = 'Volume hepático dentro da normalidade'
+        color = 'success'
+      } else if (volume <= 2500) {
+        interpretation = 'Hepatomegalia leve'
+        color = 'warning'
+      } else {
+        interpretation = 'Hepatomegalia significativa'
+        color = 'danger'
+      }
+      
+      return {
+        value: volume,
+        unit: 'mL',
+        interpretation,
+        color,
+        formattedText: `Volume hepático estimado: ${volume.toFixed(0)} mL. ${interpretation}.`
+      }
+    },
+    reference: {
+      text: 'Heymsfield SB et al. J Nutr 2014',
+      url: 'https://pubmed.ncbi.nlm.nih.gov/24500935/'
+    }
+  },
+
+  // 16. Volume Esplênico
+  {
+    id: 'spleen-volume',
+    name: 'Volume Esplênico + Índice',
+    category: 'abdome',
+    description: 'Volume esplênico e índice de esplenomegalia',
+    inputs: [
+      { name: 'length', label: 'Comprimento', unit: 'cm', type: 'number', min: 5, max: 25, step: 0.1, defaultValue: 11.0 },
+      { name: 'width', label: 'Largura', unit: 'cm', type: 'number', min: 3, max: 15, step: 0.1, defaultValue: 7.0 },
+      { name: 'depth', label: 'Profundidade', unit: 'cm', type: 'number', min: 3, max: 15, step: 0.1, defaultValue: 4.0 }
+    ],
+    calculate: (values) => {
+      const L = values.length as number
+      const W = values.width as number
+      const D = values.depth as number
+      
+      const volume = L * W * D * 0.52
+      const splenicIndex = L * W * D
+      
+      let interpretation = ''
+      let color: 'success' | 'warning' | 'danger' = 'success'
+      
+      if (volume <= 250) {
+        interpretation = 'Baço de dimensões normais'
+        color = 'success'
+      } else if (volume <= 500) {
+        interpretation = 'Esplenomegalia leve'
+        color = 'warning'
+      } else {
+        interpretation = 'Esplenomegalia acentuada'
+        color = 'danger'
+      }
+      
+      return {
+        value: volume,
+        unit: 'mL',
+        interpretation,
+        color,
+        formattedText: `Volume esplênico: ${volume.toFixed(0)} mL. Índice esplênico: ${splenicIndex.toFixed(0)}. ${interpretation}.`
+      }
+    },
+    reference: {
+      text: 'Bezerra AS et al. Radiol Bras 2005',
+      url: 'https://www.scielo.br/j/rb/a/8YcWHLTMxJjdnzQkHbkRX4F/'
+    }
+  },
+
+  // 17. Volume Renal
+  {
+    id: 'kidney-volume',
+    name: 'Volume Renal',
+    category: 'abdome',
+    description: 'Volume renal pela fórmula elipsoide',
+    inputs: [
+      { name: 'length', label: 'Comprimento', unit: 'cm', type: 'number', min: 5, max: 20, step: 0.1, defaultValue: 11.0 },
+      { name: 'width', label: 'Largura', unit: 'cm', type: 'number', min: 3, max: 10, step: 0.1, defaultValue: 5.0 },
+      { name: 'depth', label: 'Espessura', unit: 'cm', type: 'number', min: 2, max: 8, step: 0.1, defaultValue: 4.0 }
+    ],
+    calculate: (values) => {
+      const L = values.length as number
+      const W = values.width as number
+      const D = values.depth as number
+      
+      const volume = L * W * D * 0.52
+      
+      let interpretation = ''
+      let color: 'success' | 'warning' | 'danger' = 'success'
+      
+      if (volume < 80) {
+        interpretation = 'Volume renal reduzido (possível atrofia)'
+        color = 'warning'
+      } else if (volume <= 180) {
+        interpretation = 'Volume renal dentro da normalidade'
+        color = 'success'
+      } else {
+        interpretation = 'Volume renal aumentado'
+        color = 'warning'
+      }
+      
+      return {
+        value: volume,
+        unit: 'mL',
+        interpretation,
+        color,
+        formattedText: `Volume renal: ${volume.toFixed(0)} mL. ${interpretation}.`
+      }
+    },
+    reference: {
+      text: 'Emamian SA et al. Radiology 1993',
+      url: 'https://pubmed.ncbi.nlm.nih.gov/8248734/'
+    }
+  },
+
+  // 18. Washout Adrenal
+  {
+    id: 'adrenal-washout',
+    name: 'Washout Adrenal',
+    category: 'abdome',
+    description: 'APW e RPW para caracterização de nódulos adrenais',
+    inputs: [
+      { name: 'preContrast', label: 'UH sem contraste', unit: 'HU', type: 'number', min: -50, max: 100, step: 1, defaultValue: 30 },
+      { name: 'portal', label: 'UH fase portal', unit: 'HU', type: 'number', min: 0, max: 150, step: 1, defaultValue: 80 },
+      { name: 'delayed', label: 'UH fase tardia (10-15 min)', unit: 'HU', type: 'number', min: 0, max: 120, step: 1, defaultValue: 50 }
+    ],
+    calculate: (values) => {
+      const pre = values.preContrast as number
+      const portal = values.portal as number
+      const delayed = values.delayed as number
+      
+      // APW = (Portal - Delayed) / (Portal - Pre) × 100
+      const apw = ((portal - delayed) / (portal - pre)) * 100
+      
+      // RPW = (Portal - Delayed) / Portal × 100
+      const rpw = ((portal - delayed) / portal) * 100
+      
+      let interpretation = ''
+      let color: 'success' | 'warning' | 'danger' = 'success'
+      
+      if (apw >= 60 || rpw >= 40) {
+        interpretation = 'Washout compatível com adenoma benigno'
+        color = 'success'
+      } else if (pre <= 10) {
+        interpretation = 'Nódulo hipodenso, provável adenoma rico em lipídios'
+        color = 'success'
+      } else {
+        interpretation = 'Washout indeterminado, considerar outras etiologias'
+        color = 'warning'
+      }
+      
+      return {
+        value: apw,
+        unit: '%',
+        interpretation,
+        color,
+        formattedText: `Washout absoluto (APW): ${apw.toFixed(1)}%. Washout relativo (RPW): ${rpw.toFixed(1)}%. ${interpretation}.`
+      }
+    },
+    reference: {
+      text: 'Caoili EM et al. Radiology 2002',
+      url: 'https://pubmed.ncbi.nlm.nih.gov/12091681/'
+    }
+  },
+
+  // 19. Volume Tireoidiano
+  {
+    id: 'thyroid-volume',
+    name: 'Volume Tireoidiano',
+    category: 'geral',
+    description: 'Volume total da tireoide (soma dos lobos + istmo)',
+    inputs: [
+      { name: 'rightLength', label: 'Lobo direito - Comprimento', unit: 'cm', type: 'number', min: 1, max: 8, step: 0.1, defaultValue: 5.0 },
+      { name: 'rightWidth', label: 'Lobo direito - Largura', unit: 'cm', type: 'number', min: 1, max: 5, step: 0.1, defaultValue: 2.0 },
+      { name: 'rightDepth', label: 'Lobo direito - Espessura', unit: 'cm', type: 'number', min: 1, max: 4, step: 0.1, defaultValue: 2.0 },
+      { name: 'leftLength', label: 'Lobo esquerdo - Comprimento', unit: 'cm', type: 'number', min: 1, max: 8, step: 0.1, defaultValue: 5.0 },
+      { name: 'leftWidth', label: 'Lobo esquerdo - Largura', unit: 'cm', type: 'number', min: 1, max: 5, step: 0.1, defaultValue: 2.0 },
+      { name: 'leftDepth', label: 'Lobo esquerdo - Espessura', unit: 'cm', type: 'number', min: 1, max: 4, step: 0.1, defaultValue: 2.0 }
+    ],
+    calculate: (values) => {
+      const rightVol = (values.rightLength as number) * (values.rightWidth as number) * (values.rightDepth as number) * 0.52
+      const leftVol = (values.leftLength as number) * (values.leftWidth as number) * (values.leftDepth as number) * 0.52
+      const totalVolume = rightVol + leftVol
+      
+      let interpretation = ''
+      let color: 'success' | 'warning' | 'danger' = 'success'
+      
+      if (totalVolume <= 18) {
+        interpretation = 'Volume tireoidiano dentro da normalidade'
+        color = 'success'
+      } else if (totalVolume <= 25) {
+        interpretation = 'Volume tireoidiano discretamente aumentado'
+        color = 'warning'
+      } else {
+        interpretation = 'Bócio (volume tireoidiano aumentado)'
+        color = 'warning'
+      }
+      
+      return {
+        value: totalVolume,
+        unit: 'mL',
+        interpretation,
+        color,
+        formattedText: `Volume tireoidiano total: ${totalVolume.toFixed(1)} mL (lobo direito: ${rightVol.toFixed(1)} mL, lobo esquerdo: ${leftVol.toFixed(1)} mL). ${interpretation}.`
+      }
+    },
+    reference: {
+      text: 'Brunn J et al. Ultrasound Med Biol 1981',
+      url: 'https://pubmed.ncbi.nlm.nih.gov/7256012/'
+    }
+  },
+
+  // 20. Estenose Carotídea (NASCET)
+  {
+    id: 'carotid-stenosis-nascet',
+    name: 'Estenose Carotídea (NASCET)',
+    category: 'vascular',
+    description: 'Grau de estenose carotídea pelo método NASCET',
+    inputs: [
+      { name: 'residual', label: 'Diâmetro residual (estenose)', unit: 'mm', type: 'number', min: 0, max: 10, step: 0.1, defaultValue: 2.0 },
+      { name: 'normal', label: 'Diâmetro distal normal', unit: 'mm', type: 'number', min: 3, max: 10, step: 0.1, defaultValue: 6.0 }
+    ],
+    calculate: (values) => {
+      const residual = values.residual as number
+      const normal = values.normal as number
+      
+      const stenosis = ((normal - residual) / normal) * 100
+      
+      let interpretation = ''
+      let color: 'success' | 'warning' | 'danger' = 'success'
+      
+      if (stenosis < 50) {
+        interpretation = 'Estenose leve (<50%)'
+        color = 'success'
+      } else if (stenosis < 70) {
+        interpretation = 'Estenose moderada (50-69%)'
+        color = 'warning'
+      } else if (stenosis < 99) {
+        interpretation = 'Estenose severa (70-99%) - considerar endarterectomia'
+        color = 'danger'
+      } else {
+        interpretation = 'Oclusão completa'
+        color = 'danger'
+      }
+      
+      return {
+        value: stenosis,
+        unit: '%',
+        interpretation,
+        color,
+        formattedText: `Estenose carotídea (NASCET): ${stenosis.toFixed(0)}%. ${interpretation}.`
+      }
+    },
+    reference: {
+      text: 'NASCET Collaborators. N Engl J Med 1991',
+      url: 'https://pubmed.ncbi.nlm.nih.gov/1852179/'
+    }
+  },
+
+  // 21. Diâmetro Aórtico + Z-score
+  {
+    id: 'aortic-diameter-zscore',
+    name: 'Diâmetro Aórtico + Z-score',
+    category: 'vascular',
+    description: 'Avaliação de diâmetro aórtico com Z-score',
+    inputs: [
+      { name: 'diameter', label: 'Diâmetro aórtico', unit: 'mm', type: 'number', min: 10, max: 100, step: 0.1, defaultValue: 30.0 },
+      { name: 'bsa', label: 'BSA (Área Superfície Corporal)', unit: 'm²', type: 'number', min: 0.5, max: 3.0, step: 0.01, defaultValue: 1.80 }
+    ],
+    calculate: (values) => {
+      const diameter = values.diameter as number
+      const bsa = values.bsa as number
+      
+      // Valores normais aproximados: diâmetro esperado = 16 × √BSA (aorta ascendente)
+      const expectedDiameter = 16 * Math.sqrt(bsa)
+      const zScore = (diameter - expectedDiameter) / 2.5 // Desvio padrão aproximado
+      
+      let interpretation = ''
+      let color: 'success' | 'warning' | 'danger' = 'success'
+      
+      if (diameter < 40) {
+        interpretation = 'Diâmetro aórtico normal'
+        color = 'success'
+      } else if (diameter < 45) {
+        interpretation = 'Ectasia aórtica leve'
+        color = 'warning'
+      } else if (diameter < 55) {
+        interpretation = 'Aneurisma de aorta'
+        color = 'danger'
+      } else {
+        interpretation = 'Aneurisma de aorta de grandes dimensões'
+        color = 'danger'
+      }
+      
+      return {
+        value: diameter,
+        unit: 'mm',
+        interpretation,
+        color,
+        formattedText: `Diâmetro aórtico: ${diameter.toFixed(1)} mm. Z-score: ${zScore.toFixed(2)}. ${interpretation}.`
+      }
+    },
+    reference: {
+      text: 'Hiratzka LF et al. Circulation 2010',
+      url: 'https://www.ahajournals.org/doi/10.1161/CIR.0b013e3181d4739e'
+    }
+  },
+
+  // 22. Escore de Agatston
+  {
+    id: 'agatston-score',
+    name: 'Escore de Agatston',
+    category: 'cardio',
+    description: 'Interpretação do escore de cálcio coronariano',
+    inputs: [
+      { name: 'score', label: 'Escore de cálcio', unit: '', type: 'number', min: 0, max: 5000, step: 1, defaultValue: 100 }
+    ],
+    calculate: (values) => {
+      const score = values.score as number
+      
+      let interpretation = ''
+      let risk = ''
+      let color: 'success' | 'warning' | 'danger' = 'success'
+      
+      if (score === 0) {
+        interpretation = 'Ausência de calcificação coronariana'
+        risk = 'Risco cardiovascular muito baixo'
+        color = 'success'
+      } else if (score < 100) {
+        interpretation = 'Calcificação coronariana leve'
+        risk = 'Risco cardiovascular baixo a moderado'
+        color = 'success'
+      } else if (score < 400) {
+        interpretation = 'Calcificação coronariana moderada'
+        risk = 'Risco cardiovascular moderado a alto'
+        color = 'warning'
+      } else {
+        interpretation = 'Calcificação coronariana severa'
+        risk = 'Risco cardiovascular alto'
+        color = 'danger'
+      }
+      
+      return {
+        value: score,
+        unit: '',
+        interpretation: `${interpretation}. ${risk}`,
+        color,
+        formattedText: `Escore de cálcio coronariano (Agatston): ${score.toFixed(0)}. ${interpretation}. ${risk}.`
+      }
+    },
+    reference: {
+      text: 'Agatston AS et al. J Am Coll Cardiol 1990',
+      url: 'https://pubmed.ncbi.nlm.nih.gov/2407762/'
+    }
+  },
+
+  // 23. Índice Bicaudado
+  {
+    id: 'bicaudate-index',
+    name: 'Índice Bicaudado',
+    category: 'neuro',
+    description: 'Razão para avaliação de atrofia subcortical',
+    inputs: [
+      { name: 'caudateDistance', label: 'Distância entre núcleos caudados', unit: 'mm', type: 'number', min: 10, max: 50, step: 0.1, defaultValue: 18.0 },
+      { name: 'brainWidth', label: 'Largura cerebral (mesmo nível)', unit: 'mm', type: 'number', min: 50, max: 150, step: 0.1, defaultValue: 120.0 }
+    ],
+    calculate: (values) => {
+      const caudateDistance = values.caudateDistance as number
+      const brainWidth = values.brainWidth as number
+      
+      const index = caudateDistance / brainWidth
+      
+      let interpretation = ''
+      let color: 'success' | 'warning' | 'danger' = 'success'
+      
+      if (index < 0.15) {
+        interpretation = 'Índice bicaudado normal'
+        color = 'success'
+      } else if (index < 0.18) {
+        interpretation = 'Índice bicaudado limítrofe (possível atrofia leve)'
+        color = 'warning'
+      } else {
+        interpretation = 'Índice bicaudado aumentado (atrofia subcortical)'
+        color = 'warning'
+      }
+      
+      return {
+        value: index,
+        unit: '',
+        interpretation,
+        color,
+        formattedText: `Índice bicaudado: ${index.toFixed(3)} (${(index * 100).toFixed(1)}%). ${interpretation}.`
+      }
+    },
+    reference: {
+      text: 'Hahn FJ et al. AJNR 1985',
+      url: 'https://pubmed.ncbi.nlm.nih.gov/3933954/'
+    }
+  },
+
+  // 24. RECIST 1.1
+  {
+    id: 'recist-1-1',
+    name: 'RECIST 1.1',
+    category: 'oncologia',
+    description: 'Soma de lesões alvo para avaliação de resposta tumoral',
+    inputs: [
+      { name: 'lesion1', label: 'Lesão alvo 1', unit: 'mm', type: 'number', min: 0, max: 200, step: 0.1, defaultValue: 25.0 },
+      { name: 'lesion2', label: 'Lesão alvo 2', unit: 'mm', type: 'number', min: 0, max: 200, step: 0.1, defaultValue: 20.0 },
+      { name: 'lesion3', label: 'Lesão alvo 3 (opcional)', unit: 'mm', type: 'number', min: 0, max: 200, step: 0.1, defaultValue: 0 },
+      { name: 'baseline', label: 'Soma baseline (comparação)', unit: 'mm', type: 'number', min: 0, max: 600, step: 0.1, defaultValue: 50.0 }
+    ],
+    calculate: (values) => {
+      const lesion1 = values.lesion1 as number
+      const lesion2 = values.lesion2 as number
+      const lesion3 = (values.lesion3 as number) || 0
+      const baseline = values.baseline as number
+      
+      const currentSum = lesion1 + lesion2 + lesion3
+      const percentChange = ((currentSum - baseline) / baseline) * 100
+      
+      let response = ''
+      let color: 'success' | 'warning' | 'danger' = 'success'
+      
+      if (percentChange <= -30) {
+        response = 'Resposta parcial (RP)'
+        color = 'success'
+      } else if (percentChange <= 20) {
+        response = 'Doença estável (DE)'
+        color = 'warning'
+      } else {
+        response = 'Doença progressiva (DP)'
+        color = 'danger'
+      }
+      
+      return {
+        value: currentSum,
+        unit: 'mm',
+        interpretation: response,
+        color,
+        formattedText: `RECIST 1.1 - Soma atual: ${currentSum.toFixed(1)} mm. Baseline: ${baseline.toFixed(1)} mm. Variação: ${percentChange.toFixed(1)}%. ${response}.`
+      }
+    },
+    reference: {
+      text: 'Eisenhauer EA et al. Eur J Cancer 2009',
+      url: 'https://pubmed.ncbi.nlm.nih.gov/19095497/'
+    }
+  },
+
+  // 25. Volume Ovariano
+  {
+    id: 'ovarian-volume',
+    name: 'Volume Ovariano',
+    category: 'geral',
+    description: 'Volume ovariano pela fórmula elipsoide',
+    inputs: [
+      { name: 'length', label: 'Comprimento', unit: 'cm', type: 'number', min: 1, max: 10, step: 0.1, defaultValue: 3.5 },
+      { name: 'width', label: 'Largura', unit: 'cm', type: 'number', min: 1, max: 8, step: 0.1, defaultValue: 2.5 },
+      { name: 'depth', label: 'Espessura', unit: 'cm', type: 'number', min: 1, max: 8, step: 0.1, defaultValue: 2.0 }
+    ],
+    calculate: (values) => {
+      const L = values.length as number
+      const W = values.width as number
+      const D = values.depth as number
+      
+      const volume = L * W * D * 0.52
+      
+      let interpretation = ''
+      let color: 'success' | 'warning' | 'danger' = 'success'
+      
+      if (volume <= 10) {
+        interpretation = 'Volume ovariano dentro da normalidade (menacme)'
+        color = 'success'
+      } else if (volume <= 20) {
+        interpretation = 'Volume ovariano discretamente aumentado'
+        color = 'warning'
+      } else {
+        interpretation = 'Volume ovariano aumentado'
+        color = 'warning'
+      }
+      
+      return {
+        value: volume,
+        unit: 'cm³',
+        interpretation,
+        color,
+        formattedText: `Volume ovariano: ${volume.toFixed(1)} cm³. ${interpretation}.`
+      }
+    },
+    reference: {
+      text: 'Pavlik EJ et al. Ultrasound Obstet Gynecol 2000',
+      url: 'https://pubmed.ncbi.nlm.nih.gov/11169286/'
     }
   }
 ]
