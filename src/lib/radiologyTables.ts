@@ -1166,6 +1166,1161 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
     </tr>
   </tfoot>
 </table>`
+      },
+      // COLUNA VERTEBRAL
+      {
+        id: 'instabilidade_cervical',
+        name: 'Instabilidade Cervical (White-Panjabi)',
+        category: 'musculoskeletal',
+        subcategory: 'Coluna Vertebral',
+        type: 'informative',
+        modality: ['RX'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Critérios de Instabilidade da Coluna Cervical (White-Panjabi)</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px;">Critério Radiográfico</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Valor (pontos)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;">Deslocamento horizontal &gt;3,5mm</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">2</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;">Rotação sagital &gt;11°</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">2</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;">Aumento ADI (atlas-dens) &gt;3mm</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">2</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;">Dor cervical severa crônica</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;">Déficit neurológico radicular</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">2</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;">Mielopatia medular</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">2</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;">Espaço discal estreitamento anormal</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">1</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;"><strong>Instabilidade se ≥5 pontos</strong></td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>-</strong></td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="2" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">White AA, Panjabi MM. Clinical Biomechanics of the Spine, 2nd Ed. Lippincott, 1990.</span>
+        <br/>
+        <a href="https://orthoinfo.aaos.org/" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 AAOS OrthoInfo
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'estenose_espinhal',
+        name: 'Estenose do Canal Espinhal',
+        category: 'musculoskeletal',
+        subcategory: 'Coluna Vertebral',
+        type: 'informative',
+        modality: ['RX', 'TC'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Diâmetros AP do Canal Espinhal (Estenose)</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px;">Nível</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Normal</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Estenose Relativa</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Estenose Absoluta</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;">C3-C7 (cervical)</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">&gt;13mm</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">10-13mm</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">&lt;10mm</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;">L1-L5 (lombar)</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">&gt;15mm</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">12-15mm</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">&lt;12mm</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;">Área transversa lombar</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">&gt;100mm²</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">76-100mm²</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">&lt;76mm²</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="4" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Kieffer SA et al. Measurement of the normal and stenotic lumbar spinal canal. Radiology 1982;145:79-82.</span>
+        <br/>
+        <a href="https://radiopaedia.org/articles/spinal-stenosis" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 Radiopaedia - Spinal Stenosis
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'modic_classification',
+        name: 'Classificação de Modic (Degeneração Vertebral)',
+        category: 'musculoskeletal',
+        subcategory: 'Coluna Vertebral',
+        type: 'informative',
+        modality: ['RM'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Classificação de Modic - Alterações Degenerativas dos Platôs Vertebrais</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Tipo</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Achado Histológico</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">T1</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">T2</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>Tipo I</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Edema medular, inflamação, vascularização</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">Hipointenso</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">Hiperintenso</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>Tipo II</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Substituição gordurosa da medula</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">Hiperintenso</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">Isointenso/Hiperintenso</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>Tipo III</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Esclerose óssea subcondral</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">Hipointenso</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">Hipointenso</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="4" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Modic MT et al. Degenerative disk disease: assessment of changes in vertebral body marrow with MR imaging. Radiology 1988;166:193-199.</span>
+        <br/>
+        <a href="https://radiopaedia.org/articles/modic-classification-system" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 Radiopaedia - Modic Classification
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'pfirrmann_disc',
+        name: 'Pfirrmann (Degeneração Discal)',
+        category: 'musculoskeletal',
+        subcategory: 'Coluna Vertebral',
+        type: 'informative',
+        modality: ['RM'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Classificação de Pfirrmann - Degeneração do Disco Intervertebral</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Grau</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Estrutura</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Diferenciação Núcleo/Ânulo</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Sinal T2</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Altura Disco</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>I</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Homogênea brilhante</td><td style="border:1px solid #ddd; padding:6px 8px;">Clara</td><td style="border:1px solid #ddd; padding:6px 8px;">Hiperintenso</td><td style="border:1px solid #ddd; padding:6px 8px;">Normal</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>II</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Heterogênea c/ banda horizontal</td><td style="border:1px solid #ddd; padding:6px 8px;">Clara</td><td style="border:1px solid #ddd; padding:6px 8px;">Hiperintenso</td><td style="border:1px solid #ddd; padding:6px 8px;">Normal</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>III</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Heterogênea cinza</td><td style="border:1px solid #ddd; padding:6px 8px;">Pouco clara</td><td style="border:1px solid #ddd; padding:6px 8px;">Intermediário</td><td style="border:1px solid #ddd; padding:6px 8px;">Normal/Reduzida</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>IV</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Heterogênea escura</td><td style="border:1px solid #ddd; padding:6px 8px;">Perdida</td><td style="border:1px solid #ddd; padding:6px 8px;">Hipointenso</td><td style="border:1px solid #ddd; padding:6px 8px;">Normal/Reduzida</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>V</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Homogênea preta</td><td style="border:1px solid #ddd; padding:6px 8px;">Perdida</td><td style="border:1px solid #ddd; padding:6px 8px;">Hipointenso</td><td style="border:1px solid #ddd; padding:6px 8px;">Colapsado</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="5" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Pfirrmann CWA et al. Magnetic resonance classification of lumbar intervertebral disc degeneration. Spine 2001;26:1873-1878.</span>
+        <br/>
+        <a href="https://radiopaedia.org/articles/pfirrmann-grading-system" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 Radiopaedia - Pfirrmann Grading
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      // QUADRIL
+      {
+        id: 'garden_femur',
+        name: 'Garden (Fratura Colo do Fêmur)',
+        category: 'musculoskeletal',
+        subcategory: 'Quadril',
+        type: 'informative',
+        modality: ['RX'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Classificação de Garden - Fraturas do Colo do Fêmur</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Tipo</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Descrição</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Estabilidade</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Risco Necrose Avascular</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>I</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Impactação incompleta em valgo</td><td style="border:1px solid #ddd; padding:6px 8px;">Estável</td><td style="border:1px solid #ddd; padding:6px 8px;">Baixo (~10%)</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>II</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Fratura completa sem desvio</td><td style="border:1px solid #ddd; padding:6px 8px;">Estável</td><td style="border:1px solid #ddd; padding:6px 8px;">Moderado (~25%)</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>III</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Fratura completa com desvio parcial</td><td style="border:1px solid #ddd; padding:6px 8px;">Instável</td><td style="border:1px solid #ddd; padding:6px 8px;">Alto (~40%)</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>IV</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Fratura completa com desvio total</td><td style="border:1px solid #ddd; padding:6px 8px;">Instável</td><td style="border:1px solid #ddd; padding:6px 8px;">Muito Alto (~60%)</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="4" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Garden RS. Low-angle fixation in fractures of the femoral neck. J Bone Joint Surg Br 1961;43:647-663.</span>
+        <br/>
+        <a href="https://radiopaedia.org/articles/garden-classification-system" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 Radiopaedia - Garden Classification
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'tonnis_hip_oa',
+        name: 'Tönnis (Osteoartrose do Quadril)',
+        category: 'musculoskeletal',
+        subcategory: 'Quadril',
+        type: 'informative',
+        modality: ['RX'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Classificação de Tönnis - Osteoartrose do Quadril</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Grau</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Achados Radiográficos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>0</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Sem sinais de artrose. Espaço articular normal (&gt;3mm)</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>1</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Aumento da esclerose subcondral, leve redução do espaço articular</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>2</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Pequenos cistos, moderada redução do espaço articular (&lt;2mm)</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>3</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Grande perda do espaço articular, grandes cistos, deformidade cabeça femoral</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="2" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Tönnis D. Congenital Dysplasia and Dislocation of the Hip in Children and Adults. Springer, 1987.</span>
+        <br/>
+        <a href="https://radiopaedia.org/articles/tonnis-classification-system" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 Radiopaedia - Tönnis Classification
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'ficat_arlet',
+        name: 'Ficat-Arlet (Necrose Avascular Cabeça Femoral)',
+        category: 'musculoskeletal',
+        subcategory: 'Quadril',
+        type: 'informative',
+        modality: ['RX', 'RM'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Classificação de Ficat-Arlet - Necrose Avascular da Cabeça Femoral</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Estágio</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Radiografia</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Sintomas</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Tratamento</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>I</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Normal (RM positiva)</td><td style="border:1px solid #ddd; padding:6px 8px;">Dor leve</td><td style="border:1px solid #ddd; padding:6px 8px;">Conservador, descompressão</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>II</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Esclerose, cistos, sem colapso</td><td style="border:1px solid #ddd; padding:6px 8px;">Dor moderada</td><td style="border:1px solid #ddd; padding:6px 8px;">Descompressão, osteotomia</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>III</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Colapso subcondral (sinal do crescente)</td><td style="border:1px solid #ddd; padding:6px 8px;">Dor severa</td><td style="border:1px solid #ddd; padding:6px 8px;">Artroplastia</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>IV</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Artrose secundária acetabular</td><td style="border:1px solid #ddd; padding:6px 8px;">Dor crônica</td><td style="border:1px solid #ddd; padding:6px 8px;">Artroplastia total</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="4" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Ficat RP. Idiopathic bone necrosis of the femoral head. J Bone Joint Surg Br 1985;67:3-9.</span>
+        <br/>
+        <a href="https://radiopaedia.org/articles/ficat-classification-system" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 Radiopaedia - Ficat Classification
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'crowe_ddh',
+        name: 'Crowe (Displasia Quadril Adulto)',
+        category: 'musculoskeletal',
+        subcategory: 'Quadril',
+        type: 'informative',
+        modality: ['RX'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Classificação de Crowe - Displasia do Quadril em Adultos</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Grau</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Subluxação Proximal</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Centro Cabeça Femoral</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>I</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">&lt;50% da altura cabeça femoral</td><td style="border:1px solid #ddd; padding:6px 8px;">Abaixo da linha inter-lágrima</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>II</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">50-75% da altura cabeça femoral</td><td style="border:1px solid #ddd; padding:6px 8px;">Entre linha inter-lágrima e asa ilíaca</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>III</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">75-100% da altura cabeça femoral</td><td style="border:1px solid #ddd; padding:6px 8px;">Ao nível da asa ilíaca</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>IV</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">&gt;100% da altura cabeça femoral</td><td style="border:1px solid #ddd; padding:6px 8px;">Acima da asa ilíaca</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="3" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Crowe JF et al. Total hip replacement in congenital dislocation and dysplasia of the hip. J Bone Joint Surg Am 1979;61:15-23.</span>
+        <br/>
+        <a href="https://radiopaedia.org/articles/crowe-classification-system" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 Radiopaedia - Crowe Classification
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      // JOELHO
+      {
+        id: 'kellgren_lawrence',
+        name: 'Kellgren-Lawrence (OA Joelho)',
+        category: 'musculoskeletal',
+        subcategory: 'Joelho',
+        type: 'informative',
+        modality: ['RX'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Kellgren-Lawrence - Osteoartrose do Joelho</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Grau</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Achados Radiográficos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>0</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Sem achados de osteoartrose</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>I</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Osteófitos duvidosos, sem redução espaço articular</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>II</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Osteófitos definidos, espaço articular normal</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>III</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Osteófitos moderados, redução moderada do espaço articular, esclerose leve</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>IV</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Osteófitos grandes, redução severa do espaço, esclerose marcada, deformidade</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="2" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Kellgren JH, Lawrence JS. Radiological assessment of osteo-arthrosis. Ann Rheum Dis 1957;16:494-502.</span>
+        <br/>
+        <a href="https://radiopaedia.org/articles/kellgren-and-lawrence-system" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 Radiopaedia - Kellgren-Lawrence
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'ahlback_knee',
+        name: 'Ahlbäck (OA Joelho)',
+        category: 'musculoskeletal',
+        subcategory: 'Joelho',
+        type: 'informative',
+        modality: ['RX'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Classificação de Ahlbäck - Osteoartrose do Joelho</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Grau</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Achados Radiográficos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>I</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Redução do espaço articular (&lt;3mm)</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>II</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Obliteração do espaço articular (contato ósseo)</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>III</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Desgaste ósseo menor (0-5mm)</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>IV</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Desgaste ósseo médio (5-10mm)</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>V</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Desgaste ósseo severo (&gt;10mm), subluxação</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="2" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Ahlbäck S. Osteoarthrosis of the knee: a radiographic investigation. Acta Radiol Diagn (Stockh) 1968;277:7-72.</span>
+        <br/>
+        <a href="https://radiopaedia.org/articles/ahlback-classification-system" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 Radiopaedia - Ahlbäck Classification
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'insall_salvati',
+        name: 'Insall-Salvati (Altura Patelar)',
+        category: 'musculoskeletal',
+        subcategory: 'Joelho',
+        type: 'informative',
+        modality: ['RX'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Índice de Insall-Salvati - Avaliação da Altura Patelar</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px;">Índice (LT/LP)</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Interpretação</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;">&lt;0,8</td><td style="border:1px solid #ddd; padding:6px 8px;"><strong>Patela Baixa</strong> (Patella infera/baja)</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;"><strong>0,8 - 1,2</strong></td><td style="border:1px solid #ddd; padding:6px 8px;"><strong>Normal</strong> (altura patelar adequada)</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;">&gt;1,2</td><td style="border:1px solid #ddd; padding:6px 8px;"><strong>Patela Alta</strong> (Patella alta)</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="2" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Insall J, Salvati E. Patella position in the normal knee joint. Radiology 1971;101:101-104.</span>
+        <br/>
+        <span style="font-size:9pt; color:#555;"><strong>LT:</strong> Comprimento tendão patelar | <strong>LP:</strong> Maior diagonal da patela</span>
+        <br/>
+        <a href="https://radiopaedia.org/articles/insall-salvati-ratio" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 Radiopaedia - Insall-Salvati
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'schatzker_tibia',
+        name: 'Schatzker (Fraturas Planalto Tibial)',
+        category: 'musculoskeletal',
+        subcategory: 'Joelho',
+        type: 'informative',
+        modality: ['RX', 'TC'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Classificação de Schatzker - Fraturas do Planalto Tibial</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Tipo</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Descrição</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Tratamento</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>I</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Clivagem lateral sem depressão</td><td style="border:1px solid #ddd; padding:6px 8px;">Conservador ou fixação mínima</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>II</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Clivagem lateral com depressão</td><td style="border:1px solid #ddd; padding:6px 8px;">Elevação e fixação</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>III</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Depressão pura lateral</td><td style="border:1px solid #ddd; padding:6px 8px;">Elevação e enxerto ósseo</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>IV</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Fratura medial (alta energia)</td><td style="border:1px solid #ddd; padding:6px 8px;">Fixação interna rígida</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>V</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Bicondílea (ambos planaltos)</td><td style="border:1px solid #ddd; padding:6px 8px;">Fixação dupla</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>VI</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Fratura-luxação (diáfise-metáfise)</td><td style="border:1px solid #ddd; padding:6px 8px;">Fixação complexa urgente</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="3" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Schatzker J et al. The tibial plateau fracture. Clin Orthop Relat Res 1979;138:94-104.</span>
+        <br/>
+        <a href="https://radiopaedia.org/articles/schatzker-classification-system" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 Radiopaedia - Schatzker Classification
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      // TORNOZELO E PÉ
+      {
+        id: 'weber_ankle',
+        name: 'Weber/Danis-Weber (Fraturas Tornozelo)',
+        category: 'musculoskeletal',
+        subcategory: 'Tornozelo e Pé',
+        type: 'informative',
+        modality: ['RX'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Classificação de Weber/Danis-Weber - Fraturas do Tornozelo</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Tipo</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Localização Fratura Fíbula</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Sindesmose</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Estabilidade</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>A</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Abaixo da sindesmose</td><td style="border:1px solid #ddd; padding:6px 8px;">Intacta</td><td style="border:1px solid #ddd; padding:6px 8px;">Estável (tratamento conservador)</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>B</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Ao nível da sindesmose</td><td style="border:1px solid #ddd; padding:6px 8px;">Lesão parcial</td><td style="border:1px solid #ddd; padding:6px 8px;">Potencialmente instável (fixação se necessário)</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>C</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Acima da sindesmose</td><td style="border:1px solid #ddd; padding:6px 8px;">Rompida</td><td style="border:1px solid #ddd; padding:6px 8px;">Instável (fixação cirúrgica)</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="4" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Weber BG. Die Verletzungen des oberen Sprunggelenkes. Bern: Huber, 1966.</span>
+        <br/>
+        <a href="https://radiopaedia.org/articles/danis-weber-classification-system" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 Radiopaedia - Weber Classification
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'lauge_hansen',
+        name: 'Lauge-Hansen (Mecanismo Lesão Tornozelo)',
+        category: 'musculoskeletal',
+        subcategory: 'Tornozelo e Pé',
+        type: 'informative',
+        modality: ['RX'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Classificação de Lauge-Hansen - Mecanismo de Lesão do Tornozelo</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px;">Tipo (Posição-Força)</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Sequência de Lesão</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Frequência</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;"><strong>Supinação-Adução (SA)</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">I. Fratura avulsão maleolo lateral<br/>II. Fratura vertical medial</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">10-20%</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;"><strong>Supinação-Rotação Externa (SRE)</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">I. Ruptura lig. tibiofibular anterior<br/>II. Fratura fíbula distal (espiral)<br/>III. Ruptura lig. tibiofibular posterior<br/>IV. Fratura maleolo medial</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">40-75%</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;"><strong>Pronação-Abdução (PA)</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">I. Fratura maleolo medial (transversa)<br/>II. Ruptura sindesmose<br/>III. Fratura fíbula proximal (cominutiva)</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">5-20%</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;"><strong>Pronação-Rotação Externa (PRE)</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">I. Fratura maleolo medial (transversa)<br/>II. Ruptura lig. tibiofibular anterior<br/>III. Fratura fíbula (alta, espiral)<br/>IV. Ruptura lig. tibiofibular posterior</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">7-20%</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="3" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Lauge-Hansen N. Fractures of the ankle: II. Combined experimental-surgical and experimental-roentgenologic investigations. Arch Surg 1950;60:957-985.</span>
+        <br/>
+        <a href="https://radiopaedia.org/articles/lauge-hansen-classification-system" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 Radiopaedia - Lauge-Hansen
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'hallux_valgus',
+        name: 'Ângulos Hallux Valgus',
+        category: 'musculoskeletal',
+        subcategory: 'Tornozelo e Pé',
+        type: 'informative',
+        modality: ['RX'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Ângulos Radiográficos no Hallux Valgus</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px;">Medida</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Normal</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Leve</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Moderado</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Grave</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;"><strong>HVA</strong> (Hallux Valgus Angle)</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">&lt;15°</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">15-20°</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">20-40°</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">&gt;40°</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;"><strong>IMA</strong> (Intermetatarsal Angle 1-2)</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">&lt;9°</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">9-11°</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">11-16°</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">&gt;16°</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;"><strong>DMAA</strong> (Distal Metatarsal Articular Angle)</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">&lt;10°</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;" colspan="3">Incongruência articular se &gt;10°</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="5" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">AOFAS (American Orthopaedic Foot & Ankle Society). Clinical rating systems for the ankle-hindfoot, midfoot, hallux, and lesser toes.</span>
+        <br/>
+        <a href="https://www.aofas.org/" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 AOFAS Official
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      // OMBRO
+      {
+        id: 'neer_humerus',
+        name: 'Neer (Fraturas Úmero Proximal)',
+        category: 'musculoskeletal',
+        subcategory: 'Ombro',
+        type: 'informative',
+        modality: ['RX'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Classificação de Neer - Fraturas do Úmero Proximal</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Grupo</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Descrição</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Fragmentos Desviados</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>I</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Fratura minimamente desviada</td><td style="border:1px solid #ddd; padding:6px 8px;">Nenhum (&lt;1cm, &lt;45°)</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>II</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Fratura 2 partes (cabeça anatômica, tuberosidade maior/menor, diáfise)</td><td style="border:1px solid #ddd; padding:6px 8px;">1 fragmento</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>III</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Fratura 3 partes</td><td style="border:1px solid #ddd; padding:6px 8px;">2 fragmentos</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>IV</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Fratura 4 partes</td><td style="border:1px solid #ddd; padding:6px 8px;">3 fragmentos</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>V</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Fratura-luxação articular</td><td style="border:1px solid #ddd; padding:6px 8px;">+ luxação glenoumeral</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>VI</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Fratura com impactação (Split head/Hill-Sachs)</td><td style="border:1px solid #ddd; padding:6px 8px;">+ lesão cabeça umeral</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="3" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Neer CS 2nd. Displaced proximal humeral fractures. J Bone Joint Surg Am 1970;52:1077-1089.</span>
+        <br/>
+        <a href="https://radiopaedia.org/articles/neer-classification-of-proximal-humeral-fractures" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 Radiopaedia - Neer Classification
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'rockwood_ac',
+        name: 'Rockwood (Luxação Acromioclavicular)',
+        category: 'musculoskeletal',
+        subcategory: 'Ombro',
+        type: 'informative',
+        modality: ['RX'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Classificação de Rockwood - Luxação Acromioclavicular</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Tipo</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Ligamento AC</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Ligamento CC</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Deslocamento</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Tratamento</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>I</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Estiramento</td><td style="border:1px solid #ddd; padding:6px 8px;">Intacto</td><td style="border:1px solid #ddd; padding:6px 8px;">Sem elevação clavícula</td><td style="border:1px solid #ddd; padding:6px 8px;">Conservador</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>II</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Rompido</td><td style="border:1px solid #ddd; padding:6px 8px;">Estiramento</td><td style="border:1px solid #ddd; padding:6px 8px;">Clavícula levemente elevada</td><td style="border:1px solid #ddd; padding:6px 8px;">Conservador</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>III</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Rompido</td><td style="border:1px solid #ddd; padding:6px 8px;">Rompido</td><td style="border:1px solid #ddd; padding:6px 8px;">Clavícula 25-100% elevada</td><td style="border:1px solid #ddd; padding:6px 8px;">Cirúrgico/Conservador</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>IV</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Rompido</td><td style="border:1px solid #ddd; padding:6px 8px;">Rompido</td><td style="border:1px solid #ddd; padding:6px 8px;">Clavícula deslocada posteriormente (trapézio)</td><td style="border:1px solid #ddd; padding:6px 8px;">Cirúrgico</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>V</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Rompido</td><td style="border:1px solid #ddd; padding:6px 8px;">Rompido</td><td style="border:1px solid #ddd; padding:6px 8px;">Clavícula &gt;100% elevada (tenda cutânea)</td><td style="border:1px solid #ddd; padding:6px 8px;">Cirúrgico</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>VI</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Rompido</td><td style="border:1px solid #ddd; padding:6px 8px;">Rompido</td><td style="border:1px solid #ddd; padding:6px 8px;">Clavícula deslocada inferior (subcoracóide/subclávio)</td><td style="border:1px solid #ddd; padding:6px 8px;">Cirúrgico</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="5" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Rockwood CA Jr. Injuries to the acromioclavicular joint. In: Fractures in Adults, 2nd ed. JB Lippincott, 1984:860-910.</span>
+        <br/>
+        <a href="https://radiopaedia.org/articles/rockwood-classification-system-2" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 Radiopaedia - Rockwood Classification
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'glenoid_track',
+        name: 'Glenoid Track (Instabilidade Glenoumeral)',
+        category: 'musculoskeletal',
+        subcategory: 'Ombro',
+        type: 'informative',
+        modality: ['RM', 'TC'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Conceito Glenoid Track - Instabilidade Glenoumeral (Bankart + Hill-Sachs)</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px;">Parâmetro</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Definição/Cálculo</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;"><strong>Glenoid Track Width (GT)</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">GT = 0,83 × D - d<br/><span style="font-size:9pt; color:#555;">D = diâmetro glenóide inferior | d = largura defeito ósseo glenoidal</span></td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;"><strong>Hill-Sachs Interval (HSI)</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">HSI = Distância borda medial Hill-Sachs até rotador medial<br/><span style="font-size:9pt; color:#555;">Medido em RM axial no nível equador glenoidal</span></td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;"><strong>Hill-Sachs Width (HS)</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Largura anteroposterior da lesão de Hill-Sachs</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;"><strong>ON-TRACK</strong></td><td style="border:1px solid #ddd; padding:6px 8px;"><strong>HSI &gt; GT</strong> → Lesão Hill-Sachs contida no glenoid track<br/><span style="color:green; font-weight:600;">✓ Baixo risco re-luxação / Bankart isolado suficiente</span></td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;"><strong>OFF-TRACK</strong></td><td style="border:1px solid #ddd; padding:6px 8px;"><strong>HSI ≤ GT</strong> → Lesão Hill-Sachs excede glenoid track<br/><span style="color:red; font-weight:600;">✗ Alto risco re-luxação / Considerar remplissage + Bankart</span></td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="2" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Itoi E et al. The Glenoid Track: A key concept in shoulder instability. JSES 2017;26:942-946.</span>
+        <br/>
+        <a href="https://www.jshoulderelbow.org/article/S1058-2746(16)30580-5/fulltext" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 JSES - Glenoid Track Concept
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      // PUNHO E MÃO
+      {
+        id: 'frykman_radius',
+        name: 'Frykman (Fraturas Rádio Distal)',
+        category: 'musculoskeletal',
+        subcategory: 'Punho e Mão',
+        type: 'informative',
+        modality: ['RX'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Classificação de Frykman - Fraturas Distais do Rádio</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Tipo</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Envolvimento Articular Radioulnar Distal</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Envolvimento Articular Radiocarpal</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Fratura Ulna</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>I</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Não</td><td style="border:1px solid #ddd; padding:6px 8px;">Extra-articular</td><td style="border:1px solid #ddd; padding:6px 8px;">Sem</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>II</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Não</td><td style="border:1px solid #ddd; padding:6px 8px;">Extra-articular</td><td style="border:1px solid #ddd; padding:6px 8px;">Com fratura ulna</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>III</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Sim</td><td style="border:1px solid #ddd; padding:6px 8px;">Intra-articular (radiocarpal)</td><td style="border:1px solid #ddd; padding:6px 8px;">Sem</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>IV</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Sim</td><td style="border:1px solid #ddd; padding:6px 8px;">Intra-articular (radiocarpal)</td><td style="border:1px solid #ddd; padding:6px 8px;">Com fratura ulna</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>V</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Sim</td><td style="border:1px solid #ddd; padding:6px 8px;">Intra-articular (radioulnar distal)</td><td style="border:1px solid #ddd; padding:6px 8px;">Sem</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>VI</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Sim</td><td style="border:1px solid #ddd; padding:6px 8px;">Intra-articular (radioulnar distal)</td><td style="border:1px solid #ddd; padding:6px 8px;">Com fratura ulna</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>VII</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Sim</td><td style="border:1px solid #ddd; padding:6px 8px;">Intra-articular (ambas radiocarpal + radioulnar)</td><td style="border:1px solid #ddd; padding:6px 8px;">Sem</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>VIII</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Sim</td><td style="border:1px solid #ddd; padding:6px 8px;">Intra-articular (ambas radiocarpal + radioulnar)</td><td style="border:1px solid #ddd; padding:6px 8px;">Com fratura ulna</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="4" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Frykman G. Fracture of the distal radius including sequelae. Acta Orthop Scand 1967;Suppl 108:1-153.</span>
+        <br/>
+        <a href="https://radiopaedia.org/articles/frykman-classification-system" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 Radiopaedia - Frykman Classification
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'carpal_angles',
+        name: 'Ângulos do Carpo',
+        category: 'musculoskeletal',
+        subcategory: 'Punho e Mão',
+        type: 'informative',
+        modality: ['RX'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Ângulos do Carpo - Avaliação Radiográfica do Punho</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px;">Ângulo</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Normal</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Instabilidade</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;"><strong>Escafossemilunar</strong> (ângulo SL)</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">30-60°</td><td style="border:1px solid #ddd; padding:6px 8px;">&gt;70° (DISI) ou &lt;30° (VISI)</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;"><strong>Capitolunato</strong> (ângulo CL)</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">0 ± 15°</td><td style="border:1px solid #ddd; padding:6px 8px;">&gt;15° (DISI) ou &lt;-15° (VISI)</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;"><strong>Inclinação Radial</strong></td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">21-25°</td><td style="border:1px solid #ddd; padding:6px 8px;">&lt;15° (perda altura carpo)</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;"><strong>Inclinação Palmar</strong></td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">11-12°</td><td style="border:1px solid #ddd; padding:6px 8px;">&lt;0° (inclinação dorsal) anormal</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;"><strong>Variância Ulnar</strong></td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">-2 a +2mm</td><td style="border:1px solid #ddd; padding:6px 8px;">&gt;+2mm (ulna plus) | &lt;-2mm (ulna minus)</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="3" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Gilula LA. Carpal injuries: analytic approach and case exercises. AJR Am J Roentgenol 1979;133:503-517.</span>
+        <br/>
+        <span style="font-size:9pt; color:#555;"><strong>DISI:</strong> Dorsal Intercalated Segment Instability | <strong>VISI:</strong> Volar Intercalated Segment Instability</span>
+        <br/>
+        <a href="https://radiopaedia.org/articles/carpal-angles" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 Radiopaedia - Carpal Angles
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'bennett_rolando',
+        name: 'Bennett e Rolando (Base 1º Metacarpo)',
+        category: 'musculoskeletal',
+        subcategory: 'Punho e Mão',
+        type: 'informative',
+        modality: ['RX'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Fraturas da Base do 1º Metacarpo (Polegar)</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px;">Tipo</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Descrição</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Tratamento</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;"><strong>Fratura de Bennett</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Fratura-luxação intra-articular oblíqua da base do 1º metacarpo com fragmento volar-ulnar triangular permanecendo articulado com trapézio. Subluxação radial e proximal da diáfise.</td><td style="border:1px solid #ddd; padding:6px 8px;">Redução fechada + pino ou fixação aberta</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;"><strong>Fratura de Rolando</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Fratura intra-articular cominutiva em "Y" ou "T" da base do 1º metacarpo, envolvendo superfície articular carpometacarpal. Prognóstico pior que Bennett.</td><td style="border:1px solid #ddd; padding:6px 8px;">Fixação aberta/externa devido cominuição</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;"><strong>Fratura extra-articular</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Fratura transversa ou oblíqua da base do 1º metacarpo sem envolvimento articular. Mais estável.</td><td style="border:1px solid #ddd; padding:6px 8px;">Imobilização ou fixação mínima</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="3" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referências:</strong> 
+        <span style="font-style:italic;">Bennett EH. Fractures of the metacarpal bones. Dublin J Med Sci 1882;73:72-75. | Rolando S. Fracture de la base du premier metacarpien. Presse Med 1910;33:303.</span>
+        <br/>
+        <a href="https://radiopaedia.org/articles/bennett-fracture" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 Radiopaedia - Bennett/Rolando
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      // FRATURAS PEDIÁTRICAS
+      {
+        id: 'salter_harris',
+        name: 'Salter-Harris (Fraturas Fisárias)',
+        category: 'musculoskeletal',
+        subcategory: 'Fraturas Pediátricas',
+        type: 'informative',
+        modality: ['RX'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Classificação de Salter-Harris - Fraturas da Placa de Crescimento (Fise)</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Tipo</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Descrição</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Mnemônico</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Prognóstico</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>I</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Separação através da fise (zona hipertrófica)</td><td style="border:1px solid #ddd; padding:6px 8px;"><strong>S</strong>traight across (reto)</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">Excelente (~100%)</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>II</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Através da fise + fragmento metafisário</td><td style="border:1px solid #ddd; padding:6px 8px;"><strong>A</strong>bove (acima - metáfise)</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">Bom (~95%)</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>III</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Através da fise + fragmento epifisário (intra-articular)</td><td style="border:1px solid #ddd; padding:6px 8px;"><strong>L</strong>ower (abaixo - epífise)</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">Bom se reduzido (~90%)</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>IV</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Através metáfise → fise → epífise (vertical)</td><td style="border:1px solid #ddd; padding:6px 8px;"><strong>T</strong>hrough (através tudo)</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">Reservado (~60-70%)</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>V</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Compressão da fise (diagnóstico retrospectivo)</td><td style="border:1px solid #ddd; padding:6px 8px;"><strong>R</strong>ammed (comprimido)</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">Ruim (fechamento prematuro comum)</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="4" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Salter RB, Harris WR. Injuries involving the epiphyseal plate. J Bone Joint Surg Am 1963;45:587-622.</span>
+        <br/>
+        <span style="font-size:9pt; color:#555;"><strong>Mnemônico SALTR:</strong> Straight / Above / Lower / Through / Rammed</span>
+        <br/>
+        <a href="https://radiopaedia.org/articles/salter-harris-classification" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 Radiopaedia - Salter-Harris
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'gartland_humerus',
+        name: 'Gartland (Fratura Supracondilar Úmero)',
+        category: 'musculoskeletal',
+        subcategory: 'Fraturas Pediátricas',
+        type: 'informative',
+        modality: ['RX'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Classificação de Gartland - Fratura Supracondilar do Úmero (Criança)</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Tipo</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Descrição</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Linha Anterior Úmero</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Tratamento</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>I</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Fratura não desviada ou minimamente desviada</td><td style="border:1px solid #ddd; padding:6px 8px;">Atravessa capítulo</td><td style="border:1px solid #ddd; padding:6px 8px;">Imobilização gessada</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>II</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Desvio posterior com córtex posterior íntegro (dobradiça)</td><td style="border:1px solid #ddd; padding:6px 8px;">Ainda atravessa capítulo (anterior)</td><td style="border:1px solid #ddd; padding:6px 8px;">Redução + imobilização ou pinos</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>III</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Desvio completo sem contato cortical</td><td style="border:1px solid #ddd; padding:6px 8px;">Não atravessa capítulo (posterior)</td><td style="border:1px solid #ddd; padding:6px 8px;">Redução fechada + pinagem percutânea urgente</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="4" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Gartland JJ. Management of supracondylar fractures of the humerus in children. Surg Gynecol Obstet 1959;109:145-154.</span>
+        <br/>
+        <span style="font-size:9pt; color:#555;"><strong>Complicações:</strong> Síndrome compartimental (Volkmann), lesão nervo radial/mediano/ulnar, cúbito varo</span>
+        <br/>
+        <a href="https://radiopaedia.org/articles/gartland-classification-system" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 Radiopaedia - Gartland Classification
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      // TRAUMA E CONSOLIDAÇÃO
+      {
+        id: 'ao_ota_classification',
+        name: 'AO/OTA (Sistema Universal Fraturas)',
+        category: 'musculoskeletal',
+        subcategory: 'Trauma e Consolidação',
+        type: 'informative',
+        modality: ['RX', 'TC'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Sistema AO/OTA - Classificação Alfanumérica de Fraturas</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px;">Dígito</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Significado</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Exemplo</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;"><strong>1º Dígito</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Osso: 1=Úmero, 2=Rádio/Ulna, 3=Fêmur, 4=Tíbia/Fíbula</td><td style="border:1px solid #ddd; padding:6px 8px;">3 = Fêmur</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;"><strong>2º Dígito</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Segmento: 1=Proximal, 2=Diáfise, 3=Distal</td><td style="border:1px solid #ddd; padding:6px 8px;">1 = Proximal</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;"><strong>3º Dígito (Letra)</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Tipo: A=Simples, B=Cunha, C=Complexa/Cominutiva</td><td style="border:1px solid #ddd; padding:6px 8px;">B = Cunha</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;"><strong>4º Dígito</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Grupo: 1, 2, 3 (crescente gravidade)</td><td style="border:1px solid #ddd; padding:6px 8px;">2 = Moderado</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;"><strong>5º Dígito</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Subgrupo: 1, 2, 3 (detalhamento morfológico)</td><td style="border:1px solid #ddd; padding:6px 8px;">1 = Variante 1</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="3" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Müller ME et al. The Comprehensive Classification of Fractures of Long Bones. Springer-Verlag, 1990. | OTA Fracture and Dislocation Classification Compendium 2018.</span>
+        <br/>
+        <span style="font-size:9pt; color:#555;"><strong>Exemplo completo:</strong> 31-B2.1 = Fêmur (3) proximal (1), Cunha (B), moderada (2), variante 1 (.1)</span>
+        <br/>
+        <a href="https://www.aofoundation.org/what-we-do/research-innovation/aoota-fracture-dislocation-classification" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 AO Foundation - OTA Classification
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'rust_score',
+        name: 'RUST Score (Consolidação Fraturas Tíbia)',
+        category: 'musculoskeletal',
+        subcategory: 'Trauma e Consolidação',
+        type: 'informative',
+        modality: ['RX'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">RUST Score - Radiographic Union Scale for Tibia (Consolidação Fraturas Tibiais)</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Pontuação/Córtex</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Descrição</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>1 ponto</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Sem calo, linha fratura visível</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>2 pontos</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Calo presente, linha fratura visível</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>3 pontos</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Calo presente, linha fratura invisível (consolidada)</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="2" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Avaliação em 4 Córtices (AP + Lateral):</strong><br/>
+        <span style="font-size:9pt; color:#555;">
+        • <strong>Mínimo:</strong> 4 pontos (sem consolidação em nenhum córtex)<br/>
+        • <strong>Máximo:</strong> 12 pontos (consolidação completa nos 4 córtices)<br/>
+        • <strong>Consolidação Clínica:</strong> RUST ≥9 pontos indica consolidação adequada<br/>
+        • <strong>Retardo Consolidação:</strong> RUST &lt;9 pontos em &gt;6 meses sugere não-união
+        </span>
+        <br/><br/>
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Whelan DB et al. Development of the radiographic union score for tibial fractures. J Trauma 2010;68:629-632.</span>
+        <br/>
+        <a href="https://radiopaedia.org/articles/rust-score" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 Radiopaedia - RUST Score
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      // TUMORES ÓSSEOS
+      {
+        id: 'lodwick_lesions',
+        name: 'Lodwick (Padrão Lesões Ósseas)',
+        category: 'musculoskeletal',
+        subcategory: 'Tumores Ósseos',
+        type: 'informative',
+        modality: ['RX'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Classificação de Lodwick - Padrão de Destruição Óssea (Agressividade)</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Tipo</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Descrição Radiográfica</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Margem</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Agressividade</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>IA</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Lesão geográfica com margem esclerótica</td><td style="border:1px solid #ddd; padding:6px 8px;">Bem definida + esclerose</td><td style="border:1px solid #ddd; padding:6px 8px;">Não agressiva (benigna)</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>IB</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Lesão geográfica sem margem esclerótica</td><td style="border:1px solid #ddd; padding:6px 8px;">Definida, sem esclerose</td><td style="border:1px solid #ddd; padding:6px 8px;">Potencialmente agressiva</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>IC</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Lesão geográfica com margem mal definida</td><td style="border:1px solid #ddd; padding:6px 8px;">Mal definida (zona transição)</td><td style="border:1px solid #ddd; padding:6px 8px;">Agressiva</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>II</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Padrão "moth-eaten" (traçado)</td><td style="border:1px solid #ddd; padding:6px 8px;">Múltiplas áreas lise irregulares</td><td style="border:1px solid #ddd; padding:6px 8px;">Muito agressiva (maligna)</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>III</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Padrão permeativo (infiltrativo)</td><td style="border:1px solid #ddd; padding:6px 8px;">Destruição difusa imperceptível</td><td style="border:1px solid #ddd; padding:6px 8px;">Extremamente agressiva (alta malignidade)</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="4" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Lodwick GS et al. Computer diagnosis of primary bone tumors. Radiology 1963;80:273-275. | Madewell JE et al. Radiologic and pathologic analysis of solitary bone lesions. Radiol Clin North Am 1981;19:715-748.</span>
+        <br/>
+        <a href="https://radiopaedia.org/articles/lodwick-classification" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 Radiopaedia - Lodwick Classification
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'enneking_staging',
+        name: 'Enneking (Estadiamento Tumores Ósseos)',
+        category: 'musculoskeletal',
+        subcategory: 'Tumores Ósseos',
+        type: 'informative',
+        modality: ['RX', 'TC', 'RM'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Sistema de Enneking - Estadiamento Tumores Musculoesqueléticos</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Estágio</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Grau Histológico</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Compartimento (T)</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Metástases (M)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr style="background:#f8f8f8;"><td colspan="4" style="border:1px solid #ddd; padding:6px 12px; font-weight:bold; background:#e8f4f8;">TUMORES BENIGNOS</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>1</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Latente (inativo)</td><td style="border:1px solid #ddd; padding:6px 8px;">-</td><td style="border:1px solid #ddd; padding:6px 8px;">M0</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>2</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Ativo (crescendo)</td><td style="border:1px solid #ddd; padding:6px 8px;">-</td><td style="border:1px solid #ddd; padding:6px 8px;">M0</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>3</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Agressivo (localmente destrutivo)</td><td style="border:1px solid #ddd; padding:6px 8px;">-</td><td style="border:1px solid #ddd; padding:6px 8px;">M0</td></tr>
+    <tr style="background:#f8f8f8;"><td colspan="4" style="border:1px solid #ddd; padding:6px 12px; font-weight:bold; background:#ffe8e8;">TUMORES MALIGNOS</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>IA</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Baixo grau</td><td style="border:1px solid #ddd; padding:6px 8px;">Intracompartimental (T1)</td><td style="border:1px solid #ddd; padding:6px 8px;">M0</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>IB</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Baixo grau</td><td style="border:1px solid #ddd; padding:6px 8px;">Extracompartimental (T2)</td><td style="border:1px solid #ddd; padding:6px 8px;">M0</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>IIA</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Alto grau</td><td style="border:1px solid #ddd; padding:6px 8px;">Intracompartimental (T1)</td><td style="border:1px solid #ddd; padding:6px 8px;">M0</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>IIB</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Alto grau</td><td style="border:1px solid #ddd; padding:6px 8px;">Extracompartimental (T2)</td><td style="border:1px solid #ddd; padding:6px 8px;">M0</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>III</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Qualquer grau</td><td style="border:1px solid #ddd; padding:6px 8px;">Qualquer (T1 ou T2)</td><td style="border:1px solid #ddd; padding:6px 8px;">M1 (metástases)</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="4" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Enneking WF et al. A system for the surgical staging of musculoskeletal sarcoma. Clin Orthop Relat Res 1980;153:106-120.</span>
+        <br/>
+        <span style="font-size:9pt; color:#555;"><strong>T1:</strong> Intracompartimental (dentro osso ou fáscia) | <strong>T2:</strong> Extracompartimental (invade partes moles)</span>
+        <br/>
+        <a href="https://radiopaedia.org/articles/enneking-staging-system" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 Radiopaedia - Enneking Staging
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      // OSTEOPOROSE
+      {
+        id: 'singh_index',
+        name: 'Índice de Singh (Osteoporose Fêmur)',
+        category: 'musculoskeletal',
+        subcategory: 'Osteoporose',
+        type: 'informative',
+        modality: ['RX'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Índice de Singh - Avaliação Osteoporose no Fêmur Proximal</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Grau</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Padrão Trabecular</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Interpretação</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>6</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Todas trabéculas principais e secundárias bem visíveis</td><td style="border:1px solid #ddd; padding:6px 8px;"><strong>Normal</strong></td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>5</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Trabéculas principais proeminentes, secundárias reduzidas</td><td style="border:1px solid #ddd; padding:6px 8px;"><strong>Normal/Limítrofe</strong></td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>4</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Trabéculas principais visíveis, secundárias muito reduzidas</td><td style="border:1px solid #ddd; padding:6px 8px;"><strong>Osteopenia Leve</strong></td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>3</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Interrupção das trabéculas principais tensionais</td><td style="border:1px solid #ddd; padding:6px 8px;"><strong>Osteopenia Moderada</strong></td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>2</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Trabéculas principais compressivas proeminentes, demais ausentes</td><td style="border:1px solid #ddd; padding:6px 8px;"><strong>Osteoporose Severa</strong></td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;"><strong>1</strong></td><td style="border:1px solid #ddd; padding:6px 8px;">Trabéculas principais compressivas reduzidas ou ausentes</td><td style="border:1px solid #ddd; padding:6px 8px;"><strong>Osteoporose Muito Severa</strong></td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="3" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Singh M et al. Changes in trabecular pattern of the upper end of the femur as an index of osteoporosis. J Bone Joint Surg Am 1970;52:457-467.</span>
+        <br/>
+        <span style="font-size:9pt; color:#555;"><strong>Observação:</strong> Índice ≤3 indica osteoporose com risco aumentado de fratura</span>
+        <br/>
+        <a href="https://radiopaedia.org/articles/singh-index" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 Radiopaedia - Singh Index
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
       }
     ]
   },
