@@ -4878,6 +4878,1323 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
       },
     ],
   },
+  {
+    id: 'abdomen',
+    name: 'Abdome',
+    icon: 'Layers',
+    tables: [
+      // ============= LI-RADS v2018 =============
+      {
+        id: 'li_rads_v2018',
+        name: 'LI-RADS v2018 (Carcinoma Hepatocelular)',
+        category: 'abdomen',
+        subcategory: 'Sistemas RADS',
+        type: 'informative',
+        modality: ['TC', 'RM'],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt; margin: 10px 0;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">LI-RADS v2018 - Carcinoma Hepatocelular (TC/RM com Contraste)</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white; font-weight: 600;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Categoria</th>
+                <th style="border: 1px solid #333; padding: 8px;">Critérios Principais</th>
+                <th style="border: 1px solid #333; padding: 8px;">Probabilidade CHC</th>
+                <th style="border: 1px solid #333; padding: 8px;">Conduta</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">LR-1</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Definitivamente benigno (cisto simples, hemangioma típico)</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">0%</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Sem seguimento</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">LR-2</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Provavelmente benigno (hemangioma atípico, nódulo hiperplásico)</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">&lt;10%</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Seguimento anual ou alta</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">LR-3</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Probabilidade intermediária (nódulo &lt;20mm sem APHE ou com washout tardio)</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">10-50%</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Seguimento 3-6 meses</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">LR-4</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Provavelmente CHC (&lt;20mm com APHE + washout ou cápsula)</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">50-90%</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Investigação adicional ou tratamento empírico</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">LR-5</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Definitivamente CHC (≥20mm APHE + washout/cápsula, ou ≥10mm com crescimento ≥50%)</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">&gt;95%</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Tratamento ou biópsia opcional</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">LR-M</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Provavelmente maligno não-CHC (rim arterial periférico, difusão restrita marcada)</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">Variável</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Investigação adicional/biópsia</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">LR-TIV</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Trombose tumoral na veia porta/hepáticas (APHE + washout dentro do trombo)</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">Alto</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Tratamento sistêmico</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="4" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>APHE:</strong> Arterial Phase Hyperenhancement (realce arterial). <strong>Washout:</strong> Clareamento relativo em fase venosa/tardia.<br/>
+                  <strong>Referência:</strong> ACR. LI-RADS v2018 Core. American College of Radiology, 2018. 
+                  <a href="https://www.acr.org/Clinical-Resources/Reporting-and-Data-Systems/LI-RADS" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">ACR LI-RADS</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      // ============= CEUS LI-RADS =============
+      {
+        id: 'ceus_li_rads',
+        name: 'CEUS LI-RADS v2017 (Ultrassonografia com Contraste)',
+        category: 'abdomen',
+        subcategory: 'Sistemas RADS',
+        type: 'informative',
+        modality: ['US'],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt; margin: 10px 0;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">CEUS LI-RADS v2017 - Ultrassonografia com Contraste para CHC</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white; font-weight: 600;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Categoria</th>
+                <th style="border: 1px solid #333; padding: 8px;">Critérios</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Probabilidade CHC</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">CEUS-LR-5</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Realce arterial + washout tardio (&gt;60s) leve-moderado</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">&gt;95%</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">CEUS-LR-4</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Realce arterial + washout tardio intenso</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">50-90%</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">CEUS-LR-3</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Realce arterial + sem washout / ou washout precoce</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">10-50%</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">CEUS-LR-M</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Padrão sugestivo de malignidade não-CHC (realce periférico, washout precoce intenso)</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">Variável</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Washout Tardio:</strong> &gt;60 segundos. <strong>Washout Precoce:</strong> &lt;60 segundos.<br/>
+                  <strong>Referência:</strong> ACR. CEUS LI-RADS v2017 Core. American College of Radiology, 2017. 
+                  <a href="https://www.acr.org/Clinical-Resources/Reporting-and-Data-Systems/LI-RADS/CEUS-LI-RADS-v2017" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">ACR CEUS</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      // ============= LI-RADS US Vigilância =============
+      {
+        id: 'li_rads_us_surveillance',
+        name: 'LI-RADS US Vigilância v2024',
+        category: 'abdomen',
+        subcategory: 'Sistemas RADS',
+        type: 'informative',
+        modality: ['US'],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt; margin: 10px 0;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">LI-RADS US Vigilância v2024 - Rastreamento CHC</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white; font-weight: 600;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Categoria</th>
+                <th style="border: 1px solid #333; padding: 8px;">Achados US</th>
+                <th style="border: 1px solid #333; padding: 8px;">Seguimento</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">US-1</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Negativo (sem nódulos visíveis)</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Continuar vigilância semestral</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">US-2</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Nódulo subcentrimérico (&lt;10mm)</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">US em 3-6 meses ou continuar vigilância semestral</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">US-3</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Nódulo ≥10mm</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">TC/RM multifásica com contraste</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">Visualização</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">A (adequada), B (limitada), C (inadequada)</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Considerar RM se visualização C</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Indicação:</strong> Vigilância semestral de pacientes cirróticos ou alto risco CHC.<br/>
+                  <strong>Referência:</strong> ACR. LI-RADS US Surveillance v2024. American College of Radiology, 2024. 
+                  <a href="https://www.acr.org/Clinical-Resources/Reporting-and-Data-Systems/LI-RADS/US-Surveillance" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">ACR LI-RADS US</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      // ============= Child-Pugh =============
+      {
+        id: 'child_pugh',
+        name: 'Child-Pugh Score (Cirrose Hepática)',
+        category: 'abdomen',
+        subcategory: 'Fígado e Vias Biliares',
+        type: 'informative',
+        modality: ['Clínico'],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt; margin: 10px 0;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">Child-Pugh Score - Avaliação de Cirrose Hepática</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white; font-weight: 600;">
+                <th style="border: 1px solid #333; padding: 8px;">Parâmetro</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">1 ponto</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">2 pontos</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">3 pontos</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Bilirrubina (mg/dL)</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">&lt;2</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">2-3</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">&gt;3</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Albumina (g/dL)</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">&gt;3,5</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">2,8-3,5</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">&lt;2,8</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">INR</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">&lt;1,7</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">1,7-2,2</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">&gt;2,2</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Ascite</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">Ausente</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">Leve (controlada)</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">Moderada/Severa</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Encefalopatia</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">Ausente</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">Grau I-II (leve)</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">Grau III-IV (severa)</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="4" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Classificação:</strong> Classe A (5-6 pts): compensada, sobrevida 1 ano 100%. Classe B (7-9 pts): disfunção significativa, sobrevida 1 ano 80%. Classe C (10-15 pts): descompensada, sobrevida 1 ano 45%.<br/>
+                  <strong>Referência:</strong> Pugh RN et al. Transection of the oesophagus for bleeding oesophageal varices. Br J Surg 1973;60(8):646-9. 
+                  <a href="https://pubmed.ncbi.nlm.nih.gov/4541913/" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">PubMed</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      // ============= MELD Score =============
+      {
+        id: 'meld_score',
+        name: 'MELD Score (Doença Hepática Terminal)',
+        category: 'abdomen',
+        subcategory: 'Fígado e Vias Biliares',
+        type: 'informative',
+        modality: ['Lab'],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt; margin: 10px 0;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">MELD Score - Model for End-Stage Liver Disease</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white; font-weight: 600;">
+                <th style="border: 1px solid #333; padding: 8px;">Fórmula</th>
+                <th style="border: 1px solid #333; padding: 8px;">Parâmetros</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; font-family: monospace;">MELD = 3,78×ln[bilirrubina(mg/dL)] + 11,2×ln[INR] + 9,57×ln[creatinina(mg/dL)] + 6,43</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  <strong>Bilirrubina total (mg/dL)</strong><br/>
+                  <strong>INR</strong><br/>
+                  <strong>Creatinina (mg/dL)</strong>
+                </td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="2" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Interpretação:</strong> 6-9: doença leve. 10-19: doença moderada. 20-29: doença grave. 30-40: doença muito grave.<br/>
+                  <strong>Uso:</strong> Priorização de transplante hepático (quanto maior MELD, maior prioridade). Mortalidade em 3 meses: MELD 40 = 71%, MELD 20-29 = 19%, MELD 10-19 = 6%.<br/>
+                  <strong>Referência:</strong> Kamath PS et al. A model to predict survival in patients with end-stage liver disease. Hepatology 2001;33(2):464-70. 
+                  <a href="https://pubmed.ncbi.nlm.nih.gov/11172350/" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">PubMed</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      // ============= Modified CTSI =============
+      {
+        id: 'modified_ctsi',
+        name: 'Modified CT Severity Index (Pancreatite)',
+        category: 'abdomen',
+        subcategory: 'Pâncreas',
+        type: 'informative',
+        modality: ['TC'],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt; margin: 10px 0;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">Modified CT Severity Index - Pancreatite Aguda</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white; font-weight: 600;">
+                <th style="border: 1px solid #333; padding: 8px;">Parâmetro</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Pontos</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #f0f0f0; font-weight: bold;">
+                <td colspan="2" style="border: 1px solid #ddd; padding: 8px;">Inflamação Pancreática</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Pâncreas normal</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">0</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Edema pancreático isolado</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">2</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Inflamação pancreática + peripancreática</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">4</td>
+              </tr>
+              <tr style="background-color: #f0f0f0; font-weight: bold;">
+                <td colspan="2" style="border: 1px solid #ddd; padding: 8px;">Necrose Pancreática</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Sem necrose</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">0</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Necrose &lt;30%</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">2</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Necrose &gt;30%</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">4</td>
+              </tr>
+              <tr style="background-color: #f0f0f0; font-weight: bold;">
+                <td colspan="2" style="border: 1px solid #ddd; padding: 8px;">Complicações Extrapancreáticas</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Ausentes</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">0</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Presentes (derrame pleural, ascite, trombose vascular, alteração GI)</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">2</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="2" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Score Total (0-10):</strong> 0-2 pts = pancreatite leve (mortalidade 0%). 4-6 pts = moderada (mortalidade 6%). 8-10 pts = grave (mortalidade 17%).<br/>
+                  <strong>Referência:</strong> Mortele KJ et al. A modified CT severity index for evaluating acute pancreatitis. Radiology 2004;233(3):715-22. 
+                  <a href="https://pubmed.ncbi.nlm.nih.gov/15564408/" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">Radiology</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      // ============= Atlanta 2012 =============
+      {
+        id: 'atlanta_revision',
+        name: 'Classificação Atlanta Revisada 2012 (Pancreatite Aguda)',
+        category: 'abdomen',
+        subcategory: 'Pâncreas',
+        type: 'informative',
+        modality: ['TC', 'RM'],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt; margin: 10px 0;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">Classificação Atlanta Revisada 2012 - Pancreatite Aguda</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white; font-weight: 600;">
+                <th style="border: 1px solid #333; padding: 8px;">Categoria</th>
+                <th style="border: 1px solid #333; padding: 8px;">Definição</th>
+                <th style="border: 1px solid #333; padding: 8px;">Achados TC/RM</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #f0f0f0; font-weight: bold;">
+                <td colspan="3" style="border: 1px solid #ddd; padding: 8px;">GRAVIDADE</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Leve</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Sem falência orgânica ou complicações locais</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Edema intersticial, sem necrose</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Moderada</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Falência orgânica transitória (&lt;48h) e/ou complicação local</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Coleções agudas, pseudocisto</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Grave</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Falência orgânica persistente (&gt;48h)</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Necrose, necrose infectada, SIRS</td>
+              </tr>
+              <tr style="background-color: #f0f0f0; font-weight: bold;">
+                <td colspan="3" style="border: 1px solid #ddd; padding: 8px;">COMPLICAÇÕES LOCAIS</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;">APFC</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Coleção Peripancreática Aguda (&lt;4 sem)</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Líquido homogêneo, sem parede definida</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Pseudocisto</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Coleção encapsulada madura (&gt;4 sem)</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Líquido homogêneo, parede bem definida</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;">ANC</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Coleção Necrótica Aguda (&lt;4 sem)</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Conteúdo heterogêneo (líquido + debris)</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;">WON</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Necrose Organizada Murada (&gt;4 sem)</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Conteúdo heterogêneo encapsulado</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>APFC:</strong> Acute Peripancreatic Fluid Collection. <strong>ANC:</strong> Acute Necrotic Collection. <strong>WON:</strong> Walled-Off Necrosis.<br/>
+                  <strong>Referência:</strong> Banks PA et al. Classification of acute pancreatitis—2012: revision of the Atlanta classification. Gut 2013;62(1):102-111. 
+                  <a href="https://gut.bmj.com/content/62/1/102" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">Gut BMJ</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      // ============= Bosniak v2019 =============
+      {
+        id: 'bosniak_v2019',
+        name: 'Classificação de Bosniak v2019 (Cistos Renais)',
+        category: 'abdomen',
+        subcategory: 'Rins e Vias Urinárias',
+        type: 'informative',
+        modality: ['TC', 'RM'],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt; margin: 10px 0;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">Classificação de Bosniak v2019 - Cistos Renais</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white; font-weight: 600;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Classe</th>
+                <th style="border: 1px solid #333; padding: 8px;">Características TC/RM</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Risco Malignidade</th>
+                <th style="border: 1px solid #333; padding: 8px;">Conduta</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">I</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Cisto simples: parede fina, sem septos/calcificações/realce</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">0%</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Sem seguimento</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">II</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Cisto minimamente complicado: poucos septos finos, calcificações finas, cisto hiperdenso &lt;3cm</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">&lt;5%</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Sem seguimento</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">IIF</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Múltiplos septos finos, calcificações nodulares, cisto hiperdenso ≥3cm, sem realce mensurável</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">5-10%</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Seguimento TC/RM (6m, 12m, 24m, 36m, 60m)</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">III</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Espessamento parietal/septal irregular, realce mensurável de parede/septo</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">50%</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Cirurgia ou vigilância ativa</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">IV</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Componente sólido captante independente de parede/septo</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">85-100%</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Cirurgia</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="4" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Realce mensurável:</strong> ≥10 UH na TC ou ≥15% em RM após contraste. <strong>Cisto hiperdenso:</strong> &gt;70 UH pré-contraste na TC.<br/>
+                  <strong>Referência:</strong> Silverman SG et al. Bosniak Classification of Cystic Renal Masses, Version 2019. Radiology 2019;292(2):475-488. 
+                  <a href="https://pubs.rsna.org/doi/10.1148/radiol.2019182646" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">Radiology</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      // ============= PI-RADS v2.1 =============
+      {
+        id: 'pi_rads_v21',
+        name: 'PI-RADS v2.1 (Próstata)',
+        category: 'abdomen',
+        subcategory: 'Próstata',
+        type: 'informative',
+        modality: ['RM'],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt; margin: 10px 0;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">PI-RADS v2.1 - Lesões Prostáticas em RM Multiparamétrica</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white; font-weight: 600;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Categoria</th>
+                <th style="border: 1px solid #333; padding: 8px;">Probabilidade Câncer Clinicamente Significativo</th>
+                <th style="border: 1px solid #333; padding: 8px;">Critérios Principais</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">1</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Muito baixa (câncer clinicamente significativo altamente improvável)</td>
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>ZP:</strong> T2 homogêneo. <strong>ZT:</strong> Difusão normal</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">2</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Baixa (câncer clinicamente significativo improvável)</td>
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>ZP:</strong> T2 heterogêneo linear/cuneiforme. <strong>ZT:</strong> Hipersinal leve/difuso em DWI</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">3</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Intermediária (presença de câncer clinicamente significativo é equívoca)</td>
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>ZP:</strong> Hipossinal T2 focal heterogêneo. <strong>ZT:</strong> Hipersinal focal em DWI, ADC baixo</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">4</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Alta (câncer clinicamente significativo é provável)</td>
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>ZP:</strong> Hipossinal T2 focal circunscrito ≤1,5cm. <strong>ZT:</strong> Hipersinal marcado DWI + ADC muito baixo</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">5</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Muito alta (câncer clinicamente significativo é altamente provável)</td>
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>ZP:</strong> Hipossinal T2 focal circunscrito &gt;1,5cm ou invasão extraprostática. <strong>ZT:</strong> Lesão PI-RADS 4 + &gt;1,5cm ou invasão</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>ZP:</strong> Zona Periférica (sequência dominante: DWI). <strong>ZT:</strong> Zona de Transição (sequência dominante: T2). <strong>DWI:</strong> Difusão. <strong>ADC:</strong> Coeficiente de difusão aparente.<br/>
+                  <strong>Referência:</strong> ACR/ESUR. PI-RADS v2.1 Prostate Imaging Reporting and Data System, 2019. 
+                  <a href="https://www.acr.org/Clinical-Resources/Reporting-and-Data-Systems/PI-RADS" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">ACR PI-RADS</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      // ============= O-RADS US =============
+      {
+        id: 'o_rads_us',
+        name: 'O-RADS US (Massas Ovarianas)',
+        category: 'abdomen',
+        subcategory: 'Ovário e Anexos',
+        type: 'informative',
+        modality: ['US'],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt; margin: 10px 0;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">O-RADS US - Massas Ovarianas e Anexiais (Ultrassonografia)</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white; font-weight: 600;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Categoria</th>
+                <th style="border: 1px solid #333; padding: 8px;">Descrição</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Risco Malignidade</th>
+                <th style="border: 1px solid #333; padding: 8px;">Conduta</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">0</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Incompleto - avaliação inadequada ou necessita imagem adicional</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">-</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">RM/TC se necessário</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">1</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Normal (ovários pré-menopáusicos, folículos, corpo lúteo)</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">&lt;1%</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Sem seguimento</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">2</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Achado benigno (cisto simples, endometrioma típico, teratoma maduro típico)</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">&lt;1%</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Sem seguimento</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">3</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Baixo risco (unilocular &lt;10cm sem características suspeitas, endometrioma atípico)</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">1-10%</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Seguimento US anual</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">4</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Risco intermediário (unilocular com vascularização, multilocular sem componente sólido)</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">10-50%</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">RM ou cirurgia</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">5</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Alto risco (componente sólido, ascite, carcinomatose peritoneal, vascularização central)</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">&gt;50%</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Cirurgia oncológica</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="4" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Nota:</strong> Considerar idade, menopausa e marcadores tumorais (CA-125, HE4) na avaliação final.<br/>
+                  <strong>Referência:</strong> ACR. O-RADS US Risk Stratification and Management System, 2020. 
+                  <a href="https://www.acr.org/Clinical-Resources/Reporting-and-Data-Systems/O-RADS" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">ACR O-RADS</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      // ============= O-RADS MRI =============
+      {
+        id: 'o_rads_mri',
+        name: 'O-RADS MRI (Massas Ovarianas RM)',
+        category: 'abdomen',
+        subcategory: 'Ovário e Anexos',
+        type: 'informative',
+        modality: ['RM'],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt; margin: 10px 0;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">O-RADS MRI - Massas Ovarianas e Anexiais (Ressonância Magnética)</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white; font-weight: 600;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Categoria</th>
+                <th style="border: 1px solid #333; padding: 8px;">Critérios RM</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Risco Malignidade</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">1</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Fisiológico (folículo, corpo lúteo hemorrágico)</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">&lt;1%</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">2</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Benigno (cisto simples, endometrioma típico, teratoma maduro típico, leiomioma pediculado)</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">&lt;1%</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">3</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Provavelmente benigno (endometrioma atípico, hemorragia organizada, cistadenoma seroso)</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">1-5%</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">4</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Provavelmente maligno (componente sólido &lt;1cm, septos espessos, realce moderado, difusão intermediária)</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">5-50%</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">5</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Maligno (componente sólido ≥1cm, realce intenso, difusão restrita marcada, carcinomatose, ascite)</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">&gt;50%</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Nota:</strong> RM superior a US para caracterizar lesões anexiais complexas, diferenciar teratomas, endometriomas e tumores sólidos.<br/>
+                  <strong>Referência:</strong> ACR. O-RADS MRI Risk Stratification and Management System, 2020. 
+                  <a href="https://www.acr.org/Clinical-Resources/Reporting-and-Data-Systems/O-RADS" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">ACR O-RADS MRI</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      // ============= FIGO Endometrial =============
+      {
+        id: 'figo_endometrial_2023',
+        name: 'FIGO Câncer Endometrial 2023',
+        category: 'abdomen',
+        subcategory: 'Útero',
+        type: 'informative',
+        modality: ['RM', 'TC'],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt; margin: 10px 0;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">FIGO 2023 - Estadiamento Câncer de Endométrio</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white; font-weight: 600;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Estágio</th>
+                <th style="border: 1px solid #333; padding: 8px;">Extensão do Tumor</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #f0f0f0; font-weight: bold;">
+                <td colspan="2" style="border: 1px solid #ddd; padding: 8px;">ESTÁGIO I - Tumor confinado ao útero</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">IA</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Invasão miometrial &lt;50%</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">IB</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Invasão miometrial ≥50%</td>
+              </tr>
+              <tr style="background-color: #f0f0f0; font-weight: bold;">
+                <td colspan="2" style="border: 1px solid #ddd; padding: 8px;">ESTÁGIO II - Invasão do estroma cervical</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">II</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Invasão do estroma cervical, sem extensão além do útero</td>
+              </tr>
+              <tr style="background-color: #f0f0f0; font-weight: bold;">
+                <td colspan="2" style="border: 1px solid #ddd; padding: 8px;">ESTÁGIO III - Extensão local e/ou regional</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">IIIA</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Invasão serosa uterina e/ou anexos</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">IIIB</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Envolvimento vaginal ou paramétrios</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">IIIC1</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Metástases linfonodos pélvicos</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">IIIC2</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Metástases linfonodos para-aórticos (com ou sem pélvicos)</td>
+              </tr>
+              <tr style="background-color: #f0f0f0; font-weight: bold;">
+                <td colspan="2" style="border: 1px solid #ddd; padding: 8px;">ESTÁGIO IV - Extensão à distância</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">IVA</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Invasão mucosa vesical e/ou intestinal</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">IVB</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Metástases à distância (incluindo intra-abdominais, linfonodos inguinais)</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="2" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Nota:</strong> RM é superior para avaliação de invasão miometrial e extensão cervical. FIGO 2023 incorporou classificação molecular.<br/>
+                  <strong>Referência:</strong> FIGO Committee. FIGO staging for endometrial cancer: 2023. Int J Gynecol Obstet 2023. 
+                  <a href="https://obgyn.onlinelibrary.wiley.com/doi/10.1002/ijgo.14923" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">FIGO 2023</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      // ============= FIGO Cervical =============
+      {
+        id: 'figo_cervical_2018',
+        name: 'FIGO Câncer Cervical 2018',
+        category: 'abdomen',
+        subcategory: 'Útero',
+        type: 'informative',
+        modality: ['RM', 'TC'],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt; margin: 10px 0;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">FIGO 2018 - Estadiamento Câncer de Colo Uterino</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white; font-weight: 600;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Estágio</th>
+                <th style="border: 1px solid #ddd; padding: 8px;">Extensão do Tumor</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">IA1</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Invasão estromal ≤3mm, extensão horizontal ≤7mm</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">IA2</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Invasão estromal &gt;3mm mas ≤5mm, extensão horizontal ≤7mm</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">IB1</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Tumor confinado ao colo, &lt;2cm</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">IB2</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Tumor confinado ao colo, 2-4cm</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">IB3</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Tumor confinado ao colo, ≥4cm</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">II</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Tumor invade além do útero, mas não parede pélvica ou terço inferior vagina</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">IIIA</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Tumor invade terço inferior da vagina</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">IIIB</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Extensão à parede pélvica e/ou hidronefrose</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">IIIC1</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Metástase linfonodos pélvicos</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">IIIC2</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Metástase linfonodos para-aórticos</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">IVA</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Invasão mucosa vesical/retal</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">IVB</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Metástases à distância</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="2" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Mudança FIGO 2018:</strong> Incorporação do estadiamento linfonodal (IIIC1/IIIC2) baseado em imagem ou patologia.<br/>
+                  <strong>Referência:</strong> Bhatla N et al. Revised FIGO staging for carcinoma of the cervix uteri. Int J Gynecol Obstet 2019;145(1):129-135. 
+                  <a href="https://obgyn.onlinelibrary.wiley.com/doi/10.1002/ijgo.12749" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">FIGO 2018</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      // ============= AAST Liver =============
+      {
+        id: 'aast_liver_2018',
+        name: 'AAST Trauma Hepático 2018',
+        category: 'abdomen',
+        subcategory: 'Trauma Abdominal',
+        type: 'informative',
+        modality: ['TC'],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt; margin: 10px 0;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">AAST 2018 - Escala de Lesão Hepática (Organ Injury Scale)</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white; font-weight: 600;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Grau</th>
+                <th style="border: 1px solid #333; padding: 8px;">Tipo de Lesão</th>
+                <th style="border: 1px solid #333; padding: 8px;">Critérios TC</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">I</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Hematoma subcapsular ou laceração</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Hematoma subcapsular &lt;10% área superfície. Laceração capsular &lt;1cm profundidade</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">II</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Hematoma ou laceração</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Hematoma subcapsular 10-50% área ou intraparenquimatoso &lt;10cm. Laceração 1-3cm profundidade, &lt;10cm comprimento</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">III</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Hematoma ou laceração</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Hematoma subcapsular &gt;50% área ou intraparenquimatoso ≥10cm. Laceração &gt;3cm profundidade</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">IV</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Laceração ou lesão vascular</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Laceração envolvendo 25-75% lobo hepático ou 1-3 segmentos de Couinaud. Lesão veia porta ou hepática</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">V</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Laceração ou lesão vascular</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Laceração &gt;75% lobo hepático. Avulsão veia hepática. Lesão veia cava retro-hepática</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">VI</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Lesão vascular</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Avulsão hepática (desvascularização completa)</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Modificadores:</strong> +Vascular (extravasamento ativo), +Biliar (lesão ducto biliar). Aumentar 1 grau para múltiplas lesões.<br/>
+                  <strong>Referência:</strong> AAST. Liver Injury Scale 2018 Update. J Trauma Acute Care Surg 2018;85(6):1075-1076. 
+                  <a href="https://journals.lww.com/jtrauma/fulltext/2018/12000/2018_update_to_the_aast_organ_injury_scale.9.aspx" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">AAST OIS</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      // ============= AAST Spleen =============
+      {
+        id: 'aast_spleen_2018',
+        name: 'AAST Trauma Esplênico 2018',
+        category: 'abdomen',
+        subcategory: 'Trauma Abdominal',
+        type: 'informative',
+        modality: ['TC'],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt; margin: 10px 0;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">AAST 2018 - Escala de Lesão Esplênica (Organ Injury Scale)</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white; font-weight: 600;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Grau</th>
+                <th style="border: 1px solid #333; padding: 8px;">Tipo de Lesão</th>
+                <th style="border: 1px solid #333; padding: 8px;">Critérios TC</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">I</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Hematoma subcapsular ou laceração</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Hematoma subcapsular &lt;10% área superfície. Laceração capsular &lt;1cm profundidade</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">II</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Hematoma ou laceração</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Hematoma subcapsular 10-50% área ou intraparenquimatoso &lt;5cm. Laceração 1-3cm profundidade sem vasos trabeculares</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">III</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Hematoma ou laceração</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Hematoma subcapsular &gt;50% área ou intraparenquimatoso ≥5cm. Laceração &gt;3cm profundidade ou envolvendo vasos trabeculares</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">IV</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Laceração ou lesão vascular</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Laceração envolvendo vasos segmentares/hilares com desvascularização &gt;25% baço</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">V</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Laceração ou lesão vascular</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Fragmentação esplênica completa. Lesão vascular hilar com desvascularização completa do baço</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Modificadores:</strong> +Vascular (extravasamento ativo ou pseudoaneurisma). Aumentar 1 grau para múltiplas lesões até grau III.<br/>
+                  <strong>Referência:</strong> AAST. Spleen Injury Scale 2018 Update. J Trauma Acute Care Surg 2018;85(6):1075-1076. 
+                  <a href="https://journals.lww.com/jtrauma/fulltext/2018/12000/2018_update_to_the_aast_organ_injury_scale.9.aspx" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">AAST OIS</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      // ============= AAST Kidney =============
+      {
+        id: 'aast_kidney_2018',
+        name: 'AAST Trauma Renal 2018',
+        category: 'abdomen',
+        subcategory: 'Trauma Abdominal',
+        type: 'informative',
+        modality: ['TC'],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt; margin: 10px 0;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">AAST 2018 - Escala de Lesão Renal (Organ Injury Scale)</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white; font-weight: 600;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Grau</th>
+                <th style="border: 1px solid #333; padding: 8px;">Tipo de Lesão</th>
+                <th style="border: 1px solid #333; padding: 8px;">Critérios TC</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">I</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Contusão ou hematoma</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Contusão ou hematoma subcapsular não expansivo sem laceração parenquimatosa</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">II</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Hematoma ou laceração</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Hematoma perirrenal confinado à fáscia de Gerota. Laceração &lt;1cm profundidade sem extravasamento urinário</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">III</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Laceração</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Laceração &gt;1cm profundidade sem lesão sistema coletor ou extravasamento urinário</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">IV</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Laceração ou lesão vascular</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Laceração envolvendo sistema coletor com extravasamento urinário. Lesão artéria/veia renal segmentar com hematoma contido</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">V</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Laceração ou lesão vascular</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Fragmentação renal completa. Avulsão do hilo renal com desvascularização. Trombose artéria renal principal</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Modificadores:</strong> +Vascular (extravasamento ativo ou pseudoaneurisma). +Urinário (extravasamento urinário). Aumentar 1 grau para lesões bilaterais até grau III.<br/>
+                  <strong>Referência:</strong> AAST. Kidney Injury Scale 2018 Update. J Trauma Acute Care Surg 2018;85(6):1075-1076. 
+                  <a href="https://journals.lww.com/jtrauma/fulltext/2018/12000/2018_update_to_the_aast_organ_injury_scale.9.aspx" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">AAST OIS</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      // ============= Alvarado Score =============
+      {
+        id: 'alvarado_score',
+        name: 'Alvarado Score (Apendicite Aguda)',
+        category: 'abdomen',
+        subcategory: 'Apêndice',
+        type: 'informative',
+        modality: ['Clínico', 'TC'],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt; margin: 10px 0;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">Alvarado Score - Diagnóstico de Apendicite Aguda</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white; font-weight: 600;">
+                <th style="border: 1px solid #333; padding: 8px;">Critério</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Pontos</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #f0f0f0; font-weight: bold;">
+                <td colspan="2" style="border: 1px solid #ddd; padding: 8px;">SINTOMAS</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Migração da dor para fossa ilíaca direita (FID)</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">1</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Anorexia</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">1</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Náuseas/vômitos</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">1</td>
+              </tr>
+              <tr style="background-color: #f0f0f0; font-weight: bold;">
+                <td colspan="2" style="border: 1px solid #ddd; padding: 8px;">SINAIS</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Dor à palpação em FID</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">2</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Dor à descompressão (sinal de Blumberg)</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">1</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Febre ≥37,3°C</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">1</td>
+              </tr>
+              <tr style="background-color: #f0f0f0; font-weight: bold;">
+                <td colspan="2" style="border: 1px solid #ddd; padding: 8px;">LABORATÓRIO</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Leucocitose (&gt;10.000/mm³)</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">2</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Desvio à esquerda (neutrofilia &gt;75%)</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">1</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="2" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Interpretação (Total 10 pontos):</strong><br/>
+                  <strong>1-4 pontos:</strong> Apendicite improvável (5-25% probabilidade). Observação ambulatorial.<br/>
+                  <strong>5-6 pontos:</strong> Apendicite possível (50% probabilidade). TC abdome ou observação hospitalar.<br/>
+                  <strong>7-10 pontos:</strong> Apendicite provável (>90% probabilidade). Cirurgia ou TC urgente.<br/>
+                  <strong>Referência:</strong> Alvarado A. A practical score for the early diagnosis of acute appendicitis. Ann Emerg Med 1986;15(5):557-64. 
+                  <a href="https://pubmed.ncbi.nlm.nih.gov/3963537/" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">Ann Emerg Med</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      // ============= TNM Colorretal =============
+      {
+        id: 'tnm_colorectal_ajcc8',
+        name: 'TNM Colorretal AJCC 8ª Ed',
+        category: 'abdomen',
+        subcategory: 'Trato Gastrointestinal',
+        type: 'informative',
+        modality: ['TC', 'RM', 'PET'],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt; margin: 10px 0;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">TNM AJCC 8ª Edição - Câncer Colorretal</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white; font-weight: 600;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">Categoria</th>
+                <th style="border: 1px solid #333; padding: 8px;">Definição</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #f0f0f0; font-weight: bold;">
+                <td colspan="2" style="border: 1px solid #ddd; padding: 8px;">TUMOR PRIMÁRIO (T)</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">Tis</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Carcinoma in situ (intraepitelial ou invasão lâmina própria)</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">T1</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Tumor invade submucosa</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">T2</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Tumor invade muscular própria</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">T3</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Tumor invade subserosa ou gordura pericólica/periretal não peritonizada</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">T4a</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Tumor invade peritônio visceral</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">T4b</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Tumor invade diretamente órgãos/estruturas adjacentes</td>
+              </tr>
+              <tr style="background-color: #f0f0f0; font-weight: bold;">
+                <td colspan="2" style="border: 1px solid #ddd; padding: 8px;">LINFONODOS REGIONAIS (N)</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">N0</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Sem metástase linfonodal regional</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">N1a</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Metástase em 1 linfonodo regional</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">N1b</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Metástase em 2-3 linfonodos regionais</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">N1c</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Depósitos tumorais (satélites) em subserosa/mesentério sem metástase linfonodal</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">N2a</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Metástase em 4-6 linfonodos regionais</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">N2b</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Metástase em ≥7 linfonodos regionais</td>
+              </tr>
+              <tr style="background-color: #f0f0f0; font-weight: bold;">
+                <td colspan="2" style="border: 1px solid #ddd; padding: 8px;">METÁSTASES À DISTÂNCIA (M)</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">M0</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Sem metástase à distância</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">M1a</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Metástase em 1 órgão (fígado, pulmão, ovário, linfonodo não-regional)</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">M1b</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Metástase em ≥2 órgãos</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">M1c</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Metástase peritoneal com ou sem outros órgãos</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="2" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Nota:</strong> Avaliação ideal requer ≥12 linfonodos examinados na peça cirúrgica.<br/>
+                  <strong>Referência:</strong> AJCC. AJCC Cancer Staging Manual, 8th Edition. Springer, 2017. 
+                  <a href="https://www.springer.com/gp/book/9783319406176" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">AJCC 8th Ed</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      // ============= Organ Measurements =============
+      {
+        id: 'organ_measurements',
+        name: 'Medidas Normais de Órgãos Abdominais',
+        category: 'abdomen',
+        subcategory: 'Medidas e Valores Normais',
+        type: 'informative',
+        modality: ['US', 'TC', 'RM'],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt; margin: 10px 0;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">Medidas Normais de Órgãos Abdominais - Adultos</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white; font-weight: 600;">
+                <th style="border: 1px solid #333; padding: 8px;">Órgão</th>
+                <th style="border: 1px solid #333; padding: 8px;">Medida</th>
+                <th style="border: 1px solid #333; padding: 8px;">Valor Normal</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #f0f0f0; font-weight: bold;">
+                <td colspan="3" style="border: 1px solid #ddd; padding: 8px;">FÍGADO</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Fígado</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Diâmetro craniocaudal lobo direito (linha hemiclavicular)</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">≤15,5 cm</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Fígado</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Diâmetro ântero-posterior lobo esquerdo</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">≤8,0 cm</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Veia porta</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Calibre</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">≤13 mm</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Via biliar intra-hepática</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Calibre</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">≤2 mm</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Colédoco</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Calibre</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">≤6 mm (≤10 mm pós-colecistectomia)</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Vesícula biliar</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Comprimento / Espessura parede</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">7-10 cm / ≤3 mm</td>
+              </tr>
+              <tr style="background-color: #f0f0f0; font-weight: bold;">
+                <td colspan="3" style="border: 1px solid #ddd; padding: 8px;">BAÇO</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Baço</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Diâmetro longitudinal / Espessura</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">≤13 cm / ≤5 cm</td>
+              </tr>
+              <tr style="background-color: #f0f0f0; font-weight: bold;">
+                <td colspan="3" style="border: 1px solid #ddd; padding: 8px;">PÂNCREAS</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Pâncreas</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Cabeça / Corpo / Cauda (AP)</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">≤3,0 cm / ≤2,5 cm / ≤2,0 cm</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Ducto pancreático (Wirsung)</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Calibre</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">≤3 mm</td>
+              </tr>
+              <tr style="background-color: #f0f0f0; font-weight: bold;">
+                <td colspan="3" style="border: 1px solid #ddd; padding: 8px;">RINS</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Rim</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Comprimento longitudinal</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">10-12 cm (diferença &lt;2 cm entre rins)</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Córtex renal</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Espessura</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">≥7 mm</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Sistema pielocalicial</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Calibre</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">≤10 mm</td>
+              </tr>
+              <tr style="background-color: #f0f0f0; font-weight: bold;">
+                <td colspan="3" style="border: 1px solid #ddd; padding: 8px;">ADRENAIS</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Adrenal</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Espessura ramos</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">≤10 mm</td>
+              </tr>
+              <tr style="background-color: #f0f0f0; font-weight: bold;">
+                <td colspan="3" style="border: 1px solid #ddd; padding: 8px;">VASOS</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Aorta abdominal</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Calibre</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">≤3,0 cm (aneurisma se &gt;3 cm)</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Veia cava inferior</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Calibre</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">≤2,5 cm</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Nota:</strong> Valores de referência variam conforme idade, sexo, biotipo e técnica de medida. Considerar sempre contexto clínico.<br/>
+                  <strong>Referências:</strong> ACR Appropriateness Criteria, Radiopaedia, Multiple published references.
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+    ],
+  },
 ]
 
 export default RADIOLOGY_TABLES;
