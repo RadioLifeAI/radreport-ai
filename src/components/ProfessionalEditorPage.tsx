@@ -3,7 +3,6 @@ import { useReportStore } from '@/store'
 import { useTemplates } from '@/hooks/useTemplates'
 import { useFrasesModelo, FraseModelo } from '@/hooks/useFrasesModelo'
 import { useDictation } from '@/hooks/useDictation'
-import { useAuth } from '@/hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { SimpleEditor } from '@/components/tiptap-templates/simple/simple-editor'
@@ -26,7 +25,6 @@ interface ProfessionalEditorPageProps {
 }
 
 export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEditorPageProps) {
-  const { logout } = useAuth()
   const { content, setContent, modalidade, setModalidade } = useReportStore()
   const isMobile = useIsMobile()
   
@@ -580,7 +578,6 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
         macroModalities={['RM', 'TC', 'USG', 'RX', 'MG']}
         needsVariableInput={needsVariableInput}
         applyTemplateWithVariables={applyTemplateWithVariables}
-        onLogout={logout}
         onChatToggle={() => setIsChatOpen(!isChatOpen)}
       />
 

@@ -1,9 +1,11 @@
-import { LogOut, Moon, Sun, MessageSquare } from 'lucide-react'
+import { Moon, Sun, MessageSquare } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useTheme } from 'next-themes'
 import TemplateSelector from '@/components/selectors/TemplateSelector'
 import MacroSelector, { Macro } from '@/components/selectors/MacroSelector'
 import { TemplateVariablesModal } from './TemplateVariablesModal'
+import { UserProfileDropdown } from '@/components/user/UserProfileDropdown'
+import { UserSettingsModal } from '@/components/user/UserSettingsModal'
 import { TemplateWithVariables, TemplateVariableValues } from '@/types/templateVariables'
 import { useState } from 'react'
 
@@ -47,7 +49,6 @@ interface EditorHeaderProps {
   categories: string[]
   macroModalities: string[]
   
-  onLogout: () => void
   onChatToggle: () => void
   
   // Template variables support
@@ -93,7 +94,6 @@ export function EditorHeader({
   setMacroDropdownVisible,
   categories,
   macroModalities,
-  onLogout,
   onChatToggle,
   needsVariableInput,
   applyTemplateWithVariables,
@@ -104,6 +104,7 @@ export function EditorHeader({
   // Template variables modal state
   const [templateModalOpen, setTemplateModalOpen] = useState(false)
   const [selectedTemplateForModal, setSelectedTemplateForModal] = useState<TemplateWithVariables | null>(null)
+  const [settingsModalOpen, setSettingsModalOpen] = useState(false)
   
   // Handle template selection with variable check
   const handleTemplateSelect = (template: any) => {
@@ -203,13 +204,8 @@ export function EditorHeader({
         >
           {theme === 'dark' ? <Sun size={16} className="md:w-[18px] md:h-[18px]" /> : <Moon size={16} className="md:w-[18px] md:h-[18px]" />}
         </button>
-          <button 
-            onClick={onLogout}
-            className="p-1.5 md:p-2 hover:bg-muted rounded-lg transition-colors"
-            title="Sair"
-          >
-            <LogOut size={16} className="md:w-[18px] md:h-[18px]" />
-          </button>
+        
+        <UserProfileDropdown onOpenSettings={() => setSettingsModalOpen(true)} />
         </div>
       </header>
 
@@ -219,6 +215,12 @@ export function EditorHeader({
         onOpenChange={setTemplateModalOpen}
         template={selectedTemplateForModal}
         onSubmit={handleTemplateVariablesSubmit}
+      />
+
+      {/* User Settings Modal */}
+      <UserSettingsModal
+        open={settingsModalOpen}
+        onOpenChange={setSettingsModalOpen}
       />
     </>
   )
