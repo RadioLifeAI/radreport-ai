@@ -7,34 +7,21 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Process base64 in chunks to prevent memory issues
-function processBase64Chunks(base64String: string, chunkSize = 32768) {
-  const chunks: Uint8Array[] = [];
-  let position = 0;
-  
-  while (position < base64String.length) {
-    const chunk = base64String.slice(position, position + chunkSize);
-    const binaryChunk = atob(chunk);
-    const bytes = new Uint8Array(binaryChunk.length);
-    
-    for (let i = 0; i < binaryChunk.length; i++) {
-      bytes[i] = binaryChunk.charCodeAt(i);
-    }
-    
-    chunks.push(bytes);
-    position += chunkSize;
+// Simple base64 decoding - no chunking needed for audio < 25MB
+function decodeBase64ToUint8Array(base64String: string): Uint8Array {
+  const binaryString = atob(base64String);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
   }
+  return bytes;
+}
 
-  const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0);
-  const result = new Uint8Array(totalLength);
-  let offset = 0;
-
-  for (const chunk of chunks) {
-    result.set(chunk, offset);
-    offset += chunk.length;
-  }
-
-  return result;
+// Validate WebM file header (EBML signature: 0x1A 0x45 0xDF 0xA3)
+function isValidWebM(bytes: Uint8Array): boolean {
+  if (bytes.length < 4) return false;
+  return bytes[0] === 0x1A && bytes[1] === 0x45 && 
+         bytes[2] === 0xDF && bytes[3] === 0xA3;
 }
 
 serve(async (req) => {
@@ -73,18 +60,25 @@ serve(async (req) => {
       throw new Error('No audio data provided');
     }
 
-    // Estimate audio duration: base64 string length / 1.33 (base64 overhead) / 16000 bytes/sec (WebM ~16KB/s)
+    // Estimate audio duration: WebM Opus típico ~8KB/s (não 16KB/s como raw audio)
     const audioSizeBytes = (audio.length * 0.75); // base64 to bytes
-    const estimatedDurationSeconds = Math.ceil(audioSizeBytes / 16000);
+    const estimatedDurationSeconds = Math.ceil(audioSizeBytes / 8000); // Corrigido para WebM Opus
     
-    // 🆕 FASE 1: Validação mínima 10s (alinhado com cobrança mínima Groq)
-    if (estimatedDurationSeconds < 10) {
-      console.log('⏭️ Audio too short:', estimatedDurationSeconds, 's (min: 10s)');
+    console.log('📊 Audio analysis:', {
+      base64Length: audio.length,
+      estimatedBytes: audioSizeBytes,
+      estimatedDurationSeconds,
+      minRequired: 2
+    });
+    
+    // 🆕 Validação mínima 2s (Groq cobra mínimo 10s, mas aceitamos 2s+ para não perder áudio útil)
+    if (estimatedDurationSeconds < 2) {
+      console.log('⏭️ Audio too short:', estimatedDurationSeconds, 's (min: 2s)');
       return new Response(
         JSON.stringify({ 
           text: '', 
           skipped: true,
-          reason: 'Audio menor que 10 segundos - não processado',
+          reason: 'Audio menor que 2 segundos - não processado',
           duration: estimatedDurationSeconds
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -124,15 +118,35 @@ serve(async (req) => {
 
     console.log('Transcribing audio with Groq Whisper API...');
     
-    // Process audio in chunks
-    const binaryAudio = processBase64Chunks(audio);
+    // Decode base64 audio
+    const binaryAudio = decodeBase64ToUint8Array(audio);
+    
+    // Validate WebM integrity
+    console.log('🔍 WebM validation:', {
+      firstBytes: Array.from(binaryAudio.slice(0, 8)).map(b => '0x' + b.toString(16).padStart(2, '0')),
+      totalBytes: binaryAudio.length,
+      isValidWebM: isValidWebM(binaryAudio)
+    });
+    
+    if (!isValidWebM(binaryAudio)) {
+      console.error('❌ Invalid WebM header - audio corrupted during encoding');
+      return new Response(
+        JSON.stringify({ 
+          error: 'Arquivo de áudio corrompido',
+          text: '',
+          skipped: true 
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      );
+    }
     
     // Optimized prompt: <224 tokens (~850 chars) to comply with Groq limit
     const medicalPrompt = 'Laudo radiológico brasileiro. Termos: hepatomegalia, esplenomegalia, esteatose, colecistite, colelitíase, pancreatite, hidronefrose, hipoecogênico, hiperecogênico, heterogêneo, linfonodomegalia, BI-RADS, TI-RADS, PI-RADS, LI-RADS, parênquima, neoplasia, nódulo, cisto, lesão, dilatação, estenose, trombose, edema, hematoma. Medidas em cm/mm/ml.';
     
     // Prepare form data
     const formData = new FormData();
-    const blob = new Blob([binaryAudio], { type: 'audio/webm' });
+    // Cast buffer to ArrayBuffer for Deno type compatibility
+    const blob = new Blob([binaryAudio.buffer as ArrayBuffer], { type: 'audio/webm' });
     formData.append('file', blob, 'audio.webm');
     formData.append('model', 'whisper-large-v3-turbo');
     formData.append('language', language);

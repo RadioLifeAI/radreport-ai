@@ -51,23 +51,23 @@ export default function Footer() {
             <h3 className="font-semibold mb-4">Produto</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <a href="#servicos" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Serviços
-                </a>
-              </li>
-              <li>
-                <a href="#precos" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Preços
-                </a>
-              </li>
-              <li>
-                <Link to="/login" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Login
+                <Link to="/recursos" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Funcionalidades
                 </Link>
               </li>
               <li>
-                <Link to="/signup" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Cadastre-se
+                <Link to="/precos" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Preços
+                </Link>
+              </li>
+              <li>
+                <Link to="/sobre" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Sobre
+                </Link>
+              </li>
+              <li>
+                <Link to="/login" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Entrar
                 </Link>
               </li>
             </ul>
@@ -78,24 +78,24 @@ export default function Footer() {
             <h3 className="font-semibold mb-4">Recursos</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <a href="#faq" className="text-muted-foreground hover:text-foreground transition-colors">
+                <a href="/#faq" className="text-muted-foreground hover:text-foreground transition-colors">
                   FAQ
                 </a>
               </li>
               <li>
-                <a href="#assistente" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Assistente IA
-                </a>
+                <Link to="/recursos" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Editor IA
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Documentação
-                </a>
+                <Link to="/recursos" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Templates
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Blog
-                </a>
+                <Link to="/recursos" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Ditado por Voz
+                </Link>
               </li>
             </ul>
           </div>
@@ -105,24 +105,24 @@ export default function Footer() {
             <h3 className="font-semibold mb-4">Legal</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Política de Privacidade
-                </a>
+                <Link to="/privacidade" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Privacidade
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link to="/termos" className="text-muted-foreground hover:text-foreground transition-colors">
                   Termos de Uso
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link to="/lgpd" className="text-muted-foreground hover:text-foreground transition-colors">
                   LGPD
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link to="/contato" className="text-muted-foreground hover:text-foreground transition-colors">
                   Contato
-                </a>
+                </Link>
               </li>
             </ul>
           </div>

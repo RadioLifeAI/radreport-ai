@@ -117,129 +117,308 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {/* Free Plan */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+            {/* Gratuito Plan */}
             <Card className="glass-card">
               <CardHeader>
                 <div className="bg-green-500/20 text-green-400 text-xs font-semibold px-3 py-1 rounded-full w-fit mb-2">
-                  15 DIAS GRÁTIS
+                  GRÁTIS
                 </div>
-                <CardTitle className="text-2xl">Grátis</CardTitle>
-                <CardDescription>Experimente sem compromisso</CardDescription>
+                <CardTitle className="text-2xl">Gratuito</CardTitle>
+                <CardDescription>Teste a plataforma</CardDescription>
                 <div className="mt-4">
                   <span className="text-4xl font-bold">R$ 0</span>
-                  <span className="text-muted-foreground">/15 dias</span>
+                  <span className="text-muted-foreground block text-sm mt-1">20 tokens</span>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Check className="h-5 w-5 text-cyan-400" />
-                  <span>15 dias de teste completo</span>
+              <CardContent className="space-y-2.5">
+                <div className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-cyan-400 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm">20 tokens (≈ 10 laudos)</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Check className="h-5 w-5 text-cyan-400" />
-                  <span>Todos os recursos liberados</span>
+                <div className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-cyan-400 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm">159 templates de laudo</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Check className="h-5 w-5 text-cyan-400" />
-                  <span>Sem cartão de crédito</span>
+                <div className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-cyan-400 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm">245 frases modelo</span>
                 </div>
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <span className="text-xs">Após teste: 5 laudos/mês</span>
+                <div className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-cyan-400 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm">Ditado por voz (Web Speech)</span>
+                </div>
+                <div className="flex items-start gap-2 text-muted-foreground/60">
+                  <span className="text-xs ml-6">❌ Corretor AI</span>
+                </div>
+                <div className="flex items-start gap-2 text-muted-foreground/60">
+                  <span className="text-xs ml-6">❌ IA Conclusão/Sugestões</span>
+                </div>
+                <div className="flex items-start gap-2 text-muted-foreground/60">
+                  <span className="text-xs ml-6">❌ Whisper Premium</span>
                 </div>
               </CardContent>
               <CardFooter>
                 <Button asChild variant="outline" className="w-full">
-                  <Link to="/signup">Começar teste grátis</Link>
+                  <Link to="/signup">Começar grátis</Link>
                 </Button>
               </CardFooter>
             </Card>
 
-            {/* Pro Plan - Highlighted (Centro) */}
-            <Card className="glass-card border-primary/50 shadow-glow scale-105">
+            {/* Básico Plan */}
+            <Card className="glass-card">
+              <CardHeader>
+                <CardTitle className="text-2xl">Básico</CardTitle>
+                <CardDescription>Plantonistas, baixo volume</CardDescription>
+                <div className="mt-4">
+                  <span className="text-4xl font-bold">R$ 79</span>
+                  <span className="text-muted-foreground">/mês</span>
+                  <span className="text-muted-foreground block text-sm mt-1">1.500 tokens</span>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-2.5">
+                <div className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-cyan-400 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm">1.500 tokens/mês (≈ 750 laudos)</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-cyan-400 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm">Tudo do Gratuito</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-cyan-400 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm">Corretor AI completo</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-cyan-400 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm">IA Conclusão (2 tokens/uso)</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-cyan-400 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm">IA Sugestões (1 token/uso)</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-cyan-400 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm">28+ tabelas RADS completas</span>
+                </div>
+                <div className="flex items-start gap-2 text-muted-foreground/60">
+                  <span className="text-xs ml-6">❌ IA RADS automático</span>
+                </div>
+                <div className="flex items-start gap-2 text-muted-foreground/60">
+                  <span className="text-xs ml-6">❌ Chat IA Radiológica</span>
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button asChild variant="outline" className="w-full">
+                  <Link to="/signup">Assinar Básico</Link>
+                </Button>
+              </CardFooter>
+            </Card>
+
+            {/* Profissional Plan - Highlighted */}
+            <Card className="glass-card border-primary/50 shadow-glow scale-105 lg:scale-110">
               <CardHeader>
                 <div className="bg-gradient-to-r from-cyan-400 to-indigo-500 text-background text-xs font-semibold px-3 py-1 rounded-full w-fit mb-2">
                   MAIS POPULAR
                 </div>
                 <CardTitle className="text-2xl">Profissional</CardTitle>
-                <CardDescription>Para radiologistas ativos</CardDescription>
+                <CardDescription>50 laudos/dia</CardDescription>
                 <div className="mt-4">
-                  <span className="text-4xl font-bold">R$ 199</span>
+                  <span className="text-4xl font-bold">R$ 149</span>
                   <span className="text-muted-foreground">/mês</span>
+                  <span className="text-muted-foreground block text-sm mt-1">4.000 tokens</span>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Check className="h-5 w-5 text-cyan-400" />
-                  <span>Laudos ilimitados</span>
+              <CardContent className="space-y-2.5">
+                <div className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-cyan-400 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm font-medium">4.000 tokens/mês</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Check className="h-5 w-5 text-cyan-400" />
-                  <span>Todos os templates</span>
+                <div className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-cyan-400 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm">Tudo do Básico</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Check className="h-5 w-5 text-cyan-400" />
-                  <span>IA avançada + RADS</span>
+                <div className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-cyan-400 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm">IA RADS automático (2 tokens)</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Check className="h-5 w-5 text-cyan-400" />
-                  <span>Ditado por voz</span>
+                <div className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-cyan-400 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm">Chat IA Radiológica (1 token/msg)</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Check className="h-5 w-5 text-cyan-400" />
-                  <span>Macros personalizados</span>
+                <div className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-cyan-400 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm font-medium">50 créditos Whisper/mês</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Check className="h-5 w-5 text-cyan-400" />
-                  <span>Suporte prioritário</span>
+                <div className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-cyan-400 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm">Suporte prioritário</span>
                 </div>
               </CardContent>
               <CardFooter>
                 <Button asChild className="w-full btn-premium">
-                  <Link to="/signup">Assinar</Link>
+                  <Link to="/signup">Assinar Profissional</Link>
                 </Button>
               </CardFooter>
             </Card>
 
-            {/* Basic Plan */}
+            {/* Premium Plan */}
             <Card className="glass-card">
               <CardHeader>
-                <CardTitle className="text-2xl">Básico</CardTitle>
-                <CardDescription>Para radiologistas iniciantes</CardDescription>
+                <CardTitle className="text-2xl">Premium</CardTitle>
+                <CardDescription>Alto volume</CardDescription>
                 <div className="mt-4">
-                  <span className="text-4xl font-bold">R$ 99</span>
+                  <span className="text-4xl font-bold">R$ 249</span>
                   <span className="text-muted-foreground">/mês</span>
+                  <span className="text-muted-foreground block text-sm mt-1">8.000 tokens</span>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Check className="h-5 w-5 text-cyan-400" />
-                  <span>Até 100 laudos/mês</span>
+              <CardContent className="space-y-2.5">
+                <div className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-cyan-400 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm font-medium">8.000 tokens/mês</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Check className="h-5 w-5 text-cyan-400" />
-                  <span>Todos os templates</span>
+                <div className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-cyan-400 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm">Tudo do Profissional</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Check className="h-5 w-5 text-cyan-400" />
-                  <span>IA assistente completa</span>
+                <div className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-cyan-400 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm font-medium">200 créditos Whisper/mês</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Check className="h-5 w-5 text-cyan-400" />
-                  <span>Ditado por voz</span>
+                <div className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-cyan-400 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm">Tokens extras: R$ 0,08/token</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Check className="h-5 w-5 text-cyan-400" />
-                  <span>Suporte por email</span>
+                <div className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-cyan-400 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm">Suporte WhatsApp prioritário</span>
                 </div>
               </CardContent>
               <CardFooter>
                 <Button asChild variant="outline" className="w-full">
-                  <Link to="/signup">Assinar</Link>
+                  <Link to="/signup">Assinar Premium</Link>
                 </Button>
               </CardFooter>
             </Card>
           </div>
+        </div>
+      </section>
+
+      {/* How Tokens Work Section */}
+      <section className="py-20 bg-card/30">
+        <div className="container max-w-5xl">
+          <div className="text-center mb-12 animate-fade-in">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Como funcionam os <span className="gradient-text-medical">Tokens</span>?
+            </h2>
+            <p className="text-lg text-muted-foreground">
+              Sistema transparente e flexível de consumo
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* Consumption Table */}
+            <Card className="glass-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Brain className="h-5 w-5 text-cyan-400" />
+                  Consumo por Funcionalidade
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex justify-between items-center pb-2 border-b border-border/40">
+                  <span className="text-sm">IA Conclusão automática</span>
+                  <span className="font-semibold text-cyan-400">2 tokens</span>
+                </div>
+                <div className="flex justify-between items-center pb-2 border-b border-border/40">
+                  <span className="text-sm">IA RADS (BI-RADS, TI-RADS, etc.)</span>
+                  <span className="font-semibold text-cyan-400">2 tokens</span>
+                </div>
+                <div className="flex justify-between items-center pb-2 border-b border-border/40">
+                  <span className="text-sm">IA Sugestões de melhoria</span>
+                  <span className="font-semibold text-cyan-400">1 token</span>
+                </div>
+                <div className="flex justify-between items-center pb-2 border-b border-border/40">
+                  <span className="text-sm">Chat IA Radiológica</span>
+                  <span className="font-semibold text-cyan-400">1 token/msg</span>
+                </div>
+                <div className="flex justify-between items-center pb-2">
+                  <span className="text-sm">Corretor AI</span>
+                  <span className="font-semibold text-green-400">Incluído</span>
+                </div>
+                <div className="bg-cyan-400/10 rounded-lg p-3 mt-4">
+                  <p className="text-xs text-muted-foreground">
+                    💡 <strong>Laudo típico:</strong> 2 tokens (1 Conclusão + 1 Sugestão)
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Whisper Credits */}
+            <Card className="glass-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Zap className="h-5 w-5 text-indigo-400" />
+                  Créditos Whisper
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Sistema separado para transcrição de áudio de alta precisão:
+                </p>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-indigo-400 flex-shrink-0" />
+                    <span className="text-sm">1 crédito = 1 minuto de áudio</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-indigo-400 flex-shrink-0" />
+                    <span className="text-sm">Transcrição Whisper-large-v3-turbo</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-indigo-400 flex-shrink-0" />
+                    <span className="text-sm">Precisão superior a 95%</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-indigo-400 flex-shrink-0" />
+                    <span className="text-sm">Correção automática de termos médicos</span>
+                  </div>
+                </div>
+                <div className="bg-indigo-400/10 rounded-lg p-3 mt-4">
+                  <p className="text-xs text-muted-foreground">
+                    ℹ️ Créditos Whisper <strong>não consomem tokens</strong>. São sistemas independentes.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Calculation Example */}
+          <Card className="glass-card mt-8">
+            <CardHeader>
+              <CardTitle>Exemplo: Radiologista 50 laudos/dia</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-3 gap-6">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-2">Volume Mensal</p>
+                  <p className="text-2xl font-bold">1.100 laudos</p>
+                  <p className="text-xs text-muted-foreground">(50 laudos × 22 dias)</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground mb-2">Consumo Estimado</p>
+                  <p className="text-2xl font-bold text-cyan-400">3.630 tokens</p>
+                  <p className="text-xs text-muted-foreground">(Conclusão + Sugestões + 15% RADS + Chat)</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground mb-2">Plano Recomendado</p>
+                  <p className="text-2xl font-bold text-gradient-to-r from-cyan-400 to-indigo-500">Profissional</p>
+                  <p className="text-xs text-muted-foreground">4.000 tokens = R$ 149/mês</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </section>
 
@@ -258,15 +437,38 @@ const Index = () => {
           <Accordion type="single" collapsible className="space-y-4">
             <AccordionItem value="item-1" className="glass-card px-6 border-0">
               <AccordionTrigger className="text-left">
-                Como funciona a IA do RadReport?
+                O que são tokens e como funcionam?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Nossa IA foi treinada com milhões de laudos radiológicos e oferece sugestões em tempo real,
-                correção ortográfica contextual e padronização automática seguindo guidelines internacionais.
+                Tokens são unidades de consumo para funcionalidades de IA. Um laudo típico consome 2 tokens 
+                (1 para Conclusão + 1 para Sugestões). IA RADS e Chat consomem tokens adicionais. 
+                O plano Profissional (4.000 tokens) é ideal para 50 laudos/dia.
               </AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="item-2" className="glass-card px-6 border-0">
+              <AccordionTrigger className="text-left">
+                Quantos tokens preciso para meu volume de trabalho?
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground">
+                Para calcular: (laudos/dia × 22 dias × 2 tokens) + uso adicional de RADS/Chat. 
+                Exemplo: 50 laudos/dia = ~3.600 tokens/mês → Plano Profissional (4.000 tokens). 
+                20 laudos/dia = ~1.300 tokens → Plano Básico (1.500 tokens).
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-3" className="glass-card px-6 border-0">
+              <AccordionTrigger className="text-left">
+                O que são créditos Whisper?
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground">
+                Créditos Whisper são para transcrição de áudio de alta precisão. 1 crédito = 1 minuto de áudio. 
+                O Whisper-large-v3-turbo oferece precisão superior a 95% com correção automática de termos médicos. 
+                Créditos Whisper não consomem tokens - são sistemas independentes.
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-4" className="glass-card px-6 border-0">
               <AccordionTrigger className="text-left">
                 Os dados dos pacientes são seguros?
               </AccordionTrigger>
@@ -276,33 +478,23 @@ const Index = () => {
               </AccordionContent>
             </AccordionItem>
 
-            <AccordionItem value="item-3" className="glass-card px-6 border-0">
+            <AccordionItem value="item-5" className="glass-card px-6 border-0">
               <AccordionTrigger className="text-left">
                 Posso personalizar os templates?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Absolutamente! Você pode criar, editar e salvar seus próprios templates personalizados,
-                além de usar nossa biblioteca com centenas de templates pré-configurados.
+                Sim! Temos 159 templates profissionais e 245 frases modelo pré-configuradas. 
+                Você pode criar favoritos, personalizar variáveis e salvar suas próprias frases modelo.
               </AccordionContent>
             </AccordionItem>
 
-            <AccordionItem value="item-4" className="glass-card px-6 border-0">
+            <AccordionItem value="item-6" className="glass-card px-6 border-0">
               <AccordionTrigger className="text-left">
                 Há período de teste gratuito?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Sim! Oferecemos 15 dias de teste gratuito com todos os recursos liberados, sem necessidade de
-                cartão de crédito. Teste todas as funcionalidades antes de decidir.
-              </AccordionContent>
-            </AccordionItem>
-
-            <AccordionItem value="item-5" className="glass-card px-6 border-0">
-              <AccordionTrigger className="text-left">
-                O sistema funciona offline?
-              </AccordionTrigger>
-              <AccordionContent className="text-muted-foreground">
-                Sim, nossa versão desktop oferece modo offline completo. Seus laudos são sincronizados
-                automaticamente quando a conexão for restabelecida.
+                Sim! O plano Gratuito oferece 20 tokens permanentes para você testar a plataforma. 
+                Experimente todas as funcionalidades básicas (templates, frases, ditado por voz) antes de assinar.
               </AccordionContent>
             </AccordionItem>
           </Accordion>

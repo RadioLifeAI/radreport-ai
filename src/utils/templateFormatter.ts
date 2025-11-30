@@ -12,6 +12,14 @@ export function dividirEmSentencas(texto: string): string {
     return '<p></p>'
   }
   
+  // Se tem quebras de linha explícitas (\n), cada linha vira um parágrafo
+  if (texto.includes('\n')) {
+    const linhas = texto.split('\n').filter(l => l.trim())
+    if (linhas.length > 0) {
+      return linhas.map(l => `<p>${l.trim()}</p>`).join('')
+    }
+  }
+  
   // Regex para dividir sentenças: ponto seguido de espaço e maiúscula
   // Preserva pontuação médica como "0.5 cm" ou "T1 e T2"
   const sentencas = texto

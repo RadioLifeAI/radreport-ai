@@ -1,4 +1,4 @@
-import { MessageSquare, History, ChevronLeft, Sparkles, Zap } from 'lucide-react'
+import { MessageSquare, History, ChevronLeft, Sparkles, Zap, Wand2 } from 'lucide-react'
 import { Editor } from '@tiptap/react'
 import { useState } from 'react'
 import VoiceButton from '@/components/voice/VoiceButton'
@@ -33,6 +33,8 @@ interface EditorRightSidebarProps {
     success: number
     failed: number
   }
+  isAICorrectorEnabled?: boolean
+  toggleAICorrector?: () => void
 }
 
 export function EditorRightSidebar({
@@ -49,6 +51,8 @@ export function EditorRightSidebar({
   toggleWhisper,
   isTranscribing = false,
   whisperStats,
+  isAICorrectorEnabled = false,
+  toggleAICorrector,
 }: EditorRightSidebarProps) {
   const [frasesOpen, setFrasesOpen] = useState(false)
   const { recentFrases, favoriteFrases } = useFrasesModelo()
@@ -171,6 +175,47 @@ export function EditorRightSidebar({
             </Popover>
           </div>
 
+          {/* Corretor AI Section */}
+          <div className="p-3 bg-gradient-to-br from-purple-500/5 to-pink-500/5 border border-purple-500/20 rounded-lg space-y-3">
+            <div className="flex items-center gap-2">
+              <Wand2 size={16} className="text-purple-500" />
+              <span className="text-sm font-medium">Corretor AI</span>
+            </div>
+            
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              Correção automática de pontuação, formatação e termos médicos ao parar o ditado
+            </p>
+            
+            {/* Corretor AI Toggle */}
+            {toggleAICorrector && (
+              <TooltipProvider>
+                <div className="flex items-center justify-between p-2 bg-background/50 rounded border border-border/50">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="text-xs cursor-help">Ativar Corretor</span>
+                    </TooltipTrigger>
+                    <TooltipContent side="left" className="max-w-[200px]">
+                      <p className="text-xs">
+                        Corrige automaticamente pontuação, capitalização e termos médicos após o ditado
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                  <Switch
+                    checked={isAICorrectorEnabled}
+                    onCheckedChange={toggleAICorrector}
+                  />
+                </div>
+              </TooltipProvider>
+            )}
+
+            <div className="text-[10px] text-muted-foreground leading-relaxed space-y-1">
+              <p>✓ Pontuação automática</p>
+              <p>✓ Capitalização inteligente</p>
+              <p>✓ Correções médicas fonéticas</p>
+              <p>✓ Conversão de comandos de voz</p>
+            </div>
+          </div>
+
           {/* Whisper AI Premium Section */}
           <div className="p-3 bg-gradient-to-br from-cyan-500/5 to-indigo-500/5 border border-cyan-500/20 rounded-lg space-y-3">
             <div className="flex items-center gap-2">
@@ -237,6 +282,14 @@ export function EditorRightSidebar({
                 </div>
               </TooltipProvider>
             )}
+
+            {/* Whisper Stats */}
+            {isWhisperEnabled && whisperStats && whisperStats.total > 0 && (
+              <div className="text-[10px] text-muted-foreground mt-2 pt-2 border-t border-border/30">
+                Processados: {whisperStats.success}/{whisperStats.total}
+                {whisperStats.failed > 0 && ` (${whisperStats.failed} falhas)`}
+              </div>
+            )}
           </div>
 
           {/* Voice Controls */}
@@ -248,6 +301,7 @@ export function EditorRightSidebar({
               status={voiceStatus}
               onStart={onVoiceStart}
               onStop={onVoiceStop}
+              isTranscribing={isTranscribing}
             />
 
             <SpeechStatusPanel 

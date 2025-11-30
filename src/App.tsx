@@ -11,6 +11,14 @@ import Editor from "./pages/Editor";
 import AuthCallback from "./pages/AuthCallback";
 import NotFound from "./pages/NotFound";
 import EditorTest from "./components/editor/EditorTest";
+import Recursos from "./pages/Recursos";
+import Precos from "./pages/Precos";
+import Sobre from "./pages/Sobre";
+import Contato from "./pages/Contato";
+import ForgotPassword from "./pages/ForgotPassword";
+import Privacidade from "./pages/Privacidade";
+import Termos from "./pages/Termos";
+import LGPD from "./pages/LGPD";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +41,14 @@ const App = () => (
           <Route path="/editor" element={<Editor />} />
           <Route path="/editor-test" element={<EditorTest />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
+          <Route path="/recursos" element={<Recursos />} />
+          <Route path="/precos" element={<Precos />} />
+          <Route path="/sobre" element={<Sobre />} />
+          <Route path="/contato" element={<Contato />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/privacidade" element={<Privacidade />} />
+          <Route path="/termos" element={<Termos />} />
+          <Route path="/lgpd" element={<LGPD />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
