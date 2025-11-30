@@ -169,7 +169,7 @@ export default function Termos() {
               <h2 className="text-2xl font-bold mb-4 text-foreground">11. Lei Aplicável e Foro</h2>
               <p className="text-muted-foreground leading-relaxed">
                 Estes Termos de Uso são regidos pelas leis da República Federativa do Brasil. Qualquer disputa será 
-                resolvida no foro da comarca de [Cidade], com exclusão de qualquer outro, por mais privilegiado que seja.
+                resolvida no foro da comarca de São Paulo, com exclusão de qualquer outro, por mais privilegiado que seja.
               </p>
             </section>
 

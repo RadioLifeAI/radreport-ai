@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Mail, Linkedin, Twitter } from 'lucide-react';
+import { Mail } from 'lucide-react';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -17,31 +17,18 @@ export default function Footer() {
             <p className="text-sm text-muted-foreground">
               Sistema inteligente de laudos radiológicos com IA
             </p>
+            <div className="space-y-1 text-xs text-muted-foreground">
+              <p>Uma plataforma <strong>RadAi Labs</strong></p>
+              <p>RadAi Labs LTDA</p>
+              <p>CNPJ: 63.762.346/0001-47</p>
+            </div>
             <div className="flex gap-4">
               <a
-                href="mailto:contato@radreport.com"
+                href="mailto:contato@radreport.com.br"
                 className="text-muted-foreground hover:text-primary transition-colors"
                 aria-label="Email"
               >
                 <Mail size={20} />
-              </a>
-              <a
-                href="https://linkedin.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-muted-foreground hover:text-primary transition-colors"
-                aria-label="LinkedIn"
-              >
-                <Linkedin size={20} />
-              </a>
-              <a
-                href="https://twitter.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-muted-foreground hover:text-primary transition-colors"
-                aria-label="Twitter"
-              >
-                <Twitter size={20} />
               </a>
             </div>
           </div>
@@ -129,7 +116,8 @@ export default function Footer() {
         </div>
 
         <div className="mt-12 pt-8 border-t border-border/40 text-center text-sm text-muted-foreground">
-          <p>© {currentYear} RadReport. Todos os direitos reservados.</p>
+          <p>© {currentYear} RadReport – Uma plataforma RadAi Labs</p>
+          <p className="mt-1">RadAi Labs LTDA · CNPJ: 63.762.346/0001-47</p>
         </div>
       </div>
     </footer>

@@ -17,7 +17,6 @@ export default function Precos() {
         { text: 'Tabelas de referência', included: true },
         { text: 'IA Conclusão', included: false },
         { text: 'IA RADS', included: false },
-        { text: 'Whisper Premium', included: false },
         { text: 'Suporte prioritário', included: false }
       ],
       cta: 'Começar Grátis',
@@ -38,7 +37,6 @@ export default function Precos() {
         { text: '28+ tabelas de referência', included: true },
         { text: 'IA Conclusão', included: true },
         { text: 'IA RADS', included: true },
-        { text: 'Whisper Premium (créditos à parte)', included: true },
         { text: 'Suporte prioritário', included: false }
       ],
       cta: 'Assinar Básico',
@@ -60,7 +58,6 @@ export default function Precos() {
         { text: '28+ tabelas de referência', included: true },
         { text: 'IA Conclusão ilimitada', included: true },
         { text: 'IA RADS ilimitada', included: true },
-        { text: 'Whisper Premium (créditos à parte)', included: true },
         { text: 'Suporte prioritário', included: true }
       ],
       cta: 'Assinar Profissional',
@@ -81,7 +78,6 @@ export default function Precos() {
         { text: '28+ tabelas de referência', included: true },
         { text: 'IA Conclusão ilimitada', included: true },
         { text: 'IA RADS ilimitada', included: true },
-        { text: 'Whisper Premium (créditos à parte)', included: true },
         { text: 'Suporte prioritário 24/7', included: true }
       ],
       cta: 'Assinar Premium',
@@ -205,18 +201,8 @@ export default function Precos() {
                   <p className="text-sm text-muted-foreground">incluído (sem custo)</p>
                 </div>
               </div>
-              <div className="flex items-start gap-3">
-                <span className="text-secondary font-bold">*</span>
-                <div>
-                  <p className="font-semibold text-foreground">Whisper Premium</p>
-                  <p className="text-sm text-muted-foreground">créditos separados</p>
-                </div>
-              </div>
             </div>
           </div>
-          <p className="text-sm text-muted-foreground mt-6 text-center">
-            * Whisper: 1 crédito = 1 minuto de áudio (pacotes: 100 créditos por R$ 9,90)
-          </p>
         </div>
       </section>
 
@@ -243,15 +229,6 @@ export default function Precos() {
               </summary>
               <p className="mt-4 text-muted-foreground">
                 Você pode fazer upgrade do plano a qualquer momento ou adquirir pacotes adicionais de tokens. O sistema continuará funcionando, mas funcionalidades de IA ficarão temporariamente desabilitadas.
-              </p>
-            </details>
-            <details className="glass-card rounded-lg p-6 group">
-              <summary className="font-semibold text-foreground cursor-pointer list-none flex justify-between items-center">
-                Como funcionam os créditos Whisper?
-                <span className="text-primary">+</span>
-              </summary>
-              <p className="mt-4 text-muted-foreground">
-                Whisper é opcional e funciona com créditos separados: 1 crédito = 1 minuto de áudio. Pacotes: 100 créditos (R$ 9,90), 300 créditos (R$ 24,90), 1000 créditos (R$ 59,90).
               </p>
             </details>
           </div>

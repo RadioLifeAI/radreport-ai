@@ -154,9 +154,6 @@ const Index = () => {
                 <div className="flex items-start gap-2 text-muted-foreground/60">
                   <span className="text-xs ml-6">❌ IA Conclusão/Sugestões</span>
                 </div>
-                <div className="flex items-start gap-2 text-muted-foreground/60">
-                  <span className="text-xs ml-6">❌ Whisper Premium</span>
-                </div>
               </CardContent>
               <CardFooter>
                 <Button asChild variant="outline" className="w-full">
@@ -248,10 +245,6 @@ const Index = () => {
                 </div>
                 <div className="flex items-start gap-2">
                   <Check className="h-4 w-4 text-cyan-400 mt-0.5 flex-shrink-0" />
-                  <span className="text-sm font-medium">50 créditos Whisper/mês</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <Check className="h-4 w-4 text-cyan-400 mt-0.5 flex-shrink-0" />
                   <span className="text-sm">Suporte prioritário</span>
                 </div>
               </CardContent>
@@ -281,10 +274,6 @@ const Index = () => {
                 <div className="flex items-start gap-2">
                   <Check className="h-4 w-4 text-cyan-400 mt-0.5 flex-shrink-0" />
                   <span className="text-sm">Tudo do Profissional</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <Check className="h-4 w-4 text-cyan-400 mt-0.5 flex-shrink-0" />
-                  <span className="text-sm font-medium">200 créditos Whisper/mês</span>
                 </div>
                 <div className="flex items-start gap-2">
                   <Check className="h-4 w-4 text-cyan-400 mt-0.5 flex-shrink-0" />
@@ -350,44 +339,6 @@ const Index = () => {
                 <div className="bg-cyan-400/10 rounded-lg p-3 mt-4">
                   <p className="text-xs text-muted-foreground">
                     💡 <strong>Laudo típico:</strong> 2 tokens (1 Conclusão + 1 Sugestão)
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Whisper Credits */}
-            <Card className="glass-card">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Zap className="h-5 w-5 text-indigo-400" />
-                  Créditos Whisper
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Sistema separado para transcrição de áudio de alta precisão:
-                </p>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-indigo-400 flex-shrink-0" />
-                    <span className="text-sm">1 crédito = 1 minuto de áudio</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-indigo-400 flex-shrink-0" />
-                    <span className="text-sm">Transcrição Whisper-large-v3-turbo</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-indigo-400 flex-shrink-0" />
-                    <span className="text-sm">Precisão superior a 95%</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-indigo-400 flex-shrink-0" />
-                    <span className="text-sm">Correção automática de termos médicos</span>
-                  </div>
-                </div>
-                <div className="bg-indigo-400/10 rounded-lg p-3 mt-4">
-                  <p className="text-xs text-muted-foreground">
-                    ℹ️ Créditos Whisper <strong>não consomem tokens</strong>. São sistemas independentes.
                   </p>
                 </div>
               </CardContent>
@@ -459,17 +410,6 @@ const Index = () => {
 
             <AccordionItem value="item-3" className="glass-card px-6 border-0">
               <AccordionTrigger className="text-left">
-                O que são créditos Whisper?
-              </AccordionTrigger>
-              <AccordionContent className="text-muted-foreground">
-                Créditos Whisper são para transcrição de áudio de alta precisão. 1 crédito = 1 minuto de áudio. 
-                O Whisper-large-v3-turbo oferece precisão superior a 95% com correção automática de termos médicos. 
-                Créditos Whisper não consomem tokens - são sistemas independentes.
-              </AccordionContent>
-            </AccordionItem>
-
-            <AccordionItem value="item-4" className="glass-card px-6 border-0">
-              <AccordionTrigger className="text-left">
                 Os dados dos pacientes são seguros?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
@@ -478,7 +418,7 @@ const Index = () => {
               </AccordionContent>
             </AccordionItem>
 
-            <AccordionItem value="item-5" className="glass-card px-6 border-0">
+            <AccordionItem value="item-4" className="glass-card px-6 border-0">
               <AccordionTrigger className="text-left">
                 Posso personalizar os templates?
               </AccordionTrigger>
@@ -488,7 +428,7 @@ const Index = () => {
               </AccordionContent>
             </AccordionItem>
 
-            <AccordionItem value="item-6" className="glass-card px-6 border-0">
+            <AccordionItem value="item-5" className="glass-card px-6 border-0">
               <AccordionTrigger className="text-left">
                 Há período de teste gratuito?
               </AccordionTrigger>
