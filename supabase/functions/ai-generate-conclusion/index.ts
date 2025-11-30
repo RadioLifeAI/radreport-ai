@@ -1,14 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import "https://deno.land/x/xhr@0.1.0/mod.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
+import { getCorsHeaders, getAllHeaders } from '../_shared/cors.ts'
 
 const OPENAI_KEY = Deno.env.get("OPENAI_API_KEY") ?? ""
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization, x-client-info, apikey, x-requested-with",
-}
 
 function sanitizeInputHtml(html: string): string {
   if (!html) return ""
@@ -64,8 +59,33 @@ IMPRESSÃO: "<p>- Nódulo no lobo hepático direito, sugestivo de hemangioma<br>
 `.trim()
 
 serve(async (req: Request) => {
+  const corsHeaders = getCorsHeaders(req);
+  
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders })
-  if (req.method !== "POST") return new Response(JSON.stringify({ error: "Method Not Allowed" }), { status: 405, headers: corsHeaders })
+  if (req.method !== "POST") return new Response(JSON.stringify({ error: "Method Not Allowed" }), { status: 405, headers: { ...getAllHeaders(req), "Content-Type": "application/json" } })
+
+  // JWT Validation
+  const authHeader = req.headers.get('authorization');
+  if (!authHeader) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), { 
+      status: 401, 
+      headers: { ...getAllHeaders(req), "Content-Type": "application/json" }
+    });
+  }
+
+  const supabaseClient = createClient(
+    Deno.env.get('SUPABASE_URL') ?? '',
+    Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+    { global: { headers: { Authorization: authHeader } } }
+  );
+
+  const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+  if (userError || !user) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), { 
+      status: 401, 
+      headers: { ...getAllHeaders(req), "Content-Type": "application/json" }
+    });
+  }
 
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
@@ -199,7 +219,7 @@ Retorne JSON no formato especificado.`
       console.error("Error logging to Supabase:", err)
     }
 
-    return new Response(JSON.stringify(parsed), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } })
+    return new Response(JSON.stringify(parsed), { status: 200, headers: { ...getAllHeaders(req), "Content-Type": "application/json" } })
   } catch (err: any) {
     console.error("Error generating conclusion:", err)
     
@@ -215,6 +235,6 @@ Retorne JSON no formato especificado.`
       })
     } catch {}
 
-    return new Response(JSON.stringify({ error: "Erro interno ao gerar conclusão" }), { status: 500, headers: corsHeaders })
+    return new Response(JSON.stringify({ error: "Erro interno ao gerar conclusão" }), { status: 500, headers: { ...getAllHeaders(req), "Content-Type": "application/json" } })
   }
 })

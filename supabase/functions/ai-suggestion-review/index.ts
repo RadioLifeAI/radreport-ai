@@ -1,12 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import "https://deno.land/x/xhr@0.1.0/mod.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization, x-client-info, apikey, x-requested-with",
-}
+import { getCorsHeaders, getAllHeaders } from '../_shared/cors.ts'
 
 function sanitizeFragment(html: string): string {
   let out = String(html || "")
@@ -26,12 +21,37 @@ RESPOSTA:
 <section id="notes">3-6 comentários objetivos</section>`.trim()
 
 serve(async (req: Request) => {
+  const corsHeaders = getCorsHeaders(req);
+  
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders })
   if (req.method !== "POST")
-    return new Response("Method Not Allowed", { status: 405, headers: corsHeaders })
+    return new Response("Method Not Allowed", { status: 405, headers: { ...getAllHeaders(req), "Content-Type": "application/json" } })
 
   const apiKey = Deno.env.get("OPENAI_API_KEY") || Deno.env.get("OPENAI_KEY") || ""
-  if (!apiKey) return new Response("OPENAI KEY missing", { status: 500, headers: corsHeaders })
+  if (!apiKey) return new Response("OPENAI KEY missing", { status: 500, headers: { ...getAllHeaders(req), "Content-Type": "application/json" } })
+
+  // JWT Validation
+  const authHeader = req.headers.get('authorization');
+  if (!authHeader) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), { 
+      status: 401, 
+      headers: { ...getAllHeaders(req), "Content-Type": "application/json" }
+    });
+  }
+
+  const supabaseClient = createClient(
+    Deno.env.get('SUPABASE_URL') ?? '',
+    Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+    { global: { headers: { Authorization: authHeader } } }
+  );
+
+  const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+  if (userError || !user) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), { 
+      status: 401, 
+      headers: { ...getAllHeaders(req), "Content-Type": "application/json" }
+    });
+  }
 
   let body: { full_report?: string; user_id?: string } = {}
   
@@ -88,7 +108,7 @@ serve(async (req: Request) => {
 
     return new Response(JSON.stringify({ improved, notes, status: "ok" }), { 
       status: 200, 
-      headers: { ...corsHeaders, "Content-Type": "application/json" } 
+      headers: { ...getAllHeaders(req), "Content-Type": "application/json" } 
     })
   } catch (err) {
     console.error("Error reviewing report:", err)
@@ -107,6 +127,6 @@ serve(async (req: Request) => {
       })
     }
 
-    return new Response("Erro ao revisar laudo", { status: 500, headers: corsHeaders })
+    return new Response("Erro ao revisar laudo", { status: 500, headers: { ...getAllHeaders(req), "Content-Type": "application/json" } })
   }
 })

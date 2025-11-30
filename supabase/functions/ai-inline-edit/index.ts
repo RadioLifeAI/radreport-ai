@@ -1,12 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import "https://deno.land/x/xhr@0.1.0/mod.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization, x-client-info, apikey, x-requested-with",
-}
+import { getCorsHeaders, getAllHeaders } from '../_shared/cors.ts'
 
 function sanitizeFragment(html: string): string {
   let out = String(html || "")
@@ -41,13 +36,38 @@ function ensureSectionTag(section: string | undefined, html: string): string {
 }
 
 serve(async (req: Request) => {
+  const corsHeaders = getCorsHeaders(req);
+  
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders })
   if (req.method !== "POST")
-    return new Response("Method Not Allowed", { status: 405, headers: corsHeaders })
+    return new Response("Method Not Allowed", { status: 405, headers: { ...getAllHeaders(req), "Content-Type": "application/json" } })
 
   const apiKey = Deno.env.get("OPENAI_API_KEY") || Deno.env.get("OPENAI_KEY") || ""
   if (!apiKey)
-    return new Response("OPENAI key missing", { status: 500, headers: corsHeaders })
+    return new Response("OPENAI key missing", { status: 500, headers: { ...getAllHeaders(req), "Content-Type": "application/json" } })
+
+  // JWT Validation
+  const authHeader = req.headers.get('authorization');
+  if (!authHeader) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), { 
+      status: 401, 
+      headers: { ...getAllHeaders(req), "Content-Type": "application/json" }
+    });
+  }
+
+  const supabaseClient = createClient(
+    Deno.env.get('SUPABASE_URL') ?? '',
+    Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+    { global: { headers: { Authorization: authHeader } } }
+  );
+
+  const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+  if (userError || !user) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), { 
+      status: 401, 
+      headers: { ...getAllHeaders(req), "Content-Type": "application/json" }
+    });
+  }
 
   try {
     const { userRequest, selection, fullDocument, userId, section } = await req.json()
@@ -115,7 +135,9 @@ ${sectionRules}
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "gpt-5-nano-2025-08-07",
+        max_completion_tokens: 1500,
+        reasoning_effort: 'low',
         messages: [
           { role: "system", content: systemPrompt },
           {
@@ -130,7 +152,7 @@ ${sectionRules}
     const raw = completion.choices?.[0]?.message?.content || ""
     let html = ensureSectionTag(sec, raw)
     html = sanitizeFragment(html)
-    const headers = { ...corsHeaders, "Content-Type": "text/html" }
+    const headers = { ...getAllHeaders(req), "Content-Type": "text/html" }
 
     // LOG SUPABASE (opcional)
     const supabaseUrl = Deno.env.get("SUPABASE_URL")
@@ -164,6 +186,6 @@ ${sectionRules}
         metadata: { section, message: String((err as any)?.message || err) },
       })
     }
-    return new Response("Erro ao processar edição", { status: 500, headers: corsHeaders })
+    return new Response("Erro ao processar edição", { status: 500, headers: { ...getAllHeaders(req), "Content-Type": "application/json" } })
   }
 })
