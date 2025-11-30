@@ -1,445 +1,610 @@
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
+import { Skeleton } from '@/components/ui/skeleton';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { useEditorSettings } from '@/hooks/useEditorSettings';
 import { useAuth } from '@/hooks/useAuth';
-import { Slider } from '@/components/ui/slider';
-import { Lock, AlertTriangle } from 'lucide-react';
-import { useState } from 'react';
-import { User, Edit3, Sparkles, Mic, Shield } from 'lucide-react';
+import { UserCreditsCard } from './UserCreditsCard';
+import { User, FileText, Sparkles, Mic, Lock, AlertTriangle, History, CreditCard } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+
+// Consistent credit thresholds
+const CREDIT_THRESHOLDS = {
+  AI: { GREEN: 100, YELLOW: 50 },
+  WHISPER: { GREEN: 10, YELLOW: 5 }
+};
 
 interface UserSettingsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  defaultTab?: string;
 }
 
-export const UserSettingsModal = ({ open, onOpenChange }: UserSettingsModalProps) => {
-  const { profile, updateProfile } = useUserProfile();
-  const { settings, updateSettings } = useEditorSettings();
+// Validation functions
+const validateName = (name: string): string | null => {
+  if (!name || name.trim().length < 3) {
+    return 'Nome deve ter no mínimo 3 caracteres';
+  }
+  if (!/^[A-Za-zÀ-ÿ\s]+$/.test(name)) {
+    return 'Nome deve conter apenas letras e espaços';
+  }
+  return null;
+};
+
+const validateCRM = (crm: string): string | null => {
+  if (!crm) return null; // CRM is optional
+  // Format: 4-7 digits + hyphen + 2 letter state (e.g., 123456-SP)
+  if (!/^\d{4,7}-[A-Z]{2}$/.test(crm)) {
+    return 'CRM deve estar no formato: 123456-SP';
+  }
+  return null;
+};
+
+export const UserSettingsModal = ({ open, onOpenChange, defaultTab = 'profile' }: UserSettingsModalProps) => {
+  const { profile, updateProfile, isLoading: profileLoading } = useUserProfile();
+  const { settings, updateSettings, isLoading: settingsLoading } = useEditorSettings();
   const { user } = useAuth();
   const [isSaving, setIsSaving] = useState(false);
+  const [currentTab, setCurrentTab] = useState(defaultTab);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Update tab when defaultTab changes
+  useEffect(() => {
+    if (open) {
+      setCurrentTab(defaultTab);
+    }
+  }, [defaultTab, open]);
 
   const handleProfileUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    
     setIsSaving(true);
+    setErrors({});
+
+    const formData = new FormData(e.currentTarget);
+    const updates = {
+      full_name: formData.get('full_name') as string,
+      specialty: formData.get('specialty') as string,
+      crm: formData.get('crm') as string,
+      institution: formData.get('institution') as string,
+    };
+
+    // Validate fields
+    const newErrors: Record<string, string> = {};
+    
+    const nameError = validateName(updates.full_name);
+    if (nameError) newErrors.full_name = nameError;
+
+    const crmError = validateCRM(updates.crm);
+    if (crmError) newErrors.crm = crmError;
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      setIsSaving(false);
+      toast.error('Corrija os erros nos campos');
+      return;
+    }
+
     try {
-      await updateProfile({
-        full_name: formData.get('full_name') as string,
-        specialty: formData.get('specialty') as string,
-        crm: formData.get('crm') as string,
-        institution: formData.get('institution') as string,
-      });
+      await updateProfile(updates);
+      setErrors({});
+    } catch (error) {
+      console.error('Error updating profile:', error);
     } finally {
       setIsSaving(false);
     }
   };
 
+  const handleResetPassword = async () => {
+    if (!user?.email) return;
+    
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
+        redirectTo: `${window.location.origin}/editor`,
+      });
+      
+      if (error) throw error;
+      toast.success('Email de redefinição de senha enviado!');
+    } catch (error) {
+      console.error('Error sending reset password email:', error);
+      toast.error('Erro ao enviar email de redefinição');
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    toast.info('Funcionalidade em desenvolvimento');
+    // TODO: Implement account deletion with proper data cleanup
+  };
+
+  const isLoading = profileLoading || settingsLoading;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-card/95 backdrop-blur-md border-border/40">
+      <DialogContent className="max-w-[95vw] sm:max-w-lg md:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold gradient-text-medical">
-            Configurações
-          </DialogTitle>
-          <DialogDescription className="text-muted-foreground">
-            Gerencie suas preferências e configurações do editor
-          </DialogDescription>
+          <DialogTitle className="text-xl font-semibold">Configurações do Usuário</DialogTitle>
         </DialogHeader>
 
-        <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid w-full grid-cols-5 bg-muted/30">
-            <TabsTrigger value="profile" className="text-xs">
-              <User size={14} className="mr-1" />
-              Perfil
+        <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-5 sm:grid-cols-7 bg-muted/30 gap-0.5 sm:gap-1 p-1">
+            <TabsTrigger value="profile" className="text-xs gap-1 px-1 sm:px-3 min-h-[44px]">
+              <User size={16} className="shrink-0" />
+              <span className="hidden sm:inline">Perfil</span>
             </TabsTrigger>
-            <TabsTrigger value="editor" className="text-xs">
-              <Edit3 size={14} className="mr-1" />
-              Editor
+            <TabsTrigger value="editor" className="text-xs gap-1 px-1 sm:px-3 min-h-[44px]">
+              <FileText size={16} className="shrink-0" />
+              <span className="hidden sm:inline">Editor</span>
             </TabsTrigger>
-            <TabsTrigger value="ai" className="text-xs">
-              <Sparkles size={14} className="mr-1" />
-              IA
+            <TabsTrigger value="ai" className="text-xs gap-1 px-1 sm:px-3 min-h-[44px]">
+              <Sparkles size={16} className="shrink-0" />
+              <span className="hidden sm:inline">IA</span>
             </TabsTrigger>
-            <TabsTrigger value="voice" className="text-xs">
-              <Mic size={14} className="mr-1" />
-              Voz
+            <TabsTrigger value="voice" className="text-xs gap-1 px-1 sm:px-3 min-h-[44px]">
+              <Mic size={16} className="shrink-0" />
+              <span className="hidden sm:inline">Voz</span>
             </TabsTrigger>
-            <TabsTrigger value="security" className="text-xs">
-              <Shield size={14} className="mr-1" />
-              Segurança
+            <TabsTrigger value="security" className="text-xs gap-1 px-1 sm:px-3 min-h-[44px]">
+              <Lock size={16} className="shrink-0" />
+              <span className="hidden sm:inline">Segurança</span>
+            </TabsTrigger>
+            <TabsTrigger value="history" className="text-xs gap-1 px-1 sm:px-3 min-h-[44px]">
+              <History size={16} className="shrink-0" />
+              <span className="hidden sm:inline">Histórico</span>
+            </TabsTrigger>
+            <TabsTrigger value="credits" className="text-xs gap-1 px-1 sm:px-3 min-h-[44px]">
+              <CreditCard size={16} className="shrink-0" />
+              <span className="hidden sm:inline">Créditos</span>
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="profile" className="space-y-4 pt-4">
-            <form onSubmit={handleProfileUpdate} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="full_name">Nome Completo</Label>
-                <Input
-                  id="full_name"
-                  name="full_name"
-                  defaultValue={profile?.full_name || ''}
-                  placeholder="Dr. João Silva"
-                />
+          {/* Profile Tab */}
+          <TabsContent value="profile" className="space-y-4 mt-4">
+            {isLoading ? (
+              <div className="space-y-4">
+                <Skeleton className="h-20 w-full" />
+                <Skeleton className="h-20 w-full" />
+                <Skeleton className="h-20 w-full" />
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="specialty">Especialidade</Label>
-                <Input
-                  id="specialty"
-                  name="specialty"
-                  defaultValue={profile?.specialty || ''}
-                  placeholder="Radiologia, Neurorradiologia, etc."
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="crm">CRM</Label>
-                <Input
-                  id="crm"
-                  name="crm"
-                  defaultValue={profile?.crm || ''}
-                  placeholder="123456"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="institution">Instituição</Label>
-                <Input
-                  id="institution"
-                  name="institution"
-                  defaultValue={profile?.institution || ''}
-                  placeholder="Hospital/Clínica"
-                />
-              </div>
-
-              <Button type="submit" disabled={isSaving} className="w-full">
-                {isSaving ? 'Salvando...' : 'Salvar Perfil'}
-              </Button>
-            </form>
-          </TabsContent>
-
-          <TabsContent value="editor" className="space-y-4 pt-4">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="auto_save">Auto-salvar ativado</Label>
-                <Switch
-                  id="auto_save"
-                  checked={settings?.auto_save_enabled ?? true}
-                  onCheckedChange={(checked) => 
-                    updateSettings({ auto_save_enabled: checked })
-                  }
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="auto_save_interval">Intervalo de Auto-salvar</Label>
-                <Select
-                  value={settings?.auto_save_interval?.toString() || '30'}
-                  onValueChange={(value) => 
-                    updateSettings({ auto_save_interval: parseInt(value) })
-                  }
-                  disabled={!settings?.auto_save_enabled}
-                >
-                  <SelectTrigger id="auto_save_interval">
-                    <SelectValue placeholder="Selecione o intervalo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="15">15 segundos</SelectItem>
-                    <SelectItem value="30">30 segundos</SelectItem>
-                    <SelectItem value="60">1 minuto</SelectItem>
-                    <SelectItem value="120">2 minutos</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="theme">Tema do Editor</Label>
-                <Select
-                  value={settings?.theme || 'dark'}
-                  onValueChange={(value) => 
-                    updateSettings({ theme: value })
-                  }
-                >
-                  <SelectTrigger id="theme">
-                    <SelectValue placeholder="Selecione o tema" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="light">☀️ Claro</SelectItem>
-                    <SelectItem value="dark">🌙 Escuro</SelectItem>
-                    <SelectItem value="system">💻 Sistema</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="font_family">Família da Fonte</Label>
-                <Select
-                  value={settings?.font_family || 'Inter'}
-                  onValueChange={(value) => 
-                    updateSettings({ font_family: value })
-                  }
-                >
-                  <SelectTrigger id="font_family">
-                    <SelectValue placeholder="Selecione a fonte" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Inter">Inter</SelectItem>
-                    <SelectItem value="Roboto">Roboto</SelectItem>
-                    <SelectItem value="Open Sans">Open Sans</SelectItem>
-                    <SelectItem value="Lato">Lato</SelectItem>
-                    <SelectItem value="Arial">Arial</SelectItem>
-                    <SelectItem value="Georgia">Georgia (Serif)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="font_size">Tamanho da Fonte</Label>
-                <Select
-                  value={settings?.font_size?.toString() || '14'}
-                  onValueChange={(value) => 
-                    updateSettings({ font_size: parseInt(value) })
-                  }
-                >
-                  <SelectTrigger id="font_size">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="12">12px</SelectItem>
-                    <SelectItem value="14">14px</SelectItem>
-                    <SelectItem value="16">16px</SelectItem>
-                    <SelectItem value="18">18px</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="line_height">Altura da Linha</Label>
-                <Select
-                  value={settings?.line_height?.toString() || '1.5'}
-                  onValueChange={(value) => 
-                    updateSettings({ line_height: parseFloat(value) })
-                  }
-                >
-                  <SelectTrigger id="line_height">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1.2">1.2</SelectItem>
-                    <SelectItem value="1.5">1.5</SelectItem>
-                    <SelectItem value="1.8">1.8</SelectItem>
-                    <SelectItem value="2.0">2.0</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="ai" className="space-y-4 pt-4">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="ai_enabled">Ativar IA</Label>
-                <Switch
-                  id="ai_enabled"
-                  checked={settings?.ai_enabled ?? true}
-                  onCheckedChange={(checked) => 
-                    updateSettings({ ai_enabled: checked })
-                  }
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <Label htmlFor="ai_auto_suggest">Sugestões Automáticas</Label>
-                <Switch
-                  id="ai_auto_suggest"
-                  checked={settings?.ai_auto_suggest ?? true}
-                  onCheckedChange={(checked) => 
-                    updateSettings({ ai_auto_suggest: checked })
-                  }
-                  disabled={!settings?.ai_enabled}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="ai_confidence">Confiança Mínima para Sugestões</Label>
-                <div className="flex items-center gap-4">
-                  <Slider
-                    id="ai_confidence"
-                    value={[settings?.ai_confidence_threshold ?? 0.7]}
-                    onValueChange={([value]) => 
-                      updateSettings({ ai_confidence_threshold: value })
-                    }
-                    min={0.5}
-                    max={1.0}
-                    step={0.05}
-                    className="flex-1"
-                    disabled={!settings?.ai_enabled}
+            ) : (
+              <form onSubmit={handleProfileUpdate} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="full_name">Nome Completo *</Label>
+                  <Input
+                    id="full_name"
+                    name="full_name"
+                    defaultValue={profile?.full_name || ''}
+                    placeholder="Seu nome completo"
+                    disabled={isSaving}
+                    className={errors.full_name ? 'border-destructive' : ''}
                   />
-                  <span className="text-sm text-muted-foreground w-12 text-right">
-                    {Math.round((settings?.ai_confidence_threshold ?? 0.7) * 100)}%
-                  </span>
+                  {errors.full_name && (
+                    <p className="text-xs text-destructive">{errors.full_name}</p>
+                  )}
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Sugestões com confiança abaixo deste valor serão ignoradas
-                </p>
-              </div>
-            </div>
-          </TabsContent>
 
-          <TabsContent value="voice" className="space-y-4 pt-4">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="voice_enabled">Ativar Ditado por Voz</Label>
-                <Switch
-                  id="voice_enabled"
-                  checked={settings?.voice_enabled ?? true}
-                  onCheckedChange={(checked) => 
-                    updateSettings({ voice_enabled: checked })
-                  }
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <Label htmlFor="voice_auto_punctuation">Pontuação Automática</Label>
-                <Switch
-                  id="voice_auto_punctuation"
-                  checked={settings?.voice_auto_punctuation ?? true}
-                  onCheckedChange={(checked) => 
-                    updateSettings({ voice_auto_punctuation: checked })
-                  }
-                  disabled={!settings?.voice_enabled}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="voice_language">Idioma do Reconhecimento</Label>
-                <Select
-                  value={settings?.voice_language || 'pt-BR'}
-                  onValueChange={(value) => 
-                    updateSettings({ voice_language: value })
-                  }
-                  disabled={!settings?.voice_enabled}
-                >
-                  <SelectTrigger id="voice_language">
-                    <SelectValue placeholder="Selecione o idioma" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pt-BR">🇧🇷 Português (Brasil)</SelectItem>
-                    <SelectItem value="pt-PT">🇵🇹 Português (Portugal)</SelectItem>
-                    <SelectItem value="en-US">🇺🇸 Inglês (EUA)</SelectItem>
-                    <SelectItem value="es-ES">🇪🇸 Espanhol</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="voice_sensitivity">Sensibilidade do Microfone</Label>
-                <div className="flex items-center gap-4">
-                  <Slider
-                    id="voice_sensitivity"
-                    value={[settings?.voice_sensitivity ?? 0.8]}
-                    onValueChange={([value]) => 
-                      updateSettings({ voice_sensitivity: value })
-                    }
-                    min={0.3}
-                    max={1.0}
-                    step={0.05}
-                    className="flex-1"
-                    disabled={!settings?.voice_enabled}
+                <div className="space-y-2">
+                  <Label htmlFor="specialty">Especialidade</Label>
+                  <Input
+                    id="specialty"
+                    name="specialty"
+                    defaultValue={profile?.specialty || ''}
+                    placeholder="Ex: Radiologia"
+                    disabled={isSaving}
                   />
-                  <span className="text-sm text-muted-foreground w-12 text-right">
-                    {Math.round((settings?.voice_sensitivity ?? 0.8) * 100)}%
-                  </span>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Valores mais altos captam sons mais baixos
-                </p>
-              </div>
-            </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="crm">CRM</Label>
+                  <Input
+                    id="crm"
+                    name="crm"
+                    defaultValue={profile?.crm || ''}
+                    placeholder="Ex: 123456-SP"
+                    disabled={isSaving}
+                    className={errors.crm ? 'border-destructive' : ''}
+                  />
+                  {errors.crm && (
+                    <p className="text-xs text-destructive">{errors.crm}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground">Formato: 6 dígitos-UF (ex: 123456-SP)</p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="institution">Instituição</Label>
+                  <Input
+                    id="institution"
+                    name="institution"
+                    defaultValue={profile?.institution || ''}
+                    placeholder="Nome da instituição"
+                    disabled={isSaving}
+                  />
+                </div>
+
+                <Button type="submit" className="w-full min-h-[44px]" disabled={isSaving}>
+                  {isSaving ? 'Salvando...' : 'Salvar Alterações'}
+                </Button>
+              </form>
+            )}
           </TabsContent>
 
-          <TabsContent value="security" className="space-y-4 pt-4">
-            <div className="space-y-4">
-              {/* Informações da Conta */}
-              <div className="p-4 rounded-lg bg-muted/30 space-y-2">
-                <Label className="text-muted-foreground text-xs uppercase tracking-wider">
-                  Conta
-                </Label>
-                <p className="text-sm font-medium">{user?.email}</p>
-                <p className="text-xs text-muted-foreground">
-                  Criada em: {user?.created_at ? new Date(user.created_at).toLocaleDateString('pt-BR', {
-                    day: '2-digit',
-                    month: 'long',
-                    year: 'numeric'
-                  }) : '—'}
-                </p>
+          {/* Editor Tab */}
+          <TabsContent value="editor" className="space-y-4 mt-4">
+            {isLoading ? (
+              <div className="space-y-4">
+                <Skeleton className="h-16 w-full" />
+                <Skeleton className="h-16 w-full" />
+                <Skeleton className="h-16 w-full" />
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Auto-salvar</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Salvar automaticamente as alterações
+                    </p>
+                  </div>
+                  <Switch
+                    checked={settings?.auto_save_enabled ?? true}
+                    onCheckedChange={(checked) => updateSettings({ auto_save_enabled: checked })}
+                    disabled={isSaving}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Intervalo de Auto-salvar</Label>
+                  <Select
+                    value={settings?.auto_save_interval?.toString() || '30'}
+                    onValueChange={(value) => updateSettings({ auto_save_interval: parseInt(value) })}
+                    disabled={isSaving}
+                  >
+                    <SelectTrigger className="min-h-[44px]">
+                      <SelectValue placeholder="Selecione o intervalo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="15">15 segundos</SelectItem>
+                      <SelectItem value="30">30 segundos</SelectItem>
+                      <SelectItem value="60">1 minuto</SelectItem>
+                      <SelectItem value="120">2 minutos</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Tema do Editor</Label>
+                  <Select
+                    value={settings?.theme || 'dark'}
+                    onValueChange={(value) => updateSettings({ theme: value })}
+                    disabled={isSaving}
+                  >
+                    <SelectTrigger className="min-h-[44px]">
+                      <SelectValue placeholder="Selecione o tema" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="light">Claro</SelectItem>
+                      <SelectItem value="dark">Escuro</SelectItem>
+                      <SelectItem value="system">Sistema</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Família da Fonte</Label>
+                  <Select
+                    value={settings?.font_family || 'Inter'}
+                    onValueChange={(value) => updateSettings({ font_family: value })}
+                    disabled={isSaving}
+                  >
+                    <SelectTrigger className="min-h-[44px]">
+                      <SelectValue placeholder="Selecione a fonte" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Inter">Inter</SelectItem>
+                      <SelectItem value="Roboto">Roboto</SelectItem>
+                      <SelectItem value="Open Sans">Open Sans</SelectItem>
+                      <SelectItem value="Arial">Arial</SelectItem>
+                      <SelectItem value="Georgia">Georgia</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Tamanho da Fonte</Label>
+                  <Select
+                    value={settings?.font_size?.toString() || '14'}
+                    onValueChange={(value) => updateSettings({ font_size: parseInt(value) })}
+                    disabled={isSaving}
+                  >
+                    <SelectTrigger className="min-h-[44px]">
+                      <SelectValue placeholder="Selecione o tamanho" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="12">12px</SelectItem>
+                      <SelectItem value="14">14px (padrão)</SelectItem>
+                      <SelectItem value="16">16px</SelectItem>
+                      <SelectItem value="18">18px</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Altura da Linha</Label>
+                  <Select
+                    value={settings?.line_height?.toString() || '1.5'}
+                    onValueChange={(value) => updateSettings({ line_height: parseFloat(value) })}
+                    disabled={isSaving}
+                  >
+                    <SelectTrigger className="min-h-[44px]">
+                      <SelectValue placeholder="Selecione a altura" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1.2">1.2</SelectItem>
+                      <SelectItem value="1.5">1.5 (padrão)</SelectItem>
+                      <SelectItem value="1.8">1.8</SelectItem>
+                      <SelectItem value="2.0">2.0</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
+          </TabsContent>
+
+          {/* AI Tab */}
+          <TabsContent value="ai" className="space-y-4 mt-4">
+            {isLoading ? (
+              <div className="space-y-4">
+                <Skeleton className="h-16 w-full" />
+                <Skeleton className="h-16 w-full" />
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Ativar IA</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Habilitar recursos de inteligência artificial
+                    </p>
+                  </div>
+                  <Switch
+                    checked={settings?.ai_enabled ?? true}
+                    onCheckedChange={(checked) => updateSettings({ ai_enabled: checked })}
+                    disabled={isSaving}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Sugestões Automáticas</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Receber sugestões da IA automaticamente
+                    </p>
+                  </div>
+                  <Switch
+                    checked={settings?.ai_auto_suggest ?? false}
+                    onCheckedChange={(checked) => updateSettings({ ai_auto_suggest: checked })}
+                    disabled={isSaving}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Confiança Mínima para Sugestões</Label>
+                  <div className="flex items-center gap-4">
+                    <Slider
+                      value={[settings?.ai_confidence_threshold || 70]}
+                      onValueChange={([value]) => updateSettings({ ai_confidence_threshold: value })}
+                      min={50}
+                      max={100}
+                      step={5}
+                      className="flex-1"
+                      disabled={isSaving}
+                    />
+                    <span className="text-sm font-medium w-12 text-right">
+                      {settings?.ai_confidence_threshold || 70}%
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Sugestões com confiança abaixo deste valor serão ignoradas
+                  </p>
+                </div>
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Voice Tab */}
+          <TabsContent value="voice" className="space-y-4 mt-4">
+            {isLoading ? (
+              <div className="space-y-4">
+                <Skeleton className="h-16 w-full" />
+                <Skeleton className="h-16 w-full" />
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Ativar Ditado por Voz</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Habilitar entrada de voz no editor
+                    </p>
+                  </div>
+                  <Switch
+                    checked={settings?.voice_enabled ?? true}
+                    onCheckedChange={(checked) => updateSettings({ voice_enabled: checked })}
+                    disabled={isSaving}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Pontuação Automática</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Adicionar pontuação automaticamente
+                    </p>
+                  </div>
+                  <Switch
+                    checked={settings?.voice_auto_punctuation ?? true}
+                    onCheckedChange={(checked) => updateSettings({ voice_auto_punctuation: checked })}
+                    disabled={isSaving}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Idioma do Reconhecimento</Label>
+                  <Select
+                    value={settings?.voice_language || 'pt-BR'}
+                    onValueChange={(value) => updateSettings({ voice_language: value })}
+                    disabled={isSaving}
+                  >
+                    <SelectTrigger className="min-h-[44px]">
+                      <SelectValue placeholder="Selecione o idioma" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pt-BR">Português (Brasil)</SelectItem>
+                      <SelectItem value="pt-PT">Português (Portugal)</SelectItem>
+                      <SelectItem value="en-US">English (US)</SelectItem>
+                      <SelectItem value="es-ES">Español</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Sensibilidade do Microfone</Label>
+                  <div className="flex items-center gap-4">
+                    <Slider
+                      value={[settings?.voice_sensitivity || 70]}
+                      onValueChange={([value]) => updateSettings({ voice_sensitivity: value })}
+                      min={30}
+                      max={100}
+                      step={5}
+                      className="flex-1"
+                      disabled={isSaving}
+                    />
+                    <span className="text-sm font-medium w-12 text-right">
+                      {settings?.voice_sensitivity || 70}%
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Valores mais altos captam sons mais baixos
+                  </p>
+                </div>
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Security Tab */}
+          <TabsContent value="security" className="space-y-4 mt-4">
+            <div className="space-y-6">
+              {/* Account Information */}
+              <div className="space-y-3">
+                <h3 className="text-sm font-semibold flex items-center gap-2">
+                  <Lock size={16} />
+                  Informações da Conta
+                </h3>
+                
+                <div className="space-y-2 rounded-lg border border-border/40 p-4 bg-muted/20">
+                  <div className="flex justify-between items-center gap-2">
+                    <span className="text-sm text-muted-foreground">Email</span>
+                    <span className="text-sm font-medium break-all">{user?.email}</span>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Criado em</span>
+                    <span className="text-sm font-medium">
+                      {user?.created_at ? new Date(user.created_at).toLocaleDateString('pt-BR') : '-'}
+                    </span>
+                  </div>
+                </div>
               </div>
 
-              {/* Alterar Senha */}
-              <div className="space-y-2">
-                <Label>Alterar Senha</Label>
+              {/* Password Reset */}
+              <div className="space-y-3">
+                <h3 className="text-sm font-semibold">Redefinir Senha</h3>
+                <p className="text-xs text-muted-foreground">
+                  Enviaremos um email com instruções para redefinir sua senha
+                </p>
                 <Button 
                   variant="outline" 
-                  className="w-full"
-                  onClick={async () => {
-                    const { supabase } = await import('@/integrations/supabase/client');
-                    const { error } = await supabase.auth.resetPasswordForEmail(user?.email || '', {
-                      redirectTo: `${window.location.origin}/reset-password`,
-                    });
-                    if (error) {
-                      toast.error('Erro ao enviar email de redefinição');
-                    } else {
-                      toast.success('Email de redefinição enviado com sucesso');
-                    }
-                  }}
+                  className="w-full min-h-[44px]"
+                  onClick={handleResetPassword}
                 >
-                  <Lock size={14} className="mr-2" />
-                  Enviar email para redefinir senha
+                  Enviar Email de Redefinição
                 </Button>
-                <p className="text-xs text-muted-foreground">
-                  Você receberá um email com instruções para criar nova senha
-                </p>
               </div>
 
-              {/* Excluir Conta */}
-              <div className="pt-4 border-t border-border/40">
-                <Label className="text-destructive">Zona de Perigo</Label>
-                <Button 
-                  variant="destructive" 
-                  className="w-full mt-2"
-                  onClick={() => {
-                    toast.error('Funcionalidade em desenvolvimento', {
-                      description: 'Por favor, entre em contato com o suporte para excluir sua conta.'
-                    });
-                  }}
-                >
-                  <AlertTriangle size={14} className="mr-2" />
-                  Excluir Minha Conta
-                </Button>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Esta ação é irreversível e excluirá todos os seus dados
+              {/* Danger Zone */}
+              <div className="space-y-3 pt-4 border-t border-destructive/20">
+                <h3 className="text-sm font-semibold text-destructive flex items-center gap-2">
+                  <AlertTriangle size={16} />
+                  Zona de Perigo
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  Excluir sua conta é permanente e não pode ser desfeito
+                </p>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button 
+                      variant="destructive" 
+                      className="w-full min-h-[44px]"
+                    >
+                      Excluir Minha Conta
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Esta ação não pode ser desfeita. Isso excluirá permanentemente sua conta
+                        e removerá seus dados de nossos servidores.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleDeleteAccount} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                        Sim, excluir conta
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* History Tab */}
+          <TabsContent value="history" className="space-y-4 mt-4">
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 mb-4">
+                <History size={20} className="text-muted-foreground" />
+                <h3 className="text-lg font-semibold">Histórico de Uso</h3>
+              </div>
+              
+              <div className="rounded-lg border border-border/40 p-8 text-center bg-muted/10">
+                <History size={48} className="mx-auto mb-4 text-muted-foreground/50" />
+                <p className="text-sm text-muted-foreground mb-2">
+                  Histórico de uso em desenvolvimento
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Em breve você poderá visualizar seu histórico de laudos, templates e estatísticas
                 </p>
               </div>
+            </div>
+          </TabsContent>
+
+          {/* Credits Tab */}
+          <TabsContent value="credits" className="space-y-4 mt-4">
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 mb-4">
+                <CreditCard size={20} className="text-muted-foreground" />
+                <h3 className="text-lg font-semibold">Créditos & Plano</h3>
+              </div>
+              
+              <UserCreditsCard />
             </div>
           </TabsContent>
         </Tabs>
