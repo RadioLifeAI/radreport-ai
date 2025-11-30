@@ -1,9 +1,13 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { useState } from 'react';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const location = useLocation();
+  
+  const isLoginPage = location.pathname === '/login';
+  const isSignupPage = location.pathname === '/signup';
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -35,18 +39,22 @@ export default function Header() {
 
         {/* CTA Buttons */}
         <div className="hidden md:flex items-center gap-4">
-          <Link
-            to="/login"
-            className="text-sm font-medium text-foreground hover:text-primary transition-colors"
-          >
-            Entrar
-          </Link>
-          <Link
-            to="/signup"
-            className="btn-premium text-sm px-4 py-2 rounded-lg"
-          >
-            Começar gratuitamente
-          </Link>
+          {!isLoginPage && (
+            <Link
+              to="/login"
+              className="text-sm font-medium text-foreground hover:text-primary transition-colors"
+            >
+              Entrar
+            </Link>
+          )}
+          {!isSignupPage && (
+            <Link
+              to="/signup"
+              className="btn-premium text-sm px-4 py-2 rounded-lg"
+            >
+              Começar gratuitamente
+            </Link>
+          )}
         </div>
 
         {/* Mobile Menu Button */}
@@ -92,20 +100,24 @@ export default function Header() {
               Contato
             </Link>
             <div className="pt-4 space-y-2 border-t border-border/40">
-              <Link
-                to="/login"
-                className="block text-center text-sm font-medium text-foreground hover:text-primary transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Entrar
-              </Link>
-              <Link
-                to="/signup"
-                className="block btn-premium text-sm px-4 py-2 rounded-lg text-center"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Começar gratuitamente
-              </Link>
+              {!isLoginPage && (
+                <Link
+                  to="/login"
+                  className="block text-center text-sm font-medium text-foreground hover:text-primary transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Entrar
+                </Link>
+              )}
+              {!isSignupPage && (
+                <Link
+                  to="/signup"
+                  className="block btn-premium text-sm px-4 py-2 rounded-lg text-center"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Começar gratuitamente
+                </Link>
+              )}
             </div>
           </div>
         </div>
