@@ -5,6 +5,8 @@ import GoogleOneTap from '@/components/GoogleOneTap';
 import GoogleLoginButton from '@/components/GoogleLoginButton';
 import EmailVerificationNotice from '@/components/EmailVerificationNotice';
 import LoginHeroBackground from '@/components/LoginHeroBackground';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 import { isValidMedicalEmail, sanitizeInput } from '@/utils/validation';
 
 export default function Login() {
@@ -89,22 +91,14 @@ export default function Login() {
   }
 
   return (
-    <div className="login-hero-container relative overflow-hidden">
-      <LoginHeroBackground />
-      <div className="login-hero-glow" />
+    <div className="min-h-screen flex flex-col">
+      <Header />
+      <main className="flex-1 login-hero-container relative overflow-hidden">
+        <LoginHeroBackground />
+        <div className="login-hero-glow" />
 
-      <div className="relative z-float w-full max-w-md mx-auto px-4 py-16">
-        <div className="mb-8">
-          <Link
-            to="/"
-            className="flex items-center gap-2 text-foreground hover:text-primary transition-colors"
-          >
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-cyan-400/80 to-indigo-500/60 shadow-glow" />
-            <span className="font-semibold tracking-tight">RadReport</span>
-          </Link>
-        </div>
-
-        <div className="mb-12 text-center animate-fade-in">
+        <div className="relative z-float w-full max-w-md mx-auto px-4 py-16">
+          <div className="mb-12 text-center animate-fade-in">
           <h1 className="text-4xl md:text-5xl font-extrabold mb-4 gradient-text-medical">
             Bem-vindo de volta!
           </h1>
@@ -202,9 +196,11 @@ export default function Login() {
             </p>
           </div>
         </div>
-      </div>
+        </div>
 
-      <GoogleOneTap />
+        <GoogleOneTap />
+      </main>
+      <Footer />
     </div>
   );
 }
