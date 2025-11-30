@@ -19,6 +19,8 @@ import ForgotPassword from "./pages/ForgotPassword";
 import Privacidade from "./pages/Privacidade";
 import Termos from "./pages/Termos";
 import LGPD from "./pages/LGPD";
+import Cookies from "./pages/Cookies";
+import { CookieBanner } from "./components/CookieBanner";
 
 const queryClient = new QueryClient();
 
@@ -34,26 +36,28 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<SignUp />} />
-          <Route path="/editor" element={<Editor />} />
-          <Route path="/editor-test" element={<EditorTest />} />
-          <Route path="/auth/callback" element={<AuthCallback />} />
-          <Route path="/recursos" element={<Recursos />} />
-          <Route path="/precos" element={<Precos />} />
-          <Route path="/sobre" element={<Sobre />} />
-          <Route path="/contato" element={<Contato />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/privacidade" element={<Privacidade />} />
-          <Route path="/termos" element={<Termos />} />
-          <Route path="/lgpd" element={<LGPD />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<SignUp />} />
+            <Route path="/editor" element={<Editor />} />
+            <Route path="/editor-test" element={<EditorTest />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/recursos" element={<Recursos />} />
+            <Route path="/precos" element={<Precos />} />
+            <Route path="/sobre" element={<Sobre />} />
+            <Route path="/contato" element={<Contato />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/privacidade" element={<Privacidade />} />
+            <Route path="/termos" element={<Termos />} />
+            <Route path="/lgpd" element={<LGPD />} />
+            <Route path="/cookies" element={<Cookies />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+          <CookieBanner />
+        </BrowserRouter>
+      </TooltipProvider>
     </ThemeProvider>
   </QueryClientProvider>
 );
