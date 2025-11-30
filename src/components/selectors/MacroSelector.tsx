@@ -143,10 +143,10 @@ export const MacroSelector: React.FC<MacroSelectorProps> = ({
       {dropdownVisible && (
         <>
           <div 
-            className="fixed inset-0 z-40" 
+            className="fixed inset-0 z-[60]" 
             onClick={() => setDropdownVisible(false)}
           />
-          <div className="absolute top-full left-0 mt-2 w-[520px] md:w-[580px] lg:w-[640px] max-h-[600px] bg-card border border-border/40 rounded-xl shadow-2xl overflow-hidden z-50">
+          <div className="absolute top-full left-0 mt-2 w-[520px] md:w-[580px] lg:w-[640px] max-h-[600px] bg-card border border-border/40 rounded-xl shadow-2xl overflow-hidden z-[70]">
             {/* Modality Tabs */}
             <div className="flex items-center gap-1 p-2 border-b border-border/40 bg-muted/30">
               {modalities.map(modality => (
