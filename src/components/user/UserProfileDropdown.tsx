@@ -24,7 +24,7 @@ import {
 import { useState } from 'react';
 
 interface UserProfileDropdownProps {
-  onOpenSettings: () => void;
+  onOpenSettings: (tab?: string) => void;
 }
 
 export const UserProfileDropdown = ({ onOpenSettings }: UserProfileDropdownProps) => {
@@ -78,25 +78,46 @@ export const UserProfileDropdown = ({ onOpenSettings }: UserProfileDropdownProps
         
         <DropdownMenuSeparator className="bg-border/40" />
         
-        <DropdownMenuItem className="cursor-pointer hover:bg-muted/50">
+        <DropdownMenuItem 
+          className="cursor-pointer hover:bg-muted/50"
+          onClick={() => {
+            setOpen(false);
+            onOpenSettings('profile');
+          }}
+        >
           <User size={16} className="mr-2 text-muted-foreground" />
           Meu Perfil
         </DropdownMenuItem>
         
         <DropdownMenuItem 
           className="cursor-pointer hover:bg-muted/50"
-          onClick={onOpenSettings}
+          onClick={() => {
+            setOpen(false);
+            onOpenSettings('editor');
+          }}
         >
           <Settings size={16} className="mr-2 text-muted-foreground" />
           Configurações
         </DropdownMenuItem>
         
-        <DropdownMenuItem className="cursor-pointer hover:bg-muted/50">
+        <DropdownMenuItem 
+          className="cursor-pointer hover:bg-muted/50"
+          onClick={() => {
+            setOpen(false);
+            onOpenSettings('history');
+          }}
+        >
           <History size={16} className="mr-2 text-muted-foreground" />
           Histórico de Uso
         </DropdownMenuItem>
         
-        <DropdownMenuItem className="cursor-pointer hover:bg-muted/50">
+        <DropdownMenuItem 
+          className="cursor-pointer hover:bg-muted/50"
+          onClick={() => {
+            setOpen(false);
+            onOpenSettings('credits');
+          }}
+        >
           <CreditCard size={16} className="mr-2 text-muted-foreground" />
           Créditos & Plano
         </DropdownMenuItem>

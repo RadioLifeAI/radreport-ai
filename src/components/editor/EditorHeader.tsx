@@ -105,6 +105,7 @@ export function EditorHeader({
   const [templateModalOpen, setTemplateModalOpen] = useState(false)
   const [selectedTemplateForModal, setSelectedTemplateForModal] = useState<TemplateWithVariables | null>(null)
   const [settingsModalOpen, setSettingsModalOpen] = useState(false)
+  const [settingsDefaultTab, setSettingsDefaultTab] = useState('profile')
   
   // Handle template selection with variable check
   const handleTemplateSelect = (template: any) => {
@@ -205,7 +206,12 @@ export function EditorHeader({
           {theme === 'dark' ? <Sun size={16} className="md:w-[18px] md:h-[18px]" /> : <Moon size={16} className="md:w-[18px] md:h-[18px]" />}
         </button>
         
-        <UserProfileDropdown onOpenSettings={() => setSettingsModalOpen(true)} />
+        <UserProfileDropdown 
+          onOpenSettings={(tab = 'profile') => {
+            setSettingsDefaultTab(tab)
+            setSettingsModalOpen(true)
+          }} 
+        />
         </div>
       </header>
 
@@ -221,6 +227,7 @@ export function EditorHeader({
       <UserSettingsModal
         open={settingsModalOpen}
         onOpenChange={setSettingsModalOpen}
+        defaultTab={settingsDefaultTab}
       />
     </>
   )
