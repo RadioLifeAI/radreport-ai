@@ -2026,5 +2026,975 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
 </table>`
       }
     ]
-  }
+  },
+  {
+    id: "head-neck",
+    name: "Cabeça e Pescoço",
+    icon: "Stethoscope",
+    tables: [
+      {
+        id: "ni-rads-v2025",
+        name: "NI-RADS v2025 - Vigilância Pós-Tratamento Câncer Cabeça e Pescoço",
+        category: "headNeck",
+        subcategory: "Sistemas RADS",
+        type: "informative",
+        modality: ["TC", "RM"],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">NI-RADS (Neck Imaging Reporting and Data System) v2025</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Categoria</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Definição</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Recomendação</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>NI-RADS 1</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Sem evidência de recidiva tumoral</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Seguimento de rotina</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>NI-RADS 2</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Alterações pós-tratamento benignas</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Seguimento de rotina (6-12 meses)</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>NI-RADS 3</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Recidiva improvável (&lt;50%)</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Seguimento de curto prazo (3 meses)</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>NI-RADS 4</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Recidiva provável (&gt;50%)</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Correlação clínica/PET-CT ou biópsia</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>NI-RADS 5</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Recidiva altamente sugestiva</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Biópsia recomendada</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Referência:</strong> American College of Radiology. <em>NI-RADS v2025: Neck Imaging Reporting and Data System</em>. 
+                  <a href="https://www.acr.org/Clinical-Resources/Reporting-and-Data-Systems/NI-RADS" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">ACR NI-RADS</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      {
+        id: "ene-criteria",
+        name: "Critérios de Extensão Extranodal (ENE)",
+        category: "headNeck",
+        subcategory: "Sistemas RADS",
+        type: "informative",
+        modality: ["TC", "RM"],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">Critérios de Extensão Extranodal (ENE) em Linfonodos Cervicais</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Critério</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Descrição</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>ENE Definitiva</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Invasão macroscópica de tecidos adjacentes ou vasos</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>ENE Provável</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Irregularidade capsular focal ou densidade perilinfonodal</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Necrose Central</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Áreas hipodensas/hipointensas sem realce central</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Tamanho Suspeito</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Nível Ia-II: &gt;15mm, III-VI: &gt;10mm, VII: &gt;7mm</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Realce Heterogêneo</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Realce irregular com áreas de não-realce</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="2" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Referência:</strong> Aiken AH, et al. <em>ACR Appropriateness Criteria: Neck Mass/Adenopathy</em>. J Am Coll Radiol. 2018. 
+                  <a href="https://www.acr.org/Clinical-Resources/ACR-Appropriateness-Criteria" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">ACR</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      {
+        id: "lund-mackay-score",
+        name: "Lund-Mackay Score - Rinossinusite Crônica",
+        category: "headNeck",
+        subcategory: "Seios Paranasais",
+        type: "informative",
+        modality: ["TC"],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">Lund-Mackay Score para Rinossinusite Crônica</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Estrutura</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">0 (Normal)</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">1 (Parcial)</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: center;">2 (Total)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Seio Maxilar (D/E)</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">Sem opacificação</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">Parcialmente opaco</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">Totalmente opaco</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Células Etmoidais Anteriores (D/E)</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">Sem opacificação</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">Parcialmente opaco</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">Totalmente opaco</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Células Etmoidais Posteriores (D/E)</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">Sem opacificação</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">Parcialmente opaco</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">Totalmente opaco</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Seio Esfenoidal (D/E)</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">Sem opacificação</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">Parcialmente opaco</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">Totalmente opaco</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;">Seio Frontal (D/E)</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">Sem opacificação</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">Parcialmente opaco</td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">Totalmente opaco</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Complexo Ostiomeatal (D/E)</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;"><strong>0 (Pérvio)</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;" colspan="2"><strong>2 (Obstruído)</strong></td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="4" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Pontuação Total:</strong> 0-24 (cada lado pontuado separadamente: 0-12)<br>
+                  <strong>Referência:</strong> Lund VJ, Mackay IS. <em>Staging in rhinosinusitis</em>. Rhinology. 1993;31:183-4. 
+                  <a href="https://pubmed.ncbi.nlm.nih.gov/8140385/" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">PubMed</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      {
+        id: "tnm-sinonasal-ajcc8",
+        name: "TNM Tumores Sinonasais - AJCC 8th Edition",
+        category: "headNeck",
+        subcategory: "Seios Paranasais",
+        type: "informative",
+        modality: ["TC", "RM"],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">TNM Carcinoma de Seios Paranasais (Seio Maxilar) - AJCC 8th Ed</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Estágio T</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Descrição</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>T1</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Tumor limitado à mucosa do seio maxilar, sem erosão óssea</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>T2</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Erosão óssea ou destruição incluindo palato duro e/ou meato nasal médio, exceto parede posterior do seio maxilar e placas pterigoides</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>T3</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Invasão de: parede posterior do seio maxilar, tecido subcutâneo, assoalho/parede medial da órbita, fossa pterigóide, seios etmoidais</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>T4a</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Invasão de: conteúdo orbital anterior, pele da bochecha, placas pterigoides, fossa infratemporal, lâmina cribiforme, seio esfenoidal ou frontal</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>T4b</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Invasão de: ápice orbital, dura-máter, cérebro, fossa craniana média, nervos cranianos (exceto V2), nasofaringe, clivus</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="2" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Referência:</strong> AJCC Cancer Staging Manual, 8th Edition. American Joint Committee on Cancer. 2017. 
+                  <a href="https://www.cancer.org/cancer/nasal-cavity-and-paranasal-sinus-cancer/detection-diagnosis-staging/staging.html" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">AJCC</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      {
+        id: "tnm-larynx-ajcc8",
+        name: "TNM Carcinoma de Laringe - AJCC 8th Edition",
+        category: "headNeck",
+        subcategory: "Laringe e Hipofaringe",
+        type: "informative",
+        modality: ["TC", "RM"],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">TNM Carcinoma de Laringe (Glote) - AJCC 8th Ed</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Estágio T</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Descrição</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>T1a</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Tumor limitado a uma prega vocal com mobilidade normal</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>T1b</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Tumor envolve ambas as pregas vocais</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>T2</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Tumor estende-se à supraglote e/ou subglote, ou com mobilidade reduzida da prega vocal</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>T3</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Tumor limitado à laringe com fixação da prega vocal e/ou invasão de: espaço paraglótico, erosão leve da cartilagem tireoide</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>T4a</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Invasão através da cartilagem tireoide ou tecidos além da laringe (traqueia, partes moles do pescoço, músculos extrínsecos da língua, músculos strap, tireoide, esôfago)</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>T4b</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Invasão de espaço pré-vertebral, encasamento de artéria carótida ou estruturas mediastinais</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="2" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Referência:</strong> AJCC Cancer Staging Manual, 8th Edition. 2017. 
+                  <a href="https://www.cancer.org/cancer/laryngeal-and-hypopharyngeal-cancer/detection-diagnosis-staging/staging.html" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">AJCC Laringe</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      {
+        id: "tnm-hypopharynx-ajcc8",
+        name: "TNM Carcinoma de Hipofaringe - AJCC 8th Edition",
+        category: "headNeck",
+        subcategory: "Laringe e Hipofaringe",
+        type: "informative",
+        modality: ["TC", "RM"],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">TNM Carcinoma de Hipofaringe - AJCC 8th Ed</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Estágio T</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Descrição</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>T1</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Tumor ≤2 cm e limitado a um subsítio da hipofaringe</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>T2</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Tumor &gt;2 cm mas ≤4 cm, ou invade mais de um subsítio sem fixação de hemilaringe</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>T3</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Tumor &gt;4 cm ou com fixação de hemilaringe ou extensão para esôfago</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>T4a</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Invasão de: cartilagem tireoide/cricoide, osso hioide, glândula tireoide, esôfago, compartimento central de partes moles</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>T4b</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Invasão de fáscia pré-vertebral, encasamento de artéria carótida ou estruturas mediastinais</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="2" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Subsítios:</strong> Seio piriforme, parede faríngea posterior, área pós-cricoide<br>
+                  <strong>Referência:</strong> AJCC Cancer Staging Manual, 8th Edition. 2017. 
+                  <a href="https://www.cancer.org/cancer/laryngeal-and-hypopharyngeal-cancer/detection-diagnosis-staging/staging.html" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">AJCC Hipofaringe</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      {
+        id: "tnm-nasopharynx-ajcc8",
+        name: "TNM Carcinoma de Nasofaringe - AJCC 8th Edition",
+        category: "headNeck",
+        subcategory: "Laringe e Hipofaringe",
+        type: "informative",
+        modality: ["TC", "RM"],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">TNM Carcinoma de Nasofaringe - AJCC 8th Ed</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Estágio T</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Descrição</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>T1</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Tumor limitado à nasofaringe, ou extensão para orofaringe/cavidade nasal sem extensão parafaríngea</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>T2</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Extensão parafaríngea, ou envolvimento adjacente de partes moles (músculos mediais do pterigoide, músculos pterigoides laterais, espaço pré-vertebral)</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>T3</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Invasão de estruturas ósseas (base do crânio, vértebra cervical, ossos pterigoides, seios paranasais)</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>T4</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Extensão intracraniana, envolvimento de nervos cranianos, hipofaringe, órbita, glândula parótida, ou extensão além da fáscia látero-faríngea para espaço mastigador</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="2" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Nota:</strong> Associação com EBV (vírus Epstein-Barr)<br>
+                  <strong>Referência:</strong> AJCC Cancer Staging Manual, 8th Edition. 2017. 
+                  <a href="https://www.cancer.org/cancer/nasopharyngeal-cancer/detection-diagnosis-staging/staging.html" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">AJCC Nasofaringe</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      {
+        id: "tnm-oral-cavity-ajcc8",
+        name: "TNM Carcinoma de Cavidade Oral - AJCC 8th Edition",
+        category: "headNeck",
+        subcategory: "Cavidade Oral e Orofaringe",
+        type: "informative",
+        modality: ["TC", "RM"],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">TNM Carcinoma de Cavidade Oral - AJCC 8th Ed</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Estágio T</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Descrição</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>T1</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Tumor ≤2 cm, profundidade de invasão (DOI) ≤5 mm</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>T2</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Tumor ≤2 cm com DOI &gt;5 mm ≤10 mm, OU tumor &gt;2 cm mas ≤4 cm com DOI ≤10 mm</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>T3</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Tumor &gt;4 cm OU qualquer tumor com DOI &gt;10 mm</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>T4a</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Cavidade oral: invade estruturas adjacentes (cortical óssea, língua profunda/extrínseca, seio maxilar, pele da face). Lábio: invade osso mandibular/maxilar ou nervo alveolar inferior</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>T4b</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Invade espaço mastigador, placas pterigoides, base do crânio, ou encasa artéria carótida interna</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="2" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>DOI (Depth of Invasion):</strong> Profundidade de invasão medida da membrana basal até o ponto mais profundo de invasão<br>
+                  <strong>Referência:</strong> AJCC Cancer Staging Manual, 8th Edition. 2017. 
+                  <a href="https://www.cancer.org/cancer/oral-cavity-and-oropharyngeal-cancer/detection-diagnosis-staging/staging.html" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">AJCC Cavidade Oral</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      {
+        id: "tnm-oropharynx-ajcc8",
+        name: "TNM Carcinoma de Orofaringe (HPV+/HPV-) - AJCC 8th Edition",
+        category: "headNeck",
+        subcategory: "Cavidade Oral e Orofaringe",
+        type: "informative",
+        modality: ["TC", "RM"],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">TNM Carcinoma de Orofaringe HPV-positivo (p16+) - AJCC 8th Ed</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Estágio T</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Descrição (HPV+)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>T1</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Tumor ≤2 cm</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>T2</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Tumor &gt;2 cm mas ≤4 cm</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>T3</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Tumor &gt;4 cm ou extensão para superfície lingual da epiglote</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>T4</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Invasão de laringe, músculo extrínseco da língua, pterigoide medial, palato duro, mandíbula, ou além</td>
+              </tr>
+            </tbody>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Estágio T</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Descrição (HPV-)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>T1-T4a</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Estadiamento semelhante à cavidade oral (ver TNM Cavidade Oral)</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>T4b</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Invasão de espaço mastigador, placas pterigoides, base do crânio ou encasamento de artéria carótida</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="2" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Nota:</strong> HPV+ (p16+) tem melhor prognóstico e estadiamento separado no AJCC 8th<br>
+                  <strong>Referência:</strong> AJCC Cancer Staging Manual, 8th Edition. 2017. 
+                  <a href="https://www.cancer.org/cancer/oral-cavity-and-oropharyngeal-cancer/detection-diagnosis-staging/staging.html" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">AJCC Orofaringe</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      {
+        id: "cervical-lymph-node-levels",
+        name: "Níveis de Linfonodos Cervicais I-VII (Som-Curtin)",
+        category: "headNeck",
+        subcategory: "Linfonodos Cervicais",
+        type: "informative",
+        modality: ["TC", "RM", "USG"],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">Níveis de Linfonodos Cervicais (Classificação de Som-Curtin)</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Nível</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Localização Anatômica</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Drenagem Primária</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Ia</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Submentonianos (entre ventres anteriores dos mm. digástricos)</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Lábio inferior, assoalho bucal anterior, ponta da língua</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Ib</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Submandibulares (entre ventre anterior e posterior do m. digástrico)</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Cavidade oral, glândula submandibular</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>IIa</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Jugulares superiores anteriores (anterior à v. jugular interna)</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Cavidade oral, nasofaringe, orofaringe</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>IIb</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Jugulares superiores posteriores (posterior à v. jugular interna)</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Nasofaringe, orofaringe</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>III</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Jugulares médios (do osso hioide até cricoide)</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Orofaringe, hipofaringe, laringe</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>IV</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Jugulares inferiores (abaixo da cartilagem cricoide)</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Hipofaringe, laringe, tireoide, esôfago cervical</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Va</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Cervicais posteriores superiores (acima do cricoide)</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Nasofaringe, orofaringe, tireoide</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Vb</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Cervicais posteriores inferiores (abaixo do cricoide)</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Tireoide, faringe, laringe</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>VI</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Compartimento central anterior (do hioide à fúrcula esternal)</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Tireoide, laringe, hipofaringe, esôfago cervical</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>VII</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Mediastino superior (abaixo da fúrcula esternal)</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Tireoide, esôfago, pulmão</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Referência:</strong> Som PM, Curtin HD, Mancuso AA. <em>Imaging-based nodal classification for evaluation of neck metastatic adenopathy</em>. AJR. 2000;174:837-844. 
+                  <a href="https://pubmed.ncbi.nlm.nih.gov/10701636/" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">PubMed</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      {
+        id: "metastatic-lymph-node-criteria",
+        name: "Critérios de Linfonodo Cervical Metastático",
+        category: "headNeck",
+        subcategory: "Linfonodos Cervicais",
+        type: "informative",
+        modality: ["TC", "RM", "USG"],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">Critérios de Linfonodo Cervical Metastático (TC/RM/USG)</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Critério</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Descrição</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Significado</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Tamanho</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  Nível Ia-II: &gt;15 mm<br>
+                  Nível III-VI: &gt;10 mm<br>
+                  Nível VII: &gt;7 mm
+                </td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Alta suspeita de metástase</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Necrose Central</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Área hipodensa/hipointensa central sem realce</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Altamente específico para metástase</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Extensão Extranodal (ENE)</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Irregularidade capsular, densidade perilinfonodal, invasão de estruturas adjacentes</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Indica doença localmente avançada</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Forma</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Forma arredondada (razão L/T &lt;2)</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Suspeito se associado a outros critérios</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Realce Heterogêneo</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Realce irregular, não uniforme</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Sugere necrose incipiente ou metástase</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Conglomerado</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Múltiplos linfonodos fundidos (≥3)</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Carga tumoral elevada</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Perda do Hilo Gorduroso</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Ausência de hilo hipodenso central</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Sugestivo de substituição metastática</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Referência:</strong> van den Brekel MW, et al. <em>Detection of lymph node metastases in the neck: radiologic criteria</em>. Radiology. 1998. 
+                  <a href="https://pubs.rsna.org/doi/10.1148/radiology.177.2.2217762" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">Radiology</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      {
+        id: "who-salivary-glands-2022",
+        name: "WHO Classificação de Tumores de Glândulas Salivares 5th Ed 2022",
+        category: "headNeck",
+        subcategory: "Glândulas Salivares",
+        type: "informative",
+        modality: ["TC", "RM"],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">WHO Tumores de Glândulas Salivares 5th Ed (2022)</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Categoria</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Exemplos</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Tumores Benignos</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  - Adenoma pleomórfico (tumor misto benigno)<br>
+                  - Tumor de Warthin (cistoadenoma papilar linfomatoso)<br>
+                  - Oncocitoma<br>
+                  - Adenoma de células basais
+                </td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Carcinomas de Baixo Grau</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  - Carcinoma acinic cell<br>
+                  - Carcinoma adenoide cístico (padrão tubular/cribriforme)<br>
+                  - Carcinoma mucoepidermóide de baixo grau<br>
+                  - Carcinoma secretório (ETV6-NTRK3)
+                </td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Carcinomas de Alto Grau</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  - Carcinoma mucoepidermóide de alto grau<br>
+                  - Carcinoma adenoide cístico (padrão sólido)<br>
+                  - Carcinoma de células claras<br>
+                  - Carcinoma ex-adenoma pleomórfico<br>
+                  - Carcinoma pobremente diferenciado NOS<br>
+                  - Carcinoma de células escamosas
+                </td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Tumores Raros</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  - Carcinoma mioepitelial<br>
+                  - Carcinoma epitelial-mioepitelial<br>
+                  - Adenocarcinoma NOS<br>
+                  - Linfoma de zona marginal (MALT)
+                </td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="2" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Referência:</strong> WHO Classification of Head and Neck Tumours, 5th Edition. 2022. 
+                  <a href="https://publications.iarc.fr/616" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">WHO 5th Ed</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      {
+        id: "tnm-salivary-glands-ajcc8",
+        name: "TNM Tumores de Glândulas Salivares Maiores - AJCC 8th Edition",
+        category: "headNeck",
+        subcategory: "Glândulas Salivares",
+        type: "informative",
+        modality: ["TC", "RM"],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">TNM Glândulas Salivares Maiores - AJCC 8th Ed</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Estágio T</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Descrição</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>T1</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Tumor ≤2 cm sem extensão extraparenquimatosa</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>T2</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Tumor &gt;2 cm mas ≤4 cm sem extensão extraparenquimatosa</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>T3</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Tumor &gt;4 cm e/ou extensão extraparenquimatosa (tecidos moles/pele)</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>T4a</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Invade: pele, mandíbula, canal auditivo, nervo facial</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>T4b</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Invade: base do crânio, placas pterigoides, encasa artéria carótida</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="2" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Nota:</strong> Aplica-se a parótida, submandibular e sublingual<br>
+                  <strong>Referência:</strong> AJCC Cancer Staging Manual, 8th Edition. 2017. 
+                  <a href="https://www.cancer.org/cancer/salivary-gland-cancer/detection-diagnosis-staging/staging.html" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">AJCC Salivary</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      {
+        id: "stamco-cholesteatoma",
+        name: "STAMCO Classification - Colesteatoma de Orelha Média",
+        category: "headNeck",
+        subcategory: "Orelha e Osso Temporal",
+        type: "informative",
+        modality: ["TC"],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">STAMCO (Staging of Middle Ear Cholesteatoma) Classification</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Componente</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Classificação</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>S (Size)</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  S0 = oculto<br>
+                  S1 = 1 subsítio<br>
+                  S2 = 2 subsítios<br>
+                  S3 = &gt;2 subsítios
+                </td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>T (Tympanic membrane)</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  T0 = íntegra<br>
+                  T1 = perfuração central<br>
+                  T2 = perfuração marginal<br>
+                  T3 = perfuração subtotal/total
+                </td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>A (Atelectasis)</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  A0 = sem atelectasia<br>
+                  A1 = retração leve<br>
+                  A2 = retração grave
+                </td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>M (Mastoid)</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  M0 = sem acometimento mastoideo<br>
+                  M1 = células mastoideas acometidas<br>
+                  M2 = ápice petroso acometido
+                </td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>C (Complications)</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  C0 = sem complicações<br>
+                  C1 = erosão ossicular<br>
+                  C2 = canal semicircular lateral<br>
+                  C3 = nervo facial<br>
+                  C4 = outras complicações graves
+                </td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>O (Otorrhea)</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  O0 = sem otorreia<br>
+                  O1 = otorreia intermitente<br>
+                  O2 = otorreia persistente
+                </td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="2" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Referência:</strong> Yung M, et al. <em>EAONO/JOS Joint Consensus Statements on the Definitions, Classification and Staging of Middle Ear Cholesteatoma</em>. J Int Adv Otol. 2017. 
+                  <a href="https://pubmed.ncbi.nlm.nih.gov/28476051/" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">PubMed</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      {
+        id: "pittsburgh-temporal-bone",
+        name: "Pittsburgh Classification - Tumores de Osso Temporal",
+        category: "headNeck",
+        subcategory: "Orelha e Osso Temporal",
+        type: "informative",
+        modality: ["TC", "RM"],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">Pittsburgh Classification - Câncer de Osso Temporal</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Estágio</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Descrição</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>T1</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Limitado ao canal auditivo externo, sem erosão óssea ou tecidos moles</td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>T2</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">Erosão óssea do CAE (não incluindo TMJ) ou evidência limitada (&lt;5 mm) de invasão de tecidos moles</td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>T3</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  Erosão completa do osso do CAE com (&gt;5 mm) invasão de tecidos moles, ou TMJ, ou orelha média<br>
+                  Sem envolvimento de mastoide ou paralisia facial
+                </td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>T4</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  Erosão da cóclea, ápice petroso, parede medial da orelha média, canal carotídeo, jugular, dura-máter<br>
+                  OU paralisia facial
+                </td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="2" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Nota:</strong> Carcinoma espinocelular é o tipo histológico mais comum<br>
+                  <strong>Referência:</strong> Arriaga M, et al. <em>Staging proposal for external auditory meatus carcinoma: the University of Pittsburgh staging system</em>. Arch Otolaryngol Head Neck Surg. 1990. 
+                  <a href="https://pubmed.ncbi.nlm.nih.gov/2317324/" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">PubMed</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+      {
+        id: "who-orbit-eye-2022",
+        name: "WHO Classificação de Tumores de Órbita e Olho 5th Ed",
+        category: "headNeck",
+        subcategory: "Órbita",
+        type: "informative",
+        modality: ["TC", "RM"],
+        htmlContent: `
+          <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10pt;">
+            <caption style="font-weight: bold; text-align: left; margin-bottom: 8px; font-size: 11pt;">WHO Tumores de Órbita e Olho 5th Ed (2022)</caption>
+            <thead>
+              <tr style="background-color: #1e3a5f; color: white;">
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Categoria</th>
+                <th style="border: 1px solid #333; padding: 8px; text-align: left;">Exemplos</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Tumores Vasculares</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  - Hemangioma cavernoso (mais comum em adultos)<br>
+                  - Hemangioma capilar (mais comum em crianças)<br>
+                  - Linfangioma<br>
+                  - Varizes orbitais
+                </td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Tumores Neurais</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  - Glioma do nervo óptico (associado a NF1)<br>
+                  - Meningioma do nervo óptico<br>
+                  - Schwannoma<br>
+                  - Neurofibroma
+                </td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Tumores de Glândula Lacrimal</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  - Adenoma pleomórfico (benigno)<br>
+                  - Carcinoma adenoide cístico<br>
+                  - Carcinoma mucoepidermóide<br>
+                  - Linfoma MALT
+                </td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Linfoma e Leucemia</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  - Linfoma de zona marginal extranodal (MALT)<br>
+                  - Linfoma folicular<br>
+                  - Linfoma difuso de grandes células B<br>
+                  - Leucemia (infiltração orbital)
+                </td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Lesões Inflamatórias</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  - Pseudotumor orbital (doença inflamatória orbital idiopática)<br>
+                  - Doença de Graves (orbitopatia tireoidiana)<br>
+                  - Sarcoidose<br>
+                  - Doença relacionada a IgG4
+                </td>
+              </tr>
+              <tr style="background-color: #f8f8f8;">
+                <td style="border: 1px solid #ddd; padding: 8px;"><strong>Metástases</strong></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  - Adultos: mama, pulmão, próstata, melanoma<br>
+                  - Crianças: neuroblastoma, tumor de Ewing, leucemia
+                </td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="2" style="border: 1px solid #ddd; padding: 8px; font-size: 9pt; background-color: #f0f0f0;">
+                  <strong>Referência:</strong> WHO Classification of Tumours of the Eye, 5th Edition. 2022. 
+                  <a href="https://publications.iarc.fr/Book-And-Report-Series/Who-Classification-Of-Tumours/WHO-Classification-Of-Tumours-Of-The-Eye-2023" target="_blank" rel="noopener noreferrer" style="color: #0066cc;">WHO Eye 5th Ed</a>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        `,
+      },
+    ],
+  },
 ]
+
+export default RADIOLOGY_TABLES;
