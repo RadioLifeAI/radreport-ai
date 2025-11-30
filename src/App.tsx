@@ -16,6 +16,7 @@ import Precos from "./pages/Precos";
 import Sobre from "./pages/Sobre";
 import Contato from "./pages/Contato";
 import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import Privacidade from "./pages/Privacidade";
 import Termos from "./pages/Termos";
 import LGPD from "./pages/LGPD";
@@ -48,6 +49,7 @@ const App = () => (
             <Route path="/sobre" element={<Sobre />} />
             <Route path="/contato" element={<Contato />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/privacidade" element={<Privacidade />} />
             <Route path="/termos" element={<Termos />} />
             <Route path="/lgpd" element={<LGPD />} />
