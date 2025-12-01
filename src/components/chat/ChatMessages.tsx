@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
-import { FileText, Loader2, Bot } from 'lucide-react';
+import { FileText, Loader2, Bot, Lightbulb, Stethoscope, ClipboardList, HelpCircle } from 'lucide-react';
 import type { Message } from '@/hooks/useChat';
 
 interface ChatMessagesProps {
@@ -9,6 +9,38 @@ interface ChatMessagesProps {
   onInsertToReport: (text: string) => void;
   isStreaming?: boolean;
 }
+
+// Icon based on response type
+const getTipoIcon = (tipo?: Message['tipo']) => {
+  switch (tipo) {
+    case 'achado':
+      return <Stethoscope className="h-3 w-3" />;
+    case 'conclusao':
+      return <ClipboardList className="h-3 w-3" />;
+    case 'classificacao':
+      return <FileText className="h-3 w-3" />;
+    case 'pergunta':
+      return <HelpCircle className="h-3 w-3" />;
+    default:
+      return null;
+  }
+};
+
+// Label based on response type
+const getTipoLabel = (tipo?: Message['tipo']) => {
+  switch (tipo) {
+    case 'achado':
+      return 'Achado';
+    case 'conclusao':
+      return 'Conclusão';
+    case 'classificacao':
+      return 'Classificação';
+    case 'pergunta':
+      return 'Resposta';
+    default:
+      return null;
+  }
+};
 
 export const ChatMessages = ({ messages, onInsertToReport, isStreaming = false }: ChatMessagesProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -55,19 +87,41 @@ export const ChatMessages = ({ messages, onInsertToReport, isStreaming = false }
                   : 'bg-muted/50 text-foreground border border-border/50 rounded-tl-sm'
               }`}
             >
+              {/* Type badge for assistant messages */}
+              {message.role === 'assistant' && message.tipo && (
+                <div className="flex items-center gap-1.5 mb-2">
+                  <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-wider text-cyan-600 dark:text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-full">
+                    {getTipoIcon(message.tipo)}
+                    {getTipoLabel(message.tipo)}
+                  </span>
+                </div>
+              )}
+
+              {/* Main content - achado (insertable text) */}
               <div className="whitespace-pre-wrap break-words text-sm leading-relaxed">
-                {message.content}
+                {message.achado || message.content}
                 {message.role === 'assistant' && isStreaming && messages[messages.length - 1]?.id === message.id && (
                   <span className="inline-block w-2 h-4 ml-1 bg-current animate-pulse" />
                 )}
               </div>
               
-              {message.role === 'assistant' && message.content && (
+              {/* Explicação (additional context, NOT for insertion) */}
+              {message.role === 'assistant' && message.explicacao && message.explicacao.trim() !== '' && (
+                <div className="mt-3 pt-3 border-t border-border/30">
+                  <div className="flex items-start gap-2 text-xs text-muted-foreground">
+                    <Lightbulb className="h-3.5 w-3.5 text-amber-500 shrink-0 mt-0.5" />
+                    <p className="italic leading-relaxed">{message.explicacao}</p>
+                  </div>
+                </div>
+              )}
+              
+              {/* Insert button - inserts ONLY achado, not explicacao */}
+              {message.role === 'assistant' && (message.achado || message.content) && (
                 <div className="mt-3 pt-3 border-t border-border/30">
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => onInsertToReport(message.content)}
+                    onClick={() => onInsertToReport(message.achado || message.content)}
                     className="text-xs hover:bg-cyan-500/10 hover:text-cyan-600"
                   >
                     <FileText className="h-3 w-3 mr-1" />

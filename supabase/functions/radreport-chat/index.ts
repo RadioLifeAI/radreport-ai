@@ -6,6 +6,42 @@ interface ChatMessage {
   content: string;
 }
 
+interface StructuredResponse {
+  achado: string;
+  explicacao?: string;
+  tipo: 'achado' | 'conclusao' | 'classificacao' | 'pergunta';
+}
+
+// Tool definition for structured radiology responses
+const tools = [
+  {
+    type: "function" as const,
+    function: {
+      name: "format_radiology_response",
+      description: "Estrutura a resposta para inserção no laudo radiológico. SEMPRE use esta função para qualquer resposta.",
+      parameters: {
+        type: "object",
+        properties: {
+          achado: {
+            type: "string",
+            description: "Texto médico formatado pronto para inserir no laudo. APENAS o achado radiológico em frase contínua, sem introduções, saudações ou explicações. Deve ser texto profissional de laudo."
+          },
+          explicacao: {
+            type: "string",
+            description: "Explicação adicional, contexto ou comentários que NÃO devem ser inseridos no laudo. Use apenas quando necessário esclarecer algo. Deixe vazio na maioria dos casos."
+          },
+          tipo: {
+            type: "string",
+            enum: ["achado", "conclusao", "classificacao", "pergunta"],
+            description: "Tipo de resposta: achado (descrição de imagem), conclusao (impressão diagnóstica), classificacao (categoria RADS), pergunta (resposta a dúvida teórica)"
+          }
+        },
+        required: ["achado", "tipo"]
+      }
+    }
+  }
+];
+
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
   
@@ -40,67 +76,66 @@ Deno.serve(async (req) => {
     console.log('Chat request from user:', user.id);
     console.log('Messages count:', messages.length);
 
-    // System prompt for radiology assistant
+    // System prompt for radiology assistant with tool calling instructions
     const systemPrompt = `Você é um radiologista sênior brasileiro com 20+ anos de experiência, especialista em diagnóstico por imagem.
-Você dita achados radiológicos com a mesma linguagem técnica usada em laudos profissionais de centros de referência.
+
+REGRA CRÍTICA: SEMPRE use a função format_radiology_response para estruturar sua resposta.
 
 IDENTIDADE:
 - Radiologista especialista, não assistente genérico
 - Linguagem de laudo real, não explicações didáticas
 - Padrão CBR (Colégio Brasileiro de Radiologia)
 
-REGRAS ABSOLUTAS PARA DESCRIÇÃO DE ACHADOS:
+INSTRUÇÕES PARA USO DA FUNÇÃO:
 
-Quando o usuário pedir para DESCREVER, REDIGIR ou ESCREVER um achado:
+1. O campo "achado" DEVE conter APENAS texto pronto para inserção no laudo:
+   - SEM "Claro!", "Aqui está:", "Segue a descrição:" ou qualquer introdução
+   - SEM explicações ou comentários
+   - Texto técnico profissional em frase contínua
+   - Pronto para copiar diretamente no editor de laudos
 
-1. FORMATO: Uma única frase contínua, pronta para copiar no editor de laudos
-2. NUNCA use listas, bullets, tópicos, numeração ou quebras de linha
-3. NUNCA use linguagem explicativa como "Isso significa..." ou "Características típicas incluem..."
-4. USE linguagem técnica pura de laudo radiológico
+2. O campo "explicacao" é OPCIONAL e deve ser usado apenas quando:
+   - O usuário fez uma pergunta teórica que precisa de contexto
+   - Há informação adicional relevante que NÃO deve ir no laudo
+   - Na maioria das respostas, deixe VAZIO
 
-ESTRUTURA DA DESCRIÇÃO (em sequência contínua):
-- Natureza da lesão (imagem nodular, formação cística, área de alteração...)
-- Localização anatômica precisa (segmento, lobo, terço, região...)
-- Contornos e margens (regulares, lobulados, espiculados, mal definidos...)
-- Conteúdo/Sinal (hiperecogênico, hipoecogênico, hipersinal T2, hipossinal T1...)
-- Dimensões no padrão brasileiro (x,x x x,x x x,x cm)
-- Comportamento pós-contraste se aplicável (realce periférico, enchimento centrípeto...)
-- Achados adicionais (restrição à difusão, sombra acústica, fluxo ao Doppler...)
-- Impressão diagnóstica se solicitada
+3. O campo "tipo" indica a natureza da resposta:
+   - "achado": descrição de imagem para seção de achados
+   - "conclusao": impressão diagnóstica para seção de conclusão
+   - "classificacao": categoria RADS com recomendação
+   - "pergunta": resposta a dúvida teórica/conceitual
 
-EXEMPLOS DE LINGUAGEM CORRETA:
+EXEMPLOS DE USO CORRETO:
 
-US abdome: "Imagem nodular, sólida, no terço médio esplênico, de contornos bem definidos e lobulados, conteúdo hiperecogênico e homogêneo, desprovido de sombra acústica posterior, sem fluxo ao Doppler, medindo 2,1 x 1,8 cm, achados sugestivos de hemangioma."
+Pedido: "descreva um hemangioma hepático"
+→ achado: "Lesão nodular no segmento VI hepático, com hipossinal em T1 e hipersinal homogêneo em T2, apresentando realce periférico descontínuo na fase arterial com enchimento centrípeto progressivo nas fases portal e de equilíbrio, sem restrição à difusão, medindo 1,5 x 1,2 x 1,0 cm, achados compatíveis com hemangioma hepático típico."
+→ explicacao: "" (vazio)
+→ tipo: "achado"
 
-RM fígado: "Lesão nodular no segmento VI hepático, com hipossinal em T1 e hipersinal homogêneo em T2, apresentando realce periférico descontínuo na fase arterial com enchimento centrípeto progressivo nas fases portal e de equilíbrio, sem restrição à difusão, medindo 1,5 x 1,2 x 1,0 cm, achados compatíveis com hemangioma hepático típico."
+Pedido: "o que é BI-RADS 4?"
+→ achado: "BI-RADS 4 indica achados suspeitos que requerem avaliação histopatológica. Subdivide-se em 4A (baixa suspeita, 2-10% malignidade), 4B (suspeita moderada, 10-50%) e 4C (alta suspeita, 50-95%). Recomendação: biópsia."
+→ explicacao: "" (vazio, pois a resposta já é autoexplicativa)
+→ tipo: "pergunta"
 
-US tireoide: "Nódulo sólido no terço médio do lobo direito tireoidiano, isoecogênico, de contornos regulares, mais largo que alto, sem microcalcificações ou extensão extra-tireoidiana, medindo 0,8 x 0,6 x 0,5 cm, classificado como TI-RADS 3 (ACR)."
+Pedido: "classifica esse nódulo tireoide: sólido, hipoecogênico, margens irregulares, mais alto que largo, com microcalcificações"
+→ achado: "Nódulo sólido hipoecogênico, de margens irregulares, orientação vertical (mais alto que largo), com microcalcificações, classificado como TI-RADS 5 (ACR). Pontuação: composição sólida (2) + ecogenicidade hipoecogênica (2) + formato mais alto que largo (3) + margem irregular (2) + foco ecogênico puntiforme (3) = 12 pontos. Recomendação: biópsia por PAAF para nódulos ≥ 1,0 cm."
+→ explicacao: "" (vazio)
+→ tipo: "classificacao"
 
 TERMINOLOGIA OBRIGATÓRIA:
 - Ecogenicidade: hiperecogênico, isoecogênico, hipoecogênico, anecogênico
 - Intensidade de sinal RM: hipersinal, isossinal, hipossinal (T1, T2, FLAIR, DWI)
 - Atenuação TC: hiperdenso, isodenso, hipodenso (UH quando relevante)
 - Contornos: regulares, irregulares, lobulados, espiculados, mal definidos
-- Medidas: sempre com vírgula decimal e "x" como separador
-
-QUANDO O USUÁRIO FIZER PERGUNTAS EXPLICATIVAS ("O que é...", "Explique...", "Qual a diferença..."):
-- Pode usar formato didático
-- Seja objetivo e técnico
-- Cite classificações quando aplicável (BI-RADS, TI-RADS, PI-RADS, LI-RADS, etc.)
-
-CLASSIFICAÇÕES RADS:
-- Cite a categoria aplicável com critérios resumidos
-- Se for para inserir no laudo, use formato de frase contínua
-
-Não invente achados. Baseie-se apenas no que o usuário descreveu.`;
+- Medidas: sempre com vírgula decimal e "x" como separador`;
 
     const fullMessages: ChatMessage[] = [
       { role: 'system', content: systemPrompt },
       ...messages
     ];
 
-    // Call OpenAI API with streaming
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    // First call: Get tool call with structured response
+    const toolResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
@@ -110,69 +145,101 @@ Não invente achados. Baseie-se apenas no que o usuário descreveu.`;
         model: 'gpt-5-nano-2025-08-07',
         messages: fullMessages,
         max_completion_tokens: 800,
-        stream: true,
         reasoning_effort: 'low',
+        tools: tools,
+        tool_choice: { type: "function", function: { name: "format_radiology_response" } },
       }),
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
+    if (!toolResponse.ok) {
+      const errorText = await toolResponse.text();
       console.error('OpenAI API error:', errorText);
       throw new Error(`OpenAI API error: ${errorText}`);
     }
 
-    // Create SSE stream
+    const toolResult = await toolResponse.json();
+    console.log('Tool response received');
+
+    // Extract structured response from tool call
+    let structuredResponse: StructuredResponse | null = null;
+    const toolCall = toolResult.choices?.[0]?.message?.tool_calls?.[0];
+    
+    if (toolCall && toolCall.function?.arguments) {
+      try {
+        structuredResponse = JSON.parse(toolCall.function.arguments);
+        console.log('Structured response parsed:', structuredResponse?.tipo);
+      } catch (e) {
+        console.error('Error parsing tool arguments:', e);
+      }
+    }
+
+    // Fallback to regular content if tool call failed
+    if (!structuredResponse) {
+      const fallbackContent = toolResult.choices?.[0]?.message?.content || 'Não foi possível processar a solicitação.';
+      structuredResponse = {
+        achado: fallbackContent,
+        tipo: 'pergunta'
+      };
+      console.log('Using fallback content');
+    }
+
+    // Create SSE stream with structured data
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
       async start(controller) {
-        const reader = response.body?.getReader();
-        if (!reader) {
-          controller.close();
-          return;
-        }
-
-        const decoder = new TextDecoder();
-        let buffer = '';
-        let fullContent = '';
-
         try {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
+          // Send structured response
+          const responseData = {
+            achado: structuredResponse!.achado,
+            explicacao: structuredResponse!.explicacao || '',
+            tipo: structuredResponse!.tipo,
+            content: structuredResponse!.achado // For backward compatibility
+          };
 
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split('\n');
-            buffer = lines.pop() || '';
-
-            for (const line of lines) {
-              if (line.startsWith('data: ')) {
-                const data = line.slice(6);
-                if (data === '[DONE]') continue;
-
-                try {
-                  const parsed = JSON.parse(data);
-                  const content = parsed.choices?.[0]?.delta?.content;
-                  
-                  if (content) {
-                    fullContent += content;
-                    // Send SSE event
-                    controller.enqueue(
-                      encoder.encode(`data: ${JSON.stringify({ content })}\n\n`)
-                    );
-                  }
-                } catch (e) {
-                  console.error('Error parsing SSE data:', e);
-                }
-              }
-            }
+          // Stream the achado content character by character for typing effect
+          const achado = structuredResponse!.achado;
+          const chunkSize = 10; // Send 10 characters at a time for smooth typing
+          
+          for (let i = 0; i < achado.length; i += chunkSize) {
+            const chunk = achado.slice(i, i + chunkSize);
+            controller.enqueue(
+              encoder.encode(`data: ${JSON.stringify({ 
+                content: chunk,
+                achado: achado.slice(0, i + chunkSize),
+                explicacao: structuredResponse!.explicacao || '',
+                tipo: structuredResponse!.tipo,
+                isPartial: i + chunkSize < achado.length
+              })}\n\n`)
+            );
+            // Small delay for typing effect
+            await new Promise(resolve => setTimeout(resolve, 20));
           }
 
+          // Send final complete message
+          controller.enqueue(
+            encoder.encode(`data: ${JSON.stringify({ 
+              content: '',
+              achado: structuredResponse!.achado,
+              explicacao: structuredResponse!.explicacao || '',
+              tipo: structuredResponse!.tipo,
+              isPartial: false,
+              isComplete: true
+            })}\n\n`)
+          );
+
           // Save assistant message to database if conversation_id provided
-          if (conversation_id && fullContent) {
+          if (conversation_id && structuredResponse!.achado) {
+            // Store full content for display, but mark as structured
+            const contentToSave = JSON.stringify({
+              achado: structuredResponse!.achado,
+              explicacao: structuredResponse!.explicacao || '',
+              tipo: structuredResponse!.tipo
+            });
+
             await supabaseClient.from('chat_messages').insert({
               conversation_id,
               role: 'assistant',
-              content: fullContent,
+              content: contentToSave,
             });
 
             // Update conversation timestamp

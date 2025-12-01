@@ -8,6 +8,9 @@ export interface Message {
   id: string;
   role: 'user' | 'assistant' | 'system';
   content: string;
+  achado?: string;
+  explicacao?: string;
+  tipo?: 'achado' | 'conclusao' | 'classificacao' | 'pergunta';
   created_at: string;
 }
 
@@ -18,7 +21,31 @@ export interface Conversation {
   updated_at: string;
 }
 
+interface StructuredContent {
+  achado: string;
+  explicacao?: string;
+  tipo: 'achado' | 'conclusao' | 'classificacao' | 'pergunta';
+}
+
 const CURRENT_CONVERSATION_KEY = 'radreport-current-conversation';
+
+// Helper to parse stored message content (could be JSON structured or plain text)
+const parseMessageContent = (content: string): { content: string; achado?: string; explicacao?: string; tipo?: string } => {
+  try {
+    const parsed = JSON.parse(content) as StructuredContent;
+    if (parsed.achado && parsed.tipo) {
+      return {
+        content: parsed.achado,
+        achado: parsed.achado,
+        explicacao: parsed.explicacao || '',
+        tipo: parsed.tipo
+      };
+    }
+  } catch {
+    // Not JSON, return as plain content
+  }
+  return { content };
+};
 
 export const useChat = () => {
   const { user } = useAuth();
@@ -73,10 +100,17 @@ export const useChat = () => {
       return;
     }
 
-    setMessages(data.map(msg => ({
-      ...msg,
-      role: msg.role as 'user' | 'assistant' | 'system'
-    })) || []);
+    setMessages(data.map(msg => {
+      const parsed = parseMessageContent(msg.content);
+      return {
+        ...msg,
+        role: msg.role as 'user' | 'assistant' | 'system',
+        content: parsed.content,
+        achado: parsed.achado,
+        explicacao: parsed.explicacao,
+        tipo: parsed.tipo as Message['tipo']
+      };
+    }) || []);
     setIsLoading(false);
   }, []);
 
@@ -196,8 +230,12 @@ export const useChat = () => {
 
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
-      let assistantContent = '';
-      let assistantMessageId = crypto.randomUUID();
+      const assistantMessageId = crypto.randomUUID();
+      
+      // Track structured response data
+      let currentAchado = '';
+      let currentExplicacao = '';
+      let currentTipo: Message['tipo'] = 'pergunta';
 
       if (reader) {
         let buffer = '';
@@ -220,23 +258,55 @@ export const useChat = () => {
 
             try {
               const parsed = JSON.parse(data);
-              const delta = parsed.content || parsed.choices?.[0]?.delta?.content;
               
-              if (delta) {
-                assistantContent += delta;
+              // Handle structured response
+              if (parsed.achado !== undefined) {
+                currentAchado = parsed.achado;
+                currentExplicacao = parsed.explicacao || '';
+                currentTipo = parsed.tipo || 'pergunta';
+                
                 setMessages(prev => {
                   const last = prev[prev.length - 1];
                   if (last?.role === 'assistant' && last.id === assistantMessageId) {
                     return prev.map(m => 
                       m.id === assistantMessageId 
-                        ? { ...m, content: assistantContent }
+                        ? { 
+                            ...m, 
+                            content: currentAchado,
+                            achado: currentAchado,
+                            explicacao: currentExplicacao,
+                            tipo: currentTipo
+                          }
                         : m
                     );
                   }
                   return [...prev, {
                     id: assistantMessageId,
                     role: 'assistant' as const,
-                    content: assistantContent,
+                    content: currentAchado,
+                    achado: currentAchado,
+                    explicacao: currentExplicacao,
+                    tipo: currentTipo,
+                    created_at: new Date().toISOString()
+                  }];
+                });
+              } else if (parsed.content) {
+                // Fallback for legacy/plain content
+                currentAchado += parsed.content;
+                setMessages(prev => {
+                  const last = prev[prev.length - 1];
+                  if (last?.role === 'assistant' && last.id === assistantMessageId) {
+                    return prev.map(m => 
+                      m.id === assistantMessageId 
+                        ? { ...m, content: currentAchado, achado: currentAchado }
+                        : m
+                    );
+                  }
+                  return [...prev, {
+                    id: assistantMessageId,
+                    role: 'assistant' as const,
+                    content: currentAchado,
+                    achado: currentAchado,
                     created_at: new Date().toISOString()
                   }];
                 });
