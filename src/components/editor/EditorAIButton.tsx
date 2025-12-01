@@ -34,16 +34,20 @@ export default function EditorAIButton({ editor }: { editor: Editor | null }){
       }
       
       if (improved) {
-        const { from, to } = editor.state.selection
-        if (from !== to) {
-          editor.commands.insertContentAt({ from, to }, improved)
-        } else {
-          editor.chain().focus().insertContent(improved).run()
-        }
+        // SUBSTITUIR todo o laudo com versão corrigida
+        editor.commands.setContent(improved, {
+          emitUpdate: true,
+          parseOptions: { preserveWhitespace: false }
+        })
         toast.success('Sugestões aplicadas com sucesso')
       }
+      
       if (notes) {
-        insertSuggestion(editor, notes)
+        // EXIBIR notas como feedback visual, NÃO inserir no laudo
+        toast.info(notes, {
+          duration: 10000,  // 10 segundos para ler
+          description: 'Correções aplicadas pelo revisor IA',
+        })
       }
     } catch (e){
       console.error('Erro ao gerar sugestão IA:', e)
