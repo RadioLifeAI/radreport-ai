@@ -45,9 +45,9 @@ export const ChatInput = ({ onSendMessage, disabled }: ChatInputProps) => {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Pergunte sobre radiologia..."
+          placeholder="Pergunte sobre BI-RADS, laudos, diagnósticos..."
           disabled={disabled}
-          className="min-h-[44px] max-h-[200px] resize-none pr-10"
+          className="min-h-[44px] max-h-[200px] resize-none pr-10 rounded-2xl border-border/50 focus-visible:ring-cyan-500/50"
           rows={1}
         />
       </div>
@@ -61,7 +61,7 @@ export const ChatInput = ({ onSendMessage, disabled }: ChatInputProps) => {
         onClick={handleSubmit}
         disabled={!input.trim() || disabled}
         size="icon"
-        className="h-11 w-11 shrink-0"
+        className="h-11 w-11 shrink-0 bg-gradient-to-br from-cyan-500 to-indigo-600 hover:from-cyan-600 hover:to-indigo-700 text-white shadow-lg shadow-cyan-500/30 hover:shadow-cyan-500/40 transition-all duration-200"
       >
         <Send className="h-4 w-4" />
       </Button>
