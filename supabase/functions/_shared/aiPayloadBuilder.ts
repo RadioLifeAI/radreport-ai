@@ -636,3 +636,422 @@ export function normalizeProvider(provider: string): AIProvider {
   };
   return providerMap[normalized] || 'openai';
 }
+
+// ==================== DYNAMIC ENDPOINT BUILDER ====================
+
+import type { LoadedAIConfig, CallAPIOptions, APICallResult, NormalizedAPIResponse, TokenUsage, ToolCall } from './types.ts';
+import { AIProviderError } from './types.ts';
+
+export interface DynamicEndpoint {
+  url: string;
+  headers: Record<string, string>;
+}
+
+/**
+ * Build provider endpoint dynamically from database configuration
+ * Uses api_base_url, auth_header, auth_prefix, extra_headers from provider config
+ */
+export function getProviderEndpointDynamic(
+  provider: LoadedAIConfig['provider'],
+  modelApiName: string,
+  apiKey: string
+): DynamicEndpoint {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+
+  // Add authentication header
+  const authHeader = provider.auth_header || 'Authorization';
+  const authPrefix = provider.auth_prefix ?? 'Bearer ';
+  headers[authHeader] = `${authPrefix}${apiKey}`;
+
+  // Add API version header if present (e.g., Anthropic requires this)
+  if (provider.api_version) {
+    // Anthropic uses 'anthropic-version', others may use different headers
+    if (provider.name.toLowerCase() === 'anthropic') {
+      headers['anthropic-version'] = provider.api_version;
+    } else {
+      headers['x-api-version'] = provider.api_version;
+    }
+  }
+
+  // Add extra headers from database
+  if (provider.extra_headers) {
+    Object.assign(headers, provider.extra_headers);
+  }
+
+  // Build URL - handle Gemini's model-in-URL pattern
+  let url = provider.api_base_url;
+  
+  if (provider.name.toLowerCase() === 'google' || provider.name.toLowerCase() === 'gemini') {
+    // Gemini uses model in URL: /models/{model}:generateContent
+    url = `${provider.api_base_url}/models/${modelApiName}:generateContent`;
+    // Gemini uses x-goog-api-key header
+    delete headers[authHeader];
+    headers['x-goog-api-key'] = apiKey;
+  }
+
+  return { url, headers };
+}
+
+// ==================== API CALLER ====================
+
+/**
+ * Call provider API with full configuration
+ * Handles payload building, request execution, and response normalization
+ */
+export async function callProviderAPI(
+  config: AIConfig,
+  messages: ChatMessage[],
+  apiKey: string,
+  loadedConfig: LoadedAIConfig,
+  options: CallAPIOptions = {}
+): Promise<APICallResult> {
+  const startTime = Date.now();
+
+  try {
+    // Build payload using existing multi-provider builder
+    const payload = buildMultiProviderPayload(config, messages, {
+      stream: options.stream,
+      tools: options.tools,
+      tool_choice: options.tool_choice,
+    });
+
+    // Get dynamic endpoint
+    const { url, headers } = getProviderEndpointDynamic(
+      loadedConfig.provider,
+      config.api_name,
+      apiKey
+    );
+
+    console.log(`[callProviderAPI] Calling ${loadedConfig.provider.name} at ${url}`);
+    console.log(`[callProviderAPI] Model: ${config.api_name}, max_tokens: ${config.max_tokens}`);
+
+    // Setup timeout
+    const timeoutMs = options.timeout_override || loadedConfig.timeout_ms;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+    // Make request
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload),
+      signal: options.signal || controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    const latencyMs = Date.now() - startTime;
+    console.log(`[callProviderAPI] Response status: ${response.status}, latency: ${latencyMs}ms`);
+
+    // Handle errors
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[callProviderAPI] Error response:`, errorText);
+
+      if (response.status === 429) {
+        throw new AIProviderError(
+          `Rate limit exceeded for ${loadedConfig.provider.name}`,
+          'RATE_LIMIT',
+          429,
+          loadedConfig.provider.name
+        );
+      }
+
+      if (response.status >= 500) {
+        throw new AIProviderError(
+          `Server error from ${loadedConfig.provider.name}: ${errorText}`,
+          'SERVER_ERROR',
+          response.status,
+          loadedConfig.provider.name
+        );
+      }
+
+      throw new AIProviderError(
+        `Request failed: ${response.status} - ${errorText}`,
+        'INVALID_REQUEST',
+        response.status,
+        loadedConfig.provider.name
+      );
+    }
+
+    // Parse response
+    const rawResponse = await response.json();
+
+    // Normalize response
+    const normalized = normalizeAPIResponse(
+      normalizeProvider(loadedConfig.provider.name),
+      rawResponse
+    );
+
+    return {
+      success: true,
+      content: normalized.content,
+      usage: normalized.usage,
+      finish_reason: normalized.finish_reason,
+      tool_calls: normalized.tool_calls,
+      raw_response: rawResponse,
+    };
+
+  } catch (error) {
+    const latencyMs = Date.now() - startTime;
+    console.error(`[callProviderAPI] Error after ${latencyMs}ms:`, error);
+
+    if (error instanceof AIProviderError) {
+      return {
+        success: false,
+        content: '',
+        error: error.message,
+        error_code: error.code,
+      };
+    }
+
+    if (error instanceof Error && error.name === 'AbortError') {
+      return {
+        success: false,
+        content: '',
+        error: `Request timeout after ${loadedConfig.timeout_ms}ms`,
+        error_code: 'TIMEOUT',
+      };
+    }
+
+    return {
+      success: false,
+      content: '',
+      error: error instanceof Error ? error.message : 'Unknown error',
+      error_code: 'UNKNOWN',
+    };
+  }
+}
+
+// ==================== STREAMING API CALLER ====================
+
+/**
+ * Call provider API with streaming response
+ * Returns ReadableStream for SSE processing
+ */
+export async function callProviderAPIStream(
+  config: AIConfig,
+  messages: ChatMessage[],
+  apiKey: string,
+  loadedConfig: LoadedAIConfig,
+  options: CallAPIOptions = {}
+): Promise<Response> {
+  // Build payload with stream enabled
+  const payload = buildMultiProviderPayload(config, messages, {
+    stream: true,
+    tools: options.tools,
+    tool_choice: options.tool_choice,
+  });
+
+  // Get dynamic endpoint
+  const { url, headers } = getProviderEndpointDynamic(
+    loadedConfig.provider,
+    config.api_name,
+    apiKey
+  );
+
+  console.log(`[callProviderAPIStream] Streaming from ${loadedConfig.provider.name} at ${url}`);
+
+  // Setup timeout
+  const timeoutMs = options.timeout_override || loadedConfig.timeout_ms;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload),
+      signal: options.signal || controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[callProviderAPIStream] Error response:`, errorText);
+      throw new AIProviderError(
+        `Streaming request failed: ${response.status} - ${errorText}`,
+        response.status === 429 ? 'RATE_LIMIT' : 'SERVER_ERROR',
+        response.status,
+        loadedConfig.provider.name
+      );
+    }
+
+    return response;
+
+  } catch (error) {
+    clearTimeout(timeoutId);
+    
+    if (error instanceof AIProviderError) {
+      throw error;
+    }
+
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new AIProviderError(
+        `Streaming request timeout after ${timeoutMs}ms`,
+        'TIMEOUT',
+        undefined,
+        loadedConfig.provider.name
+      );
+    }
+
+    throw new AIProviderError(
+      error instanceof Error ? error.message : 'Unknown streaming error',
+      'NETWORK_ERROR',
+      undefined,
+      loadedConfig.provider.name
+    );
+  }
+}
+
+// ==================== RESPONSE NORMALIZER ====================
+
+/**
+ * Normalize API response from different providers to common format
+ */
+export function normalizeAPIResponse(
+  provider: AIProvider,
+  rawResponse: unknown
+): NormalizedAPIResponse {
+  const response = rawResponse as Record<string, unknown>;
+
+  switch (provider) {
+    case 'anthropic':
+      return normalizeAnthropicResponse(response);
+    
+    case 'google':
+      return normalizeGeminiResponse(response);
+    
+    case 'groq':
+    case 'openai':
+    case 'lovable':
+    default:
+      return normalizeOpenAIResponse(response);
+  }
+}
+
+/**
+ * Normalize OpenAI/Lovable/Groq response
+ */
+function normalizeOpenAIResponse(response: Record<string, unknown>): NormalizedAPIResponse {
+  const choices = response.choices as Array<Record<string, unknown>> | undefined;
+  const choice = choices?.[0];
+  const message = choice?.message as Record<string, unknown> | undefined;
+  const usage = response.usage as Record<string, number> | undefined;
+
+  // Extract tool calls if present
+  const toolCalls = message?.tool_calls as Array<Record<string, unknown>> | undefined;
+  const normalizedToolCalls: ToolCall[] | undefined = toolCalls?.map(tc => ({
+    id: tc.id as string,
+    type: 'function' as const,
+    function: {
+      name: (tc.function as Record<string, string>)?.name || '',
+      arguments: (tc.function as Record<string, string>)?.arguments || '{}',
+    },
+  }));
+
+  return {
+    success: true,
+    content: (message?.content as string) || '',
+    usage: {
+      prompt_tokens: usage?.prompt_tokens || 0,
+      completion_tokens: usage?.completion_tokens || 0,
+      total_tokens: usage?.total_tokens || 0,
+    },
+    finish_reason: (choice?.finish_reason as string) || 'stop',
+    tool_calls: normalizedToolCalls,
+  };
+}
+
+/**
+ * Normalize Anthropic Claude response
+ * Handles extended thinking responses
+ */
+function normalizeAnthropicResponse(response: Record<string, unknown>): NormalizedAPIResponse {
+  const content = response.content as Array<Record<string, unknown>> | undefined;
+  const usage = response.usage as Record<string, number> | undefined;
+
+  // Anthropic may return multiple content blocks (thinking + text)
+  // Extract the text content, ignoring thinking blocks
+  let textContent = '';
+  for (const block of content || []) {
+    if (block.type === 'text') {
+      textContent += (block.text as string) || '';
+    }
+  }
+
+  // Check for tool use
+  const toolUseBlocks = content?.filter(b => b.type === 'tool_use') || [];
+  const toolCalls: ToolCall[] | undefined = toolUseBlocks.length > 0
+    ? toolUseBlocks.map(tu => ({
+        id: tu.id as string,
+        type: 'function' as const,
+        function: {
+          name: tu.name as string,
+          arguments: JSON.stringify(tu.input || {}),
+        },
+      }))
+    : undefined;
+
+  return {
+    success: true,
+    content: textContent,
+    usage: {
+      prompt_tokens: usage?.input_tokens || 0,
+      completion_tokens: usage?.output_tokens || 0,
+      total_tokens: (usage?.input_tokens || 0) + (usage?.output_tokens || 0),
+    },
+    finish_reason: (response.stop_reason as string) || 'end_turn',
+    tool_calls: toolCalls,
+  };
+}
+
+/**
+ * Normalize Google Gemini response
+ */
+function normalizeGeminiResponse(response: Record<string, unknown>): NormalizedAPIResponse {
+  const candidates = response.candidates as Array<Record<string, unknown>> | undefined;
+  const candidate = candidates?.[0];
+  const content = candidate?.content as Record<string, unknown> | undefined;
+  const parts = content?.parts as Array<Record<string, unknown>> | undefined;
+  const usageMetadata = response.usageMetadata as Record<string, number> | undefined;
+
+  // Extract text from parts
+  let textContent = '';
+  for (const part of parts || []) {
+    if (part.text) {
+      textContent += part.text as string;
+    }
+  }
+
+  // Check for function calls
+  const functionCallParts = parts?.filter(p => p.functionCall) || [];
+  const toolCalls: ToolCall[] | undefined = functionCallParts.length > 0
+    ? functionCallParts.map((p, i) => {
+        const fc = p.functionCall as Record<string, unknown>;
+        return {
+          id: `call_${i}`,
+          type: 'function' as const,
+          function: {
+            name: fc.name as string,
+            arguments: JSON.stringify(fc.args || {}),
+          },
+        };
+      })
+    : undefined;
+
+  return {
+    success: true,
+    content: textContent,
+    usage: {
+      prompt_tokens: usageMetadata?.promptTokenCount || 0,
+      completion_tokens: usageMetadata?.candidatesTokenCount || 0,
+      total_tokens: usageMetadata?.totalTokenCount || 0,
+    },
+    finish_reason: (candidate?.finishReason as string) || 'STOP',
+    tool_calls: toolCalls,
+  };
+}
