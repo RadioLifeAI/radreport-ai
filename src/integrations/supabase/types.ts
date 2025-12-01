@@ -122,6 +122,148 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_models: {
+        Row: {
+          created_at: string | null
+          default_max_tokens: number | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          provider: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          default_max_tokens?: number | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          provider: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          default_max_tokens?: number | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          provider?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      ai_prompt_config_history: {
+        Row: {
+          change_reason: string | null
+          changed_at: string | null
+          changed_by: string | null
+          config_id: string | null
+          function_name: string
+          id: string
+          new_model: string | null
+          new_prompt: string
+          previous_model: string | null
+          previous_prompt: string | null
+        }
+        Insert: {
+          change_reason?: string | null
+          changed_at?: string | null
+          changed_by?: string | null
+          config_id?: string | null
+          function_name: string
+          id?: string
+          new_model?: string | null
+          new_prompt: string
+          previous_model?: string | null
+          previous_prompt?: string | null
+        }
+        Update: {
+          change_reason?: string | null
+          changed_at?: string | null
+          changed_by?: string | null
+          config_id?: string | null
+          function_name?: string
+          id?: string
+          new_model?: string | null
+          new_prompt?: string
+          previous_model?: string | null
+          previous_prompt?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_prompt_config_history_config_id_fkey"
+            columns: ["config_id"]
+            isOneToOne: false
+            referencedRelation: "ai_prompt_configs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_prompt_configs: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          display_name: string
+          function_name: string
+          id: string
+          is_active: boolean | null
+          max_tokens: number | null
+          model_id: string | null
+          model_name: string | null
+          reasoning_effort: string | null
+          system_prompt: string
+          temperature: number | null
+          updated_at: string | null
+          updated_by: string | null
+          version: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          display_name: string
+          function_name: string
+          id?: string
+          is_active?: boolean | null
+          max_tokens?: number | null
+          model_id?: string | null
+          model_name?: string | null
+          reasoning_effort?: string | null
+          system_prompt: string
+          temperature?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
+          version?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          display_name?: string
+          function_name?: string
+          id?: string
+          is_active?: boolean | null
+          max_tokens?: number | null
+          model_id?: string | null
+          model_name?: string | null
+          reasoning_effort?: string | null
+          system_prompt?: string
+          temperature?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
+          version?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_prompt_configs_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "ai_models"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_rads_logs: {
         Row: {
           created_at: string | null
@@ -1990,6 +2132,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          granted_by: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          granted_by?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          granted_by?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
       }
       user_template_usage: {
         Row: {
@@ -7807,6 +7973,13 @@ export type Database = {
         Returns: string
       }
       gerar_numero_laudo: { Args: never; Returns: string }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       inserir_frase_unica: {
         Args: {
           p_categoria?: string
@@ -8954,7 +9127,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -9081,6 +9254,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+    },
   },
 } as const

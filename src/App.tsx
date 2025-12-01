@@ -22,6 +22,9 @@ import Termos from "./pages/Termos";
 import LGPD from "./pages/LGPD";
 import Cookies from "./pages/Cookies";
 import { CookieBanner } from "./components/CookieBanner";
+import { AdminProtectedRoute } from "./components/admin";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import PromptsPage from "./pages/admin/PromptsPage";
 
 const queryClient = new QueryClient();
 
@@ -54,6 +57,9 @@ const App = () => (
             <Route path="/termos" element={<Termos />} />
             <Route path="/lgpd" element={<LGPD />} />
             <Route path="/cookies" element={<Cookies />} />
+            {/* Admin Routes */}
+            <Route path="/admin" element={<AdminProtectedRoute><AdminDashboard /></AdminProtectedRoute>} />
+            <Route path="/admin/prompts" element={<AdminProtectedRoute><PromptsPage /></AdminProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
