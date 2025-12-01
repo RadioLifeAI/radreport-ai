@@ -11,6 +11,8 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Slider } from '@/components/ui/slider';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { 
   Dialog, 
   DialogContent, 
@@ -36,6 +38,7 @@ import {
   Code2, 
   Settings2,
   ChevronRight,
+  ChevronDown,
   Clock,
   Zap,
   Plus,
@@ -50,10 +53,20 @@ import {
   Sparkles,
   Cpu,
   AlertCircle,
-  Info
+  Info,
+  SlidersHorizontal
 } from 'lucide-react';
 
 // Types
+interface AIProvider {
+  id: string;
+  name: string;
+  display_name: string;
+  api_base_url: string;
+  api_key_secret_name: string;
+  is_active: boolean;
+}
+
 interface PromptConfig {
   id: string;
   function_name: string;
@@ -62,9 +75,18 @@ interface PromptConfig {
   system_prompt: string;
   model_name: string;
   model_id: string | null;
+  provider_id: string | null;
   max_tokens: number;
-  reasoning_effort: string;
-  temperature: number;
+  reasoning_effort: string | null;
+  temperature: number | null;
+  top_p: number | null;
+  top_k: number | null;
+  frequency_penalty: number | null;
+  presence_penalty: number | null;
+  thinking_budget: number | null;
+  stop_sequences: string[] | null;
+  seed: number | null;
+  response_format: string | null;
   is_active: boolean;
   version: number;
   updated_at: string;
@@ -74,16 +96,35 @@ interface AIModel {
   id: string;
   name: string;
   provider: string;
+  provider_id: string | null;
+  api_name: string | null;
+  model_family: string | null;
   description: string | null;
+  tier: string | null;
   is_active: boolean;
+  is_legacy: boolean | null;
   default_max_tokens: number;
+  context_window: number | null;
+  max_output_tokens: number | null;
+  input_cost_per_1m: number | null;
+  output_cost_per_1m: number | null;
+  // Capabilities
+  supports_temperature: boolean | null;
+  supports_reasoning: boolean | null;
+  supports_extended_thinking: boolean | null;
+  supports_thinking_budget: boolean | null;
+  supports_top_p: boolean | null;
+  supports_top_k: boolean | null;
+  supports_frequency_penalty: boolean | null;
+  supports_presence_penalty: boolean | null;
+  supports_stop_sequences: boolean | null;
+  supports_seed: boolean | null;
+  supports_json_mode: boolean | null;
+  supports_tools: boolean | null;
+  supports_streaming: boolean | null;
+  supports_vision: boolean | null;
   created_at: string;
   updated_at: string;
-  // New capability fields
-  supports_temperature: boolean;
-  supports_reasoning: boolean;
-  is_legacy: boolean;
-  api_name: string | null;
 }
 
 interface PromptHistory {
@@ -102,26 +143,40 @@ interface ModelUsage {
   usage_count: number;
 }
 
-const PROVIDERS = ['OpenAI', 'Anthropic', 'Google', 'Groq', 'Meta', 'Mistral'];
-
 // Model info for icons and descriptions
 const MODEL_INFO: Record<string, { icon: string; label: string; color: string }> = {
-  'gpt-5-nano-2025-08-07': { icon: '💡', label: 'Econômico, Rápido', color: 'text-green-400' },
+  'gpt-5-nano-2025-08-07': { icon: '💡', label: 'Econômico', color: 'text-green-400' },
   'gpt-5-2025-08-07': { icon: '⭐', label: 'Flagship', color: 'text-cyan-400' },
+  'gpt-5-mini-2025-08-07': { icon: '🚀', label: 'Balanced', color: 'text-blue-400' },
   'gpt-4o-mini': { icon: '⚡', label: 'Legacy Mini', color: 'text-yellow-400' },
-  'gpt-4o': { icon: '🚀', label: 'Legacy Flagship', color: 'text-orange-400' },
-  'gpt-4.1-2025-04-14': { icon: '🔮', label: 'Reasoning', color: 'text-purple-400' },
-  'o3-mini': { icon: '🧠', label: 'Reasoning Compact', color: 'text-blue-400' },
-  'o3': { icon: '🧠', label: 'Reasoning Full', color: 'text-indigo-400' },
-  'o4-mini': { icon: '✨', label: 'Reasoning Next', color: 'text-pink-400' },
-  'claude-3-5-sonnet': { icon: '🎭', label: 'Anthropic', color: 'text-amber-400' },
-  'gemini-2.0-flash': { icon: '💎', label: 'Google', color: 'text-sky-400' },
+  'gpt-4o': { icon: '🔥', label: 'Legacy Pro', color: 'text-orange-400' },
+  'gpt-4.1-2025-04-14': { icon: '🔮', label: 'Coding', color: 'text-purple-400' },
+  'gpt-4.1-mini-2025-04-14': { icon: '💎', label: 'Coding Mini', color: 'text-violet-400' },
+  'gpt-4.1-nano-2025-04-14': { icon: '⚡', label: 'Coding Nano', color: 'text-indigo-400' },
+  'o3-mini': { icon: '🧠', label: 'Reasoning', color: 'text-blue-400' },
+  'o4-mini-2025-04-16': { icon: '✨', label: 'Reasoning Next', color: 'text-pink-400' },
+  'claude-3-5-sonnet-20241022': { icon: '🎭', label: 'Anthropic', color: 'text-amber-400' },
+  'claude-3-7-sonnet-20250219': { icon: '🎭', label: 'Anthropic 3.7', color: 'text-amber-500' },
+  'claude-3-5-haiku-20241022': { icon: '🍃', label: 'Anthropic Fast', color: 'text-emerald-400' },
+  'gemini-2.5-pro': { icon: '💎', label: 'Google Pro', color: 'text-sky-400' },
+  'gemini-2.5-flash': { icon: '⚡', label: 'Google Flash', color: 'text-sky-300' },
+  'gemini-2.5-flash-lite': { icon: '🌟', label: 'Google Lite', color: 'text-sky-200' },
+  'llama-3.3-70b-versatile': { icon: '🦙', label: 'Groq Llama', color: 'text-rose-400' },
   'whisper-large-v3-turbo': { icon: '🎤', label: 'Transcrição', color: 'text-rose-400' },
+};
+
+const PROVIDER_ICONS: Record<string, string> = {
+  'openai': '🟢',
+  'anthropic': '🟠',
+  'google': '🔵',
+  'groq': '🔴',
+  'lovable': '💜',
 };
 
 export default function AIConfigPage() {
   // Shared state
   const [loading, setLoading] = useState(true);
+  const [providers, setProviders] = useState<AIProvider[]>([]);
   const [configs, setConfigs] = useState<PromptConfig[]>([]);
   const [models, setModels] = useState<AIModel[]>([]);
   const [modelUsage, setModelUsage] = useState<ModelUsage[]>([]);
@@ -133,14 +188,23 @@ export default function AIConfigPage() {
   const [configModalOpen, setConfigModalOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [history, setHistory] = useState<PromptHistory[]>([]);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
   
-  // Config modal state (all-in-one)
+  // Config modal state
   const [modalDisplayName, setModalDisplayName] = useState('');
   const [modalDescription, setModalDescription] = useState('');
+  const [modalProvider, setModalProvider] = useState('');
   const [modalModel, setModalModel] = useState('');
   const [modalMaxTokens, setModalMaxTokens] = useState(2000);
-  const [modalTemperature, setModalTemperature] = useState(0.7);
+  const [modalTemperature, setModalTemperature] = useState<number | null>(0.7);
   const [modalReasoning, setModalReasoning] = useState('low');
+  const [modalTopP, setModalTopP] = useState<number | null>(null);
+  const [modalTopK, setModalTopK] = useState<number | null>(null);
+  const [modalFrequencyPenalty, setModalFrequencyPenalty] = useState<number | null>(null);
+  const [modalPresencePenalty, setModalPresencePenalty] = useState<number | null>(null);
+  const [modalThinkingBudget, setModalThinkingBudget] = useState<number | null>(null);
+  const [modalSeed, setModalSeed] = useState<number | null>(null);
+  const [modalStopSequences, setModalStopSequences] = useState('');
   const [modalActive, setModalActive] = useState(true);
   const [modalPrompt, setModalPrompt] = useState('');
 
@@ -153,7 +217,7 @@ export default function AIConfigPage() {
   
   // Model form state
   const [formName, setFormName] = useState('');
-  const [formProvider, setFormProvider] = useState('OpenAI');
+  const [formProvider, setFormProvider] = useState('openai');
   const [formDescription, setFormDescription] = useState('');
   const [formMaxTokens, setFormMaxTokens] = useState(2000);
   const [formActive, setFormActive] = useState(true);
@@ -162,11 +226,16 @@ export default function AIConfigPage() {
   const fetchData = async () => {
     setLoading(true);
     
-    const [configsRes, modelsRes, historyRes] = await Promise.all([
+    const [providersRes, configsRes, modelsRes, historyRes] = await Promise.all([
+      supabase.from('ai_providers').select('*').eq('is_active', true).order('display_name'),
       supabase.from('ai_prompt_configs').select('*').order('display_name'),
-      supabase.from('ai_models').select('*').order('name'),
+      supabase.from('ai_models').select('*').order('provider, name'),
       supabase.from('ai_prompt_config_history').select('*').order('changed_at', { ascending: false }).limit(5)
     ]);
+
+    if (providersRes.data) {
+      setProviders(providersRes.data);
+    }
 
     if (configsRes.data) {
       setConfigs(configsRes.data);
@@ -207,6 +276,17 @@ export default function AIConfigPage() {
     fetchData();
   }, []);
 
+  // Get models filtered by provider
+  const getModelsForProvider = (providerName: string) => {
+    return models.filter(m => m.provider.toLowerCase() === providerName.toLowerCase() && m.is_active);
+  };
+
+  // Get provider from model
+  const getProviderFromModel = (modelName: string) => {
+    const model = models.find(m => m.name === modelName);
+    return model?.provider.toLowerCase() || 'openai';
+  };
+
   // Prompts functions
   const handleSelectConfig = (config: PromptConfig) => {
     setSelectedConfig(config);
@@ -214,24 +294,75 @@ export default function AIConfigPage() {
 
   const openConfigModal = () => {
     if (selectedConfig) {
+      const provider = getProviderFromModel(selectedConfig.model_name);
       setModalDisplayName(selectedConfig.display_name);
       setModalDescription(selectedConfig.description || '');
+      setModalProvider(provider);
       setModalModel(selectedConfig.model_name);
       setModalMaxTokens(selectedConfig.max_tokens);
       setModalTemperature(selectedConfig.temperature);
-      setModalReasoning(selectedConfig.reasoning_effort);
+      setModalReasoning(selectedConfig.reasoning_effort || 'low');
+      setModalTopP(selectedConfig.top_p);
+      setModalTopK(selectedConfig.top_k);
+      setModalFrequencyPenalty(selectedConfig.frequency_penalty);
+      setModalPresencePenalty(selectedConfig.presence_penalty);
+      setModalThinkingBudget(selectedConfig.thinking_budget);
+      setModalSeed(selectedConfig.seed);
+      setModalStopSequences(selectedConfig.stop_sequences?.join(', ') || '');
       setModalActive(selectedConfig.is_active);
       setModalPrompt(selectedConfig.system_prompt);
+      setAdvancedOpen(false);
       setConfigModalOpen(true);
     }
   };
+
+  // Handle provider change - reset model
+  const handleProviderChange = (newProvider: string) => {
+    setModalProvider(newProvider);
+    const providerModels = getModelsForProvider(newProvider);
+    if (providerModels.length > 0) {
+      setModalModel(providerModels[0].name);
+    } else {
+      setModalModel('');
+    }
+  };
+
+  // Get model capabilities
+  const getModelCapabilities = (modelName: string) => {
+    const model = models.find(m => m.name === modelName);
+    if (model) {
+      return {
+        supportsTemperature: model.supports_temperature ?? false,
+        supportsReasoning: model.supports_reasoning ?? false,
+        supportsExtendedThinking: model.supports_extended_thinking ?? false,
+        supportsThinkingBudget: model.supports_thinking_budget ?? false,
+        supportsTopP: model.supports_top_p ?? true,
+        supportsTopK: model.supports_top_k ?? false,
+        supportsFrequencyPenalty: model.supports_frequency_penalty ?? false,
+        supportsPresencePenalty: model.supports_presence_penalty ?? false,
+        supportsStopSequences: model.supports_stop_sequences ?? true,
+        supportsSeed: model.supports_seed ?? false,
+        supportsJsonMode: model.supports_json_mode ?? false,
+        supportsTools: model.supports_tools ?? false,
+        supportsVision: model.supports_vision ?? false,
+        isLegacy: model.is_legacy ?? false,
+        tier: model.tier,
+        contextWindow: model.context_window,
+        maxOutputTokens: model.max_output_tokens,
+        inputCost: model.input_cost_per_1m,
+        outputCost: model.output_cost_per_1m,
+      };
+    }
+    return null;
+  };
+
+  const modalModelCapabilities = getModelCapabilities(modalModel);
 
   const saveFullConfig = async () => {
     if (!selectedConfig) return;
     
     setSavingPrompt(true);
     
-    // Check if prompt changed to save history
     const promptChanged = modalPrompt !== selectedConfig.system_prompt;
     
     if (promptChanged) {
@@ -246,15 +377,28 @@ export default function AIConfigPage() {
       });
     }
 
+    // Find provider_id from selected model
+    const selectedModelData = models.find(m => m.name === modalModel);
+    const providerId = selectedModelData?.provider_id || null;
+
     const { error } = await supabase
       .from('ai_prompt_configs')
       .update({ 
         display_name: modalDisplayName,
         description: modalDescription || null,
         model_name: modalModel,
+        model_id: selectedModelData?.id || null,
+        provider_id: providerId,
         max_tokens: modalMaxTokens,
-        temperature: modalTemperature,
-        reasoning_effort: modalReasoning,
+        temperature: modalModelCapabilities?.supportsTemperature ? modalTemperature : null,
+        reasoning_effort: modalModelCapabilities?.supportsReasoning ? modalReasoning : null,
+        top_p: modalModelCapabilities?.supportsTopP ? modalTopP : null,
+        top_k: modalModelCapabilities?.supportsTopK ? modalTopK : null,
+        frequency_penalty: modalModelCapabilities?.supportsFrequencyPenalty ? modalFrequencyPenalty : null,
+        presence_penalty: modalModelCapabilities?.supportsPresencePenalty ? modalPresencePenalty : null,
+        thinking_budget: (modalModelCapabilities?.supportsThinkingBudget || modalModelCapabilities?.supportsExtendedThinking) ? modalThinkingBudget : null,
+        seed: modalModelCapabilities?.supportsSeed ? modalSeed : null,
+        stop_sequences: modalStopSequences ? modalStopSequences.split(',').map(s => s.trim()).filter(Boolean) : null,
         is_active: modalActive,
         system_prompt: modalPrompt,
         version: promptChanged ? selectedConfig.version + 1 : selectedConfig.version,
@@ -293,7 +437,7 @@ export default function AIConfigPage() {
   // Models functions
   const resetModelForm = () => {
     setFormName('');
-    setFormProvider('OpenAI');
+    setFormProvider('openai');
     setFormDescription('');
     setFormMaxTokens(2000);
     setFormActive(true);
@@ -303,7 +447,7 @@ export default function AIConfigPage() {
   const openEditModelDialog = (model: AIModel) => {
     setEditingModel(model);
     setFormName(model.name);
-    setFormProvider(model.provider);
+    setFormProvider(model.provider.toLowerCase());
     setFormDescription(model.description || '');
     setFormMaxTokens(model.default_max_tokens);
     setFormActive(model.is_active);
@@ -403,38 +547,6 @@ export default function AIConfigPage() {
     return MODEL_INFO[modelName] || { icon: '🤖', label: 'Modelo', color: 'text-muted-foreground' };
   };
 
-  const getModelProvider = (modelName: string) => {
-    const model = models.find(m => m.name === modelName);
-    return model?.provider || 'OpenAI';
-  };
-
-  // Get model capabilities from database
-  const getModelCapabilities = (modelName: string) => {
-    const model = models.find(m => m.name === modelName);
-    if (model) {
-      return {
-        supportsTemperature: model.supports_temperature ?? false,
-        supportsReasoning: model.supports_reasoning ?? false,
-        isLegacy: model.is_legacy ?? false,
-      };
-    }
-    // Fallback: infer from model name if not in database
-    const isLegacy = ['gpt-4o', 'gpt-4o-mini', 'gpt-3.5', 'gpt-4-turbo'].some(
-      legacy => modelName.toLowerCase().includes(legacy.toLowerCase())
-    );
-    const isReasoning = ['gpt-5', 'o3', 'o4', 'gpt-4.1'].some(
-      rm => modelName.toLowerCase().includes(rm.toLowerCase())
-    );
-    return {
-      supportsTemperature: isLegacy,
-      supportsReasoning: isReasoning,
-      isLegacy,
-    };
-  };
-
-  // Current modal model capabilities
-  const modalModelCapabilities = getModelCapabilities(modalModel);
-
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -443,7 +555,7 @@ export default function AIConfigPage() {
           <div>
             <h1 className="text-3xl font-bold text-foreground font-mono">Configurações IA</h1>
             <p className="text-muted-foreground mt-1 text-sm">
-              Gerencie prompts e modelos de inteligência artificial
+              Gerencie prompts e modelos multi-provedor
             </p>
           </div>
           <Button variant="outline" onClick={fetchData} disabled={loading}>
@@ -485,7 +597,7 @@ export default function AIConfigPage() {
                     <CardHeader className="pb-2">
                       <CardTitle className="text-sm font-mono flex items-center gap-2">
                         <Settings2 className="h-4 w-4 text-primary" />
-                        Prompts Configurados
+                        Prompts
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -500,7 +612,7 @@ export default function AIConfigPage() {
                     <CardHeader className="pb-2">
                       <CardTitle className="text-sm font-mono flex items-center gap-2">
                         <Brain className="h-4 w-4 text-primary" />
-                        Modelos Disponíveis
+                        Modelos
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -514,15 +626,15 @@ export default function AIConfigPage() {
                   <Card>
                     <CardHeader className="pb-2">
                       <CardTitle className="text-sm font-mono flex items-center gap-2">
-                        <TrendingUp className="h-4 w-4 text-primary" />
-                        Providers
+                        <Cpu className="h-4 w-4 text-primary" />
+                        Provedores
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-3xl font-bold font-mono">
-                        {new Set(models.map(m => m.provider)).size}
-                      </div>
-                      <p className="text-xs text-muted-foreground">provedores de IA</p>
+                      <div className="text-3xl font-bold font-mono">{providers.length}</div>
+                      <p className="text-xs text-muted-foreground">
+                        {providers.map(p => PROVIDER_ICONS[p.name] || '🔌').join(' ')}
+                      </p>
                     </CardContent>
                   </Card>
 
@@ -530,401 +642,303 @@ export default function AIConfigPage() {
                     <CardHeader className="pb-2">
                       <CardTitle className="text-sm font-mono flex items-center gap-2">
                         <Activity className="h-4 w-4 text-primary" />
-                        Alterações Recentes
+                        Alterações
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="text-3xl font-bold font-mono">{recentActivity.length}</div>
-                      <p className="text-xs text-muted-foreground">últimos 5 dias</p>
+                      <p className="text-xs text-muted-foreground">
+                        Últimas 24h
+                      </p>
                     </CardContent>
                   </Card>
                 </div>
 
-                {/* Usage per Model */}
-                <div className="grid gap-6 lg:grid-cols-2">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg font-mono flex items-center gap-2">
-                        <Zap className="h-5 w-5 text-primary" />
-                        Uso por Modelo
-                      </CardTitle>
-                      <CardDescription>Quantas funções utilizam cada modelo</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        {activeModels.map((model) => {
-                          const count = getUsageCount(model.name);
-                          const percentage = configs.length > 0 ? (count / configs.length) * 100 : 0;
-                          const info = getModelInfo(model.name);
-                          return (
-                            <div key={model.id} className="space-y-1">
-                              <div className="flex items-center justify-between text-sm">
-                                <span className="font-mono flex items-center gap-2">
-                                  <span className={info.color}>{info.icon}</span>
-                                  {model.name}
-                                </span>
-                                <Badge variant={count > 0 ? 'default' : 'secondary'} className="font-mono">
-                                  {count} funções
-                                </Badge>
-                              </div>
-                              <div className="h-2 bg-muted rounded-full overflow-hidden">
-                                <div 
-                                  className="h-full bg-primary transition-all"
-                                  style={{ width: `${percentage}%` }}
-                                />
-                              </div>
+                {/* Provider Summary */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm font-mono">Modelos por Provedor</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid gap-4 md:grid-cols-5">
+                      {providers.map(provider => {
+                        const providerModels = models.filter(m => m.provider.toLowerCase() === provider.name.toLowerCase());
+                        const activeCount = providerModels.filter(m => m.is_active).length;
+                        return (
+                          <div key={provider.id} className="p-4 bg-muted/30 rounded-lg">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-xl">{PROVIDER_ICONS[provider.name] || '🔌'}</span>
+                              <span className="font-mono text-sm">{provider.display_name}</span>
                             </div>
-                          );
-                        })}
-                        {activeModels.length === 0 && (
-                          <p className="text-muted-foreground text-center py-4">Nenhum modelo ativo</p>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
+                            <div className="text-2xl font-bold font-mono">{providerModels.length}</div>
+                            <p className="text-xs text-muted-foreground">{activeCount} ativos</p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
 
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg font-mono flex items-center gap-2">
-                        <History className="h-5 w-5 text-primary" />
-                        Atividade Recente
-                      </CardTitle>
-                      <CardDescription>Últimas alterações em prompts</CardDescription>
-                    </CardHeader>
-                    <CardContent>
+                {/* Recent Activity */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm font-mono flex items-center gap-2">
+                      <History className="h-4 w-4" />
+                      Atividade Recente
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {recentActivity.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">Nenhuma alteração recente</p>
+                    ) : (
                       <div className="space-y-3">
-                        {recentActivity.map((item) => (
-                          <div key={item.id} className="flex items-center gap-3 p-2 rounded-lg bg-muted/30">
-                            <div className="h-2 w-2 rounded-full bg-primary" />
+                        {recentActivity.map(activity => (
+                          <div key={activity.id} className="flex items-center gap-3 p-2 bg-muted/30 rounded-lg">
+                            <Code2 className="h-4 w-4 text-primary" />
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-mono truncate">{item.function_name}</p>
-                              <p className="text-xs text-muted-foreground">
-                                {item.new_model && `Modelo: ${item.new_model}`}
-                              </p>
+                              <p className="text-sm font-mono truncate">{activity.function_name}</p>
+                              <p className="text-xs text-muted-foreground">{activity.change_reason}</p>
                             </div>
-                            <span className="text-xs text-muted-foreground font-mono">
-                              {formatDateShort(item.changed_at)}
-                            </span>
+                            <Badge variant="outline" className="text-xs">
+                              {formatDateShort(activity.changed_at)}
+                            </Badge>
                           </div>
                         ))}
-                        {recentActivity.length === 0 && (
-                          <p className="text-muted-foreground text-center py-4">Nenhuma atividade recente</p>
-                        )}
                       </div>
-                    </CardContent>
-                  </Card>
-                </div>
+                    )}
+                  </CardContent>
+                </Card>
               </>
             )}
           </TabsContent>
 
           {/* ==================== PROMPTS TAB ==================== */}
-          <TabsContent value="prompts" className="space-y-6">
+          <TabsContent value="prompts" className="space-y-4">
             {loading ? (
-              <div className="space-y-4">
-                <Skeleton className="h-12 w-full" />
-                <Skeleton className="h-[500px] w-full" />
+              <div className="grid md:grid-cols-3 gap-4">
+                <Skeleton className="h-[400px]" />
+                <Skeleton className="h-[400px] col-span-2" />
               </div>
             ) : (
-              <div className="grid gap-6 lg:grid-cols-4">
+              <div className="grid md:grid-cols-3 gap-4">
                 {/* Functions List */}
-                <Card className="lg:col-span-1">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg font-mono flex items-center gap-2">
-                      <Code2 className="h-5 w-5 text-primary" />
-                      Edge Functions
-                    </CardTitle>
+                <Card className="md:col-span-1">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-mono">Funções IA</CardTitle>
                     <CardDescription className="text-xs">
-                      {configs.length} funções configuradas
+                      Selecione uma função para editar
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="p-0">
                     <ScrollArea className="h-[500px]">
-                      <div className="px-2 pb-2 space-y-1">
-                        {configs.map((config) => {
-                          const info = getModelInfo(config.model_name);
-                          return (
-                            <button
-                              key={config.id}
-                              onClick={() => handleSelectConfig(config)}
-                              className={`w-full text-left p-3 rounded-lg transition-all ${
-                                selectedConfig?.id === config.id
-                                  ? 'bg-primary text-primary-foreground'
-                                  : 'hover:bg-muted/50'
-                              }`}
-                            >
-                              <div className="flex items-center justify-between">
-                                <span className="font-mono text-sm font-medium truncate">
-                                  {config.display_name}
-                                </span>
-                                <ChevronRight className={`h-4 w-4 flex-shrink-0 ${
-                                  selectedConfig?.id === config.id ? 'opacity-100' : 'opacity-50'
-                                }`} />
-                              </div>
-                              <div className="flex items-center gap-2 mt-1">
-                                <span className={`text-xs ${selectedConfig?.id === config.id ? 'opacity-80' : info.color}`}>
-                                  {info.icon}
-                                </span>
-                                <span className="text-[10px] opacity-70 font-mono truncate">
-                                  {config.model_name}
-                                </span>
-                                {!config.is_active && (
-                                  <Badge variant="secondary" className="text-[9px] px-1">
-                                    Inativo
-                                  </Badge>
-                                )}
-                              </div>
-                            </button>
-                          );
-                        })}
-                      </div>
+                      {configs.map(config => (
+                        <div
+                          key={config.id}
+                          onClick={() => handleSelectConfig(config)}
+                          className={`flex items-center gap-3 p-3 cursor-pointer border-b border-border/50 hover:bg-muted/50 transition-colors ${
+                            selectedConfig?.id === config.id ? 'bg-primary/10 border-l-2 border-l-primary' : ''
+                          }`}
+                        >
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{config.display_name}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <Badge variant={config.is_active ? 'default' : 'secondary'} className="text-[10px] h-4">
+                                {config.is_active ? 'Ativo' : 'Inativo'}
+                              </Badge>
+                              <span className="text-[10px] text-muted-foreground font-mono">
+                                v{config.version}
+                              </span>
+                            </div>
+                          </div>
+                          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                      ))}
                     </ScrollArea>
                   </CardContent>
                 </Card>
 
-                {/* Editor Panel */}
-                <Card className="lg:col-span-3">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <CardTitle className="font-mono flex items-center gap-2">
-                          {selectedConfig?.display_name || 'Selecione uma função'}
-                          {selectedConfig && (
-                            <Badge variant="outline" className="font-mono text-xs">
-                              v{selectedConfig.version}
-                            </Badge>
-                          )}
-                        </CardTitle>
-                        <CardDescription className="text-xs mt-1">
-                          {selectedConfig?.description || 'Selecione uma função para editar'}
-                        </CardDescription>
-                      </div>
-                      {selectedConfig && (
-                        <Button onClick={openConfigModal} className="gap-2">
-                          <Edit className="h-4 w-4" />
-                          Editar Configuração
-                        </Button>
-                      )}
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {selectedConfig ? (
-                      <>
-                        {/* Current Config Display */}
-                        <div className="flex flex-wrap gap-2 p-3 rounded-lg bg-muted/30 border border-border/50">
-                          <Badge variant="outline" className="font-mono text-xs gap-1">
-                            <span className={getModelInfo(selectedConfig.model_name).color}>
-                              {getModelInfo(selectedConfig.model_name).icon}
-                            </span>
-                            {selectedConfig.model_name}
-                          </Badge>
-                          <Badge variant="outline" className="font-mono text-xs">
-                            {selectedConfig.max_tokens} tokens
-                          </Badge>
-                          <Badge variant="outline" className="font-mono text-xs">
-                            temp: {selectedConfig.temperature}
-                          </Badge>
-                          <Badge variant="outline" className="font-mono text-xs gap-1">
-                            <span className={`w-2 h-2 rounded-full ${
-                              selectedConfig.reasoning_effort === 'low' ? 'bg-green-500' :
-                              selectedConfig.reasoning_effort === 'medium' ? 'bg-yellow-500' : 'bg-red-500'
-                            }`} />
-                            reasoning: {selectedConfig.reasoning_effort}
-                          </Badge>
-                          <Badge variant={selectedConfig.is_active ? 'default' : 'secondary'} className="font-mono text-xs">
-                            {selectedConfig.is_active ? 'Ativo' : 'Inativo'}
-                          </Badge>
-                        </div>
-
-                        {/* Prompt Preview (Read-only) */}
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <Label className="font-mono text-sm flex items-center gap-2">
-                              <Code2 className="h-4 w-4" />
-                              System Prompt
-                            </Label>
-                            <span className="text-xs text-muted-foreground font-mono">
-                              {getLineCount(selectedConfig.system_prompt)} linhas • {selectedConfig.system_prompt.length} chars
-                            </span>
+                {/* Config Editor */}
+                <Card className="md:col-span-2">
+                  {selectedConfig ? (
+                    <>
+                      <CardHeader className="pb-3">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <CardTitle className="font-mono">{selectedConfig.display_name}</CardTitle>
+                            <CardDescription className="text-xs mt-1">
+                              {selectedConfig.description || selectedConfig.function_name}
+                            </CardDescription>
                           </div>
-                          <div className="relative">
-                            <div className="absolute left-0 top-0 bottom-0 w-10 bg-muted/50 rounded-l-md border-r border-border flex flex-col items-center pt-3 font-mono text-[10px] text-muted-foreground overflow-hidden select-none">
-                              {Array.from({ length: Math.min(getLineCount(selectedConfig.system_prompt), 20) }, (_, i) => (
-                                <div key={i} className="h-[21px] leading-[21px]">
-                                  {i + 1}
-                                </div>
-                              ))}
-                            </div>
-                            <Textarea
-                              value={selectedConfig.system_prompt}
-                              readOnly
-                              rows={12}
-                              className="font-mono text-sm pl-12 leading-[21px] resize-none bg-muted/20 cursor-default"
-                              spellCheck={false}
-                            />
+                          <div className="flex gap-2">
+                            <Button variant="outline" size="sm" onClick={openHistory}>
+                              <History className="h-4 w-4 mr-1" />
+                              Histórico
+                            </Button>
+                            <Button size="sm" onClick={openConfigModal}>
+                              <Settings2 className="h-4 w-4 mr-1" />
+                              Configurar
+                            </Button>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        {/* Current Config Summary */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                          <div className="p-3 bg-muted/30 rounded-lg">
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Provedor</p>
+                            <p className="text-sm font-mono mt-1">
+                              {PROVIDER_ICONS[getProviderFromModel(selectedConfig.model_name)] || '🔌'}{' '}
+                              {getProviderFromModel(selectedConfig.model_name)}
+                            </p>
+                          </div>
+                          <div className="p-3 bg-muted/30 rounded-lg">
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Modelo</p>
+                            <p className="text-sm font-mono mt-1 truncate">
+                              {getModelInfo(selectedConfig.model_name).icon} {selectedConfig.model_name.split('-').slice(0, 2).join('-')}
+                            </p>
+                          </div>
+                          <div className="p-3 bg-muted/30 rounded-lg">
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Max Tokens</p>
+                            <p className="text-sm font-mono mt-1">{selectedConfig.max_tokens.toLocaleString()}</p>
+                          </div>
+                          <div className="p-3 bg-muted/30 rounded-lg">
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                              {selectedConfig.reasoning_effort ? 'Reasoning' : 'Temperature'}
+                            </p>
+                            <p className="text-sm font-mono mt-1">
+                              {selectedConfig.reasoning_effort || selectedConfig.temperature || 'N/A'}
+                            </p>
                           </div>
                         </div>
 
-                        {/* Action Buttons */}
-                        <div className="flex items-center justify-between pt-2">
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <Clock className="h-3 w-3" />
-                            <span className="font-mono">
-                              Última alteração: {formatDate(selectedConfig.updated_at)}
-                            </span>
-                          </div>
-                          <Button variant="outline" size="sm" onClick={openHistory}>
-                            <History className="h-4 w-4 mr-2" />
-                            Histórico
-                          </Button>
+                        {/* System Prompt Preview */}
+                        <div>
+                          <Label className="text-xs text-muted-foreground">System Prompt ({getLineCount(selectedConfig.system_prompt)} linhas)</Label>
+                          <ScrollArea className="h-[280px] mt-2 border border-border rounded-lg">
+                            <pre className="p-4 text-xs font-mono whitespace-pre-wrap text-muted-foreground">
+                              {selectedConfig.system_prompt}
+                            </pre>
+                          </ScrollArea>
                         </div>
-                      </>
-                    ) : (
-                      <div className="flex items-center justify-center h-[400px] text-muted-foreground">
-                        Selecione uma função para visualizar
-                      </div>
-                    )}
-                  </CardContent>
+                      </CardContent>
+                    </>
+                  ) : (
+                    <CardContent className="flex items-center justify-center h-[500px]">
+                      <p className="text-muted-foreground">Selecione uma função para visualizar</p>
+                    </CardContent>
+                  )}
                 </Card>
               </div>
             )}
           </TabsContent>
 
           {/* ==================== MODELS TAB ==================== */}
-          <TabsContent value="models" className="space-y-6">
-            {/* Stats Cards */}
-            <div className="grid gap-4 md:grid-cols-3">
+          <TabsContent value="models" className="space-y-4">
+            {loading ? (
+              <Skeleton className="h-[400px]" />
+            ) : (
               <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-mono">Total de Modelos</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold font-mono">{models.length}</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-mono">Modelos Ativos</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold font-mono text-green-500">
-                    {activeModels.length}
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-mono">Providers</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold font-mono text-primary">
-                    {new Set(models.map(m => m.provider)).size}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Models Table */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
+                <CardHeader className="flex flex-row items-center justify-between pb-3">
                   <div>
-                    <CardTitle className="text-lg font-mono flex items-center gap-2">
-                      <Brain className="h-5 w-5 text-primary" />
-                      Modelos Cadastrados
-                    </CardTitle>
-                    <CardDescription>
-                      {models.length} modelos configurados no sistema
+                    <CardTitle className="font-mono">Modelos de IA</CardTitle>
+                    <CardDescription className="text-xs">
+                      {models.length} modelos • {activeModels.length} ativos
                     </CardDescription>
                   </div>
-                  <Button onClick={openCreateModelDialog}>
-                    <Plus className="h-4 w-4 mr-2" />
+                  <Button size="sm" onClick={openCreateModelDialog}>
+                    <Plus className="h-4 w-4 mr-1" />
                     Novo Modelo
                   </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {loading ? (
-                  <div className="space-y-3">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Skeleton key={i} className="h-12 w-full" />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="rounded-md border">
+                </CardHeader>
+                <CardContent>
+                  <ScrollArea className="h-[500px]">
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead className="font-mono">Nome</TableHead>
-                          <TableHead className="font-mono">Provider</TableHead>
-                          <TableHead className="font-mono text-center">Max Tokens</TableHead>
-                          <TableHead className="font-mono text-center">Em Uso</TableHead>
-                          <TableHead className="font-mono text-center">Status</TableHead>
-                          <TableHead className="font-mono text-center">Criado</TableHead>
-                          <TableHead className="font-mono text-right">Ações</TableHead>
+                          <TableHead className="w-[200px]">Modelo</TableHead>
+                          <TableHead>Provedor</TableHead>
+                          <TableHead>Tier</TableHead>
+                          <TableHead className="text-right">Contexto</TableHead>
+                          <TableHead className="text-right">Custo ($/1M)</TableHead>
+                          <TableHead className="text-center">Capabilities</TableHead>
+                          <TableHead className="text-center">Status</TableHead>
+                          <TableHead className="text-right">Ações</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {models.map((model) => {
+                        {models.map(model => {
                           const info = getModelInfo(model.name);
+                          const usage = getUsageCount(model.name);
                           return (
-                            <TableRow key={model.id}>
-                              <TableCell className="font-mono font-medium">
+                            <TableRow key={model.id} className={!model.is_active ? 'opacity-50' : ''}>
+                              <TableCell>
                                 <div className="flex items-center gap-2">
-                                  <span className={info.color}>{info.icon}</span>
-                                  {model.name}
+                                  <span>{info.icon}</span>
+                                  <div>
+                                    <p className="font-mono text-sm">{model.name}</p>
+                                    {model.model_family && (
+                                      <p className="text-[10px] text-muted-foreground">{model.model_family}</p>
+                                    )}
+                                  </div>
                                 </div>
-                                {model.description && (
-                                  <span className="text-xs text-muted-foreground block mt-0.5">
-                                    {model.description}
-                                  </span>
-                                )}
                               </TableCell>
                               <TableCell>
-                                <Badge variant="outline" className="font-mono text-xs">
-                                  {model.provider}
-                                </Badge>
+                                <div className="flex items-center gap-1">
+                                  <span>{PROVIDER_ICONS[model.provider.toLowerCase()] || '🔌'}</span>
+                                  <span className="text-sm capitalize">{model.provider}</span>
+                                </div>
                               </TableCell>
-                              <TableCell className="text-center font-mono">
-                                {model.default_max_tokens.toLocaleString()}
+                              <TableCell>
+                                {model.tier && (
+                                  <Badge variant="outline" className="text-[10px]">
+                                    {model.tier}
+                                  </Badge>
+                                )}
+                              </TableCell>
+                              <TableCell className="text-right font-mono text-xs">
+                                {model.context_window ? `${(model.context_window / 1000).toFixed(0)}K` : '-'}
+                              </TableCell>
+                              <TableCell className="text-right font-mono text-xs">
+                                {model.input_cost_per_1m !== null ? (
+                                  <span>${model.input_cost_per_1m.toFixed(2)} / ${model.output_cost_per_1m?.toFixed(2) || '-'}</span>
+                                ) : '-'}
                               </TableCell>
                               <TableCell className="text-center">
-                                <Badge 
-                                  variant={getUsageCount(model.name) > 0 ? 'default' : 'secondary'}
-                                  className="font-mono"
-                                >
-                                  {getUsageCount(model.name)} funções
-                                </Badge>
+                                <div className="flex items-center justify-center gap-1">
+                                  {model.supports_vision && <span title="Vision">👁</span>}
+                                  {model.supports_tools && <span title="Tools">🔧</span>}
+                                  {model.supports_reasoning && <span title="Reasoning">🧠</span>}
+                                  {model.supports_thinking_budget && <span title="Thinking">💭</span>}
+                                  {model.supports_streaming && <span title="Stream">📡</span>}
+                                </div>
                               </TableCell>
                               <TableCell className="text-center">
-                                <button 
-                                  onClick={() => toggleModelActive(model)}
-                                  className="inline-flex items-center gap-1"
-                                >
-                                  {model.is_active ? (
-                                    <CheckCircle2 className="h-5 w-5 text-green-500" />
-                                  ) : (
-                                    <XCircle className="h-5 w-5 text-muted-foreground" />
+                                <div className="flex items-center justify-center gap-2">
+                                  <Switch
+                                    checked={model.is_active}
+                                    onCheckedChange={() => toggleModelActive(model)}
+                                    className="scale-75"
+                                  />
+                                  {usage > 0 && (
+                                    <Badge variant="secondary" className="text-[10px]">
+                                      {usage}x
+                                    </Badge>
                                   )}
-                                </button>
-                              </TableCell>
-                              <TableCell className="text-center text-sm text-muted-foreground font-mono">
-                                {formatDateShort(model.created_at)}
+                                </div>
                               </TableCell>
                               <TableCell className="text-right">
                                 <div className="flex justify-end gap-1">
-                                  <Button variant="ghost" size="icon" onClick={() => openEditModelDialog(model)}>
-                                    <Edit className="h-4 w-4" />
+                                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditModelDialog(model)}>
+                                    <Edit className="h-3 w-3" />
                                   </Button>
                                   <Button 
                                     variant="ghost" 
-                                    size="icon"
-                                    onClick={() => {
-                                      setModelToDelete(model);
-                                      setDeleteDialogOpen(true);
-                                    }}
+                                    size="icon" 
+                                    className="h-7 w-7 text-destructive" 
+                                    onClick={() => { setModelToDelete(model); setDeleteDialogOpen(true); }}
+                                    disabled={usage > 0}
                                   >
-                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                    <Trash2 className="h-3 w-3" />
                                   </Button>
                                 </div>
                               </TableCell>
@@ -933,351 +947,343 @@ export default function AIConfigPage() {
                         })}
                       </TableBody>
                     </Table>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                  </ScrollArea>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
         </Tabs>
 
-        {/* ==================== FULL CONFIG MODAL ==================== */}
+        {/* ==================== CONFIG MODAL ==================== */}
         <Dialog open={configModalOpen} onOpenChange={setConfigModalOpen}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-            <DialogHeader className="flex-shrink-0">
-              <DialogTitle className="font-mono flex items-center gap-2">
-                <Settings2 className="h-5 w-5 text-primary" />
-                Editar Configuração
-              </DialogTitle>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="font-mono">Configuração: {selectedConfig?.display_name}</DialogTitle>
               <DialogDescription>
-                Configure todos os parâmetros da função IA
+                Configure o modelo, parâmetros e prompt do sistema
               </DialogDescription>
             </DialogHeader>
 
-            <div className="flex-1 overflow-y-auto pr-2 space-y-6">
-              {/* Row 1: Name and Function */}
+            <div className="space-y-6 py-4">
+              {/* Basic Info */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="font-mono text-xs flex items-center gap-2">
-                    <Sparkles className="h-3.5 w-3.5 text-primary" />
-                    Nome da Configuração
-                  </Label>
+                  <Label htmlFor="displayName">Nome de Exibição</Label>
                   <Input
+                    id="displayName"
                     value={modalDisplayName}
-                    onChange={(e) => setModalDisplayName(e.target.value)}
-                    className="font-mono"
-                    placeholder="Ex: Gerador de Conclusões"
+                    onChange={e => setModalDisplayName(e.target.value)}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="font-mono text-xs flex items-center gap-2">
-                    <Code2 className="h-3.5 w-3.5 text-primary" />
-                    Função (Edge Function)
-                  </Label>
-                  <div className="h-10 px-3 py-2 rounded-md border border-input bg-muted/50 flex items-center">
-                    <Badge variant="secondary" className="font-mono text-xs">
-                      {selectedConfig?.function_name}
-                    </Badge>
-                  </div>
+                  <Label htmlFor="description">Descrição</Label>
+                  <Input
+                    id="description"
+                    value={modalDescription}
+                    onChange={e => setModalDescription(e.target.value)}
+                    placeholder="Descrição opcional"
+                  />
                 </div>
               </div>
 
-              {/* Row 2: Model and Provider */}
+              {/* Provider and Model Selection */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="font-mono text-xs flex items-center gap-2">
-                    <Brain className="h-3.5 w-3.5 text-primary" />
-                    Modelo
-                  </Label>
-                  <Select value={modalModel} onValueChange={setModalModel}>
-                    <SelectTrigger className="font-mono">
-                      <SelectValue placeholder="Selecione um modelo" />
+                  <Label>Provedor</Label>
+                  <Select value={modalProvider} onValueChange={handleProviderChange}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o provedor" />
                     </SelectTrigger>
-                    <SelectContent className="bg-popover">
-                      {activeModels.map((model) => {
+                    <SelectContent>
+                      {providers.map(provider => (
+                        <SelectItem key={provider.id} value={provider.name.toLowerCase()}>
+                          {PROVIDER_ICONS[provider.name] || '🔌'} {provider.display_name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Modelo</Label>
+                  <Select value={modalModel} onValueChange={setModalModel}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o modelo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {getModelsForProvider(modalProvider).map(model => {
                         const info = getModelInfo(model.name);
                         return (
-                          <SelectItem key={model.id} value={model.name} className="font-mono">
-                            <div className="flex items-center gap-2">
-                              <span className={info.color}>{info.icon}</span>
-                              <span>{model.name}</span>
-                              <span className="text-muted-foreground text-xs">({info.label})</span>
-                            </div>
+                          <SelectItem key={model.id} value={model.name}>
+                            {info.icon} {model.name} 
+                            {model.tier && <span className="text-muted-foreground ml-2">({model.tier})</span>}
                           </SelectItem>
                         );
                       })}
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label className="font-mono text-xs flex items-center gap-2">
-                    <Cpu className="h-3.5 w-3.5 text-primary" />
-                    Provider
-                  </Label>
-                  <div className="h-10 px-3 py-2 rounded-md border border-input bg-muted/50 flex items-center">
-                    <Badge variant="outline" className="font-mono text-xs">
-                      {getModelProvider(modalModel)}
-                    </Badge>
+              </div>
+
+              {/* Model Capabilities Info */}
+              {modalModelCapabilities && (
+                <div className="p-3 bg-muted/30 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Info className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-xs font-medium">Capabilities do Modelo</span>
                   </div>
-                </div>
-              </div>
-
-              {/* Row 3: Max Tokens, Temperature, Reasoning */}
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label className="font-mono text-xs flex items-center gap-2">
-                    <Zap className="h-3.5 w-3.5 text-primary" />
-                    Max Tokens
-                  </Label>
-                  <Input
-                    type="number"
-                    value={modalMaxTokens}
-                    onChange={(e) => setModalMaxTokens(parseInt(e.target.value) || 0)}
-                    className="font-mono"
-                    min={100}
-                    max={128000}
-                  />
-                </div>
-                
-                {/* Temperature - Only for legacy models */}
-                <div className="space-y-2">
-                  <Label className={`font-mono text-xs flex items-center gap-2 ${!modalModelCapabilities.supportsTemperature ? 'opacity-50' : ''}`}>
-                    <Activity className="h-3.5 w-3.5 text-primary" />
-                    Temperature
-                    {!modalModelCapabilities.supportsTemperature && (
-                      <Badge variant="outline" className="text-[9px] px-1 py-0 ml-1">N/A</Badge>
-                    )}
-                  </Label>
-                  {modalModelCapabilities.supportsTemperature ? (
-                    <>
-                      <Input
-                        type="number"
-                        step="0.1"
-                        value={modalTemperature}
-                        onChange={(e) => setModalTemperature(parseFloat(e.target.value) || 0)}
-                        className="font-mono"
-                        min={0}
-                        max={2}
-                      />
-                      <p className="text-[10px] text-green-500 flex items-center gap-1">
-                        <CheckCircle2 className="h-3 w-3" />
-                        Suportado pelo modelo selecionado
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <div className="h-10 px-3 py-2 rounded-md border border-input bg-muted/30 flex items-center text-muted-foreground font-mono">
-                        <span className="text-xs">Não suportado</span>
-                      </div>
-                      <p className="text-[10px] text-muted-foreground flex items-center gap-1">
-                        <Info className="h-3 w-3" />
-                        Modelos reasoning não usam temperature
-                      </p>
-                    </>
-                  )}
-                </div>
-                
-                {/* Reasoning Effort - Only for reasoning models */}
-                <div className="space-y-2">
-                  <Label className={`font-mono text-xs flex items-center gap-2 ${!modalModelCapabilities.supportsReasoning ? 'opacity-50' : ''}`}>
-                    <Brain className="h-3.5 w-3.5 text-primary" />
-                    Reasoning Effort
-                    {!modalModelCapabilities.supportsReasoning && (
-                      <Badge variant="outline" className="text-[9px] px-1 py-0 ml-1">N/A</Badge>
-                    )}
-                  </Label>
-                  {modalModelCapabilities.supportsReasoning ? (
-                    <>
-                      <Select value={modalReasoning} onValueChange={setModalReasoning}>
-                        <SelectTrigger className="font-mono">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="bg-popover">
-                          <SelectItem value="low" className="font-mono">
-                            <div className="flex items-center gap-2">
-                              <span className="w-2.5 h-2.5 rounded-full bg-green-500" />
-                              <span>Low</span>
-                              <span className="text-muted-foreground text-xs">(Rápido, menos tokens)</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="medium" className="font-mono">
-                            <div className="flex items-center gap-2">
-                              <span className="w-2.5 h-2.5 rounded-full bg-yellow-500" />
-                              <span>Medium</span>
-                              <span className="text-muted-foreground text-xs">(Balanceado)</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="high" className="font-mono">
-                            <div className="flex items-center gap-2">
-                              <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
-                              <span>High</span>
-                              <span className="text-muted-foreground text-xs">(Preciso, mais tokens)</span>
-                            </div>
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <p className="text-[10px] text-green-500 flex items-center gap-1">
-                        <CheckCircle2 className="h-3 w-3" />
-                        Suportado pelo modelo selecionado
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <div className="h-10 px-3 py-2 rounded-md border border-input bg-muted/30 flex items-center text-muted-foreground font-mono">
-                        <span className="text-xs">Não suportado</span>
-                      </div>
-                      <p className="text-[10px] text-muted-foreground flex items-center gap-1">
-                        <Info className="h-3 w-3" />
-                        Modelos legados não usam reasoning_effort
-                      </p>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              {/* Model capabilities info banner */}
-              {modalModel && (
-                <div className={`p-3 rounded-lg border ${modalModelCapabilities.supportsReasoning ? 'bg-cyan-950/20 border-cyan-500/30' : 'bg-yellow-950/20 border-yellow-500/30'}`}>
-                  <div className="flex items-center gap-2 text-xs font-mono">
-                    {modalModelCapabilities.supportsReasoning ? (
-                      <>
-                        <Brain className="h-4 w-4 text-cyan-400" />
-                        <span className="text-cyan-300 font-medium">Modelo de Reasoning</span>
-                        <span className="text-muted-foreground">• Usa max_completion_tokens + reasoning_effort</span>
-                      </>
-                    ) : (
-                      <>
-                        <Zap className="h-4 w-4 text-yellow-400" />
-                        <span className="text-yellow-300 font-medium">Modelo Legado</span>
-                        <span className="text-muted-foreground">• Usa max_tokens + temperature</span>
-                      </>
+                  <div className="flex flex-wrap gap-2">
+                    {modalModelCapabilities.supportsTemperature && <Badge variant="outline" className="text-[10px]">Temperature</Badge>}
+                    {modalModelCapabilities.supportsReasoning && <Badge variant="outline" className="text-[10px]">Reasoning</Badge>}
+                    {modalModelCapabilities.supportsThinkingBudget && <Badge variant="outline" className="text-[10px]">Thinking Budget</Badge>}
+                    {modalModelCapabilities.supportsExtendedThinking && <Badge variant="outline" className="text-[10px]">Extended Thinking</Badge>}
+                    {modalModelCapabilities.supportsTopK && <Badge variant="outline" className="text-[10px]">Top K</Badge>}
+                    {modalModelCapabilities.supportsVision && <Badge variant="outline" className="text-[10px]">Vision</Badge>}
+                    {modalModelCapabilities.supportsTools && <Badge variant="outline" className="text-[10px]">Tools</Badge>}
+                    {modalModelCapabilities.contextWindow && (
+                      <Badge variant="secondary" className="text-[10px]">
+                        {(modalModelCapabilities.contextWindow / 1000).toFixed(0)}K ctx
+                      </Badge>
                     )}
                   </div>
                 </div>
               )}
 
-              {/* Row 4: Description and Active */}
+              {/* Main Parameters */}
               <div className="grid grid-cols-3 gap-4">
-                <div className="col-span-2 space-y-2">
-                  <Label className="font-mono text-xs flex items-center gap-2">
-                    <AlertCircle className="h-3.5 w-3.5 text-primary" />
-                    Descrição / Categoria
-                  </Label>
+                <div className="space-y-2">
+                  <Label htmlFor="maxTokens">Max Tokens</Label>
                   <Input
-                    value={modalDescription}
-                    onChange={(e) => setModalDescription(e.target.value)}
-                    className="font-mono"
-                    placeholder="Ex: Gera conclusões de laudos radiológicos"
+                    id="maxTokens"
+                    type="number"
+                    value={modalMaxTokens}
+                    onChange={e => setModalMaxTokens(parseInt(e.target.value) || 2000)}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label className="font-mono text-xs flex items-center gap-2">
-                    <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
-                    Status
-                  </Label>
-                  <div className="h-10 px-3 py-2 rounded-md border border-input bg-background flex items-center justify-between">
-                    <span className="text-sm font-mono">
-                      {modalActive ? 'Ativo' : 'Inativo'}
-                    </span>
-                    <Switch
-                      checked={modalActive}
-                      onCheckedChange={setModalActive}
+
+                {/* Temperature - only show if supported */}
+                {modalModelCapabilities?.supportsTemperature && (
+                  <div className="space-y-2">
+                    <Label>Temperature: {modalTemperature?.toFixed(1) || '0.7'}</Label>
+                    <Slider
+                      value={[modalTemperature ?? 0.7]}
+                      onValueChange={([v]) => setModalTemperature(v)}
+                      min={0}
+                      max={2}
+                      step={0.1}
+                      className="mt-2"
                     />
                   </div>
-                </div>
+                )}
+
+                {/* Reasoning Effort - only show if supported */}
+                {modalModelCapabilities?.supportsReasoning && (
+                  <div className="space-y-2">
+                    <Label>Reasoning Effort</Label>
+                    <Select value={modalReasoning} onValueChange={setModalReasoning}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="low">Low</SelectItem>
+                        <SelectItem value="medium">Medium</SelectItem>
+                        <SelectItem value="high">High</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {/* Thinking Budget - only show if supported */}
+                {(modalModelCapabilities?.supportsThinkingBudget || modalModelCapabilities?.supportsExtendedThinking) && (
+                  <div className="space-y-2">
+                    <Label htmlFor="thinkingBudget">Thinking Budget (tokens)</Label>
+                    <Input
+                      id="thinkingBudget"
+                      type="number"
+                      value={modalThinkingBudget ?? ''}
+                      onChange={e => setModalThinkingBudget(e.target.value ? parseInt(e.target.value) : null)}
+                      placeholder="Ex: 10000"
+                    />
+                  </div>
+                )}
               </div>
 
-              {/* Row 5: System Prompt */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label className="font-mono text-xs flex items-center gap-2">
-                    <Code2 className="h-3.5 w-3.5 text-primary" />
-                    System Prompt
-                  </Label>
-                  <span className="text-xs text-muted-foreground font-mono">
-                    {getLineCount(modalPrompt)} linhas • {modalPrompt.length} caracteres
-                  </span>
-                </div>
-                <div className="rounded-lg bg-gradient-to-br from-cyan-950/30 to-indigo-950/30 border border-cyan-500/20 p-1">
-                  <div className="relative">
-                    <div className="absolute left-0 top-0 bottom-0 w-8 bg-background/50 rounded-l-md border-r border-border/50 flex flex-col items-center pt-3 font-mono text-[9px] text-muted-foreground overflow-hidden select-none">
-                      {Array.from({ length: Math.min(getLineCount(modalPrompt), 50) }, (_, i) => (
-                        <div key={i} className="h-[18px] leading-[18px]">
-                          {i + 1}
-                        </div>
-                      ))}
-                    </div>
-                    <Textarea
-                      value={modalPrompt}
-                      onChange={(e) => setModalPrompt(e.target.value)}
-                      rows={14}
-                      className="font-mono text-xs pl-10 leading-[18px] resize-none bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0"
-                      spellCheck={false}
-                      placeholder="# PAPEL&#10;Você é um radiologista sênior brasileiro..."
+              {/* Advanced Parameters - Collapsible */}
+              <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen}>
+                <CollapsibleTrigger asChild>
+                  <Button variant="outline" className="w-full justify-between">
+                    <span className="flex items-center gap-2">
+                      <SlidersHorizontal className="h-4 w-4" />
+                      Parâmetros Avançados
+                    </span>
+                    {advancedOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="mt-4 space-y-4">
+                  <div className="grid grid-cols-3 gap-4">
+                    {modalModelCapabilities?.supportsTopP && (
+                      <div className="space-y-2">
+                        <Label>Top P: {modalTopP?.toFixed(2) || 'default'}</Label>
+                        <Slider
+                          value={[modalTopP ?? 1]}
+                          onValueChange={([v]) => setModalTopP(v)}
+                          min={0}
+                          max={1}
+                          step={0.05}
+                        />
+                      </div>
+                    )}
+
+                    {modalModelCapabilities?.supportsTopK && (
+                      <div className="space-y-2">
+                        <Label htmlFor="topK">Top K</Label>
+                        <Input
+                          id="topK"
+                          type="number"
+                          value={modalTopK ?? ''}
+                          onChange={e => setModalTopK(e.target.value ? parseInt(e.target.value) : null)}
+                          placeholder="Ex: 40"
+                        />
+                      </div>
+                    )}
+
+                    {modalModelCapabilities?.supportsFrequencyPenalty && (
+                      <div className="space-y-2">
+                        <Label>Frequency Penalty: {modalFrequencyPenalty?.toFixed(1) || '0'}</Label>
+                        <Slider
+                          value={[modalFrequencyPenalty ?? 0]}
+                          onValueChange={([v]) => setModalFrequencyPenalty(v)}
+                          min={-2}
+                          max={2}
+                          step={0.1}
+                        />
+                      </div>
+                    )}
+
+                    {modalModelCapabilities?.supportsPresencePenalty && (
+                      <div className="space-y-2">
+                        <Label>Presence Penalty: {modalPresencePenalty?.toFixed(1) || '0'}</Label>
+                        <Slider
+                          value={[modalPresencePenalty ?? 0]}
+                          onValueChange={([v]) => setModalPresencePenalty(v)}
+                          min={-2}
+                          max={2}
+                          step={0.1}
+                        />
+                      </div>
+                    )}
+
+                    {modalModelCapabilities?.supportsSeed && (
+                      <div className="space-y-2">
+                        <Label htmlFor="seed">Seed (opcional)</Label>
+                        <Input
+                          id="seed"
+                          type="number"
+                          value={modalSeed ?? ''}
+                          onChange={e => setModalSeed(e.target.value ? parseInt(e.target.value) : null)}
+                          placeholder="Ex: 12345"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="stopSequences">Stop Sequences (separados por vírgula)</Label>
+                    <Input
+                      id="stopSequences"
+                      value={modalStopSequences}
+                      onChange={e => setModalStopSequences(e.target.value)}
+                      placeholder="Ex: ###, END, STOP"
                     />
                   </div>
+                </CollapsibleContent>
+              </Collapsible>
+
+              {/* System Prompt */}
+              <div className="space-y-2">
+                <Label htmlFor="systemPrompt">System Prompt</Label>
+                <Textarea
+                  id="systemPrompt"
+                  value={modalPrompt}
+                  onChange={e => setModalPrompt(e.target.value)}
+                  className="min-h-[300px] font-mono text-xs"
+                  placeholder="Insira o prompt do sistema..."
+                />
+              </div>
+
+              {/* Active Toggle */}
+              <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                <div>
+                  <Label>Status da Função</Label>
+                  <p className="text-xs text-muted-foreground">Ativar/desativar esta função de IA</p>
                 </div>
+                <Switch checked={modalActive} onCheckedChange={setModalActive} />
               </div>
             </div>
 
-            <DialogFooter className="flex-shrink-0 pt-4 border-t">
+            <DialogFooter>
               <Button variant="outline" onClick={() => setConfigModalOpen(false)}>
                 Cancelar
               </Button>
-              <Button onClick={saveFullConfig} disabled={savingPrompt} className="gap-2">
-                <Save className="h-4 w-4" />
-                {savingPrompt ? 'Salvando...' : 'Salvar Configuração'}
+              <Button onClick={saveFullConfig} disabled={savingPrompt}>
+                {savingPrompt ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Salvando...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Salvar Configuração
+                  </>
+                )}
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
 
-        {/* ==================== HISTORY MODAL ==================== */}
+        {/* ==================== HISTORY DIALOG ==================== */}
         <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle className="font-mono flex items-center gap-2">
-                <History className="h-5 w-5 text-primary" />
-                Histórico de Alterações
-              </DialogTitle>
+              <DialogTitle className="font-mono">Histórico de Alterações</DialogTitle>
               <DialogDescription>
-                {selectedConfig?.function_name}
+                {selectedConfig?.display_name}
               </DialogDescription>
             </DialogHeader>
-            <ScrollArea className="max-h-[400px]">
-              <div className="space-y-3">
-                {history.map((item) => (
-                  <div key={item.id} className="p-3 rounded-lg bg-muted/30 border border-border/50">
-                    <div className="flex items-center justify-between mb-2">
-                      <Badge variant="outline" className="font-mono text-xs">
-                        {formatDate(item.changed_at)}
-                      </Badge>
-                      {item.new_model && (
-                        <Badge variant="secondary" className="font-mono text-xs">
-                          {item.new_model}
-                        </Badge>
+            <ScrollArea className="h-[400px]">
+              {history.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-8">
+                  Nenhuma alteração registrada
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {history.map(h => (
+                    <div key={h.id} className="p-4 border border-border rounded-lg space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Badge variant="outline">{formatDate(h.changed_at)}</Badge>
+                        {h.new_model && h.new_model !== h.previous_model && (
+                          <Badge variant="secondary" className="text-xs">
+                            Modelo: {h.previous_model} → {h.new_model}
+                          </Badge>
+                        )}
+                      </div>
+                      {h.change_reason && (
+                        <p className="text-sm text-muted-foreground">{h.change_reason}</p>
                       )}
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div className="p-2 bg-destructive/10 rounded">
+                          <p className="font-medium text-destructive mb-1">Anterior</p>
+                          <pre className="whitespace-pre-wrap line-clamp-5">{h.previous_prompt || 'N/A'}</pre>
+                        </div>
+                        <div className="p-2 bg-primary/10 rounded">
+                          <p className="font-medium text-primary mb-1">Novo</p>
+                          <pre className="whitespace-pre-wrap line-clamp-5">{h.new_prompt}</pre>
+                        </div>
+                      </div>
                     </div>
-                    {item.change_reason && (
-                      <p className="text-xs text-muted-foreground mb-2">
-                        {item.change_reason}
-                      </p>
-                    )}
-                    <details className="text-xs">
-                      <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
-                        Ver prompt anterior
-                      </summary>
-                      <pre className="mt-2 p-2 rounded bg-muted/50 overflow-x-auto font-mono text-[10px] max-h-[200px] overflow-y-auto">
-                        {item.previous_prompt || 'N/A'}
-                      </pre>
-                    </details>
-                  </div>
-                ))}
-                {history.length === 0 && (
-                  <p className="text-muted-foreground text-center py-4">
-                    Nenhum histórico encontrado
-                  </p>
-                )}
-              </div>
+                  ))}
+                </div>
+              )}
             </ScrollArea>
           </DialogContent>
         </Dialog>
@@ -1286,57 +1292,55 @@ export default function AIConfigPage() {
         <Dialog open={modelDialogOpen} onOpenChange={setModelDialogOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle className="font-mono flex items-center gap-2">
-                <Brain className="h-5 w-5 text-primary" />
+              <DialogTitle className="font-mono">
                 {editingModel ? 'Editar Modelo' : 'Novo Modelo'}
               </DialogTitle>
-              <DialogDescription>
-                {editingModel ? 'Atualize as informações do modelo' : 'Adicione um novo modelo de IA'}
-              </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4">
+            <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label className="font-mono text-xs">Nome do Modelo</Label>
+                <Label htmlFor="modelName">Nome do Modelo</Label>
                 <Input
+                  id="modelName"
                   value={formName}
-                  onChange={(e) => setFormName(e.target.value)}
+                  onChange={e => setFormName(e.target.value)}
                   placeholder="Ex: gpt-5-nano-2025-08-07"
-                  className="font-mono"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="font-mono text-xs">Provider</Label>
+                <Label>Provedor</Label>
                 <Select value={formProvider} onValueChange={setFormProvider}>
-                  <SelectTrigger className="font-mono">
+                  <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-popover">
-                    {PROVIDERS.map((p) => (
-                      <SelectItem key={p} value={p} className="font-mono">{p}</SelectItem>
+                  <SelectContent>
+                    {providers.map(p => (
+                      <SelectItem key={p.id} value={p.name.toLowerCase()}>
+                        {PROVIDER_ICONS[p.name] || '🔌'} {p.display_name}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label className="font-mono text-xs">Descrição</Label>
-                <Input
+                <Label htmlFor="modelDesc">Descrição</Label>
+                <Textarea
+                  id="modelDesc"
                   value={formDescription}
-                  onChange={(e) => setFormDescription(e.target.value)}
-                  placeholder="Ex: Modelo econômico para tarefas simples"
-                  className="font-mono"
+                  onChange={e => setFormDescription(e.target.value)}
+                  placeholder="Descrição do modelo..."
                 />
               </div>
               <div className="space-y-2">
-                <Label className="font-mono text-xs">Max Tokens Padrão</Label>
+                <Label htmlFor="modelMaxTokens">Max Tokens Padrão</Label>
                 <Input
+                  id="modelMaxTokens"
                   type="number"
                   value={formMaxTokens}
-                  onChange={(e) => setFormMaxTokens(parseInt(e.target.value) || 0)}
-                  className="font-mono"
+                  onChange={e => setFormMaxTokens(parseInt(e.target.value) || 2000)}
                 />
               </div>
               <div className="flex items-center justify-between">
-                <Label className="font-mono text-xs">Ativo</Label>
+                <Label>Ativo</Label>
                 <Switch checked={formActive} onCheckedChange={setFormActive} />
               </div>
             </div>
@@ -1345,21 +1349,17 @@ export default function AIConfigPage() {
                 Cancelar
               </Button>
               <Button onClick={handleSaveModel} disabled={savingModel}>
-                <Save className="h-4 w-4 mr-2" />
                 {savingModel ? 'Salvando...' : 'Salvar'}
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
 
-        {/* ==================== DELETE CONFIRMATION ==================== */}
+        {/* ==================== DELETE DIALOG ==================== */}
         <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle className="font-mono flex items-center gap-2 text-destructive">
-                <Trash2 className="h-5 w-5" />
-                Confirmar Exclusão
-              </DialogTitle>
+              <DialogTitle>Confirmar Exclusão</DialogTitle>
               <DialogDescription>
                 Tem certeza que deseja excluir o modelo "{modelToDelete?.name}"?
                 Esta ação não pode ser desfeita.
@@ -1370,7 +1370,6 @@ export default function AIConfigPage() {
                 Cancelar
               </Button>
               <Button variant="destructive" onClick={handleDeleteModel}>
-                <Trash2 className="h-4 w-4 mr-2" />
                 Excluir
               </Button>
             </DialogFooter>
