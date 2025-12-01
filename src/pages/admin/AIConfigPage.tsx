@@ -215,12 +215,42 @@ export default function AIConfigPage() {
   const [modelToDelete, setModelToDelete] = useState<AIModel | null>(null);
   const [savingModel, setSavingModel] = useState(false);
   
-  // Model form state
+  // Model form state - Identification
   const [formName, setFormName] = useState('');
+  const [formApiName, setFormApiName] = useState('');
   const [formProvider, setFormProvider] = useState('openai');
+  const [formModelFamily, setFormModelFamily] = useState('');
+  const [formTier, setFormTier] = useState('standard');
   const [formDescription, setFormDescription] = useState('');
+  
+  // Model form state - Limits
+  const [formContextWindow, setFormContextWindow] = useState<number | null>(null);
+  const [formMaxOutputTokens, setFormMaxOutputTokens] = useState<number | null>(null);
   const [formMaxTokens, setFormMaxTokens] = useState(2000);
+  
+  // Model form state - Costs
+  const [formInputCost, setFormInputCost] = useState<number | null>(null);
+  const [formOutputCost, setFormOutputCost] = useState<number | null>(null);
+  
+  // Model form state - Status
   const [formActive, setFormActive] = useState(true);
+  const [formIsLegacy, setFormIsLegacy] = useState(false);
+  
+  // Model form state - Capabilities
+  const [formSupportsTemperature, setFormSupportsTemperature] = useState(true);
+  const [formSupportsTopP, setFormSupportsTopP] = useState(true);
+  const [formSupportsTopK, setFormSupportsTopK] = useState(false);
+  const [formSupportsFrequencyPenalty, setFormSupportsFrequencyPenalty] = useState(false);
+  const [formSupportsPresencePenalty, setFormSupportsPresencePenalty] = useState(false);
+  const [formSupportsStopSequences, setFormSupportsStopSequences] = useState(true);
+  const [formSupportsSeed, setFormSupportsSeed] = useState(false);
+  const [formSupportsJsonMode, setFormSupportsJsonMode] = useState(true);
+  const [formSupportsTools, setFormSupportsTools] = useState(true);
+  const [formSupportsStreaming, setFormSupportsStreaming] = useState(true);
+  const [formSupportsVision, setFormSupportsVision] = useState(false);
+  const [formSupportsReasoning, setFormSupportsReasoning] = useState(false);
+  const [formSupportsExtendedThinking, setFormSupportsExtendedThinking] = useState(false);
+  const [formSupportsThinkingBudget, setFormSupportsThinkingBudget] = useState(false);
 
   // Fetch all data
   const fetchData = async () => {
@@ -436,21 +466,75 @@ export default function AIConfigPage() {
 
   // Models functions
   const resetModelForm = () => {
+    // Identification
     setFormName('');
+    setFormApiName('');
     setFormProvider('openai');
+    setFormModelFamily('');
+    setFormTier('standard');
     setFormDescription('');
+    // Limits
+    setFormContextWindow(null);
+    setFormMaxOutputTokens(null);
     setFormMaxTokens(2000);
+    // Costs
+    setFormInputCost(null);
+    setFormOutputCost(null);
+    // Status
     setFormActive(true);
+    setFormIsLegacy(false);
+    // Capabilities
+    setFormSupportsTemperature(true);
+    setFormSupportsTopP(true);
+    setFormSupportsTopK(false);
+    setFormSupportsFrequencyPenalty(false);
+    setFormSupportsPresencePenalty(false);
+    setFormSupportsStopSequences(true);
+    setFormSupportsSeed(false);
+    setFormSupportsJsonMode(true);
+    setFormSupportsTools(true);
+    setFormSupportsStreaming(true);
+    setFormSupportsVision(false);
+    setFormSupportsReasoning(false);
+    setFormSupportsExtendedThinking(false);
+    setFormSupportsThinkingBudget(false);
     setEditingModel(null);
   };
 
   const openEditModelDialog = (model: AIModel) => {
     setEditingModel(model);
+    // Identification
     setFormName(model.name);
+    setFormApiName(model.api_name || '');
     setFormProvider(model.provider.toLowerCase());
+    setFormModelFamily(model.model_family || '');
+    setFormTier(model.tier || 'standard');
     setFormDescription(model.description || '');
+    // Limits
+    setFormContextWindow(model.context_window);
+    setFormMaxOutputTokens(model.max_output_tokens);
     setFormMaxTokens(model.default_max_tokens);
+    // Costs
+    setFormInputCost(model.input_cost_per_1m);
+    setFormOutputCost(model.output_cost_per_1m);
+    // Status
     setFormActive(model.is_active);
+    setFormIsLegacy(model.is_legacy ?? false);
+    // Capabilities
+    setFormSupportsTemperature(model.supports_temperature ?? true);
+    setFormSupportsTopP(model.supports_top_p ?? true);
+    setFormSupportsTopK(model.supports_top_k ?? false);
+    setFormSupportsFrequencyPenalty(model.supports_frequency_penalty ?? false);
+    setFormSupportsPresencePenalty(model.supports_presence_penalty ?? false);
+    setFormSupportsStopSequences(model.supports_stop_sequences ?? true);
+    setFormSupportsSeed(model.supports_seed ?? false);
+    setFormSupportsJsonMode(model.supports_json_mode ?? true);
+    setFormSupportsTools(model.supports_tools ?? true);
+    setFormSupportsStreaming(model.supports_streaming ?? true);
+    setFormSupportsVision(model.supports_vision ?? false);
+    setFormSupportsReasoning(model.supports_reasoning ?? false);
+    setFormSupportsExtendedThinking(model.supports_extended_thinking ?? false);
+    setFormSupportsThinkingBudget(model.supports_thinking_budget ?? false);
     setModelDialogOpen(true);
   };
 
@@ -467,12 +551,43 @@ export default function AIConfigPage() {
 
     setSavingModel(true);
 
+    // Find provider_id
+    const providerData = providers.find(p => p.name.toLowerCase() === formProvider.toLowerCase());
+
     const modelData = {
+      // Identification
       name: formName.trim(),
+      api_name: formApiName.trim() || null,
       provider: formProvider,
+      provider_id: providerData?.id || null,
+      model_family: formModelFamily.trim() || null,
+      tier: formTier || 'standard',
       description: formDescription.trim() || null,
+      // Limits
+      context_window: formContextWindow,
+      max_output_tokens: formMaxOutputTokens,
       default_max_tokens: formMaxTokens,
+      // Costs
+      input_cost_per_1m: formInputCost,
+      output_cost_per_1m: formOutputCost,
+      // Status
       is_active: formActive,
+      is_legacy: formIsLegacy,
+      // Capabilities
+      supports_temperature: formSupportsTemperature,
+      supports_top_p: formSupportsTopP,
+      supports_top_k: formSupportsTopK,
+      supports_frequency_penalty: formSupportsFrequencyPenalty,
+      supports_presence_penalty: formSupportsPresencePenalty,
+      supports_stop_sequences: formSupportsStopSequences,
+      supports_seed: formSupportsSeed,
+      supports_json_mode: formSupportsJsonMode,
+      supports_tools: formSupportsTools,
+      supports_streaming: formSupportsStreaming,
+      supports_vision: formSupportsVision,
+      supports_reasoning: formSupportsReasoning,
+      supports_extended_thinking: formSupportsExtendedThinking,
+      supports_thinking_budget: formSupportsThinkingBudget,
       updated_at: new Date().toISOString()
     };
 
@@ -1290,61 +1405,281 @@ export default function AIConfigPage() {
 
         {/* ==================== MODEL DIALOG ==================== */}
         <Dialog open={modelDialogOpen} onOpenChange={setModelDialogOpen}>
-          <DialogContent>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="font-mono">
                 {editingModel ? 'Editar Modelo' : 'Novo Modelo'}
               </DialogTitle>
             </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="modelName">Nome do Modelo</Label>
-                <Input
-                  id="modelName"
-                  value={formName}
-                  onChange={e => setFormName(e.target.value)}
-                  placeholder="Ex: gpt-5-nano-2025-08-07"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Provedor</Label>
-                <Select value={formProvider} onValueChange={setFormProvider}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {providers.map(p => (
-                      <SelectItem key={p.id} value={p.name.toLowerCase()}>
-                        {PROVIDER_ICONS[p.name] || '🔌'} {p.display_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="modelDesc">Descrição</Label>
-                <Textarea
-                  id="modelDesc"
-                  value={formDescription}
-                  onChange={e => setFormDescription(e.target.value)}
-                  placeholder="Descrição do modelo..."
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="modelMaxTokens">Max Tokens Padrão</Label>
-                <Input
-                  id="modelMaxTokens"
-                  type="number"
-                  value={formMaxTokens}
-                  onChange={e => setFormMaxTokens(parseInt(e.target.value) || 2000)}
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <Label>Ativo</Label>
-                <Switch checked={formActive} onCheckedChange={setFormActive} />
-              </div>
-            </div>
-            <DialogFooter>
+            
+            <Tabs defaultValue="identification" className="w-full">
+              <TabsList className="grid w-full grid-cols-5">
+                <TabsTrigger value="identification">Identificação</TabsTrigger>
+                <TabsTrigger value="limits">Limites</TabsTrigger>
+                <TabsTrigger value="costs">Custos</TabsTrigger>
+                <TabsTrigger value="capabilities">Capabilities</TabsTrigger>
+                <TabsTrigger value="status">Status</TabsTrigger>
+              </TabsList>
+              
+              {/* IDENTIFICATION TAB */}
+              <TabsContent value="identification" className="space-y-4 pt-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="modelName">Nome do Modelo *</Label>
+                    <Input
+                      id="modelName"
+                      value={formName}
+                      onChange={e => setFormName(e.target.value)}
+                      placeholder="Ex: gpt-5-nano-2025-08-07"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="apiName">API Name</Label>
+                    <Input
+                      id="apiName"
+                      value={formApiName}
+                      onChange={e => setFormApiName(e.target.value)}
+                      placeholder="Ex: gpt-5-nano-2025-08-07"
+                    />
+                    <p className="text-xs text-muted-foreground">Identificador usado nas chamadas de API</p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Provedor</Label>
+                    <Select value={formProvider} onValueChange={setFormProvider}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {providers.map(p => (
+                          <SelectItem key={p.id} value={p.name.toLowerCase()}>
+                            {PROVIDER_ICONS[p.name] || '🔌'} {p.display_name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="modelFamily">Model Family</Label>
+                    <Input
+                      id="modelFamily"
+                      value={formModelFamily}
+                      onChange={e => setFormModelFamily(e.target.value)}
+                      placeholder="Ex: gpt-5, claude-3, gemini-2"
+                    />
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Tier</Label>
+                  <Select value={formTier} onValueChange={setFormTier}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="economy">💰 Economy</SelectItem>
+                      <SelectItem value="standard">⚖️ Standard</SelectItem>
+                      <SelectItem value="premium">💎 Premium</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="modelDesc">Descrição</Label>
+                  <Textarea
+                    id="modelDesc"
+                    value={formDescription}
+                    onChange={e => setFormDescription(e.target.value)}
+                    placeholder="Descrição do modelo..."
+                    rows={3}
+                  />
+                </div>
+              </TabsContent>
+              
+              {/* LIMITS TAB */}
+              <TabsContent value="limits" className="space-y-4 pt-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="contextWindow">Context Window</Label>
+                    <Input
+                      id="contextWindow"
+                      type="number"
+                      value={formContextWindow || ''}
+                      onChange={e => setFormContextWindow(e.target.value ? parseInt(e.target.value) : null)}
+                      placeholder="Ex: 128000"
+                    />
+                    <p className="text-xs text-muted-foreground">Máximo de tokens de entrada</p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="maxOutputTokens">Max Output Tokens</Label>
+                    <Input
+                      id="maxOutputTokens"
+                      type="number"
+                      value={formMaxOutputTokens || ''}
+                      onChange={e => setFormMaxOutputTokens(e.target.value ? parseInt(e.target.value) : null)}
+                      placeholder="Ex: 16384"
+                    />
+                    <p className="text-xs text-muted-foreground">Máximo de tokens de saída</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="defaultMaxTokens">Default Max Tokens</Label>
+                  <Input
+                    id="defaultMaxTokens"
+                    type="number"
+                    value={formMaxTokens}
+                    onChange={e => setFormMaxTokens(parseInt(e.target.value) || 2000)}
+                    placeholder="Ex: 2000"
+                  />
+                  <p className="text-xs text-muted-foreground">Valor padrão usado nas configurações de prompt</p>
+                </div>
+              </TabsContent>
+              
+              {/* COSTS TAB */}
+              <TabsContent value="costs" className="space-y-4 pt-4">
+                <div className="p-4 bg-muted/50 rounded-lg border border-border">
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Custos por 1 milhão de tokens (USD). Usados para análise de ROI e estimativas de custo.
+                  </p>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="inputCost">Input Cost ($/1M tokens)</Label>
+                      <Input
+                        id="inputCost"
+                        type="number"
+                        step="0.01"
+                        value={formInputCost || ''}
+                        onChange={e => setFormInputCost(e.target.value ? parseFloat(e.target.value) : null)}
+                        placeholder="Ex: 0.15"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="outputCost">Output Cost ($/1M tokens)</Label>
+                      <Input
+                        id="outputCost"
+                        type="number"
+                        step="0.01"
+                        value={formOutputCost || ''}
+                        onChange={e => setFormOutputCost(e.target.value ? parseFloat(e.target.value) : null)}
+                        placeholder="Ex: 0.60"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+              
+              {/* CAPABILITIES TAB */}
+              <TabsContent value="capabilities" className="space-y-4 pt-4">
+                <div className="grid grid-cols-2 gap-x-6 gap-y-3">
+                  {/* Generation */}
+                  <div className="col-span-2">
+                    <p className="text-sm font-medium text-muted-foreground mb-2">🎛️ Geração</p>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm">Temperature</Label>
+                    <Switch checked={formSupportsTemperature} onCheckedChange={setFormSupportsTemperature} />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm">Top P</Label>
+                    <Switch checked={formSupportsTopP} onCheckedChange={setFormSupportsTopP} />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm">Top K</Label>
+                    <Switch checked={formSupportsTopK} onCheckedChange={setFormSupportsTopK} />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm">Stop Sequences</Label>
+                    <Switch checked={formSupportsStopSequences} onCheckedChange={setFormSupportsStopSequences} />
+                  </div>
+                  
+                  {/* Advanced */}
+                  <div className="col-span-2 pt-2">
+                    <p className="text-sm font-medium text-muted-foreground mb-2">🧠 Avançado</p>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm">Reasoning</Label>
+                    <Switch checked={formSupportsReasoning} onCheckedChange={setFormSupportsReasoning} />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm">Extended Thinking</Label>
+                    <Switch checked={formSupportsExtendedThinking} onCheckedChange={setFormSupportsExtendedThinking} />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm">Thinking Budget</Label>
+                    <Switch checked={formSupportsThinkingBudget} onCheckedChange={setFormSupportsThinkingBudget} />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm">Seed</Label>
+                    <Switch checked={formSupportsSeed} onCheckedChange={setFormSupportsSeed} />
+                  </div>
+                  
+                  {/* Features */}
+                  <div className="col-span-2 pt-2">
+                    <p className="text-sm font-medium text-muted-foreground mb-2">✨ Features</p>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm">JSON Mode</Label>
+                    <Switch checked={formSupportsJsonMode} onCheckedChange={setFormSupportsJsonMode} />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm">Tools/Functions</Label>
+                    <Switch checked={formSupportsTools} onCheckedChange={setFormSupportsTools} />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm">Streaming</Label>
+                    <Switch checked={formSupportsStreaming} onCheckedChange={setFormSupportsStreaming} />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm">Vision</Label>
+                    <Switch checked={formSupportsVision} onCheckedChange={setFormSupportsVision} />
+                  </div>
+                  
+                  {/* Penalties */}
+                  <div className="col-span-2 pt-2">
+                    <p className="text-sm font-medium text-muted-foreground mb-2">⚖️ Penalties</p>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm">Frequency Penalty</Label>
+                    <Switch checked={formSupportsFrequencyPenalty} onCheckedChange={setFormSupportsFrequencyPenalty} />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm">Presence Penalty</Label>
+                    <Switch checked={formSupportsPresencePenalty} onCheckedChange={setFormSupportsPresencePenalty} />
+                  </div>
+                </div>
+              </TabsContent>
+              
+              {/* STATUS TAB */}
+              <TabsContent value="status" className="space-y-4 pt-4">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-4 border border-border rounded-lg">
+                    <div>
+                      <Label className="text-base">Modelo Ativo</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Modelos ativos aparecem nas configurações de prompt
+                      </p>
+                    </div>
+                    <Switch checked={formActive} onCheckedChange={setFormActive} />
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-4 border border-border rounded-lg">
+                    <div>
+                      <Label className="text-base">Modelo Legacy</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Modelos legacy são marcados como obsoletos mas ainda funcionam
+                      </p>
+                    </div>
+                    <Switch checked={formIsLegacy} onCheckedChange={setFormIsLegacy} />
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
+            
+            <DialogFooter className="pt-4">
               <Button variant="outline" onClick={() => setModelDialogOpen(false)}>
                 Cancelar
               </Button>
