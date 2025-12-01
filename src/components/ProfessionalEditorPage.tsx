@@ -347,10 +347,10 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
     doc.descendants((node, nodePos) => {
       if (node.type.name === 'heading') {
         const text = node.textContent.toLowerCase()
-        if (/achados?|técnica|findings?/i.test(text)) {
+        if (/achados?|findings?/i.test(text)) {
           sections.achados.headingPos = nodePos
           sections.achados.start = nodePos + node.nodeSize
-        } else if (/conclus[ãa]o|impression/i.test(text)) {
+        } else if (/conclus[ãa]o|impress[ãa]o/i.test(text)) {
           sections.conclusao.headingPos = nodePos
           sections.conclusao.start = nodePos + node.nodeSize
           if (sections.achados.start !== -1 && sections.achados.end === -1) {
@@ -386,8 +386,8 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
       })
       editor.commands.insertContentAt(sections.conclusao.start, newConclusion)
     } else {
-      editor.commands.insertContent('<h3>CONCLUSÃO</h3>')
-      editor.commands.insertContent(newConclusion)
+      editor.commands.insertContent('<h3>IMPRESSÃO</h3>')
+      editor.commands.insertContent(`<p>${newConclusion}</p>`)
     }
   }, [findDocumentSections])
 
@@ -439,28 +439,34 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
                           cursorPos >= sections.conclusao.start && 
                           cursorPos <= sections.conclusao.end
 
+    // Wrap text in paragraph tags to prevent uppercase from h3 styling
+    const wrapInParagraph = (text: string) => {
+      if (text.startsWith('<p>') || text.startsWith('<h')) return text
+      return `<p>${text}</p>`
+    }
+
     if (frase.frase && frase.conclusao) {
       if (isInConclusion && frase.conclusao) {
-        editorInstance.commands.insertContent(frase.conclusao)
+        editorInstance.commands.insertContent(wrapInParagraph(frase.conclusao))
       } else if (sections.achados.start !== -1) {
-        editorInstance.commands.insertContent(frase.frase)
+        editorInstance.commands.insertContent(wrapInParagraph(frase.frase))
         if (frase.conclusao) {
           replaceConclusionText(editorInstance, frase.conclusao)
         }
       } else {
-        editorInstance.commands.insertContent(frase.frase)
+        editorInstance.commands.insertContent(wrapInParagraph(frase.frase))
         if (frase.conclusao) {
           editorInstance.commands.insertContent('<p></p>')
-          editorInstance.commands.insertContent(frase.conclusao)
+          editorInstance.commands.insertContent(wrapInParagraph(frase.conclusao))
         }
       }
     } else if (frase.frase) {
-      editorInstance.commands.insertContent(frase.frase)
+      editorInstance.commands.insertContent(wrapInParagraph(frase.frase))
     } else if (frase.conclusao) {
       if (sections.conclusao.start !== -1) {
         replaceConclusionText(editorInstance, frase.conclusao)
       } else {
-        editorInstance.commands.insertContent(frase.conclusao)
+        editorInstance.commands.insertContent(wrapInParagraph(frase.conclusao))
       }
     }
 
@@ -484,28 +490,34 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
                           cursorPos >= sections.conclusao.start && 
                           cursorPos <= sections.conclusao.end
 
+    // Wrap text in paragraph tags to prevent uppercase from h3 styling
+    const wrapInParagraph = (text: string) => {
+      if (text.startsWith('<p>') || text.startsWith('<h')) return text
+      return `<p>${text}</p>`
+    }
+
     if (processedTexto && processedConclusao) {
       if (isInConclusion && processedConclusao) {
-        editorInstance.commands.insertContent(processedConclusao)
+        editorInstance.commands.insertContent(wrapInParagraph(processedConclusao))
       } else if (sections.achados.start !== -1) {
-        editorInstance.commands.insertContent(processedTexto)
+        editorInstance.commands.insertContent(wrapInParagraph(processedTexto))
         if (processedConclusao) {
           replaceConclusionText(editorInstance, processedConclusao)
         }
       } else {
-        editorInstance.commands.insertContent(processedTexto)
+        editorInstance.commands.insertContent(wrapInParagraph(processedTexto))
         if (processedConclusao) {
           editorInstance.commands.insertContent('<p></p>')
-          editorInstance.commands.insertContent(processedConclusao)
+          editorInstance.commands.insertContent(wrapInParagraph(processedConclusao))
         }
       }
     } else if (processedTexto) {
-      editorInstance.commands.insertContent(processedTexto)
+      editorInstance.commands.insertContent(wrapInParagraph(processedTexto))
     } else if (processedConclusao) {
       if (sections.conclusao.start !== -1) {
         replaceConclusionText(editorInstance, processedConclusao)
       } else {
-        editorInstance.commands.insertContent(processedConclusao)
+        editorInstance.commands.insertContent(wrapInParagraph(processedConclusao))
       }
     }
     
