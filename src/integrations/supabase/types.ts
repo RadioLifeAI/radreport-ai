@@ -124,33 +124,45 @@ export type Database = {
       }
       ai_models: {
         Row: {
+          api_name: string | null
           created_at: string | null
           default_max_tokens: number | null
           description: string | null
           id: string
           is_active: boolean | null
+          is_legacy: boolean | null
           name: string
           provider: string
+          supports_reasoning: boolean | null
+          supports_temperature: boolean | null
           updated_at: string | null
         }
         Insert: {
+          api_name?: string | null
           created_at?: string | null
           default_max_tokens?: number | null
           description?: string | null
           id?: string
           is_active?: boolean | null
+          is_legacy?: boolean | null
           name: string
           provider: string
+          supports_reasoning?: boolean | null
+          supports_temperature?: boolean | null
           updated_at?: string | null
         }
         Update: {
+          api_name?: string | null
           created_at?: string | null
           default_max_tokens?: number | null
           description?: string | null
           id?: string
           is_active?: boolean | null
+          is_legacy?: boolean | null
           name?: string
           provider?: string
+          supports_reasoning?: boolean | null
+          supports_temperature?: boolean | null
           updated_at?: string | null
         }
         Relationships: []

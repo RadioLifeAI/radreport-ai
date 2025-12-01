@@ -79,6 +79,11 @@ interface AIModel {
   default_max_tokens: number;
   created_at: string;
   updated_at: string;
+  // New capability fields
+  supports_temperature: boolean;
+  supports_reasoning: boolean;
+  is_legacy: boolean;
+  api_name: string | null;
 }
 
 interface PromptHistory {
@@ -403,11 +408,32 @@ export default function AIConfigPage() {
     return model?.provider || 'OpenAI';
   };
 
-  // Check if model supports reasoning
-  const isReasoningModel = (modelName: string) => {
-    const reasoningModels = ['gpt-5', 'o3', 'o4', 'gpt-4.1'];
-    return reasoningModels.some(rm => modelName.toLowerCase().includes(rm.toLowerCase()));
+  // Get model capabilities from database
+  const getModelCapabilities = (modelName: string) => {
+    const model = models.find(m => m.name === modelName);
+    if (model) {
+      return {
+        supportsTemperature: model.supports_temperature ?? false,
+        supportsReasoning: model.supports_reasoning ?? false,
+        isLegacy: model.is_legacy ?? false,
+      };
+    }
+    // Fallback: infer from model name if not in database
+    const isLegacy = ['gpt-4o', 'gpt-4o-mini', 'gpt-3.5', 'gpt-4-turbo'].some(
+      legacy => modelName.toLowerCase().includes(legacy.toLowerCase())
+    );
+    const isReasoning = ['gpt-5', 'o3', 'o4', 'gpt-4.1'].some(
+      rm => modelName.toLowerCase().includes(rm.toLowerCase())
+    );
+    return {
+      supportsTemperature: isLegacy,
+      supportsReasoning: isReasoning,
+      isLegacy,
+    };
   };
+
+  // Current modal model capabilities
+  const modalModelCapabilities = getModelCapabilities(modalModel);
 
   return (
     <AdminLayout>
@@ -1011,64 +1037,123 @@ export default function AIConfigPage() {
                     max={128000}
                   />
                 </div>
+                
+                {/* Temperature - Only for legacy models */}
                 <div className="space-y-2">
-                  <Label className="font-mono text-xs flex items-center gap-2">
+                  <Label className={`font-mono text-xs flex items-center gap-2 ${!modalModelCapabilities.supportsTemperature ? 'opacity-50' : ''}`}>
                     <Activity className="h-3.5 w-3.5 text-primary" />
                     Temperature
+                    {!modalModelCapabilities.supportsTemperature && (
+                      <Badge variant="outline" className="text-[9px] px-1 py-0 ml-1">N/A</Badge>
+                    )}
                   </Label>
-                  <Input
-                    type="number"
-                    step="0.1"
-                    value={modalTemperature}
-                    onChange={(e) => setModalTemperature(parseFloat(e.target.value) || 0)}
-                    className="font-mono"
-                    min={0}
-                    max={2}
-                  />
-                  <p className="text-[10px] text-muted-foreground flex items-center gap-1">
-                    <Info className="h-3 w-3" />
-                    Apenas para modelos legados (GPT-4o). Reasoning ignora.
-                  </p>
+                  {modalModelCapabilities.supportsTemperature ? (
+                    <>
+                      <Input
+                        type="number"
+                        step="0.1"
+                        value={modalTemperature}
+                        onChange={(e) => setModalTemperature(parseFloat(e.target.value) || 0)}
+                        className="font-mono"
+                        min={0}
+                        max={2}
+                      />
+                      <p className="text-[10px] text-green-500 flex items-center gap-1">
+                        <CheckCircle2 className="h-3 w-3" />
+                        Suportado pelo modelo selecionado
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <div className="h-10 px-3 py-2 rounded-md border border-input bg-muted/30 flex items-center text-muted-foreground font-mono">
+                        <span className="text-xs">Não suportado</span>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                        <Info className="h-3 w-3" />
+                        Modelos reasoning não usam temperature
+                      </p>
+                    </>
+                  )}
                 </div>
+                
+                {/* Reasoning Effort - Only for reasoning models */}
                 <div className="space-y-2">
-                  <Label className="font-mono text-xs flex items-center gap-2">
+                  <Label className={`font-mono text-xs flex items-center gap-2 ${!modalModelCapabilities.supportsReasoning ? 'opacity-50' : ''}`}>
                     <Brain className="h-3.5 w-3.5 text-primary" />
                     Reasoning Effort
+                    {!modalModelCapabilities.supportsReasoning && (
+                      <Badge variant="outline" className="text-[9px] px-1 py-0 ml-1">N/A</Badge>
+                    )}
                   </Label>
-                  <Select value={modalReasoning} onValueChange={setModalReasoning}>
-                    <SelectTrigger className="font-mono">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-popover">
-                      <SelectItem value="low" className="font-mono">
-                        <div className="flex items-center gap-2">
-                          <span className="w-2.5 h-2.5 rounded-full bg-green-500" />
-                          <span>Low</span>
-                          <span className="text-muted-foreground text-xs">(Rápido)</span>
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="medium" className="font-mono">
-                        <div className="flex items-center gap-2">
-                          <span className="w-2.5 h-2.5 rounded-full bg-yellow-500" />
-                          <span>Medium</span>
-                          <span className="text-muted-foreground text-xs">(Balanceado)</span>
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="high" className="font-mono">
-                        <div className="flex items-center gap-2">
-                          <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
-                          <span>High</span>
-                          <span className="text-muted-foreground text-xs">(Preciso)</span>
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <p className="text-[10px] text-muted-foreground flex items-center gap-1">
-                    <Info className="h-3 w-3" />
-                    Apenas para modelos reasoning (GPT-5, O3, O4).
-                  </p>
+                  {modalModelCapabilities.supportsReasoning ? (
+                    <>
+                      <Select value={modalReasoning} onValueChange={setModalReasoning}>
+                        <SelectTrigger className="font-mono">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-popover">
+                          <SelectItem value="low" className="font-mono">
+                            <div className="flex items-center gap-2">
+                              <span className="w-2.5 h-2.5 rounded-full bg-green-500" />
+                              <span>Low</span>
+                              <span className="text-muted-foreground text-xs">(Rápido, menos tokens)</span>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="medium" className="font-mono">
+                            <div className="flex items-center gap-2">
+                              <span className="w-2.5 h-2.5 rounded-full bg-yellow-500" />
+                              <span>Medium</span>
+                              <span className="text-muted-foreground text-xs">(Balanceado)</span>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="high" className="font-mono">
+                            <div className="flex items-center gap-2">
+                              <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
+                              <span>High</span>
+                              <span className="text-muted-foreground text-xs">(Preciso, mais tokens)</span>
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-[10px] text-green-500 flex items-center gap-1">
+                        <CheckCircle2 className="h-3 w-3" />
+                        Suportado pelo modelo selecionado
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <div className="h-10 px-3 py-2 rounded-md border border-input bg-muted/30 flex items-center text-muted-foreground font-mono">
+                        <span className="text-xs">Não suportado</span>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                        <Info className="h-3 w-3" />
+                        Modelos legados não usam reasoning_effort
+                      </p>
+                    </>
+                  )}
                 </div>
               </div>
+
+              {/* Model capabilities info banner */}
+              {modalModel && (
+                <div className={`p-3 rounded-lg border ${modalModelCapabilities.supportsReasoning ? 'bg-cyan-950/20 border-cyan-500/30' : 'bg-yellow-950/20 border-yellow-500/30'}`}>
+                  <div className="flex items-center gap-2 text-xs font-mono">
+                    {modalModelCapabilities.supportsReasoning ? (
+                      <>
+                        <Brain className="h-4 w-4 text-cyan-400" />
+                        <span className="text-cyan-300 font-medium">Modelo de Reasoning</span>
+                        <span className="text-muted-foreground">• Usa max_completion_tokens + reasoning_effort</span>
+                      </>
+                    ) : (
+                      <>
+                        <Zap className="h-4 w-4 text-yellow-400" />
+                        <span className="text-yellow-300 font-medium">Modelo Legado</span>
+                        <span className="text-muted-foreground">• Usa max_tokens + temperature</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Row 4: Description and Active */}
               <div className="grid grid-cols-3 gap-4">
