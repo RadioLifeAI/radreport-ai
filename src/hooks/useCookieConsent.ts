@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 
 export interface CookieConsent {
   version: string;
@@ -21,30 +21,28 @@ const defaultConsent: CookieConsent = {
   marketing: false,
 };
 
-export function useCookieConsent() {
-  const [consent, setConsent] = useState<CookieConsent | null>(null);
-  const [showBanner, setShowBanner] = useState(false);
-
-  useEffect(() => {
+// Função helper para verificação síncrona do localStorage
+function getStoredConsent(): CookieConsent | null {
+  try {
     const stored = localStorage.getItem(CONSENT_KEY);
     if (stored) {
-      try {
-        const parsed: CookieConsent = JSON.parse(stored);
-        // Invalidar se versão diferente
-        if (parsed.version === CONSENT_VERSION) {
-          setConsent(parsed);
-        } else {
-          setShowBanner(true);
-        }
-      } catch {
-        setShowBanner(true);
+      const parsed: CookieConsent = JSON.parse(stored);
+      if (parsed.version === CONSENT_VERSION) {
+        return parsed;
       }
-    } else {
-      setShowBanner(true);
     }
-  }, []);
+  } catch {
+    // Ignore parsing errors
+  }
+  return null;
+}
 
-  const saveConsent = (newConsent: CookieConsent) => {
+export function useCookieConsent() {
+  // Lazy initialization - verifica localStorage ANTES do primeiro render
+  const [consent, setConsent] = useState<CookieConsent | null>(() => getStoredConsent());
+  const [showBanner, setShowBanner] = useState(() => getStoredConsent() === null);
+
+  const saveConsent = useCallback((newConsent: CookieConsent) => {
     const consentWithTimestamp = {
       ...newConsent,
       timestamp: new Date().toISOString(),
@@ -53,9 +51,9 @@ export function useCookieConsent() {
     localStorage.setItem(CONSENT_KEY, JSON.stringify(consentWithTimestamp));
     setConsent(consentWithTimestamp);
     setShowBanner(false);
-  };
+  }, []);
 
-  const acceptAll = () => {
+  const acceptAll = useCallback(() => {
     saveConsent({
       version: CONSENT_VERSION,
       timestamp: new Date().toISOString(),
@@ -64,18 +62,20 @@ export function useCookieConsent() {
       functional: true,
       marketing: true,
     });
-  };
+  }, [saveConsent]);
 
-  const rejectAll = () => {
+  const rejectAll = useCallback(() => {
     saveConsent(defaultConsent);
-  };
+  }, [saveConsent]);
 
-  const updatePreferences = (preferences: Partial<Omit<CookieConsent, 'version' | 'timestamp' | 'essential'>>) => {
+  const updatePreferences = useCallback((
+    preferences: Partial<Omit<CookieConsent, 'version' | 'timestamp' | 'essential'>>
+  ) => {
     saveConsent({
       ...defaultConsent,
       ...preferences,
     });
-  };
+  }, [saveConsent]);
 
   return {
     consent,

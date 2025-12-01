@@ -1,14 +1,32 @@
 import { useState } from 'react';
 import { Cookie, Settings } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 import { useCookieConsent } from '@/hooks/useCookieConsent';
 import { CookiePreferencesModal } from './CookiePreferencesModal';
 import { Link } from 'react-router-dom';
 
+// Rotas públicas onde o banner deve aparecer
+const PUBLIC_ROUTES = [
+  '/', 
+  '/recursos', 
+  '/precos', 
+  '/sobre', 
+  '/contato', 
+  '/privacidade', 
+  '/termos', 
+  '/lgpd', 
+  '/cookies'
+];
+
 export function CookieBanner() {
   const { showBanner, acceptAll, rejectAll } = useCookieConsent();
   const [showModal, setShowModal] = useState(false);
+  const location = useLocation();
 
-  if (!showBanner) return null;
+  // Não mostrar em rotas privadas (editor, login, signup, etc.)
+  const isPublicRoute = PUBLIC_ROUTES.includes(location.pathname);
+  
+  if (!showBanner || !isPublicRoute) return null;
 
   return (
     <>
