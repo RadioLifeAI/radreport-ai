@@ -1,12 +1,13 @@
 import React, { useState } from 'react'
 import { Editor } from '@tiptap/react'
 import { useReportStore } from '@/store'
-import { insertSuggestion, replaceImpressionSection } from '@/editor/commands'
+import { replaceImpressionSection } from '@/editor/commands'
 import { parseReportSections } from '@/editor/sectionUtils'
 import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from 'sonner'
 import { Sparkles, FileText, Tag } from 'lucide-react'
+import { AISuggestionPreviewModal } from './AISuggestionPreviewModal'
 
 export default function EditorAIButton({ editor }: { editor: Editor | null }){
   const { modalidade } = useReportStore()
@@ -14,6 +15,17 @@ export default function EditorAIButton({ editor }: { editor: Editor | null }){
   const [loadingConclusion, setLoadingConclusion] = useState(false)
   const [loadingRADS, setLoadingRADS] = useState(false)
   const { user } = useAuth()
+  
+  // Estados do modal de prévia
+  const [previewModalOpen, setPreviewModalOpen] = useState(false)
+  const [pendingAISuggestion, setPendingAISuggestion] = useState<{
+    type: 'suggestion' | 'conclusion' | 'rads'
+    title: string
+    content: string
+    notes?: string | string[]
+    radsInfo?: { system: string; category: string; recommendation?: string }
+    applyButtonText: string
+  } | null>(null)
 
   async function suggest(){
     if (!editor) return
@@ -33,21 +45,17 @@ export default function EditorAIButton({ editor }: { editor: Editor | null }){
         return
       }
       
-      if (improved) {
-        // SUBSTITUIR todo o laudo com versão corrigida
-        editor.commands.setContent(improved, {
-          emitUpdate: true,
-          parseOptions: { preserveWhitespace: false }
+      if (improved || notes) {
+        setPendingAISuggestion({
+          type: 'suggestion',
+          title: 'Revisor IA',
+          content: improved || '',
+          notes: notes,
+          applyButtonText: 'Aplicar Correções'
         })
-        toast.success('Sugestões aplicadas com sucesso')
-      }
-      
-      if (notes) {
-        // EXIBIR notas como feedback visual, NÃO inserir no laudo
-        toast.info(notes, {
-          duration: 10000,  // 10 segundos para ler
-          description: 'Correções aplicadas pelo revisor IA',
-        })
+        setPreviewModalOpen(true)
+      } else {
+        toast.warning('IA não retornou sugestões')
       }
     } catch (e){
       console.error('Erro ao gerar sugestão IA:', e)
@@ -79,9 +87,14 @@ export default function EditorAIButton({ editor }: { editor: Editor | null }){
       
       if (error) throw error
       if (data?.replacement) {
-        // Substituir seção IMPRESSÃO com a conclusão gerada
-        replaceImpressionSection(editor, data.replacement)
-        toast.success('Conclusão gerada com sucesso')
+        setPendingAISuggestion({
+          type: 'conclusion',
+          title: 'Conclusão IA',
+          content: data.replacement,
+          notes: data.notes,
+          applyButtonText: 'Inserir Conclusão'
+        })
+        setPreviewModalOpen(true)
       }
     } catch (e) {
       console.error('Erro ao gerar conclusão IA:', e)
@@ -113,18 +126,54 @@ export default function EditorAIButton({ editor }: { editor: Editor | null }){
       
       if (error) throw error
       if (data?.replacement) {
-        // Substituir seção IMPRESSÃO com a classificação RADS
-        replaceImpressionSection(editor, data.replacement)
-        if (data.rads) {
-          toast.success(`${data.rads.system} - Categoria ${data.rads.category}`)
-        } else {
-          toast.success('Classificação RADS gerada com sucesso')
-        }
+        setPendingAISuggestion({
+          type: 'rads',
+          title: 'Classificação RADS',
+          content: data.replacement,
+          notes: data.notes,
+          radsInfo: data.rads,
+          applyButtonText: 'Aplicar Classificação'
+        })
+        setPreviewModalOpen(true)
       }
     } catch (e) {
       console.error('Erro ao classificar RADS:', e)
       toast.error('Erro ao classificar RADS')
     } finally { setLoadingRADS(false) }
+  }
+  
+  const handleApplyAISuggestion = () => {
+    if (!pendingAISuggestion || !editor) return
+    
+    switch (pendingAISuggestion.type) {
+      case 'suggestion':
+        // Substitui todo o laudo
+        editor.commands.setContent(pendingAISuggestion.content, {
+          emitUpdate: true,
+          parseOptions: { preserveWhitespace: false }
+        })
+        toast.success('Correções aplicadas com sucesso')
+        break
+        
+      case 'conclusion':
+        // Substitui apenas IMPRESSÃO
+        replaceImpressionSection(editor, pendingAISuggestion.content)
+        toast.success('Conclusão inserida com sucesso')
+        break
+        
+      case 'rads':
+        // Substitui apenas IMPRESSÃO
+        replaceImpressionSection(editor, pendingAISuggestion.content)
+        if (pendingAISuggestion.radsInfo) {
+          toast.success(`${pendingAISuggestion.radsInfo.system} - ${pendingAISuggestion.radsInfo.category}`)
+        } else {
+          toast.success('Classificação RADS aplicada com sucesso')
+        }
+        break
+    }
+    
+    setPreviewModalOpen(false)
+    setPendingAISuggestion(null)
   }
 
   return (
@@ -158,6 +207,24 @@ export default function EditorAIButton({ editor }: { editor: Editor | null }){
         <Tag className="w-4 h-4" />
         <span className="text-sm">{loadingRADS ? 'Classificando...' : 'Classificar RADS'}</span>
       </button>
+      
+      {/* Modal de prévia reutilizável */}
+      {pendingAISuggestion && (
+        <AISuggestionPreviewModal
+          isOpen={previewModalOpen}
+          onClose={() => {
+            setPreviewModalOpen(false)
+            setPendingAISuggestion(null)
+          }}
+          onApply={handleApplyAISuggestion}
+          type={pendingAISuggestion.type}
+          title={pendingAISuggestion.title}
+          previewContent={pendingAISuggestion.content}
+          notes={pendingAISuggestion.notes}
+          radsInfo={pendingAISuggestion.radsInfo}
+          applyButtonText={pendingAISuggestion.applyButtonText}
+        />
+      )}
     </div>
   )
 }
