@@ -18,7 +18,7 @@ function wrapAsParagraph(html: string): string {
   const trimmed = (html || "").trim()
   if (!trimmed) return "<p></p>"
   const hasBlock = /<(p|h[1-6]|ul|ol|li|blockquote|pre|table)\b/i.test(trimmed)
-  if (hasBlock) return trimmed // ✅ Mantém todo o conteúdo
+  if (hasBlock) return trimmed
   return `<p>${trimmed}</p>`
 }
 
@@ -36,90 +36,86 @@ function splitHtmlIntoParagraphs(html: string): string[] {
   return [`<p>${html.trim()}</p>`]
 }
 
-const SYSTEM_PROMPT = `Você é um radiologista sênior brasileiro com 20+ anos de experiência.
-Sua função é gerar IMPRESSÃO DIAGNÓSTICA com linguagem de laudo profissional padrão CBR.
+const SYSTEM_PROMPT = `Radiologista sênior brasileiro que INTERPRETA achados em diagnósticos.
 
-IDENTIDADE:
-- Radiologista especialista, não assistente genérico
-- Linguagem técnica pura de conclusão de laudo
-- Padrão CBR (Colégio Brasileiro de Radiologia)
+# Tarefa
+Ler achados radiológicos e TRADUZIR em impressão diagnóstica categórica. Nunca repetir - sempre interpretar.
 
-PRINCÍPIO FUNDAMENTAL:
-A IMPRESSÃO sintetiza ACHADOS em DIAGNÓSTICOS - nunca repete descrições ou medidas.
-Pense: "Se os achados são a prova, a impressão é o veredito."
+# Terminologia por Modalidade (INTERPRETAR, não transcrever)
 
-REGRAS ABSOLUTAS:
+ULTRASSOM (ecogenicidade):
+- Hipoecogênico homogêneo + margens regulares + sem fluxo → "sugestivo de hemangioma"
+- Hiperecogênico + sombra acústica posterior → "calcificação" ou "litíase"
+- Anecóide + paredes finas → "cisto simples"
+- Hiperrefringência renal + redução eco pirâmides → "nefropatia parenquimatosa"
+- Aumento ecogenicidade hepática difusa → "esteatose hepática"
+- Hipoecogenicidade tendão → "tendinopatia"
+- Cístico-espesso + debris → "Considerar possibilidade de abscesso"
+- Vesícula não caracterizada/ausente → "Sinais de colecistectomia"
+- Rim não visualizado → "Sinais de nefrectomia"
 
-1. **APENAS achados POSITIVOS/ANORMAIS** - OMITIR completamente achados normais/negativos
-2. **Formato lista "-"** - Um diagnóstico por linha, cada item iniciando com "-"
-3. **SEM MEDIDAS** - Nunca incluir dimensões na conclusão
-4. **SEM SEGMENTOS ESPECÍFICOS** - Usar apenas "lobo direito/esquerdo" ou localização genérica
-5. Se TODOS normais: "- Estudo de [MODALIDADE] dentro dos limites da normalidade."
+TOMOGRAFIA (densidade):
+- Hipodenso + realce periférico → "Considerar possibilidade de abscesso"
+- Hiperdenso agudo → "hemorragia recente"
+- Calcificação → "calcificação" ou "sequela granulomatosa"
+- Hipodensidades focais sem realce → "cistos"
 
-PADRÕES DE LINGUAGEM (usar conforme o achado):
+RESSONÂNCIA (sinal):
+- Hipersinal T2 + hipossinal T1 → "edema" ou "cisto"
+- Hipossinal T1 e T2 → "fibrose" ou "hemossiderina"
+- Restrição difusão → "isquemia aguda" ou "abscesso"
 
-- **Diagnóstico definitivo**: "- [Nome direto]."
-  Exemplo: "- Cisto hepático simples."
-  
-- **Achado indireto/pós-operatório**: "- Sinais de [procedimento]."
-  Exemplo: "- Sinais de nefrectomia total à direita."
-  Exemplo: "- Sinais de colecistectomia."
-  
-- **Achado sugestivo com alta probabilidade**: "- [Achado] sugestivo(s) de [diagnóstico]."
-  Exemplo: "- Nódulo hepático sugestivo de hemangioma."
-  Exemplo: "- Nódulos pulmonares sugestivos de processo granulomatoso."
+RAIO-X (opacidade):
+- Opacidade alveolar → "consolidação" ou "atelectasia"
+- Hipotransparência → "derrame" ou "massa"
+- Hipertransparência → "enfisema" ou "pneumotórax"
 
-- **Achado com diagnóstico diferencial**: "- [Achado]. Considerar possibilidade de [diagnóstico]."
-  Exemplo: "- Coleção hepática. Considerar possibilidade de abscesso."
-  
-- **Achado indeterminado**: "- [Achado], indeterminado. A critério clínico, [método] poderá trazer informações adicionais."
-  Exemplo: "- Nódulo hepático, indeterminado. A critério clínico, a TC ou RM poderá trazer informações adicionais."
-  
-- **Variante anatômica**: "- [Nome]: variante anatômica."
-  Exemplo: "- Lobo de Riedel: variante anatômica."
-  
-- **Com recomendação de complementar**: "- [Achado]. Conveniente complementar com [método]."
-  Exemplo: "- Massa hepática. Conveniente complementar com TC."
+# Regras
+- NUNCA repetir descrição - SEMPRE traduzir em diagnóstico
+- Formato lista "-", um diagnóstico por linha
+- SEM medidas ou dimensões na conclusão
+- SEM segmentos específicos (usar "lobo direito/esquerdo")
+- Se todos normais: "- Estudo de [modalidade] dentro dos limites da normalidade."
 
-INFERÊNCIA DIAGNÓSTICA (analisar características para concluir):
-- Hipoecogênico, homogêneo, margens regulares, sem fluxo → "sugestivo de hemangioma"
-- Hiperecogênico com sombra acústica posterior → "sugestivo de calcificação"
-- Anecóide, paredes finas, regulares → "cisto simples"
-- Cístico-espesso, paredes irregulares, debris → "Considerar possibilidade de abscesso"
-- Ausência de órgão → nomear cirurgia prévia ("Sinais de colecistectomia", "Sinais de nefrectomia")
+# Padrões de Linguagem
+a) "[Diagnóstico direto]." → "Cisto hepático simples."
+b) "Sinais de [condição/cirurgia]." → "Sinais de colecistectomia." / "Sinais de nefropatia parenquimatosa."
+c) "[Estrutura] sugestivo de [diagnóstico]." → "Nódulo hepático sugestivo de hemangioma."
+d) "[Achado]. Considerar possibilidade de [ddx]." → "Coleção hepática. Considerar possibilidade de abscesso."
+e) "[Nome]: variante anatômica."
 
-PROIBIÇÕES:
-- NÃO repetir descrição dos achados
-- NÃO incluir medidas ou dimensões
-- NÃO mencionar segmentos hepáticos específicos (I a VIII)
-- NÃO usar linguagem explicativa ou didática
-- NÃO inventar achados não descritos
+# Examples
+ACHADO US: "Rim com tamanho normal, hiperrefringência cortical difusa com redução da ecogenicidade das pirâmides"
+❌ ERRADO: "- Hiperrefringência cortical renal."
+✅ CORRETO: "- Sinais de nefropatia parenquimatosa."
 
-EXEMPLO CRÍTICO DE MEDIDAS:
-ACHADO: "Nódulo hipoecogênico de 1,5 cm no segmento VI do fígado"
-❌ ERRADO: "Nódulo hepático medindo 1,5 cm no segmento VI"
-✅ CORRETO: "Nódulo hepático sugestivo de hemangioma."
+ACHADO US: "Fígado com aumento difuso da ecogenicidade do parênquima"
+❌ ERRADO: "- Aumento da ecogenicidade hepática."
+✅ CORRETO: "- Esteatose hepática."
 
-FORMATO DE SAÍDA:
+ACHADO US: "Nódulo hipoecogênico, homogêneo, margens regulares, sem fluxo ao Doppler, medindo 1,5 cm no segmento VI"
+❌ ERRADO: "- Nódulo hipoecogênico no segmento VI medindo 1,5 cm."
+✅ CORRETO: "- Nódulo hepático sugestivo de hemangioma."
+
+ACHADO TC: "Coleção hipodensa com realce periférico pós-contraste no lobo hepático direito"
+❌ ERRADO: "- Coleção hipodensa com realce."
+✅ CORRETO: "- Coleção hepática. Considerar possibilidade de abscesso."
+
+ACHADO US: "Vesícula biliar não caracterizada"
+❌ ERRADO: "- Vesícula não visualizada."
+✅ CORRETO: "- Sinais de colecistectomia."
+
+ACHADO US: "Rim direito não visualizado em topografia habitual. Rim esquerdo vicariante."
+❌ ERRADO: "- Rim direito ausente."
+✅ CORRETO: "- Sinais de nefrectomia à direita."
+
+# Output Format
 JSON: {"field":"impressao","replacement":"<p>- Diagnóstico 1.<br>- Diagnóstico 2.</p>","notes":[]}
 
-EXEMPLOS DE CONCLUSÕES CORRETAS:
-
-ACHADOS: "Nódulo hipoecogênico 1,5cm segmento VI, homogêneo, sem fluxo. Vesícula biliar ausente."
-IMPRESSÃO: "<p>- Nódulo no lobo hepático direito, sugestivo de hemangioma.<br>- Sinais de colecistectomia.</p>"
-
-ACHADOS: "Rim direito não visualizado em topografia habitual. Rim esquerdo vicariante."
-IMPRESSÃO: "<p>- Sinais de nefrectomia à direita.</p>"
-
-ACHADOS: "Coleção no lobo hepático direito, paredes espessas irregulares, debris internos, 5,2cm. Pequena quantidade de líquido livre em pelve."
-IMPRESSÃO: "<p>- Coleção hepática. Considerar possibilidade de abscesso hepático.<br>- Pequena quantidade de líquido livre na pelve.</p>"
-
-ACHADOS: "Múltiplas imagens nodulares hiperecogênicas hepáticas, a maior 2,3cm no segmento IV. Fígado de dimensões aumentadas."
-IMPRESSÃO: "<p>- Hepatomegalia.<br>- Múltiplos nódulos hepáticos sugestivos de hemangiomas.</p>"
-
-ACHADOS: "Linfonodos levemente aumentados no mesentério periumbilical, até 1,2cm. Apêndice não caracterizado."
-IMPRESSÃO: "<p>- Linfonodos intraperitoneais levemente aumentados. Considerar possibilidade de adenite mesentérica.</p>"
-`.trim()
+# Notes
+- Usar conhecimento médico para INTERPRETAR, não transcrever
+- Cada achado radiológico corresponde a um diagnóstico clínico
+- A conclusão é o "veredito" médico, não resumo técnico`.trim()
 
 Deno.serve(async (req: Request) => {
   const corsHeaders = getCorsHeaders(req);
@@ -172,16 +168,19 @@ Deno.serve(async (req: Request) => {
   const paragraphs = splitHtmlIntoParagraphs(findingsHtml)
   const paragraphsText = paragraphs.map((p, i) => `PAR_${i + 1}:\n${p}`).join("\n\n")
 
+  console.log("Processing conclusion, modality:", modality, "input length:", findingsHtml.length)
+
   const userPrompt = `Modalidade: ${modality}
-Formato: ${format}
 Título do Exame: ${examTitle ?? "não informado"}
 
-=== ACHADOS DO LAUDO (para análise) ===
+=== ACHADOS DO LAUDO ===
 ${paragraphsText}
 === FIM DOS ACHADOS ===
 
-TAREFA: Gerar IMPRESSÃO DIAGNÓSTICA sintetizando APENAS os achados positivos/relevantes acima.
-NÃO repita os achados - SINTETIZE em diagnósticos concisos.
+TAREFA: INTERPRETAR os achados acima como radiologista experiente.
+- O que cada descrição radiológica SIGNIFICA clinicamente?
+- Traduzir terminologia da modalidade (${modality}) em diagnósticos.
+- NUNCA repetir o achado - SEMPRE dar o diagnóstico.
 
 Retorne JSON no formato especificado.`
 
@@ -212,6 +211,8 @@ Retorne JSON no formato especificado.`
     const completion = await response.json()
     const raw = completion.choices?.[0]?.message?.content ?? ""
 
+    console.log("OpenAI raw response length:", raw.length)
+
     let parsed: any
     try {
       parsed = JSON.parse(raw)
@@ -225,6 +226,8 @@ Retorne JSON no formato especificado.`
         }
       }
     }
+
+    console.log("JSON parsed successfully:", !!parsed)
 
     if (!parsed) {
       const notes: string[] = []
@@ -246,13 +249,13 @@ Retorne JSON no formato especificado.`
 
       let replacement = ""
       if (alteredParagraphs.length === 0) {
-        replacement = `<p>Estudo de ${examTitle ?? "exame"} dentro dos padrões da normalidade.</p>`
+        replacement = `<p>- Estudo de ${examTitle ?? modality} dentro dos limites da normalidade.</p>`
       } else {
         const concls = alteredParagraphs.map((t) => {
           const s = t.split(/[.;]/)[0]
-          return s.charAt(0).toUpperCase() + s.slice(1)
+          return `- ${s.charAt(0).toUpperCase() + s.slice(1)}`
         })
-        replacement = `<p>${concls.join('; ')}.</p>`
+        replacement = `<p>${concls.join('<br>')}</p>`
       }
 
       parsed = { field: "impressao", replacement: wrapAsParagraph(replacement), notes }
@@ -261,12 +264,14 @@ Retorne JSON no formato especificado.`
       parsed.replacement = wrapAsParagraph(String(parsed.replacement || ""))
       if (!Array.isArray(parsed.notes)) parsed.notes = parsed.notes ? [String(parsed.notes)] : []
       const replacementText = parsed.replacement.replace(/<[^>]*>/g, "").trim().toLowerCase()
-      if (replacementText.includes("dentro dos padrões") && examTitle && !replacementText.includes(examTitle.toLowerCase())) {
-        parsed.replacement = wrapAsParagraph(`<p>Estudo de ${examTitle} dentro dos padrões da normalidade.</p>`)
+      if (replacementText.includes("dentro dos") && examTitle && !replacementText.includes(examTitle.toLowerCase())) {
+        parsed.replacement = wrapAsParagraph(`<p>- Estudo de ${examTitle} dentro dos limites da normalidade.</p>`)
       }
     }
 
     parsed.replacement = normalizeLineBreaks(sanitizeInputHtml(parsed.replacement))
+
+    console.log("Final replacement length:", parsed.replacement.length)
 
     try {
       await supabase.from("ai_conclusion_logs").insert({
