@@ -122,6 +122,50 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_model_rate_limits: {
+        Row: {
+          concurrent_requests: number | null
+          created_at: string | null
+          id: string
+          model_id: string | null
+          requests_per_minute: number | null
+          tier: string
+          tokens_per_day: number | null
+          tokens_per_minute: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          concurrent_requests?: number | null
+          created_at?: string | null
+          id?: string
+          model_id?: string | null
+          requests_per_minute?: number | null
+          tier?: string
+          tokens_per_day?: number | null
+          tokens_per_minute?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          concurrent_requests?: number | null
+          created_at?: string | null
+          id?: string
+          model_id?: string | null
+          requests_per_minute?: number | null
+          tier?: string
+          tokens_per_day?: number | null
+          tokens_per_minute?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_model_rate_limits_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "ai_models"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_models: {
         Row: {
           api_name: string | null
@@ -135,14 +179,18 @@ export type Database = {
           is_active: boolean | null
           is_legacy: boolean | null
           max_output_tokens: number | null
+          modalities: string[] | null
           model_family: string | null
           name: string
           output_cost_per_1m: number | null
           provider: string
           provider_id: string | null
           release_date: string | null
+          supports_code_execution: boolean | null
           supports_extended_thinking: boolean | null
+          supports_file_upload: boolean | null
           supports_frequency_penalty: boolean | null
+          supports_image_generation: boolean | null
           supports_json_mode: boolean | null
           supports_logprobs: boolean | null
           supports_presence_penalty: boolean | null
@@ -151,10 +199,12 @@ export type Database = {
           supports_stop_sequences: boolean | null
           supports_streaming: boolean | null
           supports_temperature: boolean | null
+          supports_thinking_budget: boolean | null
           supports_tools: boolean | null
           supports_top_k: boolean | null
           supports_top_p: boolean | null
           supports_vision: boolean | null
+          supports_web_search: boolean | null
           tier: string | null
           updated_at: string | null
         }
@@ -170,14 +220,18 @@ export type Database = {
           is_active?: boolean | null
           is_legacy?: boolean | null
           max_output_tokens?: number | null
+          modalities?: string[] | null
           model_family?: string | null
           name: string
           output_cost_per_1m?: number | null
           provider: string
           provider_id?: string | null
           release_date?: string | null
+          supports_code_execution?: boolean | null
           supports_extended_thinking?: boolean | null
+          supports_file_upload?: boolean | null
           supports_frequency_penalty?: boolean | null
+          supports_image_generation?: boolean | null
           supports_json_mode?: boolean | null
           supports_logprobs?: boolean | null
           supports_presence_penalty?: boolean | null
@@ -186,10 +240,12 @@ export type Database = {
           supports_stop_sequences?: boolean | null
           supports_streaming?: boolean | null
           supports_temperature?: boolean | null
+          supports_thinking_budget?: boolean | null
           supports_tools?: boolean | null
           supports_top_k?: boolean | null
           supports_top_p?: boolean | null
           supports_vision?: boolean | null
+          supports_web_search?: boolean | null
           tier?: string | null
           updated_at?: string | null
         }
@@ -205,14 +261,18 @@ export type Database = {
           is_active?: boolean | null
           is_legacy?: boolean | null
           max_output_tokens?: number | null
+          modalities?: string[] | null
           model_family?: string | null
           name?: string
           output_cost_per_1m?: number | null
           provider?: string
           provider_id?: string | null
           release_date?: string | null
+          supports_code_execution?: boolean | null
           supports_extended_thinking?: boolean | null
+          supports_file_upload?: boolean | null
           supports_frequency_penalty?: boolean | null
+          supports_image_generation?: boolean | null
           supports_json_mode?: boolean | null
           supports_logprobs?: boolean | null
           supports_presence_penalty?: boolean | null
@@ -221,10 +281,12 @@ export type Database = {
           supports_stop_sequences?: boolean | null
           supports_streaming?: boolean | null
           supports_temperature?: boolean | null
+          supports_thinking_budget?: boolean | null
           supports_tools?: boolean | null
           supports_top_k?: boolean | null
           supports_top_p?: boolean | null
           supports_vision?: boolean | null
+          supports_web_search?: boolean | null
           tier?: string | null
           updated_at?: string | null
         }
