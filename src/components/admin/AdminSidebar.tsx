@@ -6,7 +6,7 @@ import {
   Shield,
   ChevronLeft,
   LayoutDashboard,
-  Brain,
+  Cpu,
   ScrollText,
   Database
 } from 'lucide-react';
@@ -15,8 +15,7 @@ import { Button } from '@/components/ui/button';
 
 const navItems = [
   { to: '/admin', icon: LayoutDashboard, label: 'Dashboard', end: true },
-  { to: '/admin/prompts', icon: FileText, label: 'Prompts IA' },
-  { to: '/admin/models', icon: Brain, label: 'Modelos IA' },
+  { to: '/admin/ai-config', icon: Cpu, label: 'Configurações IA' },
   { to: '/admin/templates', icon: Database, label: 'Templates', disabled: true },
   { to: '/admin/frases', icon: FileText, label: 'Frases Modelo', disabled: true },
   { to: '/admin/users', icon: Users, label: 'Usuários', disabled: true },
