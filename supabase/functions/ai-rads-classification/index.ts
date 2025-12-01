@@ -1,5 +1,3 @@
-import { serve } from "https://deno.land/std@0.220.0/http/server.ts";
-import "https://deno.land/x/xhr@0.3.0/mod.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { getCorsHeaders, getAllHeaders } from '../_shared/cors.ts'
 
@@ -80,7 +78,7 @@ ACHADOS: "Nódulo sólido hipoecogênico no lobo direito da tireoide, mais alto 
 IMPRESSÃO: "<p>- Nódulo tireoidiano no lobo direito, TI-RADS 5 (altamente suspeito)<br>- Recomenda-se PAAF</p>"
 `.trim()
 
-serve(async (req: Request) => {
+Deno.serve(async (req: Request) => {
   const corsHeaders = getCorsHeaders(req);
   
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders })
@@ -172,7 +170,7 @@ Retorne JSON no formato especificado.`
       body: JSON.stringify({
         model: "gpt-5-nano-2025-08-07",
         max_completion_tokens: 2000,
-        reasoning_effort: 'high',
+        reasoning_effort: 'low',
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: userPrompt },

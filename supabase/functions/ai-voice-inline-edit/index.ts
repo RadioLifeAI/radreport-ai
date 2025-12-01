@@ -1,9 +1,7 @@
-import { serve } from "https://deno.land/std@0.220.0/http/server.ts";
-import "https://deno.land/x/xhr@0.3.0/mod.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { getCorsHeaders, getAllHeaders } from '../_shared/cors.ts'
 
-serve(async (req: Request) => {
+Deno.serve(async (req: Request) => {
   const corsHeaders = getCorsHeaders(req);
   
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders })
@@ -75,9 +73,9 @@ Tarefa:
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
-        max_tokens: 400,
-        response_format: { type: "json_object" },
+        model: "gpt-5-nano-2025-08-07",
+        max_completion_tokens: 500,
+        reasoning_effort: 'low',
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },

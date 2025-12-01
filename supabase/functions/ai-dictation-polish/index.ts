@@ -1,5 +1,3 @@
-import "https://deno.land/x/xhr@0.3.0/mod.ts";
-import { serve } from "https://deno.land/std@0.220.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { getCorsHeaders, getAllHeaders } from '../_shared/cors.ts';
 
@@ -46,7 +44,7 @@ REGRAS CRÍTICAS:
 FORMATO DE SAÍDA:
 Retorne apenas o texto corrigido em formato puro, sem markdown, sem explicações.`;
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
   
   // Handle CORS preflight requests
