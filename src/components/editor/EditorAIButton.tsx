@@ -4,7 +4,7 @@ import { useReportStore } from '@/store'
 import { replaceImpressionSection } from '@/editor/commands'
 import { parseReportSections } from '@/editor/sectionUtils'
 import { useAuth } from '@/hooks/useAuth'
-import { supabase } from '@/integrations/supabase/client'
+import { invokeEdgeFunction } from '@/services/edgeFunctionClient'
 import { toast } from 'sonner'
 import { Sparkles, FileText, Tag } from 'lucide-react'
 import { AISuggestionPreviewModal } from './AISuggestionPreviewModal'
@@ -32,10 +32,10 @@ export default function EditorAIButton({ editor }: { editor: Editor | null }){
     setLoadingSuggest(true)
     try{
       const fullReport = editor.getHTML()
-      const { data, error } = await supabase.functions.invoke('ai-suggestion-review', {
-        body: { full_report: fullReport, user_id: user?.id }
-      })
-      if (error) throw error
+      const data = await invokeEdgeFunction<{ improved: string; notes: string }>(
+        'ai-suggestion-review',
+        { full_report: fullReport, user_id: user?.id }
+      )
       
       console.log('AI suggestion response:', data)
       const { improved, notes } = data
@@ -81,11 +81,14 @@ export default function EditorAIButton({ editor }: { editor: Editor | null }){
       }
       
       const examTitle = modalidade || 'Exame'
-      const { data, error } = await supabase.functions.invoke('ai-generate-conclusion', {
-        body: { findingsHtml: achadosHtml, examTitle, modality: modalidade, user_id: user?.id }
-      })
+      const data = await invokeEdgeFunction<{ 
+        replacement: string; 
+        notes?: string | string[] 
+      }>(
+        'ai-generate-conclusion',
+        { findingsHtml: achadosHtml, examTitle, modality: modalidade, user_id: user?.id }
+      )
       
-      if (error) throw error
       if (data?.replacement) {
         setPendingAISuggestion({
           type: 'conclusion',
@@ -120,11 +123,15 @@ export default function EditorAIButton({ editor }: { editor: Editor | null }){
       }
       
       const examTitle = modalidade || 'Exame'
-      const { data, error } = await supabase.functions.invoke('ai-rads-classification', {
-        body: { findingsHtml: achadosHtml, examTitle, modality: modalidade, user_id: user?.id }
-      })
+      const data = await invokeEdgeFunction<{ 
+        replacement: string; 
+        notes?: string | string[];
+        rads?: { system: string; category: string; recommendation?: string }
+      }>(
+        'ai-rads-classification',
+        { findingsHtml: achadosHtml, examTitle, modality: modalidade, user_id: user?.id }
+      )
       
-      if (error) throw error
       if (data?.replacement) {
         setPendingAISuggestion({
           type: 'rads',
