@@ -60,16 +60,17 @@ export function AISuggestionPreviewModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
-        <DialogHeader>
+      <DialogContent className="max-w-2xl max-h-[85vh] !flex !flex-col overflow-hidden">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2 text-lg">
             {getIcon()}
             <span>{title}</span>
           </DialogTitle>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 max-h-[60vh] pr-4">
-          <div className="space-y-4">
+        <div className="flex-1 min-h-0 overflow-hidden">
+          <ScrollArea className="h-full pr-4">
+            <div className="space-y-4 pb-4">
             {/* Preview do conteúdo */}
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
@@ -124,10 +125,11 @@ export function AISuggestionPreviewModal({
                 </div>
               </div>
             )}
-          </div>
-        </ScrollArea>
+            </div>
+          </ScrollArea>
+        </div>
 
-        <DialogFooter className="flex-row gap-2 justify-end">
+        <DialogFooter className="flex-shrink-0 flex-row gap-2 justify-end">
           <Button
             variant="ghost"
             onClick={onClose}
