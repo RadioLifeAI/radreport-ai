@@ -17,6 +17,8 @@ export interface Conversation {
   updated_at: string;
 }
 
+const CURRENT_CONVERSATION_KEY = 'radreport-current-conversation';
+
 export const useChat = () => {
   const { user } = useAuth();
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -40,7 +42,20 @@ export const useChat = () => {
     }
 
     setConversations(data || []);
-  }, [user]);
+    
+    // Auto-selecionar última conversa se não houver uma selecionada
+    if (!currentConversation && data && data.length > 0) {
+      const savedId = localStorage.getItem(CURRENT_CONVERSATION_KEY);
+      const targetConv = savedId 
+        ? data.find(c => c.id === savedId) || data[0]
+        : data[0];
+      
+      if (targetConv) {
+        setCurrentConversation(targetConv);
+        loadMessages(targetConv.id);
+      }
+    }
+  }, [user, currentConversation]);
 
   const loadMessages = useCallback(async (conversationId: string) => {
     setIsLoading(true);
@@ -83,6 +98,7 @@ export const useChat = () => {
     }
 
     setCurrentConversation(data);
+    localStorage.setItem(CURRENT_CONVERSATION_KEY, data.id);
     setMessages([]);
     await loadConversations();
   }, [user, loadConversations]);
@@ -92,6 +108,7 @@ export const useChat = () => {
     if (!conv) return;
 
     setCurrentConversation(conv);
+    localStorage.setItem(CURRENT_CONVERSATION_KEY, id);
     await loadMessages(id);
   }, [conversations, loadMessages]);
 
@@ -110,6 +127,7 @@ export const useChat = () => {
     if (currentConversation?.id === id) {
       setCurrentConversation(null);
       setMessages([]);
+      localStorage.removeItem(CURRENT_CONVERSATION_KEY);
     }
 
     await loadConversations();
@@ -142,6 +160,7 @@ export const useChat = () => {
       
       conversationId = data.id;
       setCurrentConversation(data);
+      localStorage.setItem(CURRENT_CONVERSATION_KEY, data.id);
       await loadConversations();
     }
 
