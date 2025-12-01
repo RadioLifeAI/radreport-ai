@@ -108,6 +108,13 @@ interface AIModel {
   max_output_tokens: number | null;
   input_cost_per_1m: number | null;
   output_cost_per_1m: number | null;
+  // API Connection
+  api_base_url: string | null;
+  api_key_secret_name: string | null;
+  auth_header: string | null;
+  auth_prefix: string | null;
+  api_version: string | null;
+  extra_headers: Record<string, unknown> | null;
   // Capabilities
   supports_temperature: boolean | null;
   supports_reasoning: boolean | null;
@@ -171,6 +178,57 @@ const PROVIDER_ICONS: Record<string, string> = {
   'google': '🔵',
   'groq': '🔴',
   'lovable': '💜',
+};
+
+// Provider defaults for API connection auto-population
+const PROVIDER_DEFAULTS: Record<string, {
+  api_base_url: string;
+  api_key_secret_name: string;
+  auth_header: string;
+  auth_prefix: string;
+  api_version: string;
+  extra_headers: string;
+}> = {
+  openai: {
+    api_base_url: 'https://api.openai.com/v1/chat/completions',
+    api_key_secret_name: 'OPENAI_API_KEY',
+    auth_header: 'Authorization',
+    auth_prefix: 'Bearer ',
+    api_version: '',
+    extra_headers: '{}'
+  },
+  anthropic: {
+    api_base_url: 'https://api.anthropic.com/v1/messages',
+    api_key_secret_name: 'ANTHROPIC_API_KEY',
+    auth_header: 'x-api-key',
+    auth_prefix: '',
+    api_version: '2023-06-01',
+    extra_headers: '{"anthropic-version": "2023-06-01"}'
+  },
+  google: {
+    api_base_url: 'https://generativelanguage.googleapis.com/v1beta/models',
+    api_key_secret_name: 'GOOGLE_API_KEY',
+    auth_header: 'x-goog-api-key',
+    auth_prefix: '',
+    api_version: '',
+    extra_headers: '{}'
+  },
+  groq: {
+    api_base_url: 'https://api.groq.com/openai/v1/chat/completions',
+    api_key_secret_name: 'GROQ_API_KEY',
+    auth_header: 'Authorization',
+    auth_prefix: 'Bearer ',
+    api_version: '',
+    extra_headers: '{}'
+  },
+  lovable: {
+    api_base_url: 'https://ai.gateway.lovable.dev/v1/chat/completions',
+    api_key_secret_name: 'LOVABLE_API_KEY',
+    auth_header: 'Authorization',
+    auth_prefix: 'Bearer ',
+    api_version: '',
+    extra_headers: '{}'
+  }
 };
 
 export default function AIConfigPage() {
@@ -251,6 +309,14 @@ export default function AIConfigPage() {
   const [formSupportsReasoning, setFormSupportsReasoning] = useState(false);
   const [formSupportsExtendedThinking, setFormSupportsExtendedThinking] = useState(false);
   const [formSupportsThinkingBudget, setFormSupportsThinkingBudget] = useState(false);
+  
+  // Model form state - API Connection
+  const [formApiBaseUrl, setFormApiBaseUrl] = useState('');
+  const [formApiKeySecretName, setFormApiKeySecretName] = useState('');
+  const [formAuthHeader, setFormAuthHeader] = useState('Authorization');
+  const [formAuthPrefix, setFormAuthPrefix] = useState('Bearer ');
+  const [formApiVersion, setFormApiVersion] = useState('');
+  const [formExtraHeaders, setFormExtraHeaders] = useState('{}');
 
   // Fetch all data
   const fetchData = async () => {
@@ -275,7 +341,7 @@ export default function AIConfigPage() {
     }
 
     if (modelsRes.data) {
-      setModels(modelsRes.data);
+      setModels(modelsRes.data as AIModel[]);
       
       // Calculate usage
       if (configsRes.data) {
@@ -354,6 +420,20 @@ export default function AIConfigPage() {
       setModalModel(providerModels[0].name);
     } else {
       setModalModel('');
+    }
+  };
+
+  // Handle model provider change - auto-populate API connection fields
+  const handleModelProviderChange = (newProvider: string) => {
+    setFormProvider(newProvider);
+    const defaults = PROVIDER_DEFAULTS[newProvider];
+    if (defaults) {
+      setFormApiBaseUrl(defaults.api_base_url);
+      setFormApiKeySecretName(defaults.api_key_secret_name);
+      setFormAuthHeader(defaults.auth_header);
+      setFormAuthPrefix(defaults.auth_prefix);
+      setFormApiVersion(defaults.api_version);
+      setFormExtraHeaders(defaults.extra_headers);
     }
   };
 
@@ -498,6 +578,14 @@ export default function AIConfigPage() {
     setFormSupportsReasoning(false);
     setFormSupportsExtendedThinking(false);
     setFormSupportsThinkingBudget(false);
+    // API Connection - default to OpenAI
+    const defaults = PROVIDER_DEFAULTS['openai'];
+    setFormApiBaseUrl(defaults.api_base_url);
+    setFormApiKeySecretName(defaults.api_key_secret_name);
+    setFormAuthHeader(defaults.auth_header);
+    setFormAuthPrefix(defaults.auth_prefix);
+    setFormApiVersion(defaults.api_version);
+    setFormExtraHeaders(defaults.extra_headers);
     setEditingModel(null);
   };
 
@@ -535,6 +623,14 @@ export default function AIConfigPage() {
     setFormSupportsReasoning(model.supports_reasoning ?? false);
     setFormSupportsExtendedThinking(model.supports_extended_thinking ?? false);
     setFormSupportsThinkingBudget(model.supports_thinking_budget ?? false);
+    // API Connection
+    const providerDefaults = PROVIDER_DEFAULTS[model.provider.toLowerCase()];
+    setFormApiBaseUrl(model.api_base_url || providerDefaults?.api_base_url || '');
+    setFormApiKeySecretName(model.api_key_secret_name || providerDefaults?.api_key_secret_name || '');
+    setFormAuthHeader(model.auth_header || providerDefaults?.auth_header || 'Authorization');
+    setFormAuthPrefix(model.auth_prefix || providerDefaults?.auth_prefix || 'Bearer ');
+    setFormApiVersion(model.api_version || providerDefaults?.api_version || '');
+    setFormExtraHeaders(model.extra_headers ? JSON.stringify(model.extra_headers) : providerDefaults?.extra_headers || '{}');
     setModelDialogOpen(true);
   };
 
@@ -553,6 +649,19 @@ export default function AIConfigPage() {
 
     // Find provider_id
     const providerData = providers.find(p => p.name.toLowerCase() === formProvider.toLowerCase());
+
+    // Parse extra_headers JSON
+    let parsedExtraHeaders = null;
+    try {
+      const trimmed = formExtraHeaders.trim();
+      if (trimmed && trimmed !== '{}') {
+        parsedExtraHeaders = JSON.parse(trimmed);
+      }
+    } catch (e) {
+      toast.error('Extra Headers JSON inválido');
+      setSavingModel(false);
+      return;
+    }
 
     const modelData = {
       // Identification
@@ -573,6 +682,13 @@ export default function AIConfigPage() {
       // Status
       is_active: formActive,
       is_legacy: formIsLegacy,
+      // API Connection
+      api_base_url: formApiBaseUrl.trim() || null,
+      api_key_secret_name: formApiKeySecretName.trim() || null,
+      auth_header: formAuthHeader.trim() || null,
+      auth_prefix: formAuthPrefix,
+      api_version: formApiVersion.trim() || null,
+      extra_headers: parsedExtraHeaders,
       // Capabilities
       supports_temperature: formSupportsTemperature,
       supports_top_p: formSupportsTopP,
@@ -1413,8 +1529,9 @@ export default function AIConfigPage() {
             </DialogHeader>
             
             <Tabs defaultValue="identification" className="w-full">
-              <TabsList className="grid w-full grid-cols-5">
+              <TabsList className="grid w-full grid-cols-6">
                 <TabsTrigger value="identification">Identificação</TabsTrigger>
+                <TabsTrigger value="connection">Conexão API</TabsTrigger>
                 <TabsTrigger value="limits">Limites</TabsTrigger>
                 <TabsTrigger value="costs">Custos</TabsTrigger>
                 <TabsTrigger value="capabilities">Capabilities</TabsTrigger>
@@ -1448,7 +1565,7 @@ export default function AIConfigPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Provedor</Label>
-                    <Select value={formProvider} onValueChange={setFormProvider}>
+                    <Select value={formProvider} onValueChange={handleModelProviderChange}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -1495,6 +1612,84 @@ export default function AIConfigPage() {
                     placeholder="Descrição do modelo..."
                     rows={3}
                   />
+                </div>
+              </TabsContent>
+              
+              {/* CONNECTION TAB */}
+              <TabsContent value="connection" className="space-y-4 pt-4">
+                <div className="p-4 bg-muted/50 rounded-lg border border-border mb-4">
+                  <p className="text-sm text-muted-foreground">
+                    Configurações de conexão da API. Estes valores são preenchidos automaticamente ao selecionar um provedor, mas podem ser personalizados.
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="apiBaseUrl">API Base URL *</Label>
+                  <Input
+                    id="apiBaseUrl"
+                    value={formApiBaseUrl}
+                    onChange={e => setFormApiBaseUrl(e.target.value)}
+                    placeholder="https://api.openai.com/v1/chat/completions"
+                  />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="apiKeySecretName">Secret Name</Label>
+                    <Input
+                      id="apiKeySecretName"
+                      value={formApiKeySecretName}
+                      onChange={e => setFormApiKeySecretName(e.target.value)}
+                      placeholder="Ex: OPENAI_API_KEY"
+                    />
+                    <p className="text-xs text-muted-foreground">Nome do segredo no Supabase Vault</p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="apiVersion">API Version</Label>
+                    <Input
+                      id="apiVersion"
+                      value={formApiVersion}
+                      onChange={e => setFormApiVersion(e.target.value)}
+                      placeholder="Ex: 2023-06-01"
+                    />
+                    <p className="text-xs text-muted-foreground">Versão da API (se aplicável)</p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="authHeader">Auth Header</Label>
+                    <Input
+                      id="authHeader"
+                      value={formAuthHeader}
+                      onChange={e => setFormAuthHeader(e.target.value)}
+                      placeholder="Authorization"
+                    />
+                    <p className="text-xs text-muted-foreground">Header de autenticação</p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="authPrefix">Auth Prefix</Label>
+                    <Input
+                      id="authPrefix"
+                      value={formAuthPrefix}
+                      onChange={e => setFormAuthPrefix(e.target.value)}
+                      placeholder="Bearer "
+                    />
+                    <p className="text-xs text-muted-foreground">Prefixo antes da API key</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="extraHeaders">Extra Headers (JSON)</Label>
+                  <Textarea
+                    id="extraHeaders"
+                    value={formExtraHeaders}
+                    onChange={e => setFormExtraHeaders(e.target.value)}
+                    placeholder='{"anthropic-version": "2023-06-01"}'
+                    rows={3}
+                    className="font-mono text-xs"
+                  />
+                  <p className="text-xs text-muted-foreground">Headers adicionais em formato JSON</p>
                 </div>
               </TabsContent>
               
