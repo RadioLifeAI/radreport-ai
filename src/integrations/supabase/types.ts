@@ -168,12 +168,18 @@ export type Database = {
       }
       ai_models: {
         Row: {
+          api_base_url: string | null
+          api_key_secret_name: string | null
           api_name: string | null
+          api_version: string | null
+          auth_header: string | null
+          auth_prefix: string | null
           context_window: number | null
           created_at: string | null
           default_max_tokens: number | null
           deprecation_date: string | null
           description: string | null
+          extra_headers: Json | null
           id: string
           input_cost_per_1m: number | null
           is_active: boolean | null
@@ -209,12 +215,18 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          api_base_url?: string | null
+          api_key_secret_name?: string | null
           api_name?: string | null
+          api_version?: string | null
+          auth_header?: string | null
+          auth_prefix?: string | null
           context_window?: number | null
           created_at?: string | null
           default_max_tokens?: number | null
           deprecation_date?: string | null
           description?: string | null
+          extra_headers?: Json | null
           id?: string
           input_cost_per_1m?: number | null
           is_active?: boolean | null
@@ -250,12 +262,18 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          api_base_url?: string | null
+          api_key_secret_name?: string | null
           api_name?: string | null
+          api_version?: string | null
+          auth_header?: string | null
+          auth_prefix?: string | null
           context_window?: number | null
           created_at?: string | null
           default_max_tokens?: number | null
           deprecation_date?: string | null
           description?: string | null
+          extra_headers?: Json | null
           id?: string
           input_cost_per_1m?: number | null
           is_active?: boolean | null
@@ -8246,6 +8264,7 @@ export type Database = {
         Returns: string
       }
       gerar_numero_laudo: { Args: never; Returns: string }
+      get_ai_function_config: { Args: { fn_name: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
