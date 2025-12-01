@@ -22,6 +22,7 @@ import { Table } from "@tiptap/extension-table"
 import { TableRow } from "@tiptap/extension-table-row"
 import { TableCell } from "@tiptap/extension-table-cell"
 import { TableHeader } from "@tiptap/extension-table-header"
+import CharacterCount from "@tiptap/extension-character-count"
 import { RadiologySpellChecker, FontSize, InformativeTable } from "@/extensions"
 
 // --- UI Primitives ---
@@ -222,13 +223,15 @@ export function SimpleEditor({
       TableRow,
       TableCell,
       TableHeader,
+      CharacterCount.configure({
+        mode: 'textSize',
+      }),
     ],
     content: externalContent || '',
     onUpdate: ({ editor }) => {
       onChange?.(editor.getHTML())
       if (onCharacterCount) {
-        const text = editor.state.doc.textContent
-        onCharacterCount(text.length)
+        onCharacterCount(editor.storage.characterCount.characters())
       }
     },
     onCreate: ({ editor }) => {
