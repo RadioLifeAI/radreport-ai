@@ -25,6 +25,8 @@ import { TableHeader } from "@tiptap/extension-table-header"
 import CharacterCount from "@tiptap/extension-character-count"
 import { Color } from "@tiptap/extension-color"
 import FontFamily from "@tiptap/extension-font-family"
+import Dropcursor from "@tiptap/extension-dropcursor"
+import Focus from "@tiptap/extension-focus"
 import { RadiologySpellChecker, FontSize, InformativeTable } from "@/extensions"
 
 // --- UI Primitives ---
@@ -229,6 +231,14 @@ export function SimpleEditor({
       TableHeader,
       CharacterCount.configure({
         mode: 'textSize',
+      }),
+      Dropcursor.configure({
+        color: '#0ea5e9',
+        width: 2,
+      }),
+      Focus.configure({
+        className: 'has-focus',
+        mode: 'all',
       }),
     ],
     content: externalContent || '',

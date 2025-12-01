@@ -165,3 +165,12 @@
     }
   }
 }
+
+// ============================================
+// Focus highlight para parágrafo atual
+// ============================================
+.simple-editor .ProseMirror .has-focus {
+  border-radius: 3px;
+  box-shadow: 0 0 0 2px hsl(var(--primary) / 0.15);
+  transition: box-shadow 0.2s ease;
+}
