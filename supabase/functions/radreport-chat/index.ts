@@ -74,6 +74,7 @@ Não invente achados ou informações - baseie-se apenas no que foi descrito.`;
         messages: fullMessages,
         max_completion_tokens: 800,
         stream: true,
+        reasoning_effort: 'low',
       }),
     });
 
