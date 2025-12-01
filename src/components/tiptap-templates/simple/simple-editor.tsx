@@ -23,6 +23,8 @@ import { TableRow } from "@tiptap/extension-table-row"
 import { TableCell } from "@tiptap/extension-table-cell"
 import { TableHeader } from "@tiptap/extension-table-header"
 import CharacterCount from "@tiptap/extension-character-count"
+import { Color } from "@tiptap/extension-color"
+import FontFamily from "@tiptap/extension-font-family"
 import { RadiologySpellChecker, FontSize, InformativeTable } from "@/extensions"
 
 // --- UI Primitives ---
@@ -198,6 +200,8 @@ export function SimpleEditor({
       Gapcursor,
       Placeholder.configure({ placeholder }),
       TextStyle,
+      Color.configure({ types: ['textStyle'] }),
+      FontFamily.configure({ types: ['textStyle'] }),
       FontSize,
       Underline,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
