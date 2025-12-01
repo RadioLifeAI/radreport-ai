@@ -1,7 +1,0 @@
-{
-  "imports": {
-    "@supabase/supabase-js": "npm:@supabase/supabase-js@2.84.0",
-    "std/http/server": "https://deno.land/std@0.220.0/http/server.ts",
-    "xhr-polyfill": "https://deno.land/x/xhr@0.3.0/mod.ts"
-  }
-}
