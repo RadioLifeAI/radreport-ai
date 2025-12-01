@@ -1,6 +1,5 @@
 import React from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Sparkles, FileText, Tag, AlertCircle } from 'lucide-react'
@@ -60,7 +59,7 @@ export function AISuggestionPreviewModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[85vh] !flex !flex-col overflow-hidden">
+      <DialogContent className="max-w-2xl flex flex-col" style={{ maxHeight: '85vh' }}>
         <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2 text-lg">
             {getIcon()}
@@ -68,9 +67,11 @@ export function AISuggestionPreviewModal({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 min-h-0 overflow-hidden">
-          <ScrollArea className="h-full pr-4">
-            <div className="space-y-4 pb-4">
+        <div 
+          className="flex-1 min-h-0 overflow-y-auto pr-2 scrollbar-visible"
+          style={{ maxHeight: 'calc(85vh - 140px)' }}
+        >
+          <div className="space-y-4 pb-4">
             {/* Preview do conteúdo */}
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
@@ -125,8 +126,7 @@ export function AISuggestionPreviewModal({
                 </div>
               </div>
             )}
-            </div>
-          </ScrollArea>
+          </div>
         </div>
 
         <DialogFooter className="flex-shrink-0 flex-row gap-2 justify-end">
