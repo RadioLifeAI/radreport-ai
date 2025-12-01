@@ -475,49 +475,64 @@ export type Database = {
         Row: {
           api_base_url: string
           api_key_secret_name: string
+          api_version: string | null
           auth_header: string | null
           auth_prefix: string | null
           created_at: string | null
+          default_timeout_ms: number | null
           display_name: string
           documentation_url: string | null
+          extra_headers: Json | null
           icon_url: string | null
           id: string
           is_active: boolean | null
           name: string
           rate_limit_rpm: number | null
           rate_limit_tpm: number | null
+          supports_batch: boolean | null
+          supports_streaming: boolean | null
           updated_at: string | null
         }
         Insert: {
           api_base_url: string
           api_key_secret_name: string
+          api_version?: string | null
           auth_header?: string | null
           auth_prefix?: string | null
           created_at?: string | null
+          default_timeout_ms?: number | null
           display_name: string
           documentation_url?: string | null
+          extra_headers?: Json | null
           icon_url?: string | null
           id?: string
           is_active?: boolean | null
           name: string
           rate_limit_rpm?: number | null
           rate_limit_tpm?: number | null
+          supports_batch?: boolean | null
+          supports_streaming?: boolean | null
           updated_at?: string | null
         }
         Update: {
           api_base_url?: string
           api_key_secret_name?: string
+          api_version?: string | null
           auth_header?: string | null
           auth_prefix?: string | null
           created_at?: string | null
+          default_timeout_ms?: number | null
           display_name?: string
           documentation_url?: string | null
+          extra_headers?: Json | null
           icon_url?: string | null
           id?: string
           is_active?: boolean | null
           name?: string
           rate_limit_rpm?: number | null
           rate_limit_tpm?: number | null
+          supports_batch?: boolean | null
+          supports_streaming?: boolean | null
           updated_at?: string | null
         }
         Relationships: []
