@@ -20,21 +20,27 @@ export interface ReportSections {
 export function extractSection(html: string, sectionName: string): string {
   if (!html) return ''
   
-  // Normalizar nome da seção
   const normalizedName = sectionName.toUpperCase().trim()
   
-  // Regex para encontrar a seção: <h3>SEÇÃO</h3>...conteúdo...<h3>PRÓXIMA_SEÇÃO</h3>
-  // Captura tudo entre o h3 da seção e o próximo h3 ou fim do documento
-  const sectionRegex = new RegExp(
-    `<h[2-6][^>]*>\\s*${normalizedName}\\s*<\\/h[2-6]>([\\s\\S]*?)(?=<h[2-6][^>]*>|$)`,
-    'i'
-  )
+  // Variações comuns de seções
+  const variations = [normalizedName]
+  if (normalizedName === 'ACHADOS') {
+    variations.push('ACHADOS ULTRASSONOGRÁFICOS', 'ACHADOS TOMOGRÁFICOS', 'ACHADOS DE RESSONÂNCIA')
+  }
   
-  const match = html.match(sectionRegex)
-  if (!match) return ''
+  // Tentar todas as variações
+  for (const variant of variations) {
+    // Regex flexível - aceita tags internas (<strong>, <em>) e estilos
+    const sectionRegex = new RegExp(
+      `<h[2-6][^>]*>(?:<[^>]+>)*\\s*${variant}\\s*(?:<\\/[^>]+>)*<\\/h[2-6]>([\\s\\S]*?)(?=<h[2-6][^>]*>|$)`,
+      'i'
+    )
+    
+    const match = html.match(sectionRegex)
+    if (match) return match[1].trim()
+  }
   
-  // Retornar apenas o conteúdo (sem o header da seção)
-  return match[1].trim()
+  return ''
 }
 
 /**

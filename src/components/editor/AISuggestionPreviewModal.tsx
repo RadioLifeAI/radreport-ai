@@ -51,6 +51,11 @@ export function AISuggestionPreviewModal({
     }
   }
 
+  // Sanitizar notas (remover HTML)
+  const sanitizeNote = (note: string): string => {
+    return note.replace(/<[^>]*>/g, '')
+  }
+  
   const notesArray = Array.isArray(notes) ? notes : notes ? [notes] : []
 
   return (
@@ -112,7 +117,7 @@ export function AISuggestionPreviewModal({
                     </p>
                     <ul className="text-sm text-amber-700 dark:text-amber-300 space-y-1 list-disc list-inside">
                       {notesArray.map((note, idx) => (
-                        <li key={idx}>{note}</li>
+                        <li key={idx}>{sanitizeNote(note)}</li>
                       ))}
                     </ul>
                   </div>

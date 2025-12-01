@@ -15,15 +15,15 @@ function sanitizeInputHtml(html: string): string {
 }
 
 function wrapAsParagraph(html: string): string {
-  const t = (html || "").trim()
-  if (!t) return "<p></p>"
-  const hasBlock = /<(p|h[1-6]|ul|ol|li|blockquote|pre|table)\b/i.test(t)
-  if (hasBlock) {
-    const m = t.match(/<p[\s\S]*?<\/p>/i)
-    if (m) return m[0]
-    return t
-  }
-  return `<p>${t}</p>`
+  const trimmed = (html || "").trim()
+  if (!trimmed) return "<p></p>"
+  const hasBlock = /<(p|h[1-6]|ul|ol|li|blockquote|pre|table)\b/i.test(trimmed)
+  if (hasBlock) return trimmed // ✅ Mantém todo o conteúdo
+  return `<p>${trimmed}</p>`
+}
+
+function normalizeLineBreaks(html: string): string {
+  return html.replace(/<br\s*\/?>/gi, '<br/>')
 }
 
 function splitHtmlIntoParagraphs(html: string): string[] {
@@ -406,7 +406,7 @@ Retorne JSON no formato especificado.`
       }
     }
 
-    parsed.replacement = sanitizeInputHtml(parsed.replacement)
+    parsed.replacement = normalizeLineBreaks(sanitizeInputHtml(parsed.replacement))
 
     try {
       await supabase.from("ai_rads_logs").insert({

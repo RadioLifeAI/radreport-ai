@@ -171,7 +171,7 @@ Deno.serve(async (req: Request) => {
     // Extrair seções
     const improvedMatch = cleaned.match(/<section[^>]*id=["']improved["'][^>]*>([\s\S]*?)<\/section>/i)
     const notesMatch = cleaned.match(/<section[^>]*id=["']notes["'][^>]*>([\s\S]*?)<\/section>/i)
-    const improved = improvedMatch ? improvedMatch[1] : ''
+    const improved = improvedMatch ? improvedMatch[1].trim() : ''
     const notes = notesMatch ? notesMatch[1] : ''
 
     // SUPABASE LOG — sucesso
