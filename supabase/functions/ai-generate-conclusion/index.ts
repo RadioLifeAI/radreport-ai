@@ -1,5 +1,3 @@
-import { serve } from "https://deno.land/std@0.220.0/http/server.ts";
-import "https://deno.land/x/xhr@0.3.0/mod.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { getCorsHeaders, getAllHeaders } from '../_shared/cors.ts'
 
@@ -58,7 +56,7 @@ ACHADOS: "Nódulo hipoecogênico 1,5cm segmento VI, homogêneo. Ausência da ves
 IMPRESSÃO: "<p>- Nódulo no lobo hepático direito, sugestivo de hemangioma<br>- Colecistectomia</p>"
 `.trim()
 
-serve(async (req: Request) => {
+Deno.serve(async (req: Request) => {
   const corsHeaders = getCorsHeaders(req);
   
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders })

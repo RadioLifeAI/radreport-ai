@@ -1,5 +1,3 @@
-import "https://deno.land/x/xhr@0.3.0/mod.ts";
-import { serve } from "https://deno.land/std@0.220.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { getCorsHeaders, getAllHeaders } from '../_shared/cors.ts';
 
@@ -20,7 +18,7 @@ function isValidWebM(bytes: Uint8Array): boolean {
          bytes[2] === 0xDF && bytes[3] === 0xA3;
 }
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
   
   if (req.method === 'OPTIONS') {
