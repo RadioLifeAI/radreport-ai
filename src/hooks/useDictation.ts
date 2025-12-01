@@ -3,6 +3,7 @@ import { Editor } from '@tiptap/react'
 import { processVoiceInput } from '@/services/dictation/voiceCommandProcessor'
 import { blobToBase64, convertNewlinesToHTML } from '@/utils/textFormatter'
 import { useWhisperCredits } from './useWhisperCredits'
+import { invokeEdgeFunction } from '@/services/edgeFunctionClient'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from 'sonner'
 
@@ -253,11 +254,12 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
             try {
               const base64 = await blobToBase64(e.data)
               
-              const { data, error } = await supabase.functions.invoke('transcribe-audio', {
-                body: { audio: base64, language: 'pt' }
-              })
+              const data = await invokeEdgeFunction<{ text: string; language?: string; duration?: number }>(
+                'transcribe-audio',
+                { audio: base64, language: 'pt' }
+              )
               
-              if (!error && data?.text && dictationStartRef.current !== null) {
+              if (data?.text && dictationStartRef.current !== null) {
                 // SUBSTITUIR texto do WebSpeech pelo texto do Whisper
                 const startPos = dictationStartRef.current
                 const endPos = editorRef.current!.state.selection.from
@@ -269,8 +271,8 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
                 
                 console.log('✅ Whisper text applied:', data.text.substring(0, 80) + '...')
                 setStats(prev => ({ ...prev, total: prev.total + 1, success: prev.success + 1 }))
-              } else if (error) {
-                console.error('❌ Whisper error:', error)
+              } else {
+                console.warn('⚠️ Whisper returned empty text')
                 setStats(prev => ({ ...prev, total: prev.total + 1, failed: prev.failed + 1 }))
               }
             } catch (err) {
@@ -305,11 +307,12 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
           // Obter user_id para logging
           const { data: { user } } = await supabase.auth.getUser()
           
-          const { data, error } = await supabase.functions.invoke('ai-dictation-polish', {
-            body: { text: rawText, user_id: user?.id }
-          })
+          const data = await invokeEdgeFunction<{ corrected: string; fallback?: boolean; reason?: string }>(
+            'ai-dictation-polish',
+            { text: rawText, user_id: user?.id }
+          )
           
-          if (!error && data?.corrected !== undefined) {
+          if (data?.corrected !== undefined) {
             // Tratar fallback (texto mantido sem alterações)
             if (data.fallback) {
               console.log('ℹ️ Usando texto original (fallback):', data.reason)
@@ -329,9 +332,6 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
             
             console.log('✅ Corretor AI aplicado com HTML:', htmlContent.substring(0, 80) + '...')
             toast.success('Texto corrigido com IA')
-          } else if (error) {
-            console.error('❌ Erro no Corretor AI:', error)
-            toast.error('Erro ao corrigir texto')
           }
         } catch (err) {
           console.error('❌ Erro ao processar Corretor AI:', err)

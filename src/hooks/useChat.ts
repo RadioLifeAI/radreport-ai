@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { invokeEdgeFunctionStream } from '@/services/edgeFunctionClient';
 import { useAuth } from './useAuth';
 import { toast } from 'sonner';
 
@@ -182,30 +183,16 @@ export const useChat = () => {
         content
       });
 
-      const { data: session } = await supabase.auth.getSession();
-      const token = session?.session?.access_token;
-
-      const response = await fetch(
-        'https://gxhbdbovixbptrjrcwbr.supabase.co/functions/v1/radreport-chat',
+      const response = await invokeEdgeFunctionStream(
+        'radreport-chat',
         {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            messages: [...messages, userMessage].map(m => ({
-              role: m.role,
-              content: m.content
-            })),
-            conversation_id: conversationId
-          })
+          messages: [...messages, userMessage].map(m => ({
+            role: m.role,
+            content: m.content
+          })),
+          conversation_id: conversationId
         }
       );
-
-      if (!response.ok) {
-        throw new Error('Falha na requisição');
-      }
 
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
