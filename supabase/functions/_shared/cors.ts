@@ -4,17 +4,30 @@
 const ALLOWED_ORIGINS = [
   'https://radreport.com.br',
   'https://www.radreport.com.br',
-  // Development origins (only in non-production)
-  ...(Deno.env.get('ENVIRONMENT') === 'development' 
-    ? ['http://localhost:8080', 'http://localhost:3000', 'http://localhost:5173'] 
-    : [])
+];
+
+const ALLOWED_ORIGIN_PATTERNS = [
+  /^https:\/\/.*\.lovable\.app$/,   // Lovable previews
+  /^https:\/\/.*\.lovable\.dev$/,   // Lovable dev
 ];
 
 export function getCorsHeaders(request: Request): Record<string, string> {
   const origin = request.headers.get('origin') || '';
   
-  // Validate origin against allowed list
-  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : 'null';
+  // Check exact match
+  let isAllowed = ALLOWED_ORIGINS.includes(origin);
+  
+  // Check regex patterns
+  if (!isAllowed) {
+    isAllowed = ALLOWED_ORIGIN_PATTERNS.some(pattern => pattern.test(origin));
+  }
+  
+  // Allow localhost for dev
+  if (!isAllowed && origin.startsWith('http://localhost:')) {
+    isAllowed = true;
+  }
+  
+  const allowedOrigin = isAllowed ? origin : 'null';
   
   return {
     'Access-Control-Allow-Origin': allowedOrigin,
