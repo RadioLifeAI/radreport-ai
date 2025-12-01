@@ -38,8 +38,9 @@ PROIBIDO: medidas, segmentos específicos, descrições técnicas, achados norma
 Se normal: "- Estudo dentro dos limites da normalidade."
 
 # Output Format
-<section id="improved">[Laudo corrigido em HTML]</section>
-<section id="notes">[Lista com "-" do que foi corrigido]</section>
+SEMPRE retornar ambas seções, mesmo se laudo estiver correto:
+<section id="improved">[Laudo corrigido OU original em HTML]</section>
+<section id="notes">[Lista com "-" do que foi corrigido OU "- Laudo sem alterações necessárias."]</section>
 
 # Examples
 ANTES: "Nódulo hipoecogenico medindo 1.5 cm. IMPRESSÃO: Nódulo no segmento VI medindo 1,5 cm."
@@ -54,7 +55,7 @@ DEPOIS: "Lesão heterogênea hepática. IMPRESSÃO: - Lesão hepática indetermi
 # Notes
 - Não inventar achados
 - Não remover informações dos ACHADOS
-- Se laudo correto: retornar sem alterações`.trim()
+- Se laudo correto: retornar laudo original nas seções`.trim()
 
 Deno.serve(async (req: Request) => {
   const corsHeaders = getCorsHeaders(req);
@@ -95,6 +96,8 @@ Deno.serve(async (req: Request) => {
     body = await req.json()
     const text = String(body.full_report || "").slice(0, 8000)
 
+    console.log("Processing report, input length:", text.length)
+
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -122,11 +125,21 @@ Deno.serve(async (req: Request) => {
     const raw = completion.choices?.[0]?.message?.content || ""
     const cleaned = sanitizeFragment(raw)
     
+    // Logging para debug
+    console.log("OpenAI raw response length:", raw.length)
+    
     // Extrair seções
     const improvedMatch = cleaned.match(/<section[^>]*id=["']improved["'][^>]*>([\s\S]*?)<\/section>/i)
     const notesMatch = cleaned.match(/<section[^>]*id=["']notes["'][^>]*>([\s\S]*?)<\/section>/i)
-    const improved = improvedMatch ? improvedMatch[1].trim() : ''
-    const notes = notesMatch ? notesMatch[1] : ''
+    
+    console.log("Improved match found:", !!improvedMatch)
+    console.log("Notes match found:", !!notesMatch)
+    
+    // Fallback: se raw tem conteúdo mas regex falhou, usar texto original
+    const improved = improvedMatch ? improvedMatch[1].trim() : (raw.length > 50 ? text : '')
+    const notes = notesMatch ? notesMatch[1] : (raw.length > 50 ? '- Não foi possível processar a revisão.' : '')
+
+    console.log("Final improved length:", improved.length)
 
     // SUPABASE LOG — sucesso
     const supabaseUrl = Deno.env.get("SUPABASE_URL")
@@ -136,7 +149,7 @@ Deno.serve(async (req: Request) => {
       await sb.from("ai_review_log").insert({
         user_id: body.user_id,
         size: text.length,
-        response_size: cleaned.length,
+        response_size: improved.length,
         status: "ok",
         model: "gpt-5-nano",
       })
