@@ -18,12 +18,12 @@ function wrapAsParagraph(html: string): string {
   const trimmed = (html || "").trim()
   if (!trimmed) return "<p></p>"
   const hasBlock = /<(p|h[1-6]|ul|ol|li|blockquote|pre|table)\b/i.test(trimmed)
-  if (hasBlock) {
-    const m = trimmed.match(/<p[\s\S]*?<\/p>/i)
-    if (m) return m[0]
-    return trimmed
-  }
+  if (hasBlock) return trimmed // ✅ Mantém todo o conteúdo
   return `<p>${trimmed}</p>`
+}
+
+function normalizeLineBreaks(html: string): string {
+  return html.replace(/<br\s*\/?>/gi, '<br/>')
 }
 
 function splitHtmlIntoParagraphs(html: string): string[] {
@@ -257,7 +257,7 @@ Retorne JSON no formato especificado.`
       }
     }
 
-    parsed.replacement = sanitizeInputHtml(parsed.replacement)
+    parsed.replacement = normalizeLineBreaks(sanitizeInputHtml(parsed.replacement))
 
     try {
       await supabase.from("ai_conclusion_logs").insert({

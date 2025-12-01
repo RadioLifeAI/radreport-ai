@@ -102,14 +102,36 @@ export function insertConclusion(editor: Editor, html: string) {
 }
 
 /**
+ * Normaliza HTML para saída profissional (cópia externa, Word, impressão)
+ */
+function normalizeHtmlForProfessionalOutput(html: string): string {
+  let result = html
+  
+  // 1. Normalizar quebras de linha para padrão XHTML
+  result = result.replace(/<br\s*\/?>/gi, '<br/>')
+  
+  // 2. Remover parágrafos vazios
+  result = result.replace(/<p>\s*<\/p>/gi, '')
+  
+  // 3. Remover whitespace excessivo entre tags
+  result = result.replace(/>\s+</g, '><')
+  
+  // 4. Garantir espaço após pontuação
+  result = result.replace(/([.!?])([A-ZÀ-Ú])/g, '$1 $2')
+  
+  return result.trim()
+}
+
+/**
  * Substitui a seção IMPRESSÃO do laudo com nova conclusão
  * Encontra <h3>IMPRESSÃO</h3> e substitui conteúdo até próximo <h3> ou fim
  */
 export function replaceImpressionSection(editor: Editor, conclusionHtml: string) {
   if (!editor) return
   
+  const normalizedConclusion = normalizeHtmlForProfessionalOutput(conclusionHtml)
   const currentHtml = editor.getHTML()
-  const newHtml = replaceSection(currentHtml, 'IMPRESSÃO', conclusionHtml)
+  const newHtml = replaceSection(currentHtml, 'IMPRESSÃO', normalizedConclusion)
   
   editor.commands.setContent(newHtml, {
     emitUpdate: true,
