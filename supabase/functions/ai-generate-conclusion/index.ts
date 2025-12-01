@@ -132,7 +132,7 @@ Retorne JSON no formato especificado.`
       body: JSON.stringify({
         model: "gpt-5-nano-2025-08-07",
         max_completion_tokens: 2000,
-        reasoning_effort: 'high',
+        reasoning_effort: 'low',
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: userPrompt },
