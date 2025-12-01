@@ -25,6 +25,7 @@ import { CookieBanner } from "./components/CookieBanner";
 import { AdminProtectedRoute } from "./components/admin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import PromptsPage from "./pages/admin/PromptsPage";
+import ModelsPage from "./pages/admin/ModelsPage";
 
 const queryClient = new QueryClient();
 
@@ -60,6 +61,7 @@ const App = () => (
             {/* Admin Routes */}
             <Route path="/admin" element={<AdminProtectedRoute><AdminDashboard /></AdminProtectedRoute>} />
             <Route path="/admin/prompts" element={<AdminProtectedRoute><PromptsPage /></AdminProtectedRoute>} />
+            <Route path="/admin/models" element={<AdminProtectedRoute><ModelsPage /></AdminProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

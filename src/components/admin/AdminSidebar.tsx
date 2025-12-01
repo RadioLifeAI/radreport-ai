@@ -2,22 +2,27 @@ import { NavLink } from 'react-router-dom';
 import { 
   Settings, 
   FileText, 
-  Database, 
   Users, 
   Shield,
-  Home,
-  ChevronLeft
+  ChevronLeft,
+  LayoutDashboard,
+  Brain,
+  ScrollText,
+  Database
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
 const navItems = [
-  { to: '/admin', icon: Home, label: 'Dashboard', end: true },
+  { to: '/admin', icon: LayoutDashboard, label: 'Dashboard', end: true },
   { to: '/admin/prompts', icon: FileText, label: 'Prompts IA' },
-  { to: '/admin/models', icon: Database, label: 'Modelos' },
-  { to: '/admin/users', icon: Users, label: 'Usuários' },
-  { to: '/admin/security', icon: Shield, label: 'Segurança' },
-  { to: '/admin/settings', icon: Settings, label: 'Configurações' },
+  { to: '/admin/models', icon: Brain, label: 'Modelos IA' },
+  { to: '/admin/templates', icon: Database, label: 'Templates', disabled: true },
+  { to: '/admin/frases', icon: FileText, label: 'Frases Modelo', disabled: true },
+  { to: '/admin/users', icon: Users, label: 'Usuários', disabled: true },
+  { to: '/admin/logs', icon: ScrollText, label: 'Logs & Analytics', disabled: true },
+  { to: '/admin/security', icon: Shield, label: 'Segurança', disabled: true },
+  { to: '/admin/settings', icon: Settings, label: 'Configurações', disabled: true },
 ];
 
 export const AdminSidebar = () => {
@@ -27,29 +32,43 @@ export const AdminSidebar = () => {
       <div className="p-4 border-b border-border">
         <div className="flex items-center gap-2">
           <Shield className="h-6 w-6 text-primary" />
-          <span className="font-semibold text-foreground">Admin Panel</span>
+          <span className="font-semibold text-foreground font-mono">Admin Panel</span>
         </div>
+        <span className="text-[10px] text-muted-foreground font-mono mt-1 block">
+          RadReport v1.0
+        </span>
       </div>
 
       {/* Navigation */}
       <nav className="flex-1 p-4 space-y-1">
-        {navItems.map(({ to, icon: Icon, label, end }) => (
-          <NavLink
-            key={to}
-            to={to}
-            end={end}
-            className={({ isActive }) =>
-              cn(
-                'flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors',
-                isActive
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-              )
-            }
-          >
-            <Icon className="h-4 w-4" />
-            {label}
-          </NavLink>
+        {navItems.map(({ to, icon: Icon, label, end, disabled }) => (
+          disabled ? (
+            <div
+              key={to}
+              className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground/50 cursor-not-allowed"
+            >
+              <Icon className="h-4 w-4" />
+              <span className="font-mono">{label}</span>
+              <span className="ml-auto text-[9px] bg-muted px-1.5 py-0.5 rounded">Em breve</span>
+            </div>
+          ) : (
+            <NavLink
+              key={to}
+              to={to}
+              end={end}
+              className={({ isActive }) =>
+                cn(
+                  'flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors',
+                  isActive
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                )
+              }
+            >
+              <Icon className="h-4 w-4" />
+              <span className="font-mono">{label}</span>
+            </NavLink>
+          )
         ))}
       </nav>
 
@@ -58,7 +77,7 @@ export const AdminSidebar = () => {
         <Button variant="ghost" className="w-full justify-start gap-2" asChild>
           <NavLink to="/editor">
             <ChevronLeft className="h-4 w-4" />
-            Voltar ao Editor
+            <span className="font-mono text-sm">Voltar ao Editor</span>
           </NavLink>
         </Button>
       </div>
