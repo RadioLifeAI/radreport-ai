@@ -125,47 +125,118 @@ export type Database = {
       ai_models: {
         Row: {
           api_name: string | null
+          context_window: number | null
           created_at: string | null
           default_max_tokens: number | null
+          deprecation_date: string | null
           description: string | null
           id: string
+          input_cost_per_1m: number | null
           is_active: boolean | null
           is_legacy: boolean | null
+          max_output_tokens: number | null
+          model_family: string | null
           name: string
+          output_cost_per_1m: number | null
           provider: string
+          provider_id: string | null
+          release_date: string | null
+          supports_extended_thinking: boolean | null
+          supports_frequency_penalty: boolean | null
+          supports_json_mode: boolean | null
+          supports_logprobs: boolean | null
+          supports_presence_penalty: boolean | null
           supports_reasoning: boolean | null
+          supports_seed: boolean | null
+          supports_stop_sequences: boolean | null
+          supports_streaming: boolean | null
           supports_temperature: boolean | null
+          supports_tools: boolean | null
+          supports_top_k: boolean | null
+          supports_top_p: boolean | null
+          supports_vision: boolean | null
+          tier: string | null
           updated_at: string | null
         }
         Insert: {
           api_name?: string | null
+          context_window?: number | null
           created_at?: string | null
           default_max_tokens?: number | null
+          deprecation_date?: string | null
           description?: string | null
           id?: string
+          input_cost_per_1m?: number | null
           is_active?: boolean | null
           is_legacy?: boolean | null
+          max_output_tokens?: number | null
+          model_family?: string | null
           name: string
+          output_cost_per_1m?: number | null
           provider: string
+          provider_id?: string | null
+          release_date?: string | null
+          supports_extended_thinking?: boolean | null
+          supports_frequency_penalty?: boolean | null
+          supports_json_mode?: boolean | null
+          supports_logprobs?: boolean | null
+          supports_presence_penalty?: boolean | null
           supports_reasoning?: boolean | null
+          supports_seed?: boolean | null
+          supports_stop_sequences?: boolean | null
+          supports_streaming?: boolean | null
           supports_temperature?: boolean | null
+          supports_tools?: boolean | null
+          supports_top_k?: boolean | null
+          supports_top_p?: boolean | null
+          supports_vision?: boolean | null
+          tier?: string | null
           updated_at?: string | null
         }
         Update: {
           api_name?: string | null
+          context_window?: number | null
           created_at?: string | null
           default_max_tokens?: number | null
+          deprecation_date?: string | null
           description?: string | null
           id?: string
+          input_cost_per_1m?: number | null
           is_active?: boolean | null
           is_legacy?: boolean | null
+          max_output_tokens?: number | null
+          model_family?: string | null
           name?: string
+          output_cost_per_1m?: number | null
           provider?: string
+          provider_id?: string | null
+          release_date?: string | null
+          supports_extended_thinking?: boolean | null
+          supports_frequency_penalty?: boolean | null
+          supports_json_mode?: boolean | null
+          supports_logprobs?: boolean | null
+          supports_presence_penalty?: boolean | null
           supports_reasoning?: boolean | null
+          supports_seed?: boolean | null
+          supports_stop_sequences?: boolean | null
+          supports_streaming?: boolean | null
           supports_temperature?: boolean | null
+          supports_tools?: boolean | null
+          supports_top_k?: boolean | null
+          supports_top_p?: boolean | null
+          supports_vision?: boolean | null
+          tier?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "ai_models_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "ai_providers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ai_prompt_config_history: {
         Row: {
@@ -219,54 +290,109 @@ export type Database = {
           created_at: string | null
           description: string | null
           display_name: string
+          enable_streaming: boolean | null
+          fallback_model_id: string | null
+          frequency_penalty: number | null
           function_name: string
           id: string
           is_active: boolean | null
+          json_schema: Json | null
           max_tokens: number | null
           model_id: string | null
           model_name: string | null
+          presence_penalty: number | null
+          provider_id: string | null
           reasoning_effort: string | null
+          response_format: string | null
+          retry_count: number | null
+          seed: number | null
+          stop_sequences: string[] | null
           system_prompt: string
           temperature: number | null
+          thinking_budget: number | null
+          timeout_ms: number | null
+          tools_enabled: boolean | null
+          top_k: number | null
+          top_p: number | null
           updated_at: string | null
           updated_by: string | null
+          user_prompt_template: string | null
           version: number | null
         }
         Insert: {
           created_at?: string | null
           description?: string | null
           display_name: string
+          enable_streaming?: boolean | null
+          fallback_model_id?: string | null
+          frequency_penalty?: number | null
           function_name: string
           id?: string
           is_active?: boolean | null
+          json_schema?: Json | null
           max_tokens?: number | null
           model_id?: string | null
           model_name?: string | null
+          presence_penalty?: number | null
+          provider_id?: string | null
           reasoning_effort?: string | null
+          response_format?: string | null
+          retry_count?: number | null
+          seed?: number | null
+          stop_sequences?: string[] | null
           system_prompt: string
           temperature?: number | null
+          thinking_budget?: number | null
+          timeout_ms?: number | null
+          tools_enabled?: boolean | null
+          top_k?: number | null
+          top_p?: number | null
           updated_at?: string | null
           updated_by?: string | null
+          user_prompt_template?: string | null
           version?: number | null
         }
         Update: {
           created_at?: string | null
           description?: string | null
           display_name?: string
+          enable_streaming?: boolean | null
+          fallback_model_id?: string | null
+          frequency_penalty?: number | null
           function_name?: string
           id?: string
           is_active?: boolean | null
+          json_schema?: Json | null
           max_tokens?: number | null
           model_id?: string | null
           model_name?: string | null
+          presence_penalty?: number | null
+          provider_id?: string | null
           reasoning_effort?: string | null
+          response_format?: string | null
+          retry_count?: number | null
+          seed?: number | null
+          stop_sequences?: string[] | null
           system_prompt?: string
           temperature?: number | null
+          thinking_budget?: number | null
+          timeout_ms?: number | null
+          tools_enabled?: boolean | null
+          top_k?: number | null
+          top_p?: number | null
           updated_at?: string | null
           updated_by?: string | null
+          user_prompt_template?: string | null
           version?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "ai_prompt_configs_fallback_model_id_fkey"
+            columns: ["fallback_model_id"]
+            isOneToOne: false
+            referencedRelation: "ai_models"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "ai_prompt_configs_model_id_fkey"
             columns: ["model_id"]
@@ -274,7 +400,65 @@ export type Database = {
             referencedRelation: "ai_models"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "ai_prompt_configs_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "ai_providers"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      ai_providers: {
+        Row: {
+          api_base_url: string
+          api_key_secret_name: string
+          auth_header: string | null
+          auth_prefix: string | null
+          created_at: string | null
+          display_name: string
+          documentation_url: string | null
+          icon_url: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          rate_limit_rpm: number | null
+          rate_limit_tpm: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          api_base_url: string
+          api_key_secret_name: string
+          auth_header?: string | null
+          auth_prefix?: string | null
+          created_at?: string | null
+          display_name: string
+          documentation_url?: string | null
+          icon_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          rate_limit_rpm?: number | null
+          rate_limit_tpm?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          api_base_url?: string
+          api_key_secret_name?: string
+          auth_header?: string | null
+          auth_prefix?: string | null
+          created_at?: string | null
+          display_name?: string
+          documentation_url?: string | null
+          icon_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          rate_limit_rpm?: number | null
+          rate_limit_tpm?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       ai_rads_logs: {
         Row: {
