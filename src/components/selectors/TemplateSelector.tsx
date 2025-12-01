@@ -1,6 +1,7 @@
-import React from 'react'
+import React, { useRef, useEffect, useState } from 'react'
 import { ChevronDown, Star } from 'lucide-react'
 import { useTheme } from 'next-themes'
+import { Portal } from '@/components/ui/portal'
 
 export interface Template {
   id: string
@@ -50,6 +51,19 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   modalities
 }) => {
   const { theme } = useTheme()
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 })
+
+  useEffect(() => {
+    if (dropdownVisible && inputRef.current) {
+      const rect = inputRef.current.getBoundingClientRect()
+      setDropdownPosition({
+        top: rect.bottom + window.scrollY + 8,
+        left: rect.left + window.scrollX,
+        width: rect.width
+      })
+    }
+  }, [dropdownVisible])
 
   const TemplateItem = ({ template, isRecent = false, isFavoriteTemplate = false }: { 
     template: Template
@@ -105,6 +119,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   return (
     <div className="relative">
       <input
+        ref={inputRef}
         type="text"
         placeholder="Buscar modelos..."
         value={searchTerm}
@@ -114,12 +129,19 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
       />
 
       {dropdownVisible && (
-        <>
+        <Portal>
           <div 
             className="fixed inset-0 z-[60]" 
             onClick={() => setDropdownVisible(false)}
           />
-          <div className="absolute top-full left-0 mt-2 w-[calc(100vw-24px)] sm:w-[440px] md:w-[520px] lg:w-[640px] max-h-[70vh] md:max-h-[600px] bg-card border border-border/40 rounded-xl shadow-2xl overflow-hidden z-[70]">
+          <div 
+            className="fixed w-[calc(100vw-24px)] sm:w-[440px] md:w-[520px] lg:w-[640px] max-h-[70vh] md:max-h-[600px] bg-card border border-border/40 rounded-xl shadow-2xl overflow-hidden z-[70]"
+            style={{
+              top: `${dropdownPosition.top}px`,
+              left: `${dropdownPosition.left}px`,
+              minWidth: `${dropdownPosition.width}px`
+            }}
+          >
             {/* Modality Tabs */}
             <div className="flex items-center gap-1 p-2 border-b border-border/40 bg-muted/30">
               {modalities.map(modality => (
@@ -196,7 +218,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
               </div>
             </div>
           </div>
-        </>
+        </Portal>
       )}
     </div>
   )
