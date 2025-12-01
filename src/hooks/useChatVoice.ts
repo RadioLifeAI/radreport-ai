@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { invokeEdgeFunction } from '@/services/edgeFunctionClient';
 import { toast } from 'sonner';
 
 export const useChatVoice = () => {
@@ -64,11 +64,10 @@ export const useChatVoice = () => {
         reader.readAsDataURL(audioBlob);
       });
 
-      const { data, error } = await supabase.functions.invoke('transcribe-audio', {
-        body: { audio: base64Audio }
-      });
-
-      if (error) throw error;
+      const data = await invokeEdgeFunction<{ text: string; language?: string }>(
+        'transcribe-audio',
+        { audio: base64Audio }
+      );
 
       const transcribedText = data.text || '';
       setTranscript(transcribedText);
