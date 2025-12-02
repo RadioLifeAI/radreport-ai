@@ -77,8 +77,10 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
     error,
     searchTerm,
     selectedModality: hookSelectedModality,
+    selectedCategoria,
     setSearchTerm,
     setSelectedModality,
+    setSelectedCategoria,
     isFavorite,
     addToFavorites,
     removeFromFavorites,
@@ -541,6 +543,7 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
         }}
         onTemplateSelect={handleTemplateSelect}
         onModalityClick={handleModalityClick}
+        onCategoriaClick={setSelectedCategoria}
         onFavoriteToggle={(id) => {
           if (isFavorite(id)) {
             removeFromFavorites(id)
@@ -557,6 +560,7 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
         loading={loading}
         error={error}
         selectedModality={hookSelectedModality}
+        selectedCategoria={selectedCategoria}
         isFavorite={isFavorite}
         modalities={['RM', 'TC', 'USG', 'RX', 'MG']}
         selectedMacro={selectedMacro}

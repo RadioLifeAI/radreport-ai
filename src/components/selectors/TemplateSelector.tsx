@@ -7,6 +7,7 @@ export interface Template {
   id: string
   titulo: string
   modalidade: string
+  categoria?: string
   isDefault?: boolean
   conteudo?: any
 }
@@ -16,6 +17,7 @@ export interface TemplateSelectorProps {
   onTemplateSearch: (value: string) => void
   onTemplateSelect: (template: Template) => void
   onModalityClick: (modality: string) => void
+  onCategoriaClick: (categoria: string | null) => void
   onFavoriteToggle: (templateId: string) => void
   templates: Template[]
   filteredTemplates: Template[]
@@ -25,6 +27,7 @@ export interface TemplateSelectorProps {
   error: string | null
   searchTerm: string
   selectedModality: string | null
+  selectedCategoria: string | null
   isFavorite: (templateId: string) => boolean
   dropdownVisible: boolean
   setDropdownVisible: (visible: boolean) => void
@@ -36,6 +39,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   onTemplateSearch,
   onTemplateSelect,
   onModalityClick,
+  onCategoriaClick,
   onFavoriteToggle,
   templates,
   filteredTemplates,
@@ -45,6 +49,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   error,
   searchTerm,
   selectedModality,
+  selectedCategoria,
   isFavorite,
   dropdownVisible,
   setDropdownVisible,
@@ -142,8 +147,44 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
               minWidth: `${dropdownPosition.width}px`
             }}
           >
-            {/* Modality Tabs */}
+            {/* Category Tabs - Filtro Geral (Hierárquico) */}
+            <div className="flex items-center gap-1 p-2 border-b border-border/40 bg-muted/50">
+              <span className="text-xs text-muted-foreground mr-2">Categoria:</span>
+              <button
+                onClick={() => onCategoriaClick(null)}
+                className={`px-3 py-1 text-xs font-medium rounded-lg transition-all ${
+                  selectedCategoria === null 
+                    ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40' 
+                    : 'hover:bg-muted text-muted-foreground'
+                }`}
+              >
+                Todos
+              </button>
+              <button
+                onClick={() => onCategoriaClick('normal')}
+                className={`px-3 py-1 text-xs font-medium rounded-lg transition-all ${
+                  selectedCategoria === 'normal' 
+                    ? 'bg-green-500/20 text-green-400 border border-green-500/40' 
+                    : 'hover:bg-muted text-muted-foreground'
+                }`}
+              >
+                📗 Normal
+              </button>
+              <button
+                onClick={() => onCategoriaClick('alterado')}
+                className={`px-3 py-1 text-xs font-medium rounded-lg transition-all ${
+                  selectedCategoria === 'alterado' 
+                    ? 'bg-red-500/20 text-red-400 border border-red-500/40' 
+                    : 'hover:bg-muted text-muted-foreground'
+                }`}
+              >
+                📕 Alterado
+              </button>
+            </div>
+
+            {/* Modality Tabs - Filtro Específico */}
             <div className="flex items-center gap-1 p-2 border-b border-border/40 bg-muted/30">
+              <span className="text-xs text-muted-foreground mr-2">Modalidade:</span>
               {modalities.map(modality => (
                 <button
                   key={modality}

@@ -16,6 +16,7 @@ interface EditorHeaderProps {
   onTemplateSearch: (term: string) => void
   onTemplateSelect: (template: any) => void
   onModalityClick: (modality: string) => void
+  onCategoriaClick: (categoria: string | null) => void
   onFavoriteToggle: (id: string) => void
   dropdownVisible: boolean
   setDropdownVisible: (visible: boolean) => void
@@ -26,6 +27,7 @@ interface EditorHeaderProps {
   loading: boolean
   error: string | null
   selectedModality: string | null
+  selectedCategoria: string | null
   isFavorite: (id: string) => boolean
   modalities: string[]
   
@@ -63,6 +65,7 @@ export function EditorHeader({
   onTemplateSearch,
   onTemplateSelect,
   onModalityClick,
+  onCategoriaClick,
   onFavoriteToggle,
   dropdownVisible,
   setDropdownVisible,
@@ -73,6 +76,7 @@ export function EditorHeader({
   loading,
   error,
   selectedModality,
+  selectedCategoria,
   isFavorite,
   modalities,
   selectedMacro,
@@ -150,6 +154,7 @@ export function EditorHeader({
                 onTemplateSearch={onTemplateSearch}
                 onTemplateSelect={handleTemplateSelect}
                 onModalityClick={onModalityClick}
+                onCategoriaClick={onCategoriaClick}
                 onFavoriteToggle={onFavoriteToggle}
                 dropdownVisible={dropdownVisible}
                 setDropdownVisible={setDropdownVisible}
@@ -160,6 +165,7 @@ export function EditorHeader({
                 loading={loading}
                 error={error}
                 selectedModality={selectedModality}
+                selectedCategoria={selectedCategoria}
                 isFavorite={isFavorite}
                 modalities={modalities}
               />

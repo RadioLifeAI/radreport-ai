@@ -9,6 +9,7 @@ export interface Template {
   titulo: string
   modalidade: string
   regiao: string
+  categoria?: string  // 'normal' | 'alterado'
   conteudo: {
     tecnica: Record<string, string>
     achados: string
@@ -33,9 +34,11 @@ interface UseTemplatesReturn {
   loading: boolean
   error: string | null
   searchTerm: string
-  selectedModality: string
+  selectedModality: string | null
+  selectedCategoria: string | null
   setSearchTerm: (term: string) => void
-  setSelectedModality: (modality: string) => void
+  setSelectedModality: (modality: string | null) => void
+  setSelectedCategoria: (categoria: string | null) => void
   loadTemplates: () => Promise<void>
   applyTemplate: (template: Template) => void
   applyTemplateWithVariables: (template: Template, selectedTechnique: string | null, variableValues: Record<string, any>) => void
@@ -52,6 +55,7 @@ export function useTemplates(): UseTemplatesReturn {
   const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedModality, setSelectedModality] = useState<string | null>(null)
+  const [selectedCategoria, setSelectedCategoria] = useState<string | null>(null)
   const [favorites, setFavorites] = useState<string[]>([])
   const [recentUsageData, setRecentUsageData] = useState<Array<{template_id: string, used_at: string, usage_count: number}>>([])
   
@@ -102,6 +106,7 @@ export function useTemplates(): UseTemplatesReturn {
         titulo: template.titulo,
         modalidade: template.modalidade_codigo,
         regiao: template.regiao_codigo,
+        categoria: template.categoria || 'normal',
         conteudo: {
           tecnica: template.tecnica || {},
           achados: template.achados || 'Achados normais',
@@ -166,7 +171,12 @@ export function useTemplates(): UseTemplatesReturn {
   const filteredTemplates = useMemo(() => {
     let filtered = templates
     
-    // Filtrar por modalidade
+    // Filtrar por categoria (filtro geral - primeiro na hierarquia)
+    if (selectedCategoria) {
+      filtered = filtered.filter(template => template.categoria === selectedCategoria)
+    }
+    
+    // Filtrar por modalidade (filtro específico - segundo na hierarquia)
     if (selectedModality) {
       filtered = filtered.filter(template => template.modalidade === selectedModality)
     }
@@ -208,7 +218,7 @@ export function useTemplates(): UseTemplatesReturn {
     }
     
     return filtered
-  }, [templates, selectedModality, searchTerm])
+  }, [templates, selectedCategoria, selectedModality, searchTerm])
 
   // Busca no servidor com debounce quando há termo de busca
   useEffect(() => {
@@ -450,8 +460,10 @@ export function useTemplates(): UseTemplatesReturn {
     error,
     searchTerm,
     selectedModality,
+    selectedCategoria,
     setSearchTerm,
     setSelectedModality,
+    setSelectedCategoria,
     loadTemplates,
     applyTemplate,
     applyTemplateWithVariables,
