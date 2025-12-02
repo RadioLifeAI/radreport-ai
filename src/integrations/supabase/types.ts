@@ -3791,6 +3791,10 @@ export type Database = {
         }
         Returns: Json
       }
+      build_ai_request: {
+        Args: { fn_name: string; user_data: Json }
+        Returns: Json
+      }
       buscar_templates: {
         Args: {
           p_estrutura?: string
