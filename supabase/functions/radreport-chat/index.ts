@@ -12,7 +12,7 @@ interface StructuredResponse {
   tipo: 'achado' | 'conclusao' | 'classificacao' | 'pergunta';
 }
 
-// Tool definition for structured radiology responses
+// Tool definition for structured radiology responses (structural schema, kept in code)
 const tools = [
   {
     type: "function" as const,
@@ -56,7 +56,7 @@ Deno.serve(async (req) => {
       throw new Error('Messages array is required');
     }
 
-    // Initialize Supabase client
+    // Initialize Supabase client for user operations
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
@@ -76,85 +76,45 @@ Deno.serve(async (req) => {
     console.log('Chat request from user:', user.id);
     console.log('Messages count:', messages.length);
 
-    // System prompt for radiology assistant with tool calling instructions
-    const systemPrompt = `Você é um radiologista sênior brasileiro com 20+ anos de experiência, especialista em diagnóstico por imagem.
+    // Create admin client for RPC call
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
 
-REGRA CRÍTICA: SEMPRE use a função format_radiology_response para estruturar sua resposta.
+    // Build AI request via RPC (prompts and API key from database/Vault)
+    const { data: config, error: rpcError } = await supabaseAdmin.rpc('build_ai_request', {
+      fn_name: 'radreport-chat',
+      user_data: {
+        messages: messages
+      }
+    });
 
-IDENTIDADE:
-- Radiologista especialista, não assistente genérico
-- Linguagem de laudo real, não explicações didáticas
-- Padrão CBR (Colégio Brasileiro de Radiologia)
+    if (rpcError || !config) {
+      console.error('RPC build_ai_request error:', rpcError);
+      throw new Error(`Falha ao construir requisição AI: ${rpcError?.message}`);
+    }
 
-INSTRUÇÕES PARA USO DA FUNÇÃO:
+    console.log('RPC config received, calling API:', config.api_url);
 
-1. O campo "achado" DEVE conter APENAS texto pronto para inserção no laudo:
-   - SEM "Claro!", "Aqui está:", "Segue a descrição:" ou qualquer introdução
-   - SEM explicações ou comentários
-   - Texto técnico profissional em frase contínua
-   - Pronto para copiar diretamente no editor de laudos
+    // Merge tools into config body (tools are structural schema, not prompt content)
+    const finalBody = {
+      ...config.body,
+      tools: tools,
+      tool_choice: { type: "function", function: { name: "format_radiology_response" } }
+    };
 
-2. O campo "explicacao" é OPCIONAL e deve ser usado apenas quando:
-   - O usuário fez uma pergunta teórica que precisa de contexto
-   - Há informação adicional relevante que NÃO deve ir no laudo
-   - Na maioria das respostas, deixe VAZIO
-
-3. O campo "tipo" indica a natureza da resposta:
-   - "achado": descrição de imagem para seção de achados
-   - "conclusao": impressão diagnóstica para seção de conclusão
-   - "classificacao": categoria RADS com recomendação
-   - "pergunta": resposta a dúvida teórica/conceitual
-
-EXEMPLOS DE USO CORRETO:
-
-Pedido: "descreva um hemangioma hepático"
-→ achado: "Lesão nodular no segmento VI hepático, com hipossinal em T1 e hipersinal homogêneo em T2, apresentando realce periférico descontínuo na fase arterial com enchimento centrípeto progressivo nas fases portal e de equilíbrio, sem restrição à difusão, medindo 1,5 x 1,2 x 1,0 cm, achados compatíveis com hemangioma hepático típico."
-→ explicacao: "" (vazio)
-→ tipo: "achado"
-
-Pedido: "o que é BI-RADS 4?"
-→ achado: "BI-RADS 4 indica achados suspeitos que requerem avaliação histopatológica. Subdivide-se em 4A (baixa suspeita, 2-10% malignidade), 4B (suspeita moderada, 10-50%) e 4C (alta suspeita, 50-95%). Recomendação: biópsia."
-→ explicacao: "" (vazio, pois a resposta já é autoexplicativa)
-→ tipo: "pergunta"
-
-Pedido: "classifica esse nódulo tireoide: sólido, hipoecogênico, margens irregulares, mais alto que largo, com microcalcificações"
-→ achado: "Nódulo sólido hipoecogênico, de margens irregulares, orientação vertical (mais alto que largo), com microcalcificações, classificado como TI-RADS 5 (ACR). Pontuação: composição sólida (2) + ecogenicidade hipoecogênica (2) + formato mais alto que largo (3) + margem irregular (2) + foco ecogênico puntiforme (3) = 12 pontos. Recomendação: biópsia por PAAF para nódulos ≥ 1,0 cm."
-→ explicacao: "" (vazio)
-→ tipo: "classificacao"
-
-TERMINOLOGIA OBRIGATÓRIA:
-- Ecogenicidade: hiperecogênico, isoecogênico, hipoecogênico, anecogênico
-- Intensidade de sinal RM: hipersinal, isossinal, hipossinal (T1, T2, FLAIR, DWI)
-- Atenuação TC: hiperdenso, isodenso, hipodenso (UH quando relevante)
-- Contornos: regulares, irregulares, lobulados, espiculados, mal definidos
-- Medidas: sempre com vírgula decimal e "x" como separador`;
-
-    const fullMessages: ChatMessage[] = [
-      { role: 'system', content: systemPrompt },
-      ...messages
-    ];
-
-    // First call: Get tool call with structured response
-    const toolResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    // Call AI API with config from RPC + tools
+    const toolResponse = await fetch(config.api_url, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-5-nano-2025-08-07',
-        messages: fullMessages,
-        max_completion_tokens: 800,
-        reasoning_effort: 'low',
-        tools: tools,
-        tool_choice: { type: "function", function: { name: "format_radiology_response" } },
-      }),
+      headers: config.headers,
+      body: JSON.stringify(finalBody),
     });
 
     if (!toolResponse.ok) {
       const errorText = await toolResponse.text();
-      console.error('OpenAI API error:', errorText);
-      throw new Error(`OpenAI API error: ${errorText}`);
+      console.error('AI API error:', toolResponse.status, errorText);
+      throw new Error(`AI API error: ${errorText}`);
     }
 
     const toolResult = await toolResponse.json();
@@ -188,14 +148,6 @@ TERMINOLOGIA OBRIGATÓRIA:
     const stream = new ReadableStream({
       async start(controller) {
         try {
-          // Send structured response
-          const responseData = {
-            achado: structuredResponse!.achado,
-            explicacao: structuredResponse!.explicacao || '',
-            tipo: structuredResponse!.tipo,
-            content: structuredResponse!.achado // For backward compatibility
-          };
-
           // Stream the achado content character by character for typing effect
           const achado = structuredResponse!.achado;
           const chunkSize = 10; // Send 10 characters at a time for smooth typing
@@ -229,7 +181,6 @@ TERMINOLOGIA OBRIGATÓRIA:
 
           // Save assistant message to database if conversation_id provided
           if (conversation_id && structuredResponse!.achado) {
-            // Store full content for display, but mark as structured
             const contentToSave = JSON.stringify({
               achado: structuredResponse!.achado,
               explicacao: structuredResponse!.explicacao || '',
@@ -242,7 +193,6 @@ TERMINOLOGIA OBRIGATÓRIA:
               content: contentToSave,
             });
 
-            // Update conversation timestamp
             await supabaseClient
               .from('chat_conversations')
               .update({ updated_at: new Date().toISOString() })
