@@ -12,6 +12,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { useAICredits } from '@/hooks/useAICredits';
 import { useWhisperCredits } from '@/hooks/useWhisperCredits';
+import { useSubscription } from '@/hooks/useSubscription';
 import { 
   User, 
   Settings, 
@@ -20,7 +21,8 @@ import {
   LogOut,
   Sparkles,
   Mic,
-  Crown
+  Crown,
+  ExternalLink
 } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -35,6 +37,7 @@ export const UserProfileDropdown = ({ onOpenSettings }: UserProfileDropdownProps
   const { profile } = useUserProfile();
   const { balance: aiBalance, planType } = useAICredits();
   const { balance: whisperBalance } = useWhisperCredits();
+  const { isSubscribed, openPortal, isOpeningPortal } = useSubscription();
   const [open, setOpen] = useState(false);
 
   const handleLogout = async () => {
@@ -125,16 +128,33 @@ export const UserProfileDropdown = ({ onOpenSettings }: UserProfileDropdownProps
           Créditos & Plano
         </DropdownMenuItem>
 
-        <DropdownMenuItem 
-          className="cursor-pointer hover:bg-primary/10 text-primary font-medium"
-          onClick={() => {
-            setOpen(false);
-            navigate('/assinaturas');
-          }}
-        >
-          <Crown size={16} className="mr-2" />
-          Upgrade de Plano
-        </DropdownMenuItem>
+        <DropdownMenuSeparator className="bg-border/40" />
+
+        {/* Contextual subscription actions */}
+        {isSubscribed ? (
+          <DropdownMenuItem 
+            className="cursor-pointer hover:bg-muted/50"
+            onClick={() => {
+              setOpen(false);
+              openPortal();
+            }}
+            disabled={isOpeningPortal}
+          >
+            <ExternalLink size={16} className="mr-2 text-muted-foreground" />
+            {isOpeningPortal ? 'Abrindo...' : 'Gerenciar Assinatura'}
+          </DropdownMenuItem>
+        ) : (
+          <DropdownMenuItem 
+            className="cursor-pointer hover:bg-primary/10 text-primary font-medium"
+            onClick={() => {
+              setOpen(false);
+              navigate('/assinaturas');
+            }}
+          >
+            <Crown size={16} className="mr-2" />
+            Upgrade de Plano
+          </DropdownMenuItem>
+        )}
         
         <DropdownMenuSeparator className="bg-border/40" />
         

@@ -5,14 +5,14 @@ import { Progress } from '@/components/ui/progress';
 import { useAICredits } from '@/hooks/useAICredits';
 import { useWhisperCredits } from '@/hooks/useWhisperCredits';
 import { useSubscription } from '@/hooks/useSubscription';
-import { Sparkles, Mic, TrendingUp, Crown } from 'lucide-react';
+import { Sparkles, Mic, TrendingUp, Crown, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export const UserCreditsCard = () => {
   const navigate = useNavigate();
   const { balance: aiBalance, monthlyLimit, planType } = useAICredits();
   const { balance: whisperBalance } = useWhisperCredits();
-  const { isSubscribed } = useSubscription();
+  const { isSubscribed, openPortal, isOpeningPortal } = useSubscription();
 
   const aiPercentage = (aiBalance / monthlyLimit) * 100;
 
@@ -82,23 +82,37 @@ export const UserCreditsCard = () => {
           </p>
         </div>
 
-        {/* CTA Button */}
-        <Button 
-          className="w-full bg-gradient-to-r from-cyan-500 to-indigo-500 hover:from-cyan-600 hover:to-indigo-600"
-          onClick={() => navigate('/assinaturas')}
-        >
-          {isSubscribed ? (
-            <>
-              <Crown size={16} className="mr-2" />
-              Ver Planos
-            </>
-          ) : (
-            <>
-              <TrendingUp size={16} className="mr-2" />
-              Upgrade de Plano
-            </>
+        {/* CTA Buttons */}
+        <div className="flex flex-col gap-2">
+          <Button 
+            className="w-full bg-gradient-to-r from-cyan-500 to-indigo-500 hover:from-cyan-600 hover:to-indigo-600"
+            onClick={() => navigate('/assinaturas')}
+          >
+            {isSubscribed ? (
+              <>
+                <Crown size={16} className="mr-2" />
+                Ver Outros Planos
+              </>
+            ) : (
+              <>
+                <TrendingUp size={16} className="mr-2" />
+                Upgrade de Plano
+              </>
+            )}
+          </Button>
+          
+          {isSubscribed && (
+            <Button 
+              variant="outline"
+              className="w-full"
+              onClick={() => openPortal()}
+              disabled={isOpeningPortal}
+            >
+              <ExternalLink size={16} className="mr-2" />
+              {isOpeningPortal ? 'Abrindo...' : 'Gerenciar Assinatura'}
+            </Button>
           )}
-        </Button>
+        </div>
       </div>
     </Card>
   );

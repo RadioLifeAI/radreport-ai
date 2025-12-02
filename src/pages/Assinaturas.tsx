@@ -1,7 +1,9 @@
 import { useState, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Sparkles, Stethoscope, Brain } from 'lucide-react';
+import { Sparkles, Stethoscope, Brain, ExternalLink, Crown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -89,7 +91,7 @@ export default function Assinaturas() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { data: plans, isLoading: plansLoading } = usePlans();
-  const { subscription, planCode: currentPlanCode } = useSubscription();
+  const { subscription, planCode: currentPlanCode, isSubscribed, planName, openPortal, isOpeningPortal } = useSubscription();
   const { clientSecret, isLoading: checkoutLoading, initializeCheckout, clearCheckout } = useEmbeddedCheckout();
   
   const [interval, setInterval] = useState<'month' | 'year'>('year');
@@ -186,6 +188,33 @@ export default function Assinaturas() {
                 <div className="animate-fade-in">
                   <PricingToggle interval={interval} onChange={setInterval} />
                 </div>
+
+                {/* Current Subscription Info for logged users */}
+                {user && isSubscribed && (
+                  <Card className="mt-8 p-4 bg-gradient-to-r from-cyan-500/10 to-indigo-500/10 border-primary/30 max-w-md mx-auto animate-fade-in">
+                    <div className="flex items-center justify-between gap-4 flex-wrap">
+                      <div className="flex items-center gap-3">
+                        <Crown className="w-5 h-5 text-primary" />
+                        <div>
+                          <p className="text-sm text-muted-foreground">Seu plano atual</p>
+                          <Badge className="bg-gradient-to-r from-cyan-500 to-indigo-500 text-white mt-1">
+                            {planName}
+                          </Badge>
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openPortal()}
+                        disabled={isOpeningPortal}
+                        className="gap-2"
+                      >
+                        <ExternalLink size={14} />
+                        {isOpeningPortal ? 'Abrindo...' : 'Gerenciar'}
+                      </Button>
+                    </div>
+                  </Card>
+                )}
               </div>
             </div>
           </section>
