@@ -31,6 +31,7 @@ interface UserSettingsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   defaultTab?: string;
+  onUpgrade?: () => void;
 }
 
 // Validation functions
@@ -53,7 +54,7 @@ const validateCRM = (crm: string): string | null => {
   return null;
 };
 
-export const UserSettingsModal = ({ open, onOpenChange, defaultTab = 'profile' }: UserSettingsModalProps) => {
+export const UserSettingsModal = ({ open, onOpenChange, defaultTab = 'profile', onUpgrade }: UserSettingsModalProps) => {
   const navigate = useNavigate();
   const { profile, updateProfile, isLoading: profileLoading } = useUserProfile();
   const { settings, updateSettings, isLoading: settingsLoading } = useEditorSettings();
@@ -655,14 +656,17 @@ export const UserSettingsModal = ({ open, onOpenChange, defaultTab = 'profile' }
               </Card>
               
               {/* Credits Info */}
-              <UserCreditsCard />
+              <UserCreditsCard onUpgrade={() => {
+                onOpenChange(false);
+                onUpgrade?.();
+              }} />
 
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-3">
                 <Button 
                   onClick={() => {
                     onOpenChange(false);
-                    navigate('/assinaturas');
+                    onUpgrade?.();
                   }} 
                   className="flex-1 bg-gradient-to-r from-cyan-500 to-indigo-500 hover:from-cyan-600 hover:to-indigo-600"
                 >

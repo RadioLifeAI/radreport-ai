@@ -4,3 +4,4 @@ export { TrustBadges } from './TrustBadges';
 export { FeatureComparisonTable } from './FeatureComparisonTable';
 export { EmbeddedCheckoutSheet } from './EmbeddedCheckoutSheet';
 export { CheckoutReturn } from './CheckoutReturn';
+export { PlansSelectionSheet } from './PlansSelectionSheet';
