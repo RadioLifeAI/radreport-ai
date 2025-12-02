@@ -6,7 +6,7 @@ import MacroSelector, { Macro } from '@/components/selectors/MacroSelector'
 import { TemplateVariablesModal } from './TemplateVariablesModal'
 import { UserProfileDropdown } from '@/components/user/UserProfileDropdown'
 import { UserSettingsModal } from '@/components/user/UserSettingsModal'
-import { PlansSelectionSheet, EmbeddedCheckoutSheet } from '@/components/subscription'
+import { PlansSelectionSheet } from '@/components/subscription'
 import { TemplateWithVariables, TemplateVariableValues } from '@/types/templateVariables'
 import { useState } from 'react'
 import { useAdmin } from '@/hooks/useAdmin'
@@ -118,14 +118,10 @@ export function EditorHeader({
   // Internal checkout flow
   const {
     showPlansSheet,
-    showCheckoutSheet,
-    clientSecret,
     isLoading: checkoutLoading,
     openPlansSheet,
     closePlansSheet,
     handleSelectPlan,
-    handleCheckoutComplete,
-    closeCheckoutSheet,
   } = useInternalCheckout()
   
   // Handle template selection with variable check
@@ -272,14 +268,6 @@ export function EditorHeader({
         onOpenChange={closePlansSheet}
         onSelectPlan={handleSelectPlan}
         isLoading={checkoutLoading}
-      />
-
-      {/* Embedded Checkout Sheet */}
-      <EmbeddedCheckoutSheet
-        open={showCheckoutSheet}
-        onOpenChange={closeCheckoutSheet}
-        clientSecret={clientSecret}
-        onComplete={handleCheckoutComplete}
       />
     </>
   )

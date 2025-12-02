@@ -33,8 +33,8 @@ export const PlansSelectionSheet = ({
     return {
       monthly: monthlyPrice?.amount_cents || 0,
       annual: annualPrice?.amount_cents || null,
-      monthlyPriceId: monthlyPrice?.stripe_price_id || null,
-      annualPriceId: annualPrice?.stripe_price_id || null,
+      monthlyPriceId: monthlyPrice?.id || null,
+      annualPriceId: annualPrice?.id || null,
     };
   };
 

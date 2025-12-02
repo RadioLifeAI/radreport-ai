@@ -4,8 +4,7 @@ import { useSubscription } from './useSubscription';
 
 export const useInternalCheckout = () => {
   const [showPlansSheet, setShowPlansSheet] = useState(false);
-  const [showCheckoutSheet, setShowCheckoutSheet] = useState(false);
-  const { clientSecret, isLoading, initializeCheckout, clearCheckout } = useEmbeddedCheckout();
+  const { isLoading, initializeCheckout } = useEmbeddedCheckout();
   const { refetch: refetchSubscription } = useSubscription();
 
   const openPlansSheet = useCallback(() => {
@@ -17,37 +16,22 @@ export const useInternalCheckout = () => {
   }, []);
 
   const handleSelectPlan = useCallback(async (priceId: string) => {
-    const result = await initializeCheckout(priceId, true);
-    if (result?.clientSecret) {
-      setShowPlansSheet(false);
-      setShowCheckoutSheet(true);
+    if (!priceId) {
+      return;
     }
+    // Use embedded=false for redirect to checkout.stripe.com
+    await initializeCheckout(priceId, false);
+    setShowPlansSheet(false);
   }, [initializeCheckout]);
-
-  const handleCheckoutComplete = useCallback(() => {
-    setShowCheckoutSheet(false);
-    clearCheckout();
-    // Refresh subscription status
-    refetchSubscription();
-  }, [clearCheckout, refetchSubscription]);
-
-  const closeCheckoutSheet = useCallback(() => {
-    setShowCheckoutSheet(false);
-    clearCheckout();
-  }, [clearCheckout]);
 
   return {
     // State
     showPlansSheet,
-    showCheckoutSheet,
-    clientSecret,
     isLoading,
     
     // Actions
     openPlansSheet,
     closePlansSheet,
     handleSelectPlan,
-    handleCheckoutComplete,
-    closeCheckoutSheet,
   };
 };
