@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { invokeEdgeFunction, EdgeFunctionError, AuthenticationError } from '@/services/edgeFunctionClient';
 import { AdminLayout } from '@/components/admin';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -169,23 +170,31 @@ export default function SubscriptionsPage() {
 
   const isTestMode = getSettingValue('environment_mode') === 'test';
 
-  // Fetch Stripe products for specific environment
+  // Fetch Stripe products for specific environment using direct fetch (no x-application-name header)
   const fetchStripeProducts = async (env: 'test' | 'live') => {
     const setLoading = env === 'test' ? setLoadingTest : setLoadingLive;
     const setProducts = env === 'test' ? setStripeProductsTest : setStripeProductsLive;
     
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('stripe-list-products', {
-        body: { environment: env }
-      });
-      if (error) throw error;
+      const data = await invokeEdgeFunction<{ products: StripeProduct[]; count: number; environment: string }>(
+        'stripe-list-products',
+        { environment: env }
+      );
       
       setProducts(data.products || []);
       toast.success(`${data.count || 0} produtos ${env.toUpperCase()} sincronizados`);
     } catch (err: any) {
       console.error(`Error fetching Stripe ${env} products:`, err);
-      toast.error(`Erro ao buscar produtos ${env}: ` + (err.message || 'Unknown error'));
+      
+      // Specific error messages
+      if (err instanceof AuthenticationError) {
+        toast.error('Sessão expirada. Faça login novamente.');
+      } else if (err instanceof EdgeFunctionError) {
+        toast.error(`Erro ao buscar produtos ${env}: ${err.message}`);
+      } else {
+        toast.error(`Erro ao buscar produtos ${env}: ${err.message || 'Erro desconhecido'}`);
+      }
     } finally {
       setLoading(false);
     }
