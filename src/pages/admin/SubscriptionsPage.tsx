@@ -104,10 +104,11 @@ export default function SubscriptionsPage() {
   const [editingPrice, setEditingPrice] = useState<EditingPrice | null>(null);
   const [copiedWebhook, setCopiedWebhook] = useState(false);
   
-  // Stripe products state
-  const [stripeProducts, setStripeProducts] = useState<StripeProduct[]>([]);
-  const [loadingStripeProducts, setLoadingStripeProducts] = useState(false);
-  const [stripeEnvironment, setStripeEnvironment] = useState<'test' | 'live' | null>(null);
+  // Stripe products state - separate for each environment
+  const [stripeProductsTest, setStripeProductsTest] = useState<StripeProduct[]>([]);
+  const [stripeProductsLive, setStripeProductsLive] = useState<StripeProduct[]>([]);
+  const [loadingTest, setLoadingTest] = useState(false);
+  const [loadingLive, setLoadingLive] = useState(false);
 
   // Fetch plans
   const { data: plans = [], isLoading: plansLoading } = useQuery({
@@ -168,21 +169,25 @@ export default function SubscriptionsPage() {
 
   const isTestMode = getSettingValue('environment_mode') === 'test';
 
-  // Fetch Stripe products
-  const fetchStripeProducts = async () => {
-    setLoadingStripeProducts(true);
+  // Fetch Stripe products for specific environment
+  const fetchStripeProducts = async (env: 'test' | 'live') => {
+    const setLoading = env === 'test' ? setLoadingTest : setLoadingLive;
+    const setProducts = env === 'test' ? setStripeProductsTest : setStripeProductsLive;
+    
+    setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('stripe-list-products');
+      const { data, error } = await supabase.functions.invoke('stripe-list-products', {
+        body: { environment: env }
+      });
       if (error) throw error;
       
-      setStripeProducts(data.products || []);
-      setStripeEnvironment(data.environment || null);
-      toast.success(`${data.products?.length || 0} produtos sincronizados (${data.environment})`);
+      setProducts(data.products || []);
+      toast.success(`${data.count || 0} produtos ${env.toUpperCase()} sincronizados`);
     } catch (err: any) {
-      console.error('Error fetching Stripe products:', err);
-      toast.error('Erro ao buscar produtos: ' + (err.message || 'Unknown error'));
+      console.error(`Error fetching Stripe ${env} products:`, err);
+      toast.error(`Erro ao buscar produtos ${env}: ` + (err.message || 'Unknown error'));
     } finally {
-      setLoadingStripeProducts(false);
+      setLoading(false);
     }
   };
 
@@ -312,9 +317,10 @@ export default function SubscriptionsPage() {
     return id.length > length ? `${id.substring(0, length)}...` : id;
   };
 
-  // Get prices for selected product filtered by interval
-  const getPricesForProduct = (productId: string, interval: 'month' | 'year') => {
-    const product = stripeProducts.find(p => p.id === productId);
+  // Get prices for selected product filtered by interval (uses environment-specific products)
+  const getPricesForProduct = (productId: string, interval: 'month' | 'year', env: 'test' | 'live') => {
+    const products = env === 'test' ? stripeProductsTest : stripeProductsLive;
+    const product = products.find(p => p.id === productId);
     if (!product) return [];
     return product.prices.filter(p => p.interval === interval);
   };
@@ -333,11 +339,12 @@ export default function SubscriptionsPage() {
     const annualPriceIdField = envType === 'test' ? 'stripe_price_id_annual_test' : 'stripe_price_id_annual_live';
     
     const selectedProductId = editingPrice[productIdField];
-    const monthlyPrices = selectedProductId ? getPricesForProduct(selectedProductId, 'month') : [];
-    const yearlyPrices = selectedProductId ? getPricesForProduct(selectedProductId, 'year') : [];
+    const products = envType === 'test' ? stripeProductsTest : stripeProductsLive;
+    const loading = envType === 'test' ? loadingTest : loadingLive;
+    const monthlyPrices = selectedProductId ? getPricesForProduct(selectedProductId, 'month', envType) : [];
+    const yearlyPrices = selectedProductId ? getPricesForProduct(selectedProductId, 'year', envType) : [];
 
-    const hasProducts = stripeProducts.length > 0;
-    const matchesEnvironment = stripeEnvironment === envType;
+    const hasProducts = products.length > 0;
 
     return (
       <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
@@ -345,12 +352,20 @@ export default function SubscriptionsPage() {
           <div className="flex items-center gap-2">
             {icon}
             <Label className={`font-medium ${colorClass}`}>{label}</Label>
-          </div>
-          {hasProducts && !matchesEnvironment && (
             <Badge variant="outline" className="text-xs">
-              ⚠️ Produtos carregados são de {stripeEnvironment}
+              {products.length} produtos
             </Badge>
-          )}
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => fetchStripeProducts(envType)}
+            disabled={loading}
+            className="h-7 text-xs"
+          >
+            {loading ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <RefreshCw className="h-3 w-3 mr-1" />}
+            Sincronizar
+          </Button>
         </div>
         
         <div className="grid gap-4">
@@ -372,7 +387,7 @@ export default function SubscriptionsPage() {
                   <SelectValue placeholder="Selecione um produto..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {stripeProducts.map(product => (
+                  {products.map(product => (
                     <SelectItem key={product.id} value={product.id}>
                       <div className="flex flex-col">
                         <span>{product.name}</span>
@@ -729,22 +744,23 @@ export default function SubscriptionsPage() {
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    onClick={fetchStripeProducts}
-                    disabled={loadingStripeProducts}
-                    className="gap-2"
+                    onClick={() => fetchStripeProducts('test')}
+                    disabled={loadingTest}
+                    className="gap-1.5"
                   >
-                    {loadingStripeProducts ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <RefreshCw className="h-4 w-4" />
-                    )}
-                    Sincronizar Stripe
+                    {loadingTest ? <Loader2 className="h-3 w-3 animate-spin" /> : <FlaskConical className="h-3 w-3" />}
+                    TEST ({stripeProductsTest.length})
                   </Button>
-                  {stripeProducts.length > 0 && (
-                    <Badge variant="outline" className="text-xs">
-                      {stripeProducts.length} produtos ({stripeEnvironment})
-                    </Badge>
-                  )}
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => fetchStripeProducts('live')}
+                    disabled={loadingLive}
+                    className="gap-1.5"
+                  >
+                    {loadingLive ? <Loader2 className="h-3 w-3 animate-spin" /> : <Rocket className="h-3 w-3" />}
+                    LIVE ({stripeProductsLive.length})
+                  </Button>
                 </div>
               </CardHeader>
               <CardContent>
@@ -918,33 +934,19 @@ export default function SubscriptionsPage() {
           
           {editingPrice && (
             <div className="space-y-6">
-              {/* Sync Button */}
+              {/* Info Banner */}
               <div className="flex items-center justify-between p-3 border rounded-lg bg-muted/20">
-                <div className="text-sm">
-                  {stripeProducts.length > 0 ? (
-                    <span className="text-muted-foreground">
-                      {stripeProducts.length} produtos carregados ({stripeEnvironment})
-                    </span>
-                  ) : (
-                    <span className="text-muted-foreground">
-                      Sincronize para selecionar produtos via dropdown
-                    </span>
-                  )}
+                <div className="text-sm text-muted-foreground">
+                  Sincronize produtos Stripe em cada seção abaixo para seleção via dropdown
                 </div>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={fetchStripeProducts}
-                  disabled={loadingStripeProducts}
-                  className="gap-2"
-                >
-                  {loadingStripeProducts ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <RefreshCw className="h-4 w-4" />
-                  )}
-                  Sincronizar Stripe
-                </Button>
+                <div className="flex gap-2">
+                  <Badge variant="outline" className="text-xs">
+                    <FlaskConical className="h-3 w-3 mr-1" /> TEST: {stripeProductsTest.length}
+                  </Badge>
+                  <Badge variant="outline" className="text-xs">
+                    <Rocket className="h-3 w-3 mr-1" /> LIVE: {stripeProductsLive.length}
+                  </Badge>
+                </div>
               </div>
 
               {/* Test Environment */}
@@ -964,8 +966,7 @@ export default function SubscriptionsPage() {
               )}
 
               <p className="text-xs text-muted-foreground">
-                💡 Clique em "Sincronizar Stripe" para carregar produtos automaticamente. 
-                Os produtos disponíveis dependem da chave (test/live) configurada no servidor.
+                💡 Use os botões "Sincronizar" em cada seção para carregar produtos do ambiente correspondente.
               </p>
             </div>
           )}
