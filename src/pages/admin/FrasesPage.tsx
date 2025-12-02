@@ -447,8 +447,12 @@ const FrasesPage = () => {
                   <Input
                     value={formData.codigo}
                     onChange={(e) => setFormData(p => ({ ...p, codigo: e.target.value }))}
-                    placeholder="US_ABD_FIGADO_NORMAL"
+                    placeholder="US_ABD_FIGADO_ESTEATOSE_LEVE"
                   />
+                  <p className="text-xs text-muted-foreground">
+                    💡 Formato: MODALIDADE_REGIÃO_ORGÃO_DESCRIÇÃO (maiúsculas, underscores).<br/>
+                    Ex: US_ABD_FIGADO_NORMAL, TC_TORAX_NODULO_PULMONAR, RM_CRANIO_ISQUEMIA
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <Label>Modalidade</Label>
@@ -460,6 +464,9 @@ const FrasesPage = () => {
                       {MODALITIES.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
                     </SelectContent>
                   </Select>
+                  <p className="text-xs text-muted-foreground">
+                    💡 US=Ultrassom | TC=Tomografia | RM=Ressonância | RX=Radiografia | MM=Mamografia
+                  </p>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -468,16 +475,23 @@ const FrasesPage = () => {
                   <Input
                     value={formData.categoria}
                     onChange={(e) => setFormData(p => ({ ...p, categoria: e.target.value }))}
-                    placeholder="Fígado"
+                    placeholder="Ex: Fígado, Tireoide, Pulmão"
                   />
+                  <p className="text-xs text-muted-foreground">
+                    💡 Órgão ou região anatômica principal. Agrupa frases similares.<br/>
+                    Ex: Fígado, Vesícula, Rins, Tireoide, Mama, Pulmão, Coluna
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <Label>Tags (separadas por vírgula)</Label>
                   <Input
                     value={formData.tags}
                     onChange={(e) => setFormData(p => ({ ...p, tags: e.target.value }))}
-                    placeholder="normal, rotina, fígado"
+                    placeholder="esteatose, hepatomegalia, grau I"
                   />
+                  <p className="text-xs text-muted-foreground">
+                    💡 Palavras-chave para busca rápida. Ex: esteatose, cisto, nódulo, calcificação, normal
+                  </p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -491,22 +505,32 @@ const FrasesPage = () => {
             
             <TabsContent value="conteudo" className="space-y-4 mt-4">
               <div className="space-y-2">
-                <Label>Texto *</Label>
+                <Label>Texto * (Achados)</Label>
                 <Textarea
                   value={formData.texto}
                   onChange={(e) => setFormData(p => ({ ...p, texto: e.target.value }))}
-                  placeholder="Texto da frase com {{variáveis}}"
+                  placeholder="Fígado com dimensões {{medida_longitudinal}} x {{medida_ap}} cm, contornos regulares, ecotextura homogênea, sem lesões focais."
                   rows={4}
                 />
+                <p className="text-xs text-muted-foreground">
+                  💡 Texto dos ACHADOS. Use {"{{nome_variavel}}"} para campos dinâmicos.<br/>
+                  • {"{{medida}}"} → valores numéricos | {"{{lado}}"} → direito/esquerdo | {"{{descricao}}"} → texto livre<br/>
+                  Ex: Nódulo {"{{ecogenicidade}}"} no {"{{lobo}}"}, medindo {"{{mx}}"} x {"{{my}}"} x {"{{mz}}"} cm.
+                </p>
               </div>
               <div className="space-y-2">
-                <Label>Conclusão</Label>
+                <Label>Conclusão (Impressão)</Label>
                 <Textarea
                   value={formData.conclusao}
                   onChange={(e) => setFormData(p => ({ ...p, conclusao: e.target.value }))}
-                  placeholder="Texto para seção de impressão"
+                  placeholder="Sinais de esteatose hepática {{grau}}."
                   rows={2}
                 />
+                <p className="text-xs text-muted-foreground">
+                  💡 Texto para IMPRESSÃO DIAGNÓSTICA. Seja conclusivo e sintético.<br/>
+                  • Omita medidas específicas (use "aumentado", "reduzido")<br/>
+                  • Padrões: "Sinais de...", "Sugestivo de...", "Compatível com..."
+                </p>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -514,16 +538,22 @@ const FrasesPage = () => {
                   <Input
                     value={formData.tecnica}
                     onChange={(e) => setFormData(p => ({ ...p, tecnica: e.target.value }))}
-                    placeholder="Técnica utilizada"
+                    placeholder="Transdutor convexo de 3,5 MHz"
                   />
+                  <p className="text-xs text-muted-foreground">
+                    💡 Opcional. Ex: Técnica de difusão com b=0 e b=1000
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <Label>Observação</Label>
                   <Input
                     value={formData.observacao}
                     onChange={(e) => setFormData(p => ({ ...p, observacao: e.target.value }))}
-                    placeholder="Notas adicionais"
+                    placeholder="Correlacionar com dados clínicos"
                   />
+                  <p className="text-xs text-muted-foreground">
+                    💡 Opcional. Ex: Sugerir controle em 6 meses.
+                  </p>
                 </div>
               </div>
             </TabsContent>
@@ -534,13 +564,22 @@ const FrasesPage = () => {
                 <Textarea
                   value={formData.variaveis}
                   onChange={(e) => setFormData(p => ({ ...p, variaveis: e.target.value }))}
-                  placeholder='[{"nome": "medida", "tipo": "numero", "unidade": "cm"}]'
-                  rows={10}
+                  placeholder={`[
+  {"nome": "medida", "tipo": "numero", "unidade": "cm", "minimo": 0.1, "maximo": 30},
+  {"nome": "lado", "tipo": "select", "opcoes": ["direito", "esquerdo", "bilateral"]},
+  {"nome": "descricao", "tipo": "texto", "obrigatorio": false}
+]`}
+                  rows={12}
                   className="font-mono text-xs"
                 />
-                <p className="text-xs text-muted-foreground">
-                  Formato: {"[{nome, tipo, opcoes?, unidade?, minimo?, maximo?, obrigatorio?}]"}
-                </p>
+                <div className="p-3 bg-muted/50 rounded-md space-y-2">
+                  <p className="text-xs text-muted-foreground font-medium">💡 Defina cada variável usada no texto {"{{nome_variavel}}"}:</p>
+                  <div className="text-xs text-muted-foreground space-y-1">
+                    <p><strong>Tipos:</strong> numero (com unidade, min/max) | texto (livre) | select (lista de opções) | boolean (sim/não)</p>
+                    <p><strong>Campos opcionais:</strong> unidade ("cm", "mm", "ml"), minimo/maximo, obrigatorio (true/false), valor_padrao</p>
+                    <p className="font-mono bg-background/50 p-1 rounded">{"Ex select: {\"nome\": \"ecogenicidade\", \"tipo\": \"select\", \"opcoes\": [\"hipo\", \"iso\", \"hiper\"]}"}</p>
+                  </div>
+                </div>
               </div>
             </TabsContent>
             
@@ -550,12 +589,19 @@ const FrasesPage = () => {
                 <Textarea
                   value={formData.sinonimos}
                   onChange={(e) => setFormData(p => ({ ...p, sinonimos: e.target.value }))}
-                  placeholder="fígado normal, hepatico sem alterações"
+                  placeholder="fígado normal, parênquima hepático preservado, hepatico sem alterações, fígado ok"
                   rows={4}
                 />
-                <p className="text-xs text-muted-foreground">
-                  Termos alternativos que podem ser usados para buscar esta frase
-                </p>
+                <div className="p-3 bg-muted/50 rounded-md space-y-2">
+                  <p className="text-xs text-muted-foreground font-medium">💡 Termos alternativos para busca por voz ou texto:</p>
+                  <div className="text-xs text-muted-foreground space-y-1">
+                    <p>• <strong>Abreviações:</strong> "tirads 2", "birads 1"</p>
+                    <p>• <strong>Sinônimos médicos:</strong> "hepatomegalia", "fígado aumentado"</p>
+                    <p>• <strong>Variações coloquiais:</strong> "normal", "ok", "sem alterações"</p>
+                    <p>• <strong>Erros de ditado:</strong> "figado" (sem acento), "nodulo"</p>
+                    <p className="text-cyan-400/80 mt-1">Quanto mais sinônimos, mais fácil encontrar a frase!</p>
+                  </div>
+                </div>
               </div>
             </TabsContent>
           </Tabs>
