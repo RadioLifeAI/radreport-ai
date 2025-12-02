@@ -1963,6 +1963,7 @@ export type Database = {
           achados: string
           adicionais: string | null
           ativo: boolean | null
+          categoria: string | null
           codigo: string
           condicoes_logicas: Json | null
           conteudo_template: string | null
@@ -1982,6 +1983,7 @@ export type Database = {
           achados: string
           adicionais?: string | null
           ativo?: boolean | null
+          categoria?: string | null
           codigo: string
           condicoes_logicas?: Json | null
           conteudo_template?: string | null
@@ -2001,6 +2003,7 @@ export type Database = {
           achados?: string
           adicionais?: string | null
           ativo?: boolean | null
+          categoria?: string | null
           codigo?: string
           condicoes_logicas?: Json | null
           conteudo_template?: string | null

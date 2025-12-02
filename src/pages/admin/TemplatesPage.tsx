@@ -33,6 +33,7 @@ interface SystemTemplate {
   ativo: boolean;
   variaveis?: Json;
   condicoes_logicas?: Json;
+  categoria?: string;
   version?: number;
   created_at?: string;
   updated_at?: string;
@@ -60,6 +61,7 @@ export default function TemplatesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterModalidade, setFilterModalidade] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [filterCategoria, setFilterCategoria] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -79,7 +81,8 @@ export default function TemplatesPage() {
     tags: [],
     ativo: true,
     variaveis: [],
-    condicoes_logicas: []
+    condicoes_logicas: [],
+    categoria: 'normal'
   });
   const [formTab, setFormTab] = useState('basico');
 
@@ -115,7 +118,8 @@ export default function TemplatesPage() {
     const matchStatus = filterStatus === 'all' || 
       (filterStatus === 'active' && t.ativo) || 
       (filterStatus === 'inactive' && !t.ativo);
-    return matchSearch && matchModalidade && matchStatus;
+    const matchCategoria = filterCategoria === 'all' || t.categoria === filterCategoria;
+    return matchSearch && matchModalidade && matchStatus && matchCategoria;
   });
 
   const totalPages = Math.ceil(filteredTemplates.length / ITEMS_PER_PAGE);
@@ -150,7 +154,8 @@ export default function TemplatesPage() {
       tags: [],
       ativo: true,
       variaveis: [],
-      condicoes_logicas: []
+      condicoes_logicas: [],
+      categoria: 'normal'
     });
     setFormTab('basico');
     setEditModalOpen(true);
@@ -180,7 +185,8 @@ export default function TemplatesPage() {
         tags: template.tags,
         ativo: template.ativo,
         variaveis: template.variaveis,
-        condicoes_logicas: template.condicoes_logicas
+        condicoes_logicas: template.condicoes_logicas,
+        categoria: template.categoria
       };
 
       const { error } = await supabase.from('system_templates').insert(newTemplate);
@@ -212,7 +218,8 @@ export default function TemplatesPage() {
         tags: formData.tags,
         ativo: formData.ativo,
         variaveis: formData.variaveis,
-        condicoes_logicas: formData.condicoes_logicas
+        condicoes_logicas: formData.condicoes_logicas,
+        categoria: formData.categoria || 'normal'
       };
 
       if (selectedTemplate) {
@@ -328,6 +335,17 @@ export default function TemplatesPage() {
             </SelectContent>
           </Select>
 
+          <Select value={filterCategoria} onValueChange={(v) => { setFilterCategoria(v); setCurrentPage(1); }}>
+            <SelectTrigger className="w-[150px]">
+              <SelectValue placeholder="Categoria" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas Categorias</SelectItem>
+              <SelectItem value="normal">📗 Normal</SelectItem>
+              <SelectItem value="alterado">📕 Alterado</SelectItem>
+            </SelectContent>
+          </Select>
+
           <Button variant="outline" size="icon" onClick={loadData} disabled={loading}>
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           </Button>
@@ -341,7 +359,7 @@ export default function TemplatesPage() {
                 <TableHead className="w-[100px]">Código</TableHead>
                 <TableHead>Título</TableHead>
                 <TableHead className="w-[100px]">Modalidade</TableHead>
-                <TableHead className="w-[120px]">Região</TableHead>
+                <TableHead className="w-[100px]">Categoria</TableHead>
                 <TableHead className="w-[80px] text-center">Vars</TableHead>
                 <TableHead className="w-[80px] text-center">Status</TableHead>
                 <TableHead className="w-[160px] text-right">Ações</TableHead>
@@ -350,7 +368,7 @@ export default function TemplatesPage() {
             <TableBody>
               {paginatedTemplates.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                     {loading ? 'Carregando...' : 'Nenhum template encontrado'}
                   </TableCell>
                 </TableRow>
@@ -374,8 +392,13 @@ export default function TemplatesPage() {
                     <TableCell>
                       <Badge variant="outline">{template.modalidade_codigo}</Badge>
                     </TableCell>
-                    <TableCell className="text-xs text-muted-foreground truncate max-w-[120px]">
-                      {template.regiao_codigo || '-'}
+                    <TableCell>
+                      <Badge 
+                        variant={template.categoria === 'normal' ? 'secondary' : 'destructive'}
+                        className={template.categoria === 'normal' ? 'bg-emerald-500/20 text-emerald-700 border-emerald-500/30' : ''}
+                      >
+                        {template.categoria === 'normal' ? '📗 Normal' : '📕 Alterado'}
+                      </Badge>
                     </TableCell>
                     <TableCell className="text-center">
                       {getVariablesCount(template) > 0 ? (
@@ -495,7 +518,25 @@ export default function TemplatesPage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label>Categoria *</Label>
+                      <Select
+                        value={formData.categoria || 'normal'}
+                        onValueChange={(v) => setFormData({ ...formData, categoria: v })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="normal">📗 Normal - Estudo sem alterações</SelectItem>
+                          <SelectItem value="alterado">📕 Alterado - Achados patológicos</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">
+                        Templates "alterados" incluem patologias, achados positivos ou pós-operatórios.
+                      </p>
+                    </div>
                     <div className="space-y-2">
                       <Label>Modalidade *</Label>
                       <Select
