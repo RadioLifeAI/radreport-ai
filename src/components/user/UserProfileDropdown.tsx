@@ -19,15 +19,18 @@ import {
   CreditCard, 
   LogOut,
   Sparkles,
-  Mic
+  Mic,
+  Crown
 } from 'lucide-react';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface UserProfileDropdownProps {
   onOpenSettings: (tab?: string) => void;
 }
 
 export const UserProfileDropdown = ({ onOpenSettings }: UserProfileDropdownProps) => {
+  const navigate = useNavigate();
   const { logout, user } = useAuth();
   const { profile } = useUserProfile();
   const { balance: aiBalance, planType } = useAICredits();
@@ -120,6 +123,17 @@ export const UserProfileDropdown = ({ onOpenSettings }: UserProfileDropdownProps
         >
           <CreditCard size={16} className="mr-2 text-muted-foreground" />
           Créditos & Plano
+        </DropdownMenuItem>
+
+        <DropdownMenuItem 
+          className="cursor-pointer hover:bg-primary/10 text-primary font-medium"
+          onClick={() => {
+            setOpen(false);
+            navigate('/assinaturas');
+          }}
+        >
+          <Crown size={16} className="mr-2" />
+          Upgrade de Plano
         </DropdownMenuItem>
         
         <DropdownMenuSeparator className="bg-border/40" />
