@@ -28,7 +28,7 @@ import AIConfigPage from "./pages/admin/AIConfigPage";
 import TemplatesPage from "./pages/admin/TemplatesPage";
 import FrasesPage from "./pages/admin/FrasesPage";
 import SubscriptionsPage from "./pages/admin/SubscriptionsPage";
-import Assinaturas from "./pages/Assinaturas";
+import Precos from "./pages/Precos";
 
 const queryClient = new QueryClient();
 
@@ -52,8 +52,8 @@ const App = () => (
             <Route path="/editor-test" element={<EditorTest />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/recursos" element={<Recursos />} />
-            <Route path="/precos" element={<Navigate to="/assinaturas" replace />} />
-            <Route path="/assinaturas" element={<Assinaturas />} />
+            <Route path="/precos" element={<Precos />} />
+            <Route path="/assinaturas" element={<Navigate to="/precos" replace />} />
             <Route path="/sobre" element={<Sobre />} />
             <Route path="/contato" element={<Contato />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
