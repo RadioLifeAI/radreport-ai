@@ -294,30 +294,30 @@ const FrasesPage = () => {
               className="pl-9"
             />
           </div>
-          <Select value={selectedModality || ''} onValueChange={(v) => { setSelectedModality(v || null); setCurrentPage(1); }}>
+          <Select value={selectedModality || 'all'} onValueChange={(v) => { setSelectedModality(v === 'all' ? null : v); setCurrentPage(1); }}>
             <SelectTrigger className="w-[140px]">
               <SelectValue placeholder="Modalidade" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todas</SelectItem>
+              <SelectItem value="all">Todas</SelectItem>
               {MODALITIES.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
             </SelectContent>
           </Select>
-          <Select value={selectedCategory || ''} onValueChange={(v) => { setSelectedCategory(v || null); setCurrentPage(1); }}>
+          <Select value={selectedCategory || 'all'} onValueChange={(v) => { setSelectedCategory(v === 'all' ? null : v); setCurrentPage(1); }}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Categoria" />
             </SelectTrigger>
             <SelectContent className="max-h-[300px]">
-              <SelectItem value="">Todas</SelectItem>
+              <SelectItem value="all">Todas</SelectItem>
               {categories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
             </SelectContent>
           </Select>
-          <Select value={selectedStatus || ''} onValueChange={(v) => { setSelectedStatus(v || null); setCurrentPage(1); }}>
+          <Select value={selectedStatus || 'all'} onValueChange={(v) => { setSelectedStatus(v === 'all' ? null : v); setCurrentPage(1); }}>
             <SelectTrigger className="w-[120px]">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todas</SelectItem>
+              <SelectItem value="all">Todas</SelectItem>
               <SelectItem value="ativa">Ativas</SelectItem>
               <SelectItem value="inativa">Inativas</SelectItem>
             </SelectContent>
