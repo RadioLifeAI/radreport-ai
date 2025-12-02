@@ -31,8 +31,8 @@ export const useEmbeddedCheckout = () => {
         setClientSecret(data.clientSecret);
         return { clientSecret: data.clientSecret };
       } else if (data.url) {
-        // Fallback to hosted checkout
-        window.open(data.url, '_blank');
+        // Redirect to Stripe hosted checkout
+        window.location.href = data.url;
         return { url: data.url };
       }
 
