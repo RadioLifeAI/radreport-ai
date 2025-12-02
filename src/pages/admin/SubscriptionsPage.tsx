@@ -40,6 +40,10 @@ interface SubscriptionPrice {
   stripe_price_id: string | null;
   stripe_price_id_test: string | null;
   stripe_price_id_live: string | null;
+  stripe_product_id_test: string | null;
+  stripe_product_id_live: string | null;
+  stripe_price_id_annual_test: string | null;
+  stripe_price_id_annual_live: string | null;
   is_active: boolean;
   subscription_plans?: SubscriptionPlan;
 }
@@ -66,8 +70,14 @@ interface StripeSetting {
 interface EditingPrice {
   id: string;
   plan_name: string;
+  // Test environment
+  stripe_product_id_test: string;
   stripe_price_id_test: string;
+  stripe_price_id_annual_test: string;
+  // Live environment
+  stripe_product_id_live: string;
   stripe_price_id_live: string;
+  stripe_price_id_annual_live: string;
 }
 
 export default function SubscriptionsPage() {
@@ -96,7 +106,7 @@ export default function SubscriptionsPage() {
       const { data, error } = await supabase
         .from('subscription_prices')
         .select('*, subscription_plans(*)')
-        .order('price_brl');
+        .order('amount_cents');
       if (error) throw error;
       return data as SubscriptionPrice[];
     }
@@ -153,21 +163,25 @@ export default function SubscriptionsPage() {
     }
   });
 
-  // Update price mutation
+  // Update price mutation - saves all 6 fields
   const updatePriceMutation = useMutation({
-    mutationFn: async (data: { id: string; stripe_price_id_test: string; stripe_price_id_live: string }) => {
+    mutationFn: async (data: EditingPrice) => {
       const { error } = await supabase
         .from('subscription_prices')
         .update({ 
+          stripe_product_id_test: data.stripe_product_id_test || null,
+          stripe_product_id_live: data.stripe_product_id_live || null,
           stripe_price_id_test: data.stripe_price_id_test || null,
-          stripe_price_id_live: data.stripe_price_id_live || null
+          stripe_price_id_live: data.stripe_price_id_live || null,
+          stripe_price_id_annual_test: data.stripe_price_id_annual_test || null,
+          stripe_price_id_annual_live: data.stripe_price_id_annual_live || null,
         })
         .eq('id', data.id);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['subscription-prices'] });
-      toast.success('Preço atualizado');
+      toast.success('Mapeamento Stripe atualizado');
       setEditingPrice(null);
     },
     onError: (error) => {
@@ -184,10 +198,10 @@ export default function SubscriptionsPage() {
   // Calculate system status
   const calculateSystemStatus = () => {
     const checks = [
-      { key: 'stripe_configured', label: 'Stripe Secret Key configurada', done: true }, // Assumed configured in Supabase secrets
+      { key: 'stripe_configured', label: 'Stripe Secret Key configurada', done: true },
       { key: 'webhook_configured', label: 'Webhook URL configurado', done: !!getSettingValue('webhook_url') },
-      { key: 'test_prices', label: 'Preços de teste mapeados', done: prices.some(p => p.stripe_price_id_test) },
-      { key: 'live_prices', label: 'Preços de produção mapeados', done: prices.some(p => p.stripe_price_id_live) },
+      { key: 'test_prices', label: 'Preços de teste mapeados', done: prices.some(p => p.stripe_product_id_test && p.stripe_price_id_test) },
+      { key: 'live_prices', label: 'Preços de produção mapeados', done: prices.some(p => p.stripe_product_id_live && p.stripe_price_id_live) },
     ];
     const doneCount = checks.filter(c => c.done).length;
     const progress = Math.round((doneCount / checks.length) * 100);
@@ -196,10 +210,10 @@ export default function SubscriptionsPage() {
 
   const systemStatus = calculateSystemStatus();
 
-  // Metrics
+  // Metrics - check both product and price
   const activeSubscribers = subscriptions.filter(s => s.status === 'active').length;
-  const testPricesMapped = prices.filter(p => p.stripe_price_id_test).length;
-  const livePricesMapped = prices.filter(p => p.stripe_price_id_live).length;
+  const testPricesMapped = prices.filter(p => p.stripe_product_id_test && p.stripe_price_id_test).length;
+  const livePricesMapped = prices.filter(p => p.stripe_product_id_live && p.stripe_price_id_live).length;
 
   // Webhook URL
   const webhookUrl = `https://gxhbdbovixbptrjrcwbr.supabase.co/functions/v1/stripe-webhook`;
@@ -235,16 +249,35 @@ export default function SubscriptionsPage() {
     }
   };
 
-  const getPriceMappingStatus = (price: SubscriptionPrice) => {
-    const hasTest = !!price.stripe_price_id_test;
-    const hasLive = !!price.stripe_price_id_live;
+  // Check if environment is complete (product + price configured)
+  const getEnvironmentStatus = (price: SubscriptionPrice, env: 'test' | 'live') => {
+    const hasProduct = env === 'test' ? !!price.stripe_product_id_test : !!price.stripe_product_id_live;
+    const hasPrice = env === 'test' ? !!price.stripe_price_id_test : !!price.stripe_price_id_live;
     
-    if (hasTest && hasLive) {
+    if (hasProduct && hasPrice) {
+      return <Badge className="bg-green-500/10 text-green-500 border-green-500/20">✓</Badge>;
+    } else if (hasProduct || hasPrice) {
+      return <Badge className="bg-amber-500/10 text-amber-500 border-amber-500/20">Parcial</Badge>;
+    }
+    return <Badge variant="secondary">—</Badge>;
+  };
+
+  const getPriceMappingStatus = (price: SubscriptionPrice) => {
+    const testComplete = !!price.stripe_product_id_test && !!price.stripe_price_id_test;
+    const liveComplete = !!price.stripe_product_id_live && !!price.stripe_price_id_live;
+    
+    if (testComplete && liveComplete) {
       return <Badge className="bg-green-500/10 text-green-500 border-green-500/20">Completo</Badge>;
-    } else if (hasTest || hasLive) {
+    } else if (testComplete || liveComplete) {
       return <Badge className="bg-amber-500/10 text-amber-500 border-amber-500/20">Parcial</Badge>;
     }
     return <Badge variant="secondary">Pendente</Badge>;
+  };
+
+  // Truncate ID for display
+  const truncateId = (id: string | null, length = 15) => {
+    if (!id) return null;
+    return id.length > length ? `${id.substring(0, length)}...` : id;
   };
 
   return (
@@ -497,7 +530,7 @@ export default function SubscriptionsPage() {
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
                   <CardTitle>Preços Stripe</CardTitle>
-                  <CardDescription>Mapeamento de preços entre o sistema e o Stripe</CardDescription>
+                  <CardDescription>Mapeamento de Product ID e Price ID para Test e Produção</CardDescription>
                 </div>
                 <Button variant="outline" size="sm" onClick={() => refetchSettings()} className="gap-2">
                   <RefreshCw className="h-4 w-4" />
@@ -512,12 +545,21 @@ export default function SubscriptionsPage() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Plano</TableHead>
-                        <TableHead>Período</TableHead>
                         <TableHead>Valor</TableHead>
-                        <TableHead>Price ID (Test)</TableHead>
-                        <TableHead>Price ID (Live)</TableHead>
+                        <TableHead>
+                          <div className="flex items-center gap-1">
+                            <FlaskConical className="h-3 w-3 text-amber-500" />
+                            Teste
+                          </div>
+                        </TableHead>
+                        <TableHead>
+                          <div className="flex items-center gap-1">
+                            <Rocket className="h-3 w-3 text-green-500" />
+                            Produção
+                          </div>
+                        </TableHead>
                         <TableHead>Status</TableHead>
-                        <TableHead className="w-[100px]">Ações</TableHead>
+                        <TableHead className="w-[80px]">Ações</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -527,28 +569,46 @@ export default function SubscriptionsPage() {
                             {price.subscription_plans?.name || '—'}
                           </TableCell>
                           <TableCell>
-                            <Badge variant="outline">
-                              {price.interval === 'month' ? 'Mensal' : 'Anual'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>{formatCurrency(price.amount_cents / 100)}</TableCell>
-                          <TableCell>
-                            {price.stripe_price_id_test ? (
-                              <code className="text-xs bg-muted px-2 py-1 rounded font-mono">
-                                {price.stripe_price_id_test.substring(0, 20)}...
-                              </code>
-                            ) : (
-                              <span className="text-muted-foreground text-sm">—</span>
-                            )}
+                            <div className="flex flex-col">
+                              <span>{formatCurrency(price.amount_cents / 100)}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {price.interval === 'month' ? '/mês' : '/ano'}
+                              </span>
+                            </div>
                           </TableCell>
                           <TableCell>
-                            {price.stripe_price_id_live ? (
-                              <code className="text-xs bg-muted px-2 py-1 rounded font-mono">
-                                {price.stripe_price_id_live.substring(0, 20)}...
-                              </code>
-                            ) : (
-                              <span className="text-muted-foreground text-sm">—</span>
-                            )}
+                            <div className="space-y-1">
+                              {price.stripe_product_id_test && (
+                                <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono block">
+                                  {truncateId(price.stripe_product_id_test)}
+                                </code>
+                              )}
+                              {price.stripe_price_id_test && (
+                                <code className="text-xs bg-amber-500/10 text-amber-600 px-1.5 py-0.5 rounded font-mono block">
+                                  {truncateId(price.stripe_price_id_test)}
+                                </code>
+                              )}
+                              {!price.stripe_product_id_test && !price.stripe_price_id_test && (
+                                <span className="text-muted-foreground text-sm">—</span>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="space-y-1">
+                              {price.stripe_product_id_live && (
+                                <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono block">
+                                  {truncateId(price.stripe_product_id_live)}
+                                </code>
+                              )}
+                              {price.stripe_price_id_live && (
+                                <code className="text-xs bg-green-500/10 text-green-600 px-1.5 py-0.5 rounded font-mono block">
+                                  {truncateId(price.stripe_price_id_live)}
+                                </code>
+                              )}
+                              {!price.stripe_product_id_live && !price.stripe_price_id_live && (
+                                <span className="text-muted-foreground text-sm">—</span>
+                              )}
+                            </div>
                           </TableCell>
                           <TableCell>{getPriceMappingStatus(price)}</TableCell>
                           <TableCell>
@@ -558,8 +618,12 @@ export default function SubscriptionsPage() {
                               onClick={() => setEditingPrice({
                                 id: price.id,
                                 plan_name: price.subscription_plans?.name || 'Preço',
+                                stripe_product_id_test: price.stripe_product_id_test || '',
                                 stripe_price_id_test: price.stripe_price_id_test || '',
-                                stripe_price_id_live: price.stripe_price_id_live || ''
+                                stripe_price_id_annual_test: price.stripe_price_id_annual_test || '',
+                                stripe_product_id_live: price.stripe_product_id_live || '',
+                                stripe_price_id_live: price.stripe_price_id_live || '',
+                                stripe_price_id_annual_live: price.stripe_price_id_annual_live || '',
                               })}
                             >
                               <Edit className="h-4 w-4" />
@@ -632,54 +696,110 @@ export default function SubscriptionsPage() {
         </Tabs>
       </div>
 
-      {/* Edit Price Modal */}
+      {/* Edit Price Modal - Complete with 6 fields */}
       <Dialog open={!!editingPrice} onOpenChange={(open) => !open && setEditingPrice(null)}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Configurar Preços Stripe - {editingPrice?.plan_name}</DialogTitle>
-            <DialogDescription>Configure os IDs de preço para ambientes de teste e produção</DialogDescription>
+            <DialogTitle>Configurar IDs Stripe - {editingPrice?.plan_name}</DialogTitle>
+            <DialogDescription>
+              Configure os Product ID e Price ID para ambientes de teste e produção
+            </DialogDescription>
           </DialogHeader>
           
           {editingPrice && (
             <div className="space-y-6">
               {/* Test Environment */}
               <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 border-b pb-2">
                   <FlaskConical className="h-4 w-4 text-amber-500" />
-                  <Label className="font-medium">Ambiente de Teste</Label>
+                  <Label className="font-medium text-amber-600">Ambiente de Teste</Label>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="price_test">Price ID (Test)</Label>
-                  <Input 
-                    id="price_test"
-                    value={editingPrice.stripe_price_id_test}
-                    onChange={(e) => setEditingPrice({ ...editingPrice, stripe_price_id_test: e.target.value })}
-                    placeholder="price_test_xxx"
-                    className="font-mono text-sm"
-                  />
+                
+                <div className="grid gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="product_test">Product ID</Label>
+                    <Input 
+                      id="product_test"
+                      value={editingPrice.stripe_product_id_test}
+                      onChange={(e) => setEditingPrice({ ...editingPrice, stripe_product_id_test: e.target.value })}
+                      placeholder="prod_test_xxx"
+                      className="font-mono text-sm"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="price_test">Price ID (Mensal)</Label>
+                    <Input 
+                      id="price_test"
+                      value={editingPrice.stripe_price_id_test}
+                      onChange={(e) => setEditingPrice({ ...editingPrice, stripe_price_id_test: e.target.value })}
+                      placeholder="price_test_monthly_xxx"
+                      className="font-mono text-sm"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="price_annual_test" className="text-muted-foreground">
+                      Price ID (Anual) <span className="text-xs">(opcional)</span>
+                    </Label>
+                    <Input 
+                      id="price_annual_test"
+                      value={editingPrice.stripe_price_id_annual_test}
+                      onChange={(e) => setEditingPrice({ ...editingPrice, stripe_price_id_annual_test: e.target.value })}
+                      placeholder="price_test_yearly_xxx"
+                      className="font-mono text-sm"
+                    />
+                  </div>
                 </div>
               </div>
 
               {/* Live Environment */}
               <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 border-b pb-2">
                   <Rocket className="h-4 w-4 text-green-500" />
-                  <Label className="font-medium">Ambiente de Produção</Label>
+                  <Label className="font-medium text-green-600">Ambiente de Produção</Label>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="price_live">Price ID (Live)</Label>
-                  <Input 
-                    id="price_live"
-                    value={editingPrice.stripe_price_id_live}
-                    onChange={(e) => setEditingPrice({ ...editingPrice, stripe_price_id_live: e.target.value })}
-                    placeholder="price_live_xxx"
-                    className="font-mono text-sm"
-                  />
+                
+                <div className="grid gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="product_live">Product ID</Label>
+                    <Input 
+                      id="product_live"
+                      value={editingPrice.stripe_product_id_live}
+                      onChange={(e) => setEditingPrice({ ...editingPrice, stripe_product_id_live: e.target.value })}
+                      placeholder="prod_live_xxx"
+                      className="font-mono text-sm"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="price_live">Price ID (Mensal)</Label>
+                    <Input 
+                      id="price_live"
+                      value={editingPrice.stripe_price_id_live}
+                      onChange={(e) => setEditingPrice({ ...editingPrice, stripe_price_id_live: e.target.value })}
+                      placeholder="price_live_monthly_xxx"
+                      className="font-mono text-sm"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="price_annual_live" className="text-muted-foreground">
+                      Price ID (Anual) <span className="text-xs">(opcional)</span>
+                    </Label>
+                    <Input 
+                      id="price_annual_live"
+                      value={editingPrice.stripe_price_id_annual_live}
+                      onChange={(e) => setEditingPrice({ ...editingPrice, stripe_price_id_annual_live: e.target.value })}
+                      placeholder="price_live_yearly_xxx"
+                      className="font-mono text-sm"
+                    />
+                  </div>
                 </div>
               </div>
 
               <p className="text-xs text-muted-foreground">
-                💡 Os IDs podem ser encontrados no Stripe Dashboard → Products → [Produto] → Pricing
+                💡 Encontre os IDs no Stripe Dashboard → Products → [Produto] → Pricing
               </p>
             </div>
           )}
@@ -690,15 +810,11 @@ export default function SubscriptionsPage() {
               Cancelar
             </Button>
             <Button 
-              onClick={() => editingPrice && updatePriceMutation.mutate({
-                id: editingPrice.id,
-                stripe_price_id_test: editingPrice.stripe_price_id_test,
-                stripe_price_id_live: editingPrice.stripe_price_id_live
-              })}
+              onClick={() => editingPrice && updatePriceMutation.mutate(editingPrice)}
               disabled={updatePriceMutation.isPending}
             >
               <Save className="h-4 w-4 mr-2" />
-              Salvar
+              Salvar Mapeamento
             </Button>
           </DialogFooter>
         </DialogContent>
