@@ -17,7 +17,7 @@ const navItems = [
   { to: '/admin', icon: LayoutDashboard, label: 'Dashboard', end: true },
   { to: '/admin/ai-config', icon: Cpu, label: 'Configurações IA' },
   { to: '/admin/templates', icon: Database, label: 'Templates' },
-  { to: '/admin/frases', icon: FileText, label: 'Frases Modelo', disabled: true },
+  { to: '/admin/frases', icon: FileText, label: 'Frases Modelo' },
   { to: '/admin/users', icon: Users, label: 'Usuários', disabled: true },
   { to: '/admin/logs', icon: ScrollText, label: 'Logs & Analytics', disabled: true },
   { to: '/admin/security', icon: Shield, label: 'Segurança', disabled: true },
