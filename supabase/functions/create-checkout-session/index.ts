@@ -1,0 +1,118 @@
+import Stripe from "https://esm.sh/stripe@14.21.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+const logStep = (step: string, details?: any) => {
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+  console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
+};
+
+Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    logStep('Function started');
+
+    const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
+    if (!stripeKey) throw new Error('STRIPE_SECRET_KEY not configured');
+
+    // Authenticate user
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) throw new Error('No authorization header');
+
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+    if (authError || !user?.email) {
+      throw new Error('User not authenticated or email not available');
+    }
+    logStep('User authenticated', { userId: user.id, email: user.email });
+
+    // Get price_id from request body
+    const { price_id } = await req.json();
+    if (!price_id) throw new Error('price_id is required');
+    logStep('Price ID received', { price_id });
+
+    // Initialize admin client for database queries
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      { auth: { persistSession: false } }
+    );
+
+    // Get Stripe price ID from database
+    const { data: priceData, error: priceError } = await supabaseAdmin
+      .from('subscription_prices')
+      .select('stripe_price_id, subscription_plans(code, name)')
+      .eq('id', price_id)
+      .eq('is_active', true)
+      .single();
+
+    if (priceError || !priceData?.stripe_price_id) {
+      throw new Error('Price not found or inactive');
+    }
+    logStep('Price found', { stripePriceId: priceData.stripe_price_id });
+
+    const stripe = new Stripe(stripeKey, { apiVersion: '2023-10-16' });
+
+    // Check if customer exists in Stripe
+    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+    let customerId: string | undefined;
+
+    if (customers.data.length > 0) {
+      customerId = customers.data[0].id;
+      logStep('Existing Stripe customer found', { customerId });
+    }
+
+    // Create checkout session
+    const origin = req.headers.get('origin') || 'https://radreport.com.br';
+    
+    const sessionConfig: Stripe.Checkout.SessionCreateParams = {
+      customer: customerId,
+      customer_email: customerId ? undefined : user.email,
+      line_items: [
+        {
+          price: priceData.stripe_price_id,
+          quantity: 1,
+        },
+      ],
+      mode: 'subscription',
+      success_url: `${origin}/editor?checkout=success`,
+      cancel_url: `${origin}/precos?checkout=canceled`,
+      metadata: {
+        user_id: user.id,
+        price_id: price_id
+      },
+      subscription_data: {
+        metadata: {
+          user_id: user.id
+        }
+      }
+    };
+
+    const session = await stripe.checkout.sessions.create(sessionConfig);
+    logStep('Checkout session created', { sessionId: session.id, url: session.url });
+
+    return new Response(JSON.stringify({ url: session.url }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    logStep('ERROR', { message: errorMessage });
+    return new Response(JSON.stringify({ error: errorMessage }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+});
