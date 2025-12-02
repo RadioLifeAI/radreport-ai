@@ -1916,6 +1916,181 @@ export type Database = {
           },
         ]
       }
+      stripe_customers: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          id: string
+          stripe_customer_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          stripe_customer_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          stripe_customer_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      subscription_events_log: {
+        Row: {
+          event_data: Json | null
+          event_type: string
+          id: string
+          processed_at: string | null
+          stripe_event_id: string | null
+          subscription_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          processed_at?: string | null
+          stripe_event_id?: string | null
+          subscription_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          processed_at?: string | null
+          stripe_event_id?: string | null
+          subscription_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_events_log_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "user_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscription_plans: {
+        Row: {
+          ai_tokens_monthly: number
+          badge: string | null
+          code: string
+          created_at: string | null
+          description: string | null
+          display_order: number | null
+          feature_ai_conclusion: boolean | null
+          feature_ai_rads: boolean | null
+          feature_ai_suggestions: boolean | null
+          feature_priority_support: boolean | null
+          feature_whisper: boolean | null
+          id: string
+          is_active: boolean | null
+          is_highlighted: boolean | null
+          name: string
+          updated_at: string | null
+          whisper_credits_monthly: number
+        }
+        Insert: {
+          ai_tokens_monthly?: number
+          badge?: string | null
+          code: string
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          feature_ai_conclusion?: boolean | null
+          feature_ai_rads?: boolean | null
+          feature_ai_suggestions?: boolean | null
+          feature_priority_support?: boolean | null
+          feature_whisper?: boolean | null
+          id?: string
+          is_active?: boolean | null
+          is_highlighted?: boolean | null
+          name: string
+          updated_at?: string | null
+          whisper_credits_monthly?: number
+        }
+        Update: {
+          ai_tokens_monthly?: number
+          badge?: string | null
+          code?: string
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          feature_ai_conclusion?: boolean | null
+          feature_ai_rads?: boolean | null
+          feature_ai_suggestions?: boolean | null
+          feature_priority_support?: boolean | null
+          feature_whisper?: boolean | null
+          id?: string
+          is_active?: boolean | null
+          is_highlighted?: boolean | null
+          name?: string
+          updated_at?: string | null
+          whisper_credits_monthly?: number
+        }
+        Relationships: []
+      }
+      subscription_prices: {
+        Row: {
+          amount_cents: number
+          created_at: string | null
+          currency: string | null
+          id: string
+          interval: string | null
+          interval_count: number | null
+          is_active: boolean | null
+          plan_id: string | null
+          stripe_price_id: string | null
+          stripe_product_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          interval?: string | null
+          interval_count?: number | null
+          is_active?: boolean | null
+          plan_id?: string | null
+          stripe_price_id?: string | null
+          stripe_product_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          interval?: string | null
+          interval_count?: number | null
+          is_active?: boolean | null
+          plan_id?: string | null
+          stripe_price_id?: string | null
+          stripe_product_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_prices_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sync_controle: {
         Row: {
           created_at: string | null
@@ -2450,6 +2625,72 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_subscriptions: {
+        Row: {
+          cancel_at_period_end: boolean | null
+          canceled_at: string | null
+          created_at: string | null
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string
+          metadata: Json | null
+          plan_id: string | null
+          price_id: string | null
+          status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          cancel_at_period_end?: boolean | null
+          canceled_at?: string | null
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          metadata?: Json | null
+          plan_id?: string | null
+          price_id?: string | null
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          cancel_at_period_end?: boolean | null
+          canceled_at?: string | null
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          metadata?: Json | null
+          plan_id?: string | null
+          price_id?: string | null
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_subscriptions_price_id_fkey"
+            columns: ["price_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_prices"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_template_usage: {
         Row: {
@@ -8272,6 +8513,18 @@ export type Database = {
       }
       gerar_numero_laudo: { Args: never; Returns: string }
       get_ai_function_config: { Args: { fn_name: string }; Returns: Json }
+      get_user_subscription_status: {
+        Args: { p_user_id: string }
+        Returns: {
+          ai_tokens_monthly: number
+          cancel_at_period_end: boolean
+          current_period_end: string
+          plan_code: string
+          plan_name: string
+          status: string
+          whisper_credits_monthly: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -8438,6 +8691,10 @@ export type Database = {
           p_user_id: string
         }
         Returns: number
+      }
+      renew_monthly_credits: {
+        Args: { p_plan_code: string; p_user_id: string }
+        Returns: undefined
       }
       rm_craneo_alteracao_corpo_caloso: {
         Args: {
