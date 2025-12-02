@@ -12,11 +12,12 @@ import { Switch } from '@/components/ui/switch';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { 
   CreditCard, Settings, Users, Package, Edit, Save, X, 
   FlaskConical, Rocket, CheckCircle2, AlertCircle, Activity, 
-  Wifi, ExternalLink, Copy, Check, RefreshCw
+  Wifi, ExternalLink, Copy, Check, RefreshCw, Loader2
 } from 'lucide-react';
 
 interface SubscriptionPlan {
@@ -80,11 +81,33 @@ interface EditingPrice {
   stripe_price_id_annual_live: string;
 }
 
+// Stripe API types
+interface StripeProductPrice {
+  id: string;
+  amount: number;
+  currency: string;
+  interval: 'month' | 'year' | 'one_time';
+  interval_count: number;
+  nickname: string | null;
+}
+
+interface StripeProduct {
+  id: string;
+  name: string;
+  description: string | null;
+  prices: StripeProductPrice[];
+}
+
 export default function SubscriptionsPage() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('settings');
   const [editingPrice, setEditingPrice] = useState<EditingPrice | null>(null);
   const [copiedWebhook, setCopiedWebhook] = useState(false);
+  
+  // Stripe products state
+  const [stripeProducts, setStripeProducts] = useState<StripeProduct[]>([]);
+  const [loadingStripeProducts, setLoadingStripeProducts] = useState(false);
+  const [stripeEnvironment, setStripeEnvironment] = useState<'test' | 'live' | null>(null);
 
   // Fetch plans
   const { data: plans = [], isLoading: plansLoading } = useQuery({
@@ -144,6 +167,24 @@ export default function SubscriptionsPage() {
   };
 
   const isTestMode = getSettingValue('environment_mode') === 'test';
+
+  // Fetch Stripe products
+  const fetchStripeProducts = async () => {
+    setLoadingStripeProducts(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('stripe-list-products');
+      if (error) throw error;
+      
+      setStripeProducts(data.products || []);
+      setStripeEnvironment(data.environment || null);
+      toast.success(`${data.products?.length || 0} produtos sincronizados (${data.environment})`);
+    } catch (err: any) {
+      console.error('Error fetching Stripe products:', err);
+      toast.error('Erro ao buscar produtos: ' + (err.message || 'Unknown error'));
+    } finally {
+      setLoadingStripeProducts(false);
+    }
+  };
 
   // Update setting mutation
   const updateSettingMutation = useMutation({
@@ -229,6 +270,10 @@ export default function SubscriptionsPage() {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
   };
 
+  const formatStripeCurrency = (amount: number, currency: string) => {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: currency.toUpperCase() }).format(amount / 100);
+  };
+
   const formatDate = (dateString: string | null) => {
     if (!dateString) return '—';
     return new Date(dateString).toLocaleDateString('pt-BR');
@@ -249,19 +294,6 @@ export default function SubscriptionsPage() {
     }
   };
 
-  // Check if environment is complete (product + price configured)
-  const getEnvironmentStatus = (price: SubscriptionPrice, env: 'test' | 'live') => {
-    const hasProduct = env === 'test' ? !!price.stripe_product_id_test : !!price.stripe_product_id_live;
-    const hasPrice = env === 'test' ? !!price.stripe_price_id_test : !!price.stripe_price_id_live;
-    
-    if (hasProduct && hasPrice) {
-      return <Badge className="bg-green-500/10 text-green-500 border-green-500/20">✓</Badge>;
-    } else if (hasProduct || hasPrice) {
-      return <Badge className="bg-amber-500/10 text-amber-500 border-amber-500/20">Parcial</Badge>;
-    }
-    return <Badge variant="secondary">—</Badge>;
-  };
-
   const getPriceMappingStatus = (price: SubscriptionPrice) => {
     const testComplete = !!price.stripe_product_id_test && !!price.stripe_price_id_test;
     const liveComplete = !!price.stripe_product_id_live && !!price.stripe_price_id_live;
@@ -278,6 +310,167 @@ export default function SubscriptionsPage() {
   const truncateId = (id: string | null, length = 15) => {
     if (!id) return null;
     return id.length > length ? `${id.substring(0, length)}...` : id;
+  };
+
+  // Get prices for selected product filtered by interval
+  const getPricesForProduct = (productId: string, interval: 'month' | 'year') => {
+    const product = stripeProducts.find(p => p.id === productId);
+    if (!product) return [];
+    return product.prices.filter(p => p.interval === interval);
+  };
+
+  // Render environment section with Selects
+  const renderEnvironmentSection = (
+    envType: 'test' | 'live',
+    icon: React.ReactNode,
+    label: string,
+    colorClass: string
+  ) => {
+    if (!editingPrice) return null;
+
+    const productIdField = envType === 'test' ? 'stripe_product_id_test' : 'stripe_product_id_live';
+    const priceIdField = envType === 'test' ? 'stripe_price_id_test' : 'stripe_price_id_live';
+    const annualPriceIdField = envType === 'test' ? 'stripe_price_id_annual_test' : 'stripe_price_id_annual_live';
+    
+    const selectedProductId = editingPrice[productIdField];
+    const monthlyPrices = selectedProductId ? getPricesForProduct(selectedProductId, 'month') : [];
+    const yearlyPrices = selectedProductId ? getPricesForProduct(selectedProductId, 'year') : [];
+
+    const hasProducts = stripeProducts.length > 0;
+    const matchesEnvironment = stripeEnvironment === envType;
+
+    return (
+      <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
+        <div className="flex items-center justify-between border-b pb-2">
+          <div className="flex items-center gap-2">
+            {icon}
+            <Label className={`font-medium ${colorClass}`}>{label}</Label>
+          </div>
+          {hasProducts && !matchesEnvironment && (
+            <Badge variant="outline" className="text-xs">
+              ⚠️ Produtos carregados são de {stripeEnvironment}
+            </Badge>
+          )}
+        </div>
+        
+        <div className="grid gap-4">
+          {/* Product Select */}
+          <div className="space-y-2">
+            <Label>Produto</Label>
+            {hasProducts ? (
+              <Select 
+                value={editingPrice[productIdField] || undefined}
+                onValueChange={(v) => setEditingPrice({ 
+                  ...editingPrice, 
+                  [productIdField]: v,
+                  // Clear prices when product changes
+                  [priceIdField]: '',
+                  [annualPriceIdField]: ''
+                })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um produto..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {stripeProducts.map(product => (
+                    <SelectItem key={product.id} value={product.id}>
+                      <div className="flex flex-col">
+                        <span>{product.name}</span>
+                        <span className="text-xs text-muted-foreground">{product.id}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <Input 
+                value={editingPrice[productIdField]}
+                onChange={(e) => setEditingPrice({ ...editingPrice, [productIdField]: e.target.value })}
+                placeholder={`prod_${envType}_xxx`}
+                className="font-mono text-sm"
+              />
+            )}
+          </div>
+          
+          {/* Monthly Price Select */}
+          <div className="space-y-2">
+            <Label>Preço Mensal</Label>
+            {hasProducts && selectedProductId ? (
+              <Select 
+                value={editingPrice[priceIdField] || undefined}
+                onValueChange={(v) => setEditingPrice({ ...editingPrice, [priceIdField]: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um preço mensal..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {monthlyPrices.length === 0 ? (
+                    <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                      Nenhum preço mensal encontrado
+                    </div>
+                  ) : (
+                    monthlyPrices.map(price => (
+                      <SelectItem key={price.id} value={price.id}>
+                        <div className="flex items-center gap-2">
+                          <span>{formatStripeCurrency(price.amount, price.currency)}/mês</span>
+                          {price.nickname && (
+                            <span className="text-xs text-muted-foreground">({price.nickname})</span>
+                          )}
+                        </div>
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+            ) : (
+              <Input 
+                value={editingPrice[priceIdField]}
+                onChange={(e) => setEditingPrice({ ...editingPrice, [priceIdField]: e.target.value })}
+                placeholder={`price_${envType}_monthly_xxx`}
+                className="font-mono text-sm"
+              />
+            )}
+          </div>
+          
+          {/* Annual Price Select */}
+          <div className="space-y-2">
+            <Label className="text-muted-foreground">
+              Preço Anual <span className="text-xs">(opcional)</span>
+            </Label>
+            {hasProducts && selectedProductId ? (
+              <Select 
+                value={editingPrice[annualPriceIdField] || undefined}
+                onValueChange={(v) => setEditingPrice({ ...editingPrice, [annualPriceIdField]: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um preço anual..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Nenhum</SelectItem>
+                  {yearlyPrices.map(price => (
+                    <SelectItem key={price.id} value={price.id}>
+                      <div className="flex items-center gap-2">
+                        <span>{formatStripeCurrency(price.amount, price.currency)}/ano</span>
+                        {price.nickname && (
+                          <span className="text-xs text-muted-foreground">({price.nickname})</span>
+                        )}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <Input 
+                value={editingPrice[annualPriceIdField]}
+                onChange={(e) => setEditingPrice({ ...editingPrice, [annualPriceIdField]: e.target.value })}
+                placeholder={`price_${envType}_yearly_xxx`}
+                className="font-mono text-sm"
+              />
+            )}
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -532,10 +725,27 @@ export default function SubscriptionsPage() {
                   <CardTitle>Preços Stripe</CardTitle>
                   <CardDescription>Mapeamento de Product ID e Price ID para Test e Produção</CardDescription>
                 </div>
-                <Button variant="outline" size="sm" onClick={() => refetchSettings()} className="gap-2">
-                  <RefreshCw className="h-4 w-4" />
-                  Atualizar
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={fetchStripeProducts}
+                    disabled={loadingStripeProducts}
+                    className="gap-2"
+                  >
+                    {loadingStripeProducts ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <RefreshCw className="h-4 w-4" />
+                    )}
+                    Sincronizar Stripe
+                  </Button>
+                  {stripeProducts.length > 0 && (
+                    <Badge variant="outline" className="text-xs">
+                      {stripeProducts.length} produtos ({stripeEnvironment})
+                    </Badge>
+                  )}
+                </div>
               </CardHeader>
               <CardContent>
                 {pricesLoading ? (
@@ -696,7 +906,7 @@ export default function SubscriptionsPage() {
         </Tabs>
       </div>
 
-      {/* Edit Price Modal - Complete with 6 fields */}
+      {/* Edit Price Modal with Dynamic Selects */}
       <Dialog open={!!editingPrice} onOpenChange={(open) => !open && setEditingPrice(null)}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -708,98 +918,54 @@ export default function SubscriptionsPage() {
           
           {editingPrice && (
             <div className="space-y-6">
-              {/* Test Environment */}
-              <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
-                <div className="flex items-center gap-2 border-b pb-2">
-                  <FlaskConical className="h-4 w-4 text-amber-500" />
-                  <Label className="font-medium text-amber-600">Ambiente de Teste</Label>
+              {/* Sync Button */}
+              <div className="flex items-center justify-between p-3 border rounded-lg bg-muted/20">
+                <div className="text-sm">
+                  {stripeProducts.length > 0 ? (
+                    <span className="text-muted-foreground">
+                      {stripeProducts.length} produtos carregados ({stripeEnvironment})
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground">
+                      Sincronize para selecionar produtos via dropdown
+                    </span>
+                  )}
                 </div>
-                
-                <div className="grid gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="product_test">Product ID</Label>
-                    <Input 
-                      id="product_test"
-                      value={editingPrice.stripe_product_id_test}
-                      onChange={(e) => setEditingPrice({ ...editingPrice, stripe_product_id_test: e.target.value })}
-                      placeholder="prod_test_xxx"
-                      className="font-mono text-sm"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="price_test">Price ID (Mensal)</Label>
-                    <Input 
-                      id="price_test"
-                      value={editingPrice.stripe_price_id_test}
-                      onChange={(e) => setEditingPrice({ ...editingPrice, stripe_price_id_test: e.target.value })}
-                      placeholder="price_test_monthly_xxx"
-                      className="font-mono text-sm"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="price_annual_test" className="text-muted-foreground">
-                      Price ID (Anual) <span className="text-xs">(opcional)</span>
-                    </Label>
-                    <Input 
-                      id="price_annual_test"
-                      value={editingPrice.stripe_price_id_annual_test}
-                      onChange={(e) => setEditingPrice({ ...editingPrice, stripe_price_id_annual_test: e.target.value })}
-                      placeholder="price_test_yearly_xxx"
-                      className="font-mono text-sm"
-                    />
-                  </div>
-                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={fetchStripeProducts}
+                  disabled={loadingStripeProducts}
+                  className="gap-2"
+                >
+                  {loadingStripeProducts ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <RefreshCw className="h-4 w-4" />
+                  )}
+                  Sincronizar Stripe
+                </Button>
               </div>
+
+              {/* Test Environment */}
+              {renderEnvironmentSection(
+                'test',
+                <FlaskConical className="h-4 w-4 text-amber-500" />,
+                'Ambiente de Teste',
+                'text-amber-600'
+              )}
 
               {/* Live Environment */}
-              <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
-                <div className="flex items-center gap-2 border-b pb-2">
-                  <Rocket className="h-4 w-4 text-green-500" />
-                  <Label className="font-medium text-green-600">Ambiente de Produção</Label>
-                </div>
-                
-                <div className="grid gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="product_live">Product ID</Label>
-                    <Input 
-                      id="product_live"
-                      value={editingPrice.stripe_product_id_live}
-                      onChange={(e) => setEditingPrice({ ...editingPrice, stripe_product_id_live: e.target.value })}
-                      placeholder="prod_live_xxx"
-                      className="font-mono text-sm"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="price_live">Price ID (Mensal)</Label>
-                    <Input 
-                      id="price_live"
-                      value={editingPrice.stripe_price_id_live}
-                      onChange={(e) => setEditingPrice({ ...editingPrice, stripe_price_id_live: e.target.value })}
-                      placeholder="price_live_monthly_xxx"
-                      className="font-mono text-sm"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="price_annual_live" className="text-muted-foreground">
-                      Price ID (Anual) <span className="text-xs">(opcional)</span>
-                    </Label>
-                    <Input 
-                      id="price_annual_live"
-                      value={editingPrice.stripe_price_id_annual_live}
-                      onChange={(e) => setEditingPrice({ ...editingPrice, stripe_price_id_annual_live: e.target.value })}
-                      placeholder="price_live_yearly_xxx"
-                      className="font-mono text-sm"
-                    />
-                  </div>
-                </div>
-              </div>
+              {renderEnvironmentSection(
+                'live',
+                <Rocket className="h-4 w-4 text-green-500" />,
+                'Ambiente de Produção',
+                'text-green-600'
+              )}
 
               <p className="text-xs text-muted-foreground">
-                💡 Encontre os IDs no Stripe Dashboard → Products → [Produto] → Pricing
+                💡 Clique em "Sincronizar Stripe" para carregar produtos automaticamente. 
+                Os produtos disponíveis dependem da chave (test/live) configurada no servidor.
               </p>
             </div>
           )}
