@@ -1,4 +1,4 @@
-import { Moon, Sun, MessageSquare } from 'lucide-react'
+import { Moon, Sun, MessageSquare, Shield } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useTheme } from 'next-themes'
 import TemplateSelector from '@/components/selectors/TemplateSelector'
@@ -8,6 +8,7 @@ import { UserProfileDropdown } from '@/components/user/UserProfileDropdown'
 import { UserSettingsModal } from '@/components/user/UserSettingsModal'
 import { TemplateWithVariables, TemplateVariableValues } from '@/types/templateVariables'
 import { useState } from 'react'
+import { useAdmin } from '@/hooks/useAdmin'
 
 interface EditorHeaderProps {
   selectedTemplate: string
@@ -100,6 +101,7 @@ export function EditorHeader({
 }: EditorHeaderProps) {
   const navigate = useNavigate()
   const { theme, setTheme } = useTheme()
+  const { isAdmin, loading: adminLoading } = useAdmin()
   
   // Template variables modal state
   const [templateModalOpen, setTemplateModalOpen] = useState(false)
@@ -205,6 +207,17 @@ export function EditorHeader({
         >
           {theme === 'dark' ? <Sun size={16} className="md:w-[18px] md:h-[18px]" /> : <Moon size={16} className="md:w-[18px] md:h-[18px]" />}
         </button>
+        
+        {/* Admin Button - only visible for admins */}
+        {!adminLoading && isAdmin && (
+          <button 
+            onClick={() => navigate('/admin')}
+            className="p-1.5 md:p-2 hover:bg-muted rounded-lg transition-colors"
+            title="Painel Admin"
+          >
+            <Shield size={16} className="md:w-[18px] md:h-[18px] text-amber-500" />
+          </button>
+        )}
         
         <UserProfileDropdown 
           onOpenSettings={(tab = 'profile') => {

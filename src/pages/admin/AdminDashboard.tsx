@@ -325,7 +325,7 @@ export default function AdminDashboard() {
           <CardContent>
             <div className="grid gap-3 md:grid-cols-3">
               <a 
-                href="/admin/prompts" 
+                href="/admin/ai-config" 
                 className="flex items-center gap-3 p-4 rounded-lg bg-muted/30 border border-border/50 hover:border-primary/50 hover:bg-muted/50 transition-all"
               >
                 <FileText className="h-5 w-5 text-cyan-500" />
@@ -335,7 +335,7 @@ export default function AdminDashboard() {
                 </div>
               </a>
               <a 
-                href="/admin/models" 
+                href="/admin/ai-config" 
                 className="flex items-center gap-3 p-4 rounded-lg bg-muted/30 border border-border/50 hover:border-primary/50 hover:bg-muted/50 transition-all"
               >
                 <Brain className="h-5 w-5 text-indigo-500" />
@@ -345,7 +345,7 @@ export default function AdminDashboard() {
                 </div>
               </a>
               <a 
-                href="/admin/logs" 
+                href="/admin/ai-config" 
                 className="flex items-center gap-3 p-4 rounded-lg bg-muted/30 border border-border/50 hover:border-primary/50 hover:bg-muted/50 transition-all"
               >
                 <ScrollText className="h-5 w-5 text-emerald-500" />

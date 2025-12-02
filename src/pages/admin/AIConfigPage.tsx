@@ -180,7 +180,7 @@ const PROVIDER_ICONS: Record<string, string> = {
   'lovable': '💜',
 };
 
-// Provider defaults for API connection auto-population
+// Provider defaults for API connection auto-population (BASE URLs only - RPC appends paths)
 const PROVIDER_DEFAULTS: Record<string, {
   api_base_url: string;
   api_key_secret_name: string;
@@ -190,7 +190,7 @@ const PROVIDER_DEFAULTS: Record<string, {
   extra_headers: string;
 }> = {
   openai: {
-    api_base_url: 'https://api.openai.com/v1/chat/completions',
+    api_base_url: 'https://api.openai.com',
     api_key_secret_name: 'OPENAI_API_KEY',
     auth_header: 'Authorization',
     auth_prefix: 'Bearer ',
@@ -198,7 +198,7 @@ const PROVIDER_DEFAULTS: Record<string, {
     extra_headers: '{}'
   },
   anthropic: {
-    api_base_url: 'https://api.anthropic.com/v1/messages',
+    api_base_url: 'https://api.anthropic.com',
     api_key_secret_name: 'ANTHROPIC_API_KEY',
     auth_header: 'x-api-key',
     auth_prefix: '',
@@ -206,7 +206,7 @@ const PROVIDER_DEFAULTS: Record<string, {
     extra_headers: '{"anthropic-version": "2023-06-01"}'
   },
   google: {
-    api_base_url: 'https://generativelanguage.googleapis.com/v1beta/models',
+    api_base_url: 'https://generativelanguage.googleapis.com',
     api_key_secret_name: 'GOOGLE_API_KEY',
     auth_header: 'x-goog-api-key',
     auth_prefix: '',
@@ -214,7 +214,7 @@ const PROVIDER_DEFAULTS: Record<string, {
     extra_headers: '{}'
   },
   groq: {
-    api_base_url: 'https://api.groq.com/openai/v1/chat/completions',
+    api_base_url: 'https://api.groq.com',
     api_key_secret_name: 'GROQ_API_KEY',
     auth_header: 'Authorization',
     auth_prefix: 'Bearer ',
@@ -222,7 +222,7 @@ const PROVIDER_DEFAULTS: Record<string, {
     extra_headers: '{}'
   },
   lovable: {
-    api_base_url: 'https://ai.gateway.lovable.dev/v1/chat/completions',
+    api_base_url: 'https://ai.gateway.lovable.dev',
     api_key_secret_name: 'LOVABLE_API_KEY',
     auth_header: 'Authorization',
     auth_prefix: 'Bearer ',
