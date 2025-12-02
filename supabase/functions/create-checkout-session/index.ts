@@ -131,10 +131,10 @@ Deno.serve(async (req) => {
     // Configure URLs based on mode
     if (embedded) {
       sessionConfig.ui_mode = 'embedded';
-      sessionConfig.return_url = `${origin}/assinaturas?session_id={CHECKOUT_SESSION_ID}`;
+      sessionConfig.return_url = `${origin}/precos?session_id={CHECKOUT_SESSION_ID}`;
     } else {
-      sessionConfig.success_url = `${origin}/assinaturas?session_id={CHECKOUT_SESSION_ID}`;
-      sessionConfig.cancel_url = `${origin}/assinaturas?checkout=canceled`;
+      sessionConfig.success_url = `${origin}/precos?session_id={CHECKOUT_SESSION_ID}`;
+      sessionConfig.cancel_url = `${origin}/precos?checkout=canceled`;
     }
 
     const session = await stripe.checkout.sessions.create(sessionConfig);
