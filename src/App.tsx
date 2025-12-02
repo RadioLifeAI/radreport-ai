@@ -26,6 +26,7 @@ import { AdminProtectedRoute } from "./components/admin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AIConfigPage from "./pages/admin/AIConfigPage";
 import TemplatesPage from "./pages/admin/TemplatesPage";
+import FrasesPage from "./pages/admin/FrasesPage";
 
 const queryClient = new QueryClient();
 
@@ -62,6 +63,7 @@ const App = () => (
             <Route path="/admin" element={<AdminProtectedRoute><AdminDashboard /></AdminProtectedRoute>} />
             <Route path="/admin/ai-config" element={<AdminProtectedRoute><AIConfigPage /></AdminProtectedRoute>} />
             <Route path="/admin/templates" element={<AdminProtectedRoute><TemplatesPage /></AdminProtectedRoute>} />
+            <Route path="/admin/frases" element={<AdminProtectedRoute><FrasesPage /></AdminProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
