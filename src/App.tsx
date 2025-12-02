@@ -28,6 +28,7 @@ import AIConfigPage from "./pages/admin/AIConfigPage";
 import TemplatesPage from "./pages/admin/TemplatesPage";
 import FrasesPage from "./pages/admin/FrasesPage";
 import SubscriptionsPage from "./pages/admin/SubscriptionsPage";
+import Assinaturas from "./pages/Assinaturas";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +53,7 @@ const App = () => (
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/recursos" element={<Recursos />} />
             <Route path="/precos" element={<Precos />} />
+            <Route path="/assinaturas" element={<Assinaturas />} />
             <Route path="/sobre" element={<Sobre />} />
             <Route path="/contato" element={<Contato />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />

@@ -26,7 +26,7 @@ export default function Header() {
           <Link to="/recursos" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             Recursos
           </Link>
-          <Link to="/precos" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+          <Link to="/assinaturas" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             Preços
           </Link>
           <Link to="/sobre" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
@@ -79,7 +79,7 @@ export default function Header() {
               Recursos
             </Link>
             <Link
-              to="/precos"
+              to="/assinaturas"
               className="block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >

@@ -51,10 +51,10 @@ Deno.serve(async (req) => {
     }
     logStep('User authenticated', { userId: user.id, email: user.email });
 
-    // Get price_id from request body
-    const { price_id } = await req.json();
+    // Get request body with optional embedded flag
+    const { price_id, embedded = false } = await req.json();
     if (!price_id) throw new Error('price_id is required');
-    logStep('Price ID received', { price_id });
+    logStep('Price ID received', { price_id, embedded });
 
     // Initialize admin client for database queries
     const supabaseAdmin = createClient(
@@ -105,6 +105,7 @@ Deno.serve(async (req) => {
     // Create checkout session
     const origin = req.headers.get('origin') || 'https://radreport.com.br';
     
+    // Build session config based on embedded mode
     const sessionConfig: Stripe.Checkout.SessionCreateParams = {
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
@@ -115,8 +116,6 @@ Deno.serve(async (req) => {
         },
       ],
       mode: 'subscription',
-      success_url: `${origin}/editor?checkout=success`,
-      cancel_url: `${origin}/precos?checkout=canceled`,
       metadata: {
         user_id: user.id,
         price_id: price_id,
@@ -129,10 +128,35 @@ Deno.serve(async (req) => {
       }
     };
 
-    const session = await stripe.checkout.sessions.create(sessionConfig);
-    logStep('Checkout session created', { sessionId: session.id, url: session.url });
+    // Configure URLs based on mode
+    if (embedded) {
+      sessionConfig.ui_mode = 'embedded';
+      sessionConfig.return_url = `${origin}/assinaturas?session_id={CHECKOUT_SESSION_ID}`;
+    } else {
+      sessionConfig.success_url = `${origin}/assinaturas?session_id={CHECKOUT_SESSION_ID}`;
+      sessionConfig.cancel_url = `${origin}/assinaturas?checkout=canceled`;
+    }
 
-    return new Response(JSON.stringify({ url: session.url }), {
+    const session = await stripe.checkout.sessions.create(sessionConfig);
+    logStep('Checkout session created', { 
+      sessionId: session.id, 
+      url: session.url,
+      clientSecret: embedded ? 'present' : 'not applicable',
+      embedded 
+    });
+
+    // Return appropriate response based on mode
+    const response: Record<string, any> = {
+      sessionId: session.id,
+    };
+
+    if (embedded) {
+      response.clientSecret = session.client_secret;
+    } else {
+      response.url = session.url;
+    }
+
+    return new Response(JSON.stringify(response), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
