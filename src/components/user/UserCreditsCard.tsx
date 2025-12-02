@@ -6,10 +6,12 @@ import { useAICredits } from '@/hooks/useAICredits';
 import { useWhisperCredits } from '@/hooks/useWhisperCredits';
 import { useSubscription } from '@/hooks/useSubscription';
 import { Sparkles, Mic, TrendingUp, Crown, ExternalLink } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 
-export const UserCreditsCard = () => {
-  const navigate = useNavigate();
+interface UserCreditsCardProps {
+  onUpgrade?: () => void;
+}
+
+export const UserCreditsCard = ({ onUpgrade }: UserCreditsCardProps) => {
   const { balance: aiBalance, monthlyLimit, planType } = useAICredits();
   const { balance: whisperBalance } = useWhisperCredits();
   const { isSubscribed, openPortal, isOpeningPortal } = useSubscription();
@@ -86,7 +88,7 @@ export const UserCreditsCard = () => {
         <div className="flex flex-col gap-2">
           <Button 
             className="w-full bg-gradient-to-r from-cyan-500 to-indigo-500 hover:from-cyan-600 hover:to-indigo-600"
-            onClick={() => navigate('/assinaturas')}
+            onClick={onUpgrade}
           >
             {isSubscribed ? (
               <>

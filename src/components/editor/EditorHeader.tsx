@@ -6,9 +6,11 @@ import MacroSelector, { Macro } from '@/components/selectors/MacroSelector'
 import { TemplateVariablesModal } from './TemplateVariablesModal'
 import { UserProfileDropdown } from '@/components/user/UserProfileDropdown'
 import { UserSettingsModal } from '@/components/user/UserSettingsModal'
+import { PlansSelectionSheet, EmbeddedCheckoutSheet } from '@/components/subscription'
 import { TemplateWithVariables, TemplateVariableValues } from '@/types/templateVariables'
 import { useState } from 'react'
 import { useAdmin } from '@/hooks/useAdmin'
+import { useInternalCheckout } from '@/hooks/useInternalCheckout'
 
 interface EditorHeaderProps {
   selectedTemplate: string
@@ -112,6 +114,19 @@ export function EditorHeader({
   const [selectedTemplateForModal, setSelectedTemplateForModal] = useState<TemplateWithVariables | null>(null)
   const [settingsModalOpen, setSettingsModalOpen] = useState(false)
   const [settingsDefaultTab, setSettingsDefaultTab] = useState('profile')
+  
+  // Internal checkout flow
+  const {
+    showPlansSheet,
+    showCheckoutSheet,
+    clientSecret,
+    isLoading: checkoutLoading,
+    openPlansSheet,
+    closePlansSheet,
+    handleSelectPlan,
+    handleCheckoutComplete,
+    closeCheckoutSheet,
+  } = useInternalCheckout()
   
   // Handle template selection with variable check
   const handleTemplateSelect = (template: any) => {
@@ -229,7 +244,8 @@ export function EditorHeader({
           onOpenSettings={(tab = 'profile') => {
             setSettingsDefaultTab(tab)
             setSettingsModalOpen(true)
-          }} 
+          }}
+          onUpgrade={openPlansSheet}
         />
         </div>
       </header>
@@ -247,6 +263,23 @@ export function EditorHeader({
         open={settingsModalOpen}
         onOpenChange={setSettingsModalOpen}
         defaultTab={settingsDefaultTab}
+        onUpgrade={openPlansSheet}
+      />
+
+      {/* Plans Selection Sheet */}
+      <PlansSelectionSheet
+        open={showPlansSheet}
+        onOpenChange={closePlansSheet}
+        onSelectPlan={handleSelectPlan}
+        isLoading={checkoutLoading}
+      />
+
+      {/* Embedded Checkout Sheet */}
+      <EmbeddedCheckoutSheet
+        open={showCheckoutSheet}
+        onOpenChange={closeCheckoutSheet}
+        clientSecret={clientSecret}
+        onComplete={handleCheckoutComplete}
       />
     </>
   )
