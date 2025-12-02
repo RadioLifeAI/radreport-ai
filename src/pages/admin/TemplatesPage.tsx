@@ -477,6 +477,9 @@ export default function TemplatesPage() {
                         placeholder="TC_TORAX_NORMAL_001"
                         className="font-mono"
                       />
+                      <p className="text-xs text-muted-foreground">
+                        Formato: MODALIDADE_REGIAO_TIPO_NUMERO. Ex: TC_TORAX_NORMAL_001, RM_CRANIO_AVC_002, US_ABD_COLECISTITE_001
+                      </p>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="titulo">Título *</Label>
@@ -486,6 +489,9 @@ export default function TemplatesPage() {
                         onChange={(e) => setFormData({ ...formData, titulo: e.target.value })}
                         placeholder="TC de Tórax Normal"
                       />
+                      <p className="text-xs text-muted-foreground">
+                        Título descritivo para busca. Ex: "TC de Tórax Normal", "RM de Crânio - Sequelas de AVC"
+                      </p>
                     </div>
                   </div>
 
@@ -505,6 +511,9 @@ export default function TemplatesPage() {
                           ))}
                         </SelectContent>
                       </Select>
+                      <p className="text-xs text-muted-foreground">
+                        TC=Tomografia, RM=Ressonância, US=Ultrassom, RX=Radiografia, MG=Mamografia
+                      </p>
                     </div>
                     <div className="space-y-2">
                       <Label>Região Anatômica</Label>
@@ -521,6 +530,9 @@ export default function TemplatesPage() {
                           ))}
                         </SelectContent>
                       </Select>
+                      <p className="text-xs text-muted-foreground">
+                        Região anatômica principal do exame. Deixe vazio se aplicável a múltiplas regiões.
+                      </p>
                     </div>
                   </div>
 
@@ -535,6 +547,9 @@ export default function TemplatesPage() {
                       })}
                       placeholder="normal, protocolo, tórax"
                     />
+                    <p className="text-xs text-muted-foreground">
+                      Palavras-chave para busca rápida. Ex: normal, urgência, pediátrico, contraste, protocolo, covid
+                    </p>
                   </div>
                 </TabsContent>
 
@@ -553,7 +568,8 @@ export default function TemplatesPage() {
                       placeholder='{"SEM": "Texto sem contraste", "EV": "Texto com contraste"}'
                     />
                     <p className="text-xs text-muted-foreground">
-                      Objeto com chaves para cada tipo de técnica (SEM, EV, Primovist, etc.)
+                      Objeto JSON com texto para cada técnica. Chaves: SEM (sem contraste), EV (endovenoso), VO (via oral), PRIMOVIST.<br/>
+                      Ex: {`{"SEM": "Realizado estudo sem contraste", "EV": "Estudo após contraste iodado EV"}`}
                     </p>
                   </div>
 
@@ -566,6 +582,10 @@ export default function TemplatesPage() {
                       className="min-h-[150px]"
                       placeholder="Descreva os achados do exame. Use {{variavel}} para variáveis dinâmicas."
                     />
+                    <p className="text-xs text-muted-foreground">
+                      Descrição detalhada dos achados. Use {`{{nome_variavel}}`} para campos dinâmicos.<br/>
+                      Ex: "Fígado medindo {`{{medida_x}}`} x {`{{medida_y}}`} cm, com ecotextura {`{{ecotextura}}`}."
+                    </p>
                   </div>
 
                   <div className="space-y-2">
@@ -577,6 +597,10 @@ export default function TemplatesPage() {
                       className="min-h-[80px]"
                       placeholder="Conclusão/impressão diagnóstica"
                     />
+                    <p className="text-xs text-muted-foreground">
+                      Conclusão diagnóstica em formato lista com "-". Evite repetir medidas exatas.<br/>
+                      Ex: "- Estudo dentro dos limites da normalidade." ou "- Sinais de esteatose hepática grau {`{{grau}}`}."
+                    </p>
                   </div>
 
                   <div className="space-y-2">
@@ -588,6 +612,9 @@ export default function TemplatesPage() {
                       className="min-h-[60px]"
                       placeholder="Observações, recomendações (opcional)"
                     />
+                    <p className="text-xs text-muted-foreground">
+                      Recomendações ou observações extras. Ex: "Correlacionar clinicamente." ou "Sugere-se controle em 3 meses."
+                    </p>
                   </div>
                 </TabsContent>
 
@@ -618,9 +645,22 @@ export default function TemplatesPage() {
   }
 ]`}
                     />
-                    <p className="text-xs text-muted-foreground">
-                      Tipos: texto, numero, select, boolean. Use &#123;&#123;nome_variavel&#125;&#125; no conteúdo.
-                    </p>
+                    <div className="text-xs text-muted-foreground mt-2 space-y-1 bg-muted/50 p-3 rounded-md">
+                      <p className="font-medium">Tipos disponíveis: texto, numero, select, boolean</p>
+                      <p>Campos: nome (snake_case), tipo, descricao, obrigatorio, valor_padrao, unidade, opcoes</p>
+                      <p>Use {`{{nome_variavel}}`} no conteúdo (achados/impressão) para referenciar a variável.</p>
+                      <details className="cursor-pointer mt-2">
+                        <summary className="text-primary hover:underline font-medium">Ver exemplo completo</summary>
+                        <pre className="mt-2 text-[11px] overflow-x-auto bg-background p-2 rounded border">
+{`[
+  {"nome": "medida_x", "tipo": "numero", "unidade": "cm", "obrigatorio": true},
+  {"nome": "lado", "tipo": "select", "opcoes": ["direito", "esquerdo", "bilateral"]},
+  {"nome": "ecotextura", "tipo": "select", "opcoes": ["homogênea", "heterogênea"], "valor_padrao": "homogênea"},
+  {"nome": "contraste", "tipo": "boolean", "valor_padrao": false}
+]`}
+                        </pre>
+                      </details>
+                    </div>
                   </div>
 
                   <div className="space-y-2">
@@ -642,6 +682,10 @@ export default function TemplatesPage() {
   }
 ]`}
                     />
+                    <p className="text-xs text-muted-foreground">
+                      Regras para derivar valores automaticamente baseado em outras variáveis.<br/>
+                      Ex: quando lado="bilateral" → adicionar prefixo "Bilateralmente" ao texto gerado.
+                    </p>
                   </div>
                 </TabsContent>
 
