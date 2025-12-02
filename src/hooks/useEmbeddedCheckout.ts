@@ -13,7 +13,11 @@ export const useEmbeddedCheckout = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const initializeCheckout = async (priceId: string, embedded: boolean = true) => {
+  const initializeCheckout = async (
+    priceId: string, 
+    embedded: boolean = true,
+    interval: 'month' | 'year' = 'month'
+  ) => {
     setIsLoading(true);
     setError(null);
     
@@ -21,6 +25,7 @@ export const useEmbeddedCheckout = () => {
       const data = await invokeEdgeFunction<CheckoutResponse>('create-checkout-session', {
         price_id: priceId,
         embedded,
+        interval,
       });
 
       if (data.error) {

@@ -38,6 +38,7 @@ interface SubscriptionPrice {
   interval: string;
   interval_count: number;
   amount_cents: number;
+  amount_cents_annual: number | null;
   currency: string;
   stripe_price_id: string | null;
   stripe_price_id_test: string | null;
@@ -80,6 +81,8 @@ interface EditingPrice {
   stripe_product_id_live: string;
   stripe_price_id_live: string;
   stripe_price_id_annual_live: string;
+  // Annual price value in cents (captured from Stripe)
+  amount_cents_annual: number | null;
 }
 
 // Stripe API types
@@ -218,7 +221,7 @@ export default function SubscriptionsPage() {
     }
   });
 
-  // Update price mutation - saves all 6 fields
+  // Update price mutation - saves all fields including amount_cents_annual
   const updatePriceMutation = useMutation({
     mutationFn: async (data: EditingPrice) => {
       const { error } = await supabase
@@ -230,12 +233,14 @@ export default function SubscriptionsPage() {
           stripe_price_id_live: data.stripe_price_id_live || null,
           stripe_price_id_annual_test: data.stripe_price_id_annual_test || null,
           stripe_price_id_annual_live: data.stripe_price_id_annual_live || null,
+          amount_cents_annual: data.amount_cents_annual,
         })
         .eq('id', data.id);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['subscription-prices'] });
+      queryClient.invalidateQueries({ queryKey: ['subscription-plans'] });
       toast.success('Mapeamento Stripe atualizado');
       setEditingPrice(null);
     },
@@ -464,7 +469,15 @@ export default function SubscriptionsPage() {
             {hasProducts && selectedProductId ? (
               <Select 
                 value={editingPrice[annualPriceIdField] || '__none__'}
-                onValueChange={(v) => setEditingPrice({ ...editingPrice, [annualPriceIdField]: v === '__none__' ? '' : v })}
+                onValueChange={(v) => {
+                  const selectedPrice = yearlyPrices.find(p => p.id === v);
+                  setEditingPrice({ 
+                    ...editingPrice, 
+                    [annualPriceIdField]: v === '__none__' ? '' : v,
+                    // Capture annual price amount when selecting from LIVE environment
+                    ...(envType === 'live' && selectedPrice ? { amount_cents_annual: selectedPrice.amount } : {})
+                  });
+                }}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione um preço anual..." />
@@ -859,6 +872,7 @@ export default function SubscriptionsPage() {
                                 stripe_product_id_live: price.stripe_product_id_live || '',
                                 stripe_price_id_live: price.stripe_price_id_live || '',
                                 stripe_price_id_annual_live: price.stripe_price_id_annual_live || '',
+                                amount_cents_annual: price.amount_cents_annual || null,
                               })}
                             >
                               <Edit className="h-4 w-4" />

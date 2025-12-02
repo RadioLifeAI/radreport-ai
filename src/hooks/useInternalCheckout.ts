@@ -15,12 +15,12 @@ export const useInternalCheckout = () => {
     setShowPlansSheet(false);
   }, []);
 
-  const handleSelectPlan = useCallback(async (priceId: string) => {
+  const handleSelectPlan = useCallback(async (priceId: string, interval: 'month' | 'year' = 'month') => {
     if (!priceId) {
       return;
     }
     // Use embedded=false for redirect to checkout.stripe.com
-    await initializeCheckout(priceId, false);
+    await initializeCheckout(priceId, false, interval);
     setShowPlansSheet(false);
   }, [initializeCheckout]);
 
