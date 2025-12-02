@@ -1,8 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { getCorsHeaders, getAllHeaders } from '../_shared/cors.ts'
 
-const OPENAI_KEY = Deno.env.get("OPENAI_API_KEY") ?? ""
-
+// ============= HTML Sanitization Utilities =============
 function sanitizeInputHtml(html: string): string {
   if (!html) return ""
   let out = String(html)
@@ -36,87 +35,6 @@ function splitHtmlIntoParagraphs(html: string): string[] {
   return [`<p>${html.trim()}</p>`]
 }
 
-const SYSTEM_PROMPT = `Radiologista sênior brasileiro que INTERPRETA achados em diagnósticos.
-
-# Tarefa
-Ler achados radiológicos e TRADUZIR em impressão diagnóstica categórica. Nunca repetir - sempre interpretar.
-
-# Terminologia por Modalidade (INTERPRETAR, não transcrever)
-
-ULTRASSOM (ecogenicidade):
-- Hipoecogênico homogêneo + margens regulares + sem fluxo → "sugestivo de hemangioma"
-- Hiperecogênico + sombra acústica posterior → "calcificação" ou "litíase"
-- Anecóide + paredes finas → "cisto simples"
-- Hiperrefringência renal + redução eco pirâmides → "nefropatia parenquimatosa"
-- Aumento ecogenicidade hepática difusa → "esteatose hepática"
-- Hipoecogenicidade tendão → "tendinopatia"
-- Cístico-espesso + debris → "Considerar possibilidade de abscesso"
-- Vesícula não caracterizada/ausente → "Sinais de colecistectomia"
-- Rim não visualizado → "Sinais de nefrectomia"
-
-TOMOGRAFIA (densidade):
-- Hipodenso + realce periférico → "Considerar possibilidade de abscesso"
-- Hiperdenso agudo → "hemorragia recente"
-- Calcificação → "calcificação" ou "sequela granulomatosa"
-- Hipodensidades focais sem realce → "cistos"
-
-RESSONÂNCIA (sinal):
-- Hipersinal T2 + hipossinal T1 → "edema" ou "cisto"
-- Hipossinal T1 e T2 → "fibrose" ou "hemossiderina"
-- Restrição difusão → "isquemia aguda" ou "abscesso"
-
-RAIO-X (opacidade):
-- Opacidade alveolar → "consolidação" ou "atelectasia"
-- Hipotransparência → "derrame" ou "massa"
-- Hipertransparência → "enfisema" ou "pneumotórax"
-
-# Regras
-- NUNCA repetir descrição - SEMPRE traduzir em diagnóstico
-- Formato lista "-", um diagnóstico por linha
-- SEM medidas ou dimensões na conclusão
-- SEM segmentos específicos (usar "lobo direito/esquerdo")
-- Se todos normais: "- Estudo de [modalidade] dentro dos limites da normalidade."
-
-# Padrões de Linguagem
-a) "[Diagnóstico direto]." → "Cisto hepático simples."
-b) "Sinais de [condição/cirurgia]." → "Sinais de colecistectomia." / "Sinais de nefropatia parenquimatosa."
-c) "[Estrutura] sugestivo de [diagnóstico]." → "Nódulo hepático sugestivo de hemangioma."
-d) "[Achado]. Considerar possibilidade de [ddx]." → "Coleção hepática. Considerar possibilidade de abscesso."
-e) "[Nome]: variante anatômica."
-
-# Examples
-ACHADO US: "Rim com tamanho normal, hiperrefringência cortical difusa com redução da ecogenicidade das pirâmides"
-❌ ERRADO: "- Hiperrefringência cortical renal."
-✅ CORRETO: "- Sinais de nefropatia parenquimatosa."
-
-ACHADO US: "Fígado com aumento difuso da ecogenicidade do parênquima"
-❌ ERRADO: "- Aumento da ecogenicidade hepática."
-✅ CORRETO: "- Esteatose hepática."
-
-ACHADO US: "Nódulo hipoecogênico, homogêneo, margens regulares, sem fluxo ao Doppler, medindo 1,5 cm no segmento VI"
-❌ ERRADO: "- Nódulo hipoecogênico no segmento VI medindo 1,5 cm."
-✅ CORRETO: "- Nódulo hepático sugestivo de hemangioma."
-
-ACHADO TC: "Coleção hipodensa com realce periférico pós-contraste no lobo hepático direito"
-❌ ERRADO: "- Coleção hipodensa com realce."
-✅ CORRETO: "- Coleção hepática. Considerar possibilidade de abscesso."
-
-ACHADO US: "Vesícula biliar não caracterizada"
-❌ ERRADO: "- Vesícula não visualizada."
-✅ CORRETO: "- Sinais de colecistectomia."
-
-ACHADO US: "Rim direito não visualizado em topografia habitual. Rim esquerdo vicariante."
-❌ ERRADO: "- Rim direito ausente."
-✅ CORRETO: "- Sinais de nefrectomia à direita."
-
-# Output Format
-JSON: {"field":"impressao","replacement":"<p>- Diagnóstico 1.<br>- Diagnóstico 2.</p>","notes":[]}
-
-# Notes
-- Usar conhecimento médico para INTERPRETAR, não transcrever
-- Cada achado radiológico corresponde a um diagnóstico clínico
-- A conclusão é o "veredito" médico, não resumo técnico`.trim()
-
 Deno.serve(async (req: Request) => {
   const corsHeaders = getCorsHeaders(req);
   
@@ -146,6 +64,7 @@ Deno.serve(async (req: Request) => {
     });
   }
 
+  // Service role client for RPC and logging
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
@@ -160,9 +79,8 @@ Deno.serve(async (req: Request) => {
 
   const rawFindings = String(body.findingsHtml || "").slice(0, 8000)
   const examTitle = body.examTitle ? String(body.examTitle).trim() : null
-  const user_id = body.user_id ?? null
+  const user_id = user.id
   const modality = (body.modality ?? "unspecified").toString()
-  const format = (body.format ?? "telegraphic").toString()
 
   const findingsHtml = sanitizeInputHtml(rawFindings)
   const paragraphs = splitHtmlIntoParagraphs(findingsHtml)
@@ -170,49 +88,44 @@ Deno.serve(async (req: Request) => {
 
   console.log("Processing conclusion, modality:", modality, "input length:", findingsHtml.length)
 
-  const userPrompt = `Modalidade: ${modality}
-Título do Exame: ${examTitle ?? "não informado"}
-
-=== ACHADOS DO LAUDO ===
-${paragraphsText}
-=== FIM DOS ACHADOS ===
-
-TAREFA: INTERPRETAR os achados acima como radiologista experiente.
-- O que cada descrição radiológica SIGNIFICA clinicamente?
-- Traduzir terminologia da modalidade (${modality}) em diagnósticos.
-- NUNCA repetir o achado - SEMPRE dar o diagnóstico.
-
-Retorne JSON no formato especificado.`
-
   try {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    // Build AI request via RPC (gets prompt, model, API key from database)
+    const { data: config, error: rpcError } = await supabase.rpc('build_ai_request', {
+      fn_name: 'ai-generate-conclusion',
+      user_data: {
+        findings: paragraphsText,
+        modality: modality,
+        exam_title: examTitle ?? "não informado"
+      }
+    });
+
+    if (rpcError || !config) {
+      console.error("RPC build_ai_request error:", rpcError);
+      throw new Error(`RPC error: ${rpcError?.message || 'No config returned'}`);
+    }
+
+    console.log("RPC config received, calling AI API...");
+
+    // Call AI API with config from RPC
+    const response = await fetch(config.api_url, {
       method: "POST",
-      headers: {
-        "Authorization": `Bearer ${OPENAI_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "gpt-5-nano-2025-08-07",
-        max_completion_tokens: 2000,
-        reasoning_effort: 'low',
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: userPrompt },
-        ],
-      }),
-    })
+      headers: config.headers,
+      body: JSON.stringify(config.body),
+    });
 
     if (!response.ok) {
       const errorText = await response.text()
-      console.error("OpenAI API error:", response.status, errorText)
-      throw new Error(`OpenAI error: ${response.status}`)
+      console.error("AI API error:", response.status, errorText)
+      throw new Error(`AI API error: ${response.status}`)
     }
 
     const completion = await response.json()
     const raw = completion.choices?.[0]?.message?.content ?? ""
+    const finishReason = completion.choices?.[0]?.finish_reason
 
-    console.log("OpenAI raw response length:", raw.length)
+    console.log("AI response length:", raw.length, "finish_reason:", finishReason)
 
+    // Parse JSON response
     let parsed: any
     try {
       parsed = JSON.parse(raw)
@@ -229,6 +142,7 @@ Retorne JSON no formato especificado.`
 
     console.log("JSON parsed successfully:", !!parsed)
 
+    // Fallback if JSON parsing fails
     if (!parsed) {
       const notes: string[] = []
       const alteredParagraphs: string[] = []
@@ -273,6 +187,7 @@ Retorne JSON no formato especificado.`
 
     console.log("Final replacement length:", parsed.replacement.length)
 
+    // Log to database
     try {
       await supabase.from("ai_conclusion_logs").insert({
         user_id,
