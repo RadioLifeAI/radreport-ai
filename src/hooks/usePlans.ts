@@ -26,10 +26,16 @@ export interface SubscriptionPrice {
   stripe_price_id: string | null;
   stripe_product_id: string | null;
   amount_cents: number;
+  amount_cents_annual: number | null;
   currency: string;
   interval: string;
   interval_count: number;
   is_active: boolean;
+  // Environment-specific Stripe IDs
+  stripe_price_id_test: string | null;
+  stripe_price_id_live: string | null;
+  stripe_price_id_annual_test: string | null;
+  stripe_price_id_annual_live: string | null;
 }
 
 export const usePlans = () => {

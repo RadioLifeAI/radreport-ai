@@ -2071,6 +2071,7 @@ export type Database = {
       subscription_prices: {
         Row: {
           amount_cents: number
+          amount_cents_annual: number | null
           created_at: string | null
           currency: string | null
           id: string
@@ -2091,6 +2092,7 @@ export type Database = {
         }
         Insert: {
           amount_cents: number
+          amount_cents_annual?: number | null
           created_at?: string | null
           currency?: string | null
           id?: string
@@ -2111,6 +2113,7 @@ export type Database = {
         }
         Update: {
           amount_cents?: number
+          amount_cents_annual?: number | null
           created_at?: string | null
           currency?: string | null
           id?: string

@@ -67,24 +67,28 @@ export default function Precos() {
 
     setSelectedPriceId(priceId);
     
-    // Use hosted checkout (more reliable) - open in new tab
-    const result = await initializeCheckout(priceId, false);
+    // Use hosted checkout with interval parameter
+    const result = await initializeCheckout(priceId, false, interval);
     
     if (result?.clientSecret) {
       setShowCheckout(true);
     }
   };
 
+  // Get price data from single active price record per plan
   const getPriceForInterval = (plan: any) => {
     const prices = plan.subscription_prices || [];
-    const monthlyPrice = prices.find((p: any) => p.interval === 'month' && p.is_active);
-    const annualPrice = prices.find((p: any) => p.interval === 'year' && p.is_active);
+    // There's only one active price record per plan with both monthly and annual values
+    const price = prices.find((p: any) => p.is_active);
+    
+    if (!price) {
+      return { monthly: 0, annual: null, priceId: null };
+    }
     
     return {
-      monthly: monthlyPrice?.amount_cents || 0,
-      annual: annualPrice?.amount_cents || null,
-      monthlyPriceId: monthlyPrice?.id || null,
-      annualPriceId: annualPrice?.id || null,
+      monthly: price.amount_cents || 0,
+      annual: price.amount_cents_annual || null,
+      priceId: price.id, // Same ID for both - Edge Function uses interval to select correct Stripe Price ID
     };
   };
 
@@ -167,7 +171,6 @@ export default function Precos() {
                 ) : (
                   plans?.map((plan, index) => {
                     const prices = getPriceForInterval(plan);
-                    const priceId = interval === 'year' ? prices.annualPriceId : prices.monthlyPriceId;
                     const features = planFeatures[plan.code] || planFeatures.free;
                     
                     return (
@@ -186,8 +189,8 @@ export default function Precos() {
                           isHighlighted={plan.is_highlighted}
                           isCurrentPlan={currentPlanCode === plan.code}
                           badge={plan.badge}
-                          onSelect={() => handleSelectPlan(plan.code, priceId)}
-                          isLoading={checkoutLoading && selectedPriceId === priceId}
+                          onSelect={() => handleSelectPlan(plan.code, prices.priceId)}
+                          isLoading={checkoutLoading && selectedPriceId === prices.priceId}
                           isFree={plan.code === 'free'}
                         />
                       </div>

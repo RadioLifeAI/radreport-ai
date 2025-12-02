@@ -51,10 +51,10 @@ Deno.serve(async (req) => {
     }
     logStep('User authenticated', { userId: user.id, email: user.email });
 
-    // Get request body with optional embedded flag
-    const { price_id, embedded = false } = await req.json();
+    // Get request body with interval parameter
+    const { price_id, embedded = false, interval = 'month' } = await req.json();
     if (!price_id) throw new Error('price_id is required');
-    logStep('Price ID received', { price_id, embedded });
+    logStep('Request params', { price_id, embedded, interval });
 
     // Initialize admin client for database queries
     const supabaseAdmin = createClient(
@@ -67,10 +67,10 @@ Deno.serve(async (req) => {
     const isTestMode = await getEnvironmentMode(supabaseAdmin);
     logStep('Using mode', { isTestMode });
 
-    // Get price data with both test and live IDs
+    // Get price data with all test/live IDs including annual
     const { data: priceData, error: priceError } = await supabaseAdmin
       .from('subscription_prices')
-      .select('id, stripe_price_id, stripe_price_id_test, stripe_price_id_live, subscription_plans(code, name)')
+      .select('id, stripe_price_id, stripe_price_id_test, stripe_price_id_live, stripe_price_id_annual_test, stripe_price_id_annual_live, subscription_plans(code, name)')
       .eq('id', price_id)
       .eq('is_active', true)
       .single();
@@ -80,16 +80,30 @@ Deno.serve(async (req) => {
       throw new Error('Price not found or inactive');
     }
 
-    // Select the appropriate Stripe price ID based on environment
-    const stripePriceId = isTestMode 
-      ? (priceData.stripe_price_id_test || priceData.stripe_price_id)
-      : (priceData.stripe_price_id_live || priceData.stripe_price_id);
+    // Select the appropriate Stripe price ID based on environment AND interval
+    let stripePriceId: string | null;
+    
+    if (interval === 'year') {
+      // Annual pricing
+      stripePriceId = isTestMode 
+        ? priceData.stripe_price_id_annual_test 
+        : priceData.stripe_price_id_annual_live;
+      logStep('Selected annual price', { stripePriceId, isTestMode });
+    } else {
+      // Monthly pricing (default)
+      stripePriceId = isTestMode 
+        ? (priceData.stripe_price_id_test || priceData.stripe_price_id)
+        : (priceData.stripe_price_id_live || priceData.stripe_price_id);
+      logStep('Selected monthly price', { stripePriceId, isTestMode });
+    }
 
     if (!stripePriceId) {
-      logStep('Missing Stripe price ID', { isTestMode, priceData });
-      throw new Error(`Stripe price ID not configured for ${isTestMode ? 'test' : 'live'} environment. Please configure it in the admin panel.`);
+      const envName = isTestMode ? 'test' : 'live';
+      const intervalName = interval === 'year' ? 'anual' : 'mensal';
+      logStep('Missing Stripe price ID', { isTestMode, interval, priceData });
+      throw new Error(`Stripe price ID (${intervalName}) not configured for ${envName} environment. Please configure it in the admin panel.`);
     }
-    logStep('Price found', { stripePriceId, plan: priceData.subscription_plans });
+    logStep('Price found', { stripePriceId, interval, plan: priceData.subscription_plans });
 
     const stripe = new Stripe(stripeKey, { apiVersion: '2023-10-16' });
 
@@ -119,6 +133,7 @@ Deno.serve(async (req) => {
       metadata: {
         user_id: user.id,
         price_id: price_id,
+        interval: interval,
         environment: isTestMode ? 'test' : 'live'
       },
       subscription_data: {

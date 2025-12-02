@@ -10,7 +10,7 @@ import { planFeatures } from '@/lib/planFeatures';
 interface PlansSelectionSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSelectPlan: (priceId: string) => void;
+  onSelectPlan: (priceId: string, interval: 'month' | 'year') => void;
   isLoading?: boolean;
 }
 
@@ -25,23 +25,27 @@ export const PlansSelectionSheet = ({
   const [interval, setInterval] = useState<'month' | 'year'>('year');
   const [selectedPriceId, setSelectedPriceId] = useState<string | null>(null);
 
+  // Get price data from single active price record per plan
   const getPriceForInterval = (plan: any) => {
     const prices = plan.subscription_prices || [];
-    const monthlyPrice = prices.find((p: any) => p.interval === 'month' && p.is_active);
-    const annualPrice = prices.find((p: any) => p.interval === 'year' && p.is_active);
+    // There's only one active price record per plan with both monthly and annual values
+    const price = prices.find((p: any) => p.is_active);
+    
+    if (!price) {
+      return { monthly: 0, annual: null, priceId: null };
+    }
     
     return {
-      monthly: monthlyPrice?.amount_cents || 0,
-      annual: annualPrice?.amount_cents || null,
-      monthlyPriceId: monthlyPrice?.id || null,
-      annualPriceId: annualPrice?.id || null,
+      monthly: price.amount_cents || 0,
+      annual: price.amount_cents_annual || null,
+      priceId: price.id, // Same ID for both - Edge Function uses interval to select correct Stripe Price ID
     };
   };
 
   const handleSelectPlan = (planCode: string, priceId: string | null) => {
     if (planCode === 'free' || !priceId) return;
     setSelectedPriceId(priceId);
-    onSelectPlan(priceId);
+    onSelectPlan(priceId, interval);
   };
 
   return (
@@ -78,7 +82,6 @@ export const PlansSelectionSheet = ({
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {plans?.map((plan, index) => {
                 const prices = getPriceForInterval(plan);
-                const priceId = interval === 'year' ? prices.annualPriceId : prices.monthlyPriceId;
                 const features = planFeatures[plan.code] || planFeatures.free;
                 const isCurrentPlan = plan.code === currentPlanCode;
                 const isFree = plan.code === 'free';
@@ -99,8 +102,8 @@ export const PlansSelectionSheet = ({
                       isHighlighted={plan.is_highlighted}
                       isCurrentPlan={isCurrentPlan}
                       badge={plan.badge}
-                      onSelect={() => handleSelectPlan(plan.code, priceId)}
-                      isLoading={isLoading && selectedPriceId === priceId}
+                      onSelect={() => handleSelectPlan(plan.code, prices.priceId)}
+                      isLoading={isLoading && selectedPriceId === prices.priceId}
                       isFree={isFree}
                     />
                   </div>
