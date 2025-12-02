@@ -4,11 +4,15 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useAICredits } from '@/hooks/useAICredits';
 import { useWhisperCredits } from '@/hooks/useWhisperCredits';
-import { Sparkles, Mic, TrendingUp } from 'lucide-react';
+import { useSubscription } from '@/hooks/useSubscription';
+import { Sparkles, Mic, TrendingUp, Crown } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export const UserCreditsCard = () => {
+  const navigate = useNavigate();
   const { balance: aiBalance, monthlyLimit, planType } = useAICredits();
   const { balance: whisperBalance } = useWhisperCredits();
+  const { isSubscribed } = useSubscription();
 
   const aiPercentage = (aiBalance / monthlyLimit) * 100;
 
@@ -79,9 +83,21 @@ export const UserCreditsCard = () => {
         </div>
 
         {/* CTA Button */}
-        <Button className="w-full bg-gradient-to-r from-cyan-500 to-indigo-500 hover:from-cyan-600 hover:to-indigo-600">
-          <TrendingUp size={16} className="mr-2" />
-          Upgrade de Plano
+        <Button 
+          className="w-full bg-gradient-to-r from-cyan-500 to-indigo-500 hover:from-cyan-600 hover:to-indigo-600"
+          onClick={() => navigate('/assinaturas')}
+        >
+          {isSubscribed ? (
+            <>
+              <Crown size={16} className="mr-2" />
+              Ver Planos
+            </>
+          ) : (
+            <>
+              <TrendingUp size={16} className="mr-2" />
+              Upgrade de Plano
+            </>
+          )}
         </Button>
       </div>
     </Card>

@@ -7,13 +7,17 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { useEditorSettings } from '@/hooks/useEditorSettings';
+import { useSubscription } from '@/hooks/useSubscription';
 import { useAuth } from '@/hooks/useAuth';
 import { UserCreditsCard } from './UserCreditsCard';
-import { User, FileText, Sparkles, Mic, Lock, AlertTriangle, History, CreditCard } from 'lucide-react';
+import { User, FileText, Sparkles, Mic, Lock, AlertTriangle, History, CreditCard, Crown, ExternalLink } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -50,12 +54,23 @@ const validateCRM = (crm: string): string | null => {
 };
 
 export const UserSettingsModal = ({ open, onOpenChange, defaultTab = 'profile' }: UserSettingsModalProps) => {
+  const navigate = useNavigate();
   const { profile, updateProfile, isLoading: profileLoading } = useUserProfile();
   const { settings, updateSettings, isLoading: settingsLoading } = useEditorSettings();
+  const { subscription, isSubscribed, planName, openPortal, isOpeningPortal } = useSubscription();
   const { user } = useAuth();
   const [isSaving, setIsSaving] = useState(false);
   const [currentTab, setCurrentTab] = useState(defaultTab);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return '-';
+    return new Date(dateString).toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  };
 
   // Update tab when defaultTab changes
   useEffect(() => {
@@ -600,11 +615,72 @@ export const UserSettingsModal = ({ open, onOpenChange, defaultTab = 'profile' }
           <TabsContent value="credits" className="space-y-4 mt-4">
             <div className="space-y-4">
               <div className="flex items-center gap-2 mb-4">
-                <CreditCard size={20} className="text-muted-foreground" />
-                <h3 className="text-lg font-semibold">Créditos & Plano</h3>
+                <Crown size={20} className="text-primary" />
+                <h3 className="text-lg font-semibold">Assinatura & Créditos</h3>
               </div>
+
+              {/* Subscription Status Card */}
+              <Card className="p-4 bg-gradient-to-r from-cyan-500/10 to-indigo-500/10 border-primary/20">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-semibold text-foreground">Seu Plano</h4>
+                  <Badge className={`${
+                    isSubscribed 
+                      ? 'bg-gradient-to-r from-cyan-500 to-indigo-500 text-white' 
+                      : 'bg-muted text-muted-foreground'
+                  }`}>
+                    {planName}
+                  </Badge>
+                </div>
+                
+                {isSubscribed ? (
+                  <div className="text-sm text-muted-foreground space-y-1">
+                    <p>
+                      Status: <span className="text-green-400 font-medium">Ativo</span>
+                    </p>
+                    <p>
+                      Renova em: <span className="text-foreground">{formatDate(subscription.current_period_end)}</span>
+                    </p>
+                    {subscription.cancel_at_period_end && (
+                      <p className="text-yellow-400 flex items-center gap-1">
+                        <AlertTriangle size={14} />
+                        Cancela no final do período
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Você está no plano gratuito. Faça upgrade para desbloquear mais recursos.
+                  </p>
+                )}
+              </Card>
               
+              {/* Credits Info */}
               <UserCreditsCard />
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button 
+                  onClick={() => {
+                    onOpenChange(false);
+                    navigate('/assinaturas');
+                  }} 
+                  className="flex-1 bg-gradient-to-r from-cyan-500 to-indigo-500 hover:from-cyan-600 hover:to-indigo-600"
+                >
+                  <Crown size={16} className="mr-2" />
+                  Ver Planos
+                </Button>
+                {isSubscribed && (
+                  <Button 
+                    variant="outline" 
+                    onClick={() => openPortal()} 
+                    className="flex-1"
+                    disabled={isOpeningPortal}
+                  >
+                    <ExternalLink size={16} className="mr-2" />
+                    {isOpeningPortal ? 'Abrindo...' : 'Gerenciar Assinatura'}
+                  </Button>
+                )}
+              </div>
             </div>
           </TabsContent>
         </Tabs>
