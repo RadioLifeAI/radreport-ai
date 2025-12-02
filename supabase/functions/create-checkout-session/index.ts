@@ -11,6 +11,19 @@ const logStep = (step: string, details?: any) => {
   console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
 };
 
+// Helper to get environment mode
+async function getEnvironmentMode(supabaseAdmin: any): Promise<boolean> {
+  const { data } = await supabaseAdmin
+    .from('stripe_settings')
+    .select('setting_value')
+    .eq('setting_key', 'environment_mode')
+    .single();
+
+  const isTestMode = data?.setting_value === 'test';
+  logStep('Environment config', { isTestMode, mode: data?.setting_value });
+  return isTestMode;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -50,18 +63,33 @@ Deno.serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    // Get Stripe price ID from database
+    // Get environment mode
+    const isTestMode = await getEnvironmentMode(supabaseAdmin);
+    logStep('Using mode', { isTestMode });
+
+    // Get price data with both test and live IDs
     const { data: priceData, error: priceError } = await supabaseAdmin
       .from('subscription_prices')
-      .select('stripe_price_id, subscription_plans(code, name)')
+      .select('id, stripe_price_id, stripe_price_id_test, stripe_price_id_live, subscription_plans(code, name)')
       .eq('id', price_id)
       .eq('is_active', true)
       .single();
 
-    if (priceError || !priceData?.stripe_price_id) {
+    if (priceError || !priceData) {
+      logStep('Price query error', { error: priceError?.message });
       throw new Error('Price not found or inactive');
     }
-    logStep('Price found', { stripePriceId: priceData.stripe_price_id });
+
+    // Select the appropriate Stripe price ID based on environment
+    const stripePriceId = isTestMode 
+      ? (priceData.stripe_price_id_test || priceData.stripe_price_id)
+      : (priceData.stripe_price_id_live || priceData.stripe_price_id);
+
+    if (!stripePriceId) {
+      logStep('Missing Stripe price ID', { isTestMode, priceData });
+      throw new Error(`Stripe price ID not configured for ${isTestMode ? 'test' : 'live'} environment. Please configure it in the admin panel.`);
+    }
+    logStep('Price found', { stripePriceId, plan: priceData.subscription_plans });
 
     const stripe = new Stripe(stripeKey, { apiVersion: '2023-10-16' });
 
@@ -82,7 +110,7 @@ Deno.serve(async (req) => {
       customer_email: customerId ? undefined : user.email,
       line_items: [
         {
-          price: priceData.stripe_price_id,
+          price: stripePriceId,
           quantity: 1,
         },
       ],
@@ -91,7 +119,8 @@ Deno.serve(async (req) => {
       cancel_url: `${origin}/precos?checkout=canceled`,
       metadata: {
         user_id: user.id,
-        price_id: price_id
+        price_id: price_id,
+        environment: isTestMode ? 'test' : 'live'
       },
       subscription_data: {
         metadata: {

@@ -11,6 +11,51 @@ const logStep = (step: string, details?: any) => {
   console.log(`[STRIPE-WEBHOOK] ${step}${detailsStr}`);
 };
 
+// Helper to find plan by Stripe price ID (checks both test and live fields)
+async function findPlanByStripePriceId(supabaseAdmin: any, stripePriceId: string) {
+  // First try test price ID
+  let { data: priceData } = await supabaseAdmin
+    .from('subscription_prices')
+    .select('plan_id, subscription_plans(*)')
+    .eq('stripe_price_id_test', stripePriceId)
+    .eq('is_active', true)
+    .single();
+
+  if (priceData) {
+    logStep('Found plan by test price ID', { stripePriceId });
+    return priceData;
+  }
+
+  // Then try live price ID
+  ({ data: priceData } = await supabaseAdmin
+    .from('subscription_prices')
+    .select('plan_id, subscription_plans(*)')
+    .eq('stripe_price_id_live', stripePriceId)
+    .eq('is_active', true)
+    .single());
+
+  if (priceData) {
+    logStep('Found plan by live price ID', { stripePriceId });
+    return priceData;
+  }
+
+  // Fallback: try legacy stripe_price_id field
+  ({ data: priceData } = await supabaseAdmin
+    .from('subscription_prices')
+    .select('plan_id, subscription_plans(*)')
+    .eq('stripe_price_id', stripePriceId)
+    .eq('is_active', true)
+    .single());
+
+  if (priceData) {
+    logStep('Found plan by legacy price ID', { stripePriceId });
+    return priceData;
+  }
+
+  logStep('Plan not found for price ID', { stripePriceId });
+  return null;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -107,13 +152,8 @@ Deno.serve(async (req) => {
           const subscription = await stripe.subscriptions.retrieve(subscriptionId);
           const priceId = subscription.items.data[0]?.price.id;
 
-          // Find plan by stripe_price_id
-          const { data: priceData } = await supabaseAdmin
-            .from('subscription_prices')
-            .select('plan_id, subscription_plans(*)')
-            .eq('stripe_price_id', priceId)
-            .eq('is_active', true)
-            .single();
+          // Find plan by stripe_price_id (checks both test and live)
+          const priceData = await findPlanByStripePriceId(supabaseAdmin, priceId);
 
           if (!priceData) {
             logStep('ERROR: Price not found', { priceId });

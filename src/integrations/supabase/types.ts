@@ -1943,6 +1943,33 @@ export type Database = {
         }
         Relationships: []
       }
+      stripe_settings: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          setting_key: string
+          setting_value: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          setting_key: string
+          setting_value?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          setting_key?: string
+          setting_value?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       subscription_events_log: {
         Row: {
           event_data: Json | null
@@ -2052,7 +2079,14 @@ export type Database = {
           is_active: boolean | null
           plan_id: string | null
           stripe_price_id: string | null
+          stripe_price_id_annual: string | null
+          stripe_price_id_annual_live: string | null
+          stripe_price_id_annual_test: string | null
+          stripe_price_id_live: string | null
+          stripe_price_id_test: string | null
           stripe_product_id: string | null
+          stripe_product_id_live: string | null
+          stripe_product_id_test: string | null
           updated_at: string | null
         }
         Insert: {
@@ -2065,7 +2099,14 @@ export type Database = {
           is_active?: boolean | null
           plan_id?: string | null
           stripe_price_id?: string | null
+          stripe_price_id_annual?: string | null
+          stripe_price_id_annual_live?: string | null
+          stripe_price_id_annual_test?: string | null
+          stripe_price_id_live?: string | null
+          stripe_price_id_test?: string | null
           stripe_product_id?: string | null
+          stripe_product_id_live?: string | null
+          stripe_product_id_test?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -2078,7 +2119,14 @@ export type Database = {
           is_active?: boolean | null
           plan_id?: string | null
           stripe_price_id?: string | null
+          stripe_price_id_annual?: string | null
+          stripe_price_id_annual_live?: string | null
+          stripe_price_id_annual_test?: string | null
+          stripe_price_id_live?: string | null
+          stripe_price_id_test?: string | null
           stripe_product_id?: string | null
+          stripe_product_id_live?: string | null
+          stripe_product_id_test?: string | null
           updated_at?: string | null
         }
         Relationships: [

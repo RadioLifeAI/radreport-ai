@@ -29,6 +29,47 @@ const FREE_PLAN_RESPONSE = {
   }
 };
 
+// Helper to find plan by Stripe price ID (checks both test and live fields)
+async function findPlanByStripePriceId(supabaseAdmin: any, stripePriceId: string) {
+  // First try test price ID
+  let { data: priceData } = await supabaseAdmin
+    .from('subscription_prices')
+    .select('subscription_plans(*)')
+    .eq('stripe_price_id_test', stripePriceId)
+    .single();
+
+  if (priceData?.subscription_plans) {
+    logStep('Found plan by test price ID', { stripePriceId });
+    return priceData;
+  }
+
+  // Then try live price ID
+  ({ data: priceData } = await supabaseAdmin
+    .from('subscription_prices')
+    .select('subscription_plans(*)')
+    .eq('stripe_price_id_live', stripePriceId)
+    .single());
+
+  if (priceData?.subscription_plans) {
+    logStep('Found plan by live price ID', { stripePriceId });
+    return priceData;
+  }
+
+  // Fallback: try legacy stripe_price_id field
+  ({ data: priceData } = await supabaseAdmin
+    .from('subscription_prices')
+    .select('subscription_plans(*)')
+    .eq('stripe_price_id', stripePriceId)
+    .single());
+
+  if (priceData?.subscription_plans) {
+    logStep('Found plan by legacy price ID', { stripePriceId });
+    return priceData;
+  }
+
+  return null;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -132,12 +173,8 @@ Deno.serve(async (req) => {
           const stripeSub = subscriptions.data[0];
           const priceId = stripeSub.items.data[0]?.price.id;
 
-          // Find plan by Stripe price ID
-          const { data: priceData } = await supabaseAdmin
-            .from('subscription_prices')
-            .select('subscription_plans(*)')
-            .eq('stripe_price_id', priceId)
-            .single();
+          // Find plan by Stripe price ID (checks both test and live fields)
+          const priceData = await findPlanByStripePriceId(supabaseAdmin, priceId);
 
           if (priceData?.subscription_plans) {
             const plan = priceData.subscription_plans as any;
