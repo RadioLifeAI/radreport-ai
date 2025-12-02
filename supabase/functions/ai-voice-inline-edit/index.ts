@@ -7,9 +7,6 @@ Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders })
   if (req.method !== "POST") return new Response("Method not allowed", { status: 405, headers: { ...getAllHeaders(req), "Content-Type": "application/json" } })
 
-  const apiKey = Deno.env.get("OPENAI_API_KEY") || ""
-  if (!apiKey) return new Response(JSON.stringify({ error: "OPENAI_API_KEY not configured" }), { status: 500, headers: { ...getAllHeaders(req), "Content-Type": "application/json" } })
-
   // JWT Validation
   const authHeader = req.headers.get('authorization');
   if (!authHeader) {
@@ -38,61 +35,60 @@ Deno.serve(async (req: Request) => {
 
     if (!voiceText || !selectedField) {
       return new Response(
-        JSON.stringify({ error: "Campos obrigatórios: voiceText, selectedField, currentSectionText" }),
+        JSON.stringify({ error: "Campos obrigatórios: voiceText, selectedField" }),
         { status: 400, headers: corsHeaders }
       )
     }
 
-    const systemPrompt = `Você é um radiologista sênior altamente especializado.
-Sua função: transformar comandos ditados em texto radiológico FORMATADO, ESPECÍFICO, OBJETIVO E SEM ALUCINAÇÃO.
+    // Create admin client for RPC call
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
 
-Regras:
-1) Edite apenas o CAMPO SELECIONADO informado.
-2) Não altere outras partes do laudo.
-3) Use terminologia padronizada (ESR, ACR, PI-RADS, BI-RADS, O-RADS, Fleischner).
-4) Medidas no padrão "x.x x y.y x z.z cm" quando ditas.
-5) Não invente achados; refine apenas o que foi dito.
-6) Não conclua; descreva o achado.
-7) Retorne APENAS JSON no formato:
-{"field":"<nome do campo>","replacement":"<texto revisado para substituir no TipTap>"}`
+    // Build AI request via RPC (prompts and API key from database/Vault)
+    const { data: config, error: rpcError } = await supabaseAdmin.rpc('build_ai_request', {
+      fn_name: 'ai-voice-inline-edit',
+      user_data: {
+        voice_text: voiceText,
+        selected_field: selectedField,
+        current_section_text: currentSectionText || ""
+      }
+    });
 
-    const userPrompt = `Texto ditado: "${String(voiceText)}"
-Campo selecionado: ${String(selectedField)}
-Texto atual do campo: "${String(currentSectionText || "")}"
+    if (rpcError || !config) {
+      console.error('RPC build_ai_request error:', rpcError);
+      return new Response(
+        JSON.stringify({ error: 'Falha ao construir requisição AI', details: rpcError?.message }),
+        { status: 500, headers: { ...getAllHeaders(req), "Content-Type": "application/json" } }
+      );
+    }
 
-Tarefa:
-• Interpretar o comando de voz.
-• Gerar revisão clara e técnica para substituir apenas este campo.
-• Não inventar medidas, lateralidade, regiões ou graus não ditos.
-• Retornar APENAS o JSON solicitado.`
+    console.log('AI Voice Inline Edit - calling API:', config.api_url);
 
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    // Call AI API with config from RPC
+    const response = await fetch(config.api_url, {
       method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "gpt-5-nano-2025-08-07",
-        max_completion_tokens: 500,
-        reasoning_effort: 'low',
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-      }),
-    })
+      headers: config.headers,
+      body: JSON.stringify(config.body),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('AI API error:', response.status, errorText);
+      return new Response(
+        JSON.stringify({ error: 'Erro na API AI', details: errorText }),
+        { status: response.status, headers: { ...getAllHeaders(req), "Content-Type": "application/json" } }
+      );
+    }
 
     const completion = await response.json()
     const content = completion.choices?.[0]?.message?.content || ""
     const parsed = JSON.parse(content || "{}")
 
-    // Log opcional
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")
-    if (supabaseUrl && supabaseServiceKey && user_id) {
-      const sb = createClient(supabaseUrl, supabaseServiceKey)
-      await sb.from("ai_voice_logs").insert({
+    // Log to ai_voice_logs
+    if (user_id) {
+      await supabaseAdmin.from("ai_voice_logs").insert({
         user_id,
         action: "voice-inline-edit",
         raw_voice: String(voiceText),
