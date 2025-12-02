@@ -25,6 +25,7 @@ import { CookieBanner } from "./components/CookieBanner";
 import { AdminProtectedRoute } from "./components/admin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AIConfigPage from "./pages/admin/AIConfigPage";
+import TemplatesPage from "./pages/admin/TemplatesPage";
 
 const queryClient = new QueryClient();
 
@@ -60,6 +61,7 @@ const App = () => (
             {/* Admin Routes */}
             <Route path="/admin" element={<AdminProtectedRoute><AdminDashboard /></AdminProtectedRoute>} />
             <Route path="/admin/ai-config" element={<AdminProtectedRoute><AIConfigPage /></AdminProtectedRoute>} />
+            <Route path="/admin/templates" element={<AdminProtectedRoute><TemplatesPage /></AdminProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
