@@ -463,14 +463,14 @@ export default function SubscriptionsPage() {
             </Label>
             {hasProducts && selectedProductId ? (
               <Select 
-                value={editingPrice[annualPriceIdField] || undefined}
-                onValueChange={(v) => setEditingPrice({ ...editingPrice, [annualPriceIdField]: v })}
+                value={editingPrice[annualPriceIdField] || '__none__'}
+                onValueChange={(v) => setEditingPrice({ ...editingPrice, [annualPriceIdField]: v === '__none__' ? '' : v })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione um preço anual..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Nenhum</SelectItem>
+                  <SelectItem value="__none__">Nenhum</SelectItem>
                   {yearlyPrices.map(price => (
                     <SelectItem key={price.id} value={price.id}>
                       <div className="flex items-center gap-2">
