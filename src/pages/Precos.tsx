@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Sparkles, Stethoscope, Brain, ExternalLink, Crown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -34,17 +34,7 @@ export default function Precos() {
   const [showCheckout, setShowCheckout] = useState(false);
   const [selectedPriceId, setSelectedPriceId] = useState<string | null>(null);
 
-  // Handle checkout canceled
-  useEffect(() => {
-    const checkoutStatus = searchParams.get('checkout');
-    if (checkoutStatus === 'canceled') {
-      toast.info('Checkout cancelado. Você pode tentar novamente quando quiser.');
-      // Clean URL without reload
-      window.history.replaceState({}, '', '/precos');
-    }
-  }, [searchParams]);
-
-  // Check if returning from successful checkout
+  // Check if returning from checkout
   const sessionId = searchParams.get('session_id');
   if (sessionId) {
     return (

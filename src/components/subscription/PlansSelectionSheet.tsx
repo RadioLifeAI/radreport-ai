@@ -33,9 +33,8 @@ export const PlansSelectionSheet = ({
     return {
       monthly: monthlyPrice?.amount_cents || 0,
       annual: annualPrice?.amount_cents || null,
-      // Pass UUID of the record, NOT stripe_price_id - Edge Function handles environment selection
-      monthlyPriceId: monthlyPrice?.id || null,
-      annualPriceId: annualPrice?.id || null,
+      monthlyPriceId: monthlyPrice?.stripe_price_id || null,
+      annualPriceId: annualPrice?.stripe_price_id || null,
     };
   };
 
