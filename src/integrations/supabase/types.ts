@@ -2107,6 +2107,9 @@ export type Database = {
       }
       subscription_events_log: {
         Row: {
+          ai_tokens_granted: number | null
+          credits_error: string | null
+          credits_renewed: boolean | null
           event_data: Json | null
           event_type: string
           id: string
@@ -2114,8 +2117,12 @@ export type Database = {
           stripe_event_id: string | null
           subscription_id: string | null
           user_id: string | null
+          whisper_credits_granted: number | null
         }
         Insert: {
+          ai_tokens_granted?: number | null
+          credits_error?: string | null
+          credits_renewed?: boolean | null
           event_data?: Json | null
           event_type: string
           id?: string
@@ -2123,8 +2130,12 @@ export type Database = {
           stripe_event_id?: string | null
           subscription_id?: string | null
           user_id?: string | null
+          whisper_credits_granted?: number | null
         }
         Update: {
+          ai_tokens_granted?: number | null
+          credits_error?: string | null
+          credits_renewed?: boolean | null
           event_data?: Json | null
           event_type?: string
           id?: string
@@ -2132,6 +2143,7 @@ export type Database = {
           stripe_event_id?: string | null
           subscription_id?: string | null
           user_id?: string | null
+          whisper_credits_granted?: number | null
         }
         Relationships: [
           {
