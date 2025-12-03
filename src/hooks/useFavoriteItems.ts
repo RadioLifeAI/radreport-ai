@@ -11,8 +11,9 @@ export function useFavoriteCalculators() {
 
   const loadFavorites = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      if (authError || !user) {
+        setFavorites([])
         setLoading(false)
         return
       }
@@ -22,10 +23,15 @@ export function useFavoriteCalculators() {
         .select('calculator_id')
         .eq('user_id', user.id)
 
-      if (error) throw error
-      setFavorites(data?.map(item => item.calculator_id) || [])
+      if (error) {
+        console.error('Error loading favorite calculators:', error)
+        setFavorites([])
+      } else {
+        setFavorites(data?.map(item => item.calculator_id) || [])
+      }
     } catch (error) {
       console.error('Error loading favorite calculators:', error)
+      setFavorites([])
     } finally {
       setLoading(false)
     }
@@ -77,8 +83,9 @@ export function useFavoriteTables() {
 
   const loadFavorites = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      if (authError || !user) {
+        setFavorites([])
         setLoading(false)
         return
       }
@@ -88,10 +95,15 @@ export function useFavoriteTables() {
         .select('table_id')
         .eq('user_id', user.id)
 
-      if (error) throw error
-      setFavorites(data?.map(item => item.table_id) || [])
+      if (error) {
+        console.error('Error loading favorite tables:', error)
+        setFavorites([])
+      } else {
+        setFavorites(data?.map(item => item.table_id) || [])
+      }
     } catch (error) {
       console.error('Error loading favorite tables:', error)
+      setFavorites([])
     } finally {
       setLoading(false)
     }
