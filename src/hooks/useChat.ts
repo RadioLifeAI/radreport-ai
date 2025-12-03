@@ -51,6 +51,8 @@ const parseMessageContent = (content: string): { content: string; achado?: strin
 
 export const useChat = () => {
   const { user } = useAuth();
+  const { hasEnoughCredits, refreshBalance, balance } = useAICredits();
+  const { features } = useSubscription();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [currentConversation, setCurrentConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -174,6 +176,20 @@ export const useChat = () => {
   const sendMessage = useCallback(async (content: string) => {
     if (!user) {
       toast.error('Usuário não autenticado');
+      return;
+    }
+
+    // Feature check
+    if (features?.feature_ai_chat === false) {
+      toast.error('Chat AI disponível apenas no plano Básico ou superior');
+      return;
+    }
+
+    // Credit check (1 credit per message)
+    if (!hasEnoughCredits(1)) {
+      toast.error('Créditos AI insuficientes', {
+        description: 'Faça upgrade do seu plano para continuar.'
+      });
       return;
     }
 
@@ -322,12 +338,23 @@ export const useChat = () => {
 
       setIsStreaming(false);
       await loadConversations();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error sending message:', error);
-      toast.error('Erro ao enviar mensagem');
+      
+      // Handle insufficient credits error from backend
+      if (error?.message?.includes('INSUFFICIENT_CREDITS') || error?.status === 402) {
+        toast.error('Créditos AI insuficientes', {
+          description: 'Faça upgrade do seu plano para continuar.'
+        });
+      } else {
+        toast.error('Erro ao enviar mensagem');
+      }
       setIsStreaming(false);
+    } finally {
+      // Refresh balance after operation
+      refreshBalance();
     }
-  }, [user, currentConversation, messages, loadConversations]);
+  }, [user, currentConversation, messages, loadConversations, features, hasEnoughCredits, refreshBalance]);
 
   useEffect(() => {
     loadConversations();
@@ -339,6 +366,8 @@ export const useChat = () => {
     messages,
     isStreaming,
     isLoading,
+    balance,
+    features,
     loadConversations,
     loadMessages,
     startNewConversation,

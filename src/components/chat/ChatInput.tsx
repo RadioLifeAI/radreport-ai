@@ -7,9 +7,10 @@ import { ChatVoice } from './ChatVoice';
 interface ChatInputProps {
   onSendMessage: (content: string) => void;
   disabled?: boolean;
+  placeholder?: string;
 }
 
-export const ChatInput = ({ onSendMessage, disabled }: ChatInputProps) => {
+export const ChatInput = ({ onSendMessage, disabled, placeholder }: ChatInputProps) => {
   const [input, setInput] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -45,7 +46,7 @@ export const ChatInput = ({ onSendMessage, disabled }: ChatInputProps) => {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Pergunte sobre BI-RADS, laudos, diagnósticos..."
+          placeholder={placeholder || "Pergunte sobre BI-RADS, laudos, diagnósticos..."}
           disabled={disabled}
           className="min-h-[44px] max-h-[200px] resize-none pr-10 rounded-2xl border-border/50 focus-visible:ring-cyan-500/50"
           rows={1}
