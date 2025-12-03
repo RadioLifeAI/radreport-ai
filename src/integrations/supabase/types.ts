@@ -2163,10 +2163,14 @@ export type Database = {
           created_at: string | null
           description: string | null
           display_order: number | null
+          feature_ai_chat: boolean | null
           feature_ai_conclusion: boolean | null
           feature_ai_rads: boolean | null
           feature_ai_suggestions: boolean | null
+          feature_export: boolean | null
           feature_priority_support: boolean | null
+          feature_templates: boolean | null
+          feature_voice_dictation: boolean | null
           feature_whisper: boolean | null
           id: string
           is_active: boolean | null
@@ -2182,10 +2186,14 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           display_order?: number | null
+          feature_ai_chat?: boolean | null
           feature_ai_conclusion?: boolean | null
           feature_ai_rads?: boolean | null
           feature_ai_suggestions?: boolean | null
+          feature_export?: boolean | null
           feature_priority_support?: boolean | null
+          feature_templates?: boolean | null
+          feature_voice_dictation?: boolean | null
           feature_whisper?: boolean | null
           id?: string
           is_active?: boolean | null
@@ -2201,10 +2209,14 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           display_order?: number | null
+          feature_ai_chat?: boolean | null
           feature_ai_conclusion?: boolean | null
           feature_ai_rads?: boolean | null
           feature_ai_suggestions?: boolean | null
+          feature_export?: boolean | null
           feature_priority_support?: boolean | null
+          feature_templates?: boolean | null
+          feature_voice_dictation?: boolean | null
           feature_whisper?: boolean | null
           id?: string
           is_active?: boolean | null
