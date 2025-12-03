@@ -1,10 +1,35 @@
-import { Navigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Navigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useSubscription } from '@/hooks/useSubscription';
 import { Loader2 } from 'lucide-react';
 import { ProfessionalEditorPage } from '@/components/ProfessionalEditorPage';
+import { toast } from 'sonner';
 
 export default function Editor() {
   const { isAuthenticated, loading } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { refetch: refetchSubscription } = useSubscription();
+
+  // Handle checkout return
+  useEffect(() => {
+    const checkoutStatus = searchParams.get('checkout');
+    const sessionId = searchParams.get('session_id');
+    
+    if (checkoutStatus === 'success' && sessionId) {
+      toast.success('Assinatura confirmada!', {
+        description: 'Seu plano foi ativado com sucesso. Aproveite todos os recursos!',
+        duration: 5000,
+      });
+      refetchSubscription();
+      setSearchParams({});
+    } else if (checkoutStatus === 'canceled') {
+      toast.info('Checkout cancelado', {
+        description: 'Você pode tentar novamente a qualquer momento.',
+      });
+      setSearchParams({});
+    }
+  }, [searchParams, setSearchParams, refetchSubscription]);
 
   if (loading) {
     return (
