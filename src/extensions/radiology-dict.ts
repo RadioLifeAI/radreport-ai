@@ -3019,6 +3019,365 @@ export const dict = {
     "estruturas ósseas sem alterações relevantes"
   ],
   
+  // ========================================================================
+  // TERMOS DE TÉCNICA, INCIDÊNCIAS E PROTOCOLOS (~120 termos)
+  // ========================================================================
+  termos_tecnica_incidencias: [
+    // INCIDÊNCIAS RADIOGRÁFICAS
+    "AP", "PA", "perfil", "lateral", "oblíqua", "oblíquo",
+    "anteroposterior", "póstero-anterior", "posteroanterior",
+    "lordótica", "ápico-lordótica",
+    "Towne", "Waters", "Caldwell", "Hirtz", "Schuller",
+    "ortostática", "ortostático", "decúbito", "supino", "prono",
+    "panorâmica", "panorâmico", "localizada", "localizado",
+    "ampliada", "ampliado", "magnificada", "magnificado",
+    "comparativa", "comparativo", "bilateral", "unilateral",
+    "dinâmica", "dinâmico", "funcional",
+    "stress", "estresse", "forçada", "forçado",
+    "axial", "coronal", "sagital", "oblíquo",
+    
+    // POSICIONAMENTOS
+    "decúbito dorsal", "decúbito ventral",
+    "decúbito lateral direito", "decúbito lateral esquerdo",
+    "Trendelenburg", "posição de Trendelenburg",
+    "semifowler", "fowler",
+    "incidência tangencial", "tangencial",
+    "incidência crânio-caudal", "crânio-caudal", "CC",
+    "incidência médio-lateral oblíqua", "MLO",
+    "Eklund", "compressão localizada",
+    
+    // PROTOCOLOS DE AQUISIÇÃO
+    "protocolo", "protocolado", "sequenciado",
+    "pré-contraste", "pós-contraste", "sem contraste", "com contraste",
+    "fase arterial", "fase portal", "fase venosa", "fase tardia",
+    "fase de equilíbrio", "fase hepatobiliar", "fase excretória",
+    "aquisição volumétrica", "aquisição helicoidal",
+    "reformatações", "reformatação", "reconstrução", "reconstruções",
+    "MPR", "MIP", "MinIP", "VR", "SSD",
+    "multiplanar", "multiplano", "multiplanares",
+    "renderização volumétrica", "3D",
+    "janela óssea", "janela pulmonar", "janela mediastinal",
+    "janela de partes moles", "janela abdominal",
+    "kernel", "filtro de reconstrução",
+    
+    // CONTRASTES
+    "iodado", "gadolínio", "gadolíneo",
+    "paramagnético", "superparamagnético",
+    "endovenoso", "EV", "IV", "intravenoso",
+    "oral", "retal", "intratecal", "intra-articular",
+    "hepatoespecífico", "hepatocelular",
+    "Primovist", "Eovist", "Dotarem", "Gadovist",
+    "Omnipaque", "Ultravist", "Optiray",
+    "reação adversa", "anafilaxia", "extravasamento",
+    
+    // EQUIPAMENTOS E TÉCNICA
+    "transdutor", "probe", "sonda",
+    "linear", "convexo", "setorial", "endocavitário",
+    "bobina", "coil", "antena",
+    "bobina de corpo", "bobina de superfície",
+    "detector", "multidetector", "MDCT",
+    "dual energy", "dupla energia", "DECT",
+    "iterativo", "reconstrução iterativa",
+    "dose de radiação", "DLP", "CTDIvol",
+    "FOV", "field of view", "campo de visão",
+    "matriz", "pixel", "voxel",
+    "espessura de corte", "incremento", "pitch",
+    "kV", "mA", "mAs",
+    "Tesla", "1.5T", "3T",
+    "gradiente", "shimming", "presaturação",
+    "sincronização cardíaca", "gating", "triggering",
+    "respiratório", "breath-hold", "apneia"
+  ],
+  
+  // ========================================================================
+  // VERBOS E CONJUGAÇÕES MÉDICAS (~100 termos)
+  // ========================================================================
+  verbos_conjugacoes_medicas: [
+    // INFINITIVOS TÉCNICOS
+    "aferir", "avaliar", "biopsiar", "caracterizar", "cateterizar",
+    "delimitar", "demonstrar", "detectar", "determinar", "diagnosticar",
+    "dilatar", "documentar", "drenar", "embolizar", "estadiar",
+    "evidenciar", "excluir", "identificar", "injetar", "inserir",
+    "localizar", "medir", "monitorar", "observar", "opacificar",
+    "palpar", "puncionar", "quantificar", "rastrear", "realizar",
+    "recomendar", "reduzir", "relatar", "ressecar", "sugerir",
+    "visualizar", "comprimir", "contrastar", "delinear", "descartar",
+    
+    // PARTICÍPIOS PASSADOS (masculino/feminino)
+    "aferido", "aferida", "aferidos", "aferidas",
+    "avaliado", "avaliada", "avaliados", "avaliadas",
+    "biopsiado", "biopsiada", "biopsiados", "biopsiadas",
+    "caracterizado", "caracterizada", "caracterizados", "caracterizadas",
+    "cateterizado", "cateterizada", "caterizados", "cateterizadas",
+    "delimitado", "delimitada", "delimitados", "delimitadas",
+    "demonstrado", "demonstrada", "demonstrados", "demonstradas",
+    "detectado", "detectada", "detectados", "detectadas",
+    "determinado", "determinada", "determinados", "determinadas",
+    "diagnosticado", "diagnosticada", "diagnosticados", "diagnosticadas",
+    "dilatado", "dilatada", "dilatados", "dilatadas",
+    "documentado", "documentada", "documentados", "documentadas",
+    "drenado", "drenada", "drenados", "drenadas",
+    "embolizado", "embolizada", "embolizados", "embolizadas",
+    "estadiado", "estadiada", "estadiados", "estadiadas",
+    "evidenciado", "evidenciada", "evidenciados", "evidenciadas",
+    "excluído", "excluída", "excluídos", "excluídas",
+    "identificado", "identificada", "identificados", "identificadas",
+    "injetado", "injetada", "injetados", "injetadas",
+    "inserido", "inserida", "inseridos", "inseridas",
+    "localizado", "localizada", "localizados", "localizadas",
+    "medido", "medida", "medidos", "medidas",
+    "monitorado", "monitorada", "monitorados", "monitoradas",
+    "observado", "observada", "observados", "observadas",
+    "opacificado", "opacificada", "opacificados", "opacificadas",
+    "puncionado", "puncionada", "puncionados", "puncionadas",
+    "quantificado", "quantificada", "quantificados", "quantificadas",
+    "rastreado", "rastreada", "rastreados", "rastreadas",
+    "realizado", "realizada", "realizados", "realizadas",
+    "recomendado", "recomendada", "recomendados", "recomendadas",
+    "reduzido", "reduzida", "reduzidos", "reduzidas",
+    "relatado", "relatada", "relatados", "relatadas",
+    "ressecado", "ressecada", "ressecados", "ressecadas",
+    "sugerido", "sugerida", "sugeridos", "sugeridas",
+    "visualizado", "visualizada", "visualizados", "visualizadas",
+    "comprimido", "comprimida", "comprimidos", "comprimidas",
+    "contrastado", "contrastada", "contrastados", "contrastadas",
+    "delineado", "delineada", "delineados", "delineadas",
+    "descartado", "descartada", "descartados", "descartadas",
+    
+    // FORMAS REFLEXIVAS E COMPOSTAS
+    "encontra-se", "apresenta-se", "mostra-se", "revela-se",
+    "caracteriza-se", "mantém-se", "observa-se", "identifica-se",
+    "nota-se", "verifica-se", "constata-se", "evidencia-se",
+    "demonstra-se", "destaca-se", "percebe-se", "reconhece-se"
+  ],
+  
+  // ========================================================================
+  // TERMOS ESPACIAIS E TOPOGRÁFICOS (~80 termos)
+  // ========================================================================
+  termos_espaciais_topograficos: [
+    // ORIENTAÇÃO ANATÔMICA
+    "cranial", "caudal", "rostral", "cefálico", "cefálica",
+    "ventral", "dorsal", "anterior", "posterior",
+    "medial", "lateral", "proximal", "distal",
+    "superficial", "profundo", "profunda",
+    "superior", "inferior", "apical", "basal",
+    "interno", "interna", "externo", "externa",
+    "central", "periférico", "periférica",
+    "ipsilateral", "contralateral", "bilateral",
+    "homolateral", "heterolateral",
+    
+    // POSIÇÕES COMPOSTAS
+    "anterolateral", "posterolateral", "anteromedial", "posteromedial",
+    "ântero-superior", "ântero-inferior", "póstero-superior", "póstero-inferior",
+    "súpero-lateral", "ínfero-lateral", "súpero-medial", "ínfero-medial",
+    "látero-lateral", "crânio-caudal", "ventro-dorsal",
+    "anterossuperior", "anteroinferior", "posterossuperior", "posteroinferior",
+    
+    // RELAÇÕES ESPACIAIS
+    "adjacente", "adjacentes", "contíguo", "contígua", "contíguos", "contíguas",
+    "justaposto", "justaposta", "justapostos", "justapostas",
+    "sobrejacente", "subjacente", "circunjacente",
+    "peri", "para", "justa", "intra", "extra",
+    "perilesional", "peritumoral", "perirrenal", "pericárdico",
+    "paravertebral", "para-aórtico", "paramediano",
+    "justavesical", "justamedular", "justacortical",
+    "intraluminal", "extraluminal", "transmural",
+    "intramural", "extramural", "submucoso", "subseroso",
+    
+    // EXTENSÃO E DISTRIBUIÇÃO
+    "focal", "focais", "multifocal", "multifocais",
+    "difuso", "difusa", "difusos", "difusas",
+    "segmentar", "segmentares", "lobar", "lobares",
+    "regional", "regionais", "global", "globais",
+    "confluente", "confluentes", "coalescente", "coalescentes",
+    "esparso", "esparsa", "esparsos", "esparsas",
+    "disseminado", "disseminada", "disseminados", "disseminadas",
+    "agrupado", "agrupada", "agrupados", "agrupadas",
+    "isolado", "isolada", "isolados", "isoladas",
+    "múltiplo", "múltipla", "múltiplos", "múltiplas"
+  ],
+  
+  // ========================================================================
+  // TERMOS DIMENSIONAIS E QUANTITATIVOS (~60 termos)
+  // ========================================================================
+  termos_dimensionais: [
+    // TAMANHO
+    "milimétrico", "milimétrica", "milimétricos", "milimétricos",
+    "centimétrico", "centimétrica", "centimétricos", "centimétricas",
+    "subcentimétrico", "subcentimétrica", "subcentimétricos", "subcentimétricas",
+    "submilimétrico", "submilimétrica", "submilimétricos", "submilimétricas",
+    "micrométrico", "micrométrica", "micrométricos", "micrométricas",
+    "diminuto", "diminuta", "diminutos", "diminutas",
+    "pequeno", "pequena", "pequenos", "pequenas",
+    "médio", "média", "médios", "médias",
+    "grande", "grandes", "volumoso", "volumosa", "volumosos", "volumosas",
+    "extenso", "extensa", "extensos", "extensas",
+    "maior", "maiores", "menor", "menores",
+    "aumentado", "aumentada", "aumentados", "aumentadas",
+    "diminuído", "diminuída", "diminuídos", "diminuídas",
+    "reduzido", "reduzida", "reduzidos", "reduzidas",
+    "expandido", "expandida", "expandidos", "expandidas",
+    
+    // MEDIDAS E EIXOS
+    "longitudinal", "transversal", "anteroposterior",
+    "diâmetro", "diâmetros", "calibre", "calibres",
+    "eixo maior", "eixo menor", "maior eixo", "menor eixo",
+    "espessura", "espessuras", "largura", "altura", "comprimento",
+    "circunferência", "perímetro", "área", "volume",
+    "relação", "proporção", "razão", "índice",
+    
+    // VARIAÇÃO
+    "inalterado", "inalterada", "inalterados", "inalteradas",
+    "estável", "estáveis", "estacionário", "estacionária",
+    "progressivo", "progressiva", "progressivos", "progressivas",
+    "regressivo", "regressiva", "regressivos", "regressivas",
+    "discreto", "discreta", "discretos", "discretas",
+    "moderado", "moderada", "moderados", "moderadas",
+    "acentuado", "acentuada", "acentuados", "acentuadas",
+    "significativo", "significativa", "significativos", "significativas",
+    "expressivo", "expressiva", "expressivos", "expressivas",
+    "importante", "importantes", "relevante", "relevantes"
+  ],
+  
+  // ========================================================================
+  // TERMOS TEMPORAIS E EVOLUTIVOS (~50 termos)
+  // ========================================================================
+  termos_temporais: [
+    // TEMPO/FASE
+    "agudo", "aguda", "agudos", "agudas",
+    "subagudo", "subaguda", "subagudos", "subagudas",
+    "crônico", "crônica", "crônicos", "crônicas",
+    "hiperagudo", "hiperaguda", "hiperagudos", "hiperagudas",
+    "recente", "recentes", "antigo", "antiga", "antigos", "antigas",
+    "precoce", "precoces", "tardio", "tardia", "tardios", "tardias",
+    "inicial", "iniciais", "avançado", "avançada", "avançados", "avançadas",
+    "incipiente", "incipientes", "estabelecido", "estabelecida",
+    "nascente", "emergente", "florescente",
+    
+    // EVOLUÇÃO
+    "evolutivo", "evolutiva", "evolutivos", "evolutivas",
+    "progressivo", "progressiva", "progressivos", "progressivas",
+    "regressivo", "regressiva", "regressivos", "regressivas",
+    "estável", "estáveis", "estacionário", "estacionária",
+    "crescente", "decrescente", "oscilante",
+    "persistente", "persistentes", "transitório", "transitória",
+    "intermitente", "intermitentes", "constante", "constantes",
+    "recorrente", "recorrentes", "recidivante", "recidivantes",
+    "residual", "residuais", "sequela", "sequelas", "sequelar",
+    
+    // COMPARAÇÃO TEMPORAL
+    "prévio", "prévia", "prévios", "prévias",
+    "atual", "atuais", "presente", "presentes",
+    "anterior", "anteriores", "posterior", "posteriores",
+    "pregresso", "pregressa", "pregressos", "pregressas",
+    "novo", "nova", "novos", "novas",
+    "conhecido", "conhecida", "conhecidos", "conhecidas"
+  ],
+  
+  // ========================================================================
+  // EXPRESSÕES E CONECTORES DE LAUDO (~80 termos)
+  // ========================================================================
+  expressoes_conectores_laudo: [
+    // EXPRESSÕES DIAGNÓSTICAS
+    "compatível com", "sugestivo de", "indicativo de",
+    "em favor de", "a favor de", "característico de",
+    "típico de", "atípico de", "representativo de",
+    "não se pode excluir", "não se descarta",
+    "deve-se considerar", "considerar a possibilidade de",
+    "hipótese de", "possibilidade de", "probabilidade de",
+    "consistente com", "condizente com", "concordante com",
+    "em conformidade com", "de acordo com",
+    
+    // RECOMENDAÇÕES
+    "recomenda-se", "sugere-se", "indica-se", "aconselha-se",
+    "correlação clínica", "correlacionar clinicamente",
+    "correlação clínico-laboratorial", "correlação anatomopatológica",
+    "controle evolutivo", "seguimento", "acompanhamento",
+    "novo exame", "repetir exame", "reavaliação",
+    "complementar com", "complementação com",
+    "investigação adicional", "propedêutica complementar",
+    "avaliação especializada", "parecer especializado",
+    "biópsia", "estudo histopatológico", "confirmação histológica",
+    
+    // CONECTORES FORMAIS
+    "entretanto", "contudo", "todavia", "porém", "no entanto",
+    "ademais", "outrossim", "destarte", "doravante",
+    "consequentemente", "subsequentemente", "concomitantemente",
+    "adicionalmente", "alternativamente", "paralelamente",
+    "notadamente", "especialmente", "particularmente",
+    "principalmente", "sobretudo", "primordialmente",
+    "eventualmente", "ocasionalmente", "raramente",
+    "frequentemente", "comumente", "habitualmente",
+    "conforme", "segundo", "mediante", "perante",
+    "através de", "por meio de", "em decorrência de",
+    "em virtude de", "tendo em vista", "face ao exposto",
+    
+    // CERTEZA E PROBABILIDADE
+    "certamente", "provavelmente", "possivelmente",
+    "aparentemente", "presumivelmente", "hipoteticamente",
+    "seguramente", "indubitavelmente", "inequivocamente",
+    "alta probabilidade", "baixa probabilidade", "moderada probabilidade",
+    "muito provável", "pouco provável", "improvável",
+    "altamente sugestivo", "fortemente indicativo",
+    "fracamente sugestivo", "inconclusivo",
+    
+    // DESCRITORES DE ACHADOS
+    "achado", "achados", "alteração", "alterações",
+    "aspecto", "aspectos", "padrão", "padrões",
+    "característica", "características", "peculiaridade", "peculiaridades",
+    "anormalidade", "anormalidades", "normalidade",
+    "particularidade", "especificidade", "sensibilidade"
+  ],
+  
+  // ========================================================================
+  // TERMOS ESPECÍFICOS POR MODALIDADE - EXPANSÃO (~100 termos)
+  // ========================================================================
+  termos_modalidade_avancados: [
+    // ULTRASSONOGRAFIA AVANÇADA
+    "transabdominal", "endovaginal", "transvaginal", "transretal",
+    "endoscópico", "endoscópica", "ecoendoscopia",
+    "modo B", "modo M", "modo Doppler",
+    "color Doppler", "power Doppler", "espectral",
+    "pulsado", "contínuo", "tissue Doppler",
+    "elastografia", "strain", "shear wave", "ARFI",
+    "CEUS", "contraste ultrassonográfico",
+    "microbolhas", "SonoVue", "Lumason",
+    "harmônico", "harmônica", "segundo harmônico",
+    "composto", "compounding", "speckle reduction",
+    "panorâmico", "extended FOV", "3D", "4D",
+    
+    // TOMOGRAFIA AVANÇADA
+    "helicoidal", "multidetector", "MDCT",
+    "DECT", "dual energy", "dupla energia",
+    "spectral CT", "photon counting",
+    "perfusão", "perfusional", "CTP",
+    "calcium scoring", "escore de cálcio", "Agatston",
+    "angiotomografia", "angio-TC", "CTA",
+    "colonoscopia virtual", "colonografia",
+    "enterografia", "enteroclise",
+    "TC de baixa dose", "low dose", "screening",
+    "ultra-alta resolução", "submilimétrico",
+    "iterativo", "SAFIRE", "ADMIRE", "ASIR",
+    
+    // RESSONÂNCIA MAGNÉTICA AVANÇADA
+    "multiparamétrica", "mpMRI", "biparamétrica", "bpMRI",
+    "funcional", "fMRI", "BOLD",
+    "espectroscopia", "MRS", "1H-MRS",
+    "tractografia", "DTI", "tensor de difusão",
+    "perfusão", "PWI", "DSC", "DCE", "ASL",
+    "MRCP", "colangiopancreatografia",
+    "artro-ressonância", "artro-RM",
+    "enterografia-RM", "enteroclise-RM",
+    "cardio-RM", "CMR", "cardiac MR",
+    "angio-RM", "MRA", "TOF", "contrast-enhanced MRA",
+    "SWI", "susceptibility weighted imaging",
+    "CISS", "FIESTA", "TrueFISP", "bSSFP",
+    "PROPELLER", "BLADE", "motion correction",
+    "Dixon", "mDixon", "fat-water separation",
+    "mapping", "T1 mapping", "T2 mapping",
+    "relaxometria", "quantitativo", "quantitativa"
+  ],
+  
   sinonimos: {
     aneico: ["anecogênico", "sonolucente", "líquido simples", "conteúdo fluídico"],
     hipoecogênico: ["hipoecóico", "escuro ao ultrassom"],
