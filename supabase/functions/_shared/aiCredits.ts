@@ -5,9 +5,9 @@ import { SupabaseClient } from "npm:@supabase/supabase-js@2";
 
 // Cost mapping per AI function (in credits)
 export const AI_CREDIT_COSTS: Record<string, number> = {
-  'ai-generate-conclusion': 2,
+  'ai-generate-conclusion': 1,
   'ai-suggestion-review': 2,
-  'ai-rads-classification': 2,
+  'ai-rads-classification': 1,
   'ai-dictation-polish': 1,
   'ai-inline-edit': 1,
   'ai-voice-inline-edit': 1,

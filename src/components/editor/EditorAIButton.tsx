@@ -16,8 +16,8 @@ import { Badge } from '@/components/ui/badge'
 // Credit costs per feature
 const CREDIT_COSTS = {
   suggestion: 2,
-  conclusion: 2,
-  rads: 2,
+  conclusion: 1,
+  rads: 1,
 }
 
 interface EditorAIButtonProps {
