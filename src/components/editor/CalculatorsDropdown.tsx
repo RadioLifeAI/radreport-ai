@@ -45,7 +45,7 @@ export function CalculatorsDropdown({ editor }: CalculatorsDropdownProps) {
   const [selectedCalculator, setSelectedCalculator] = useState<RadiologyCalculator | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
-  const { favorites, isFavorite, toggleFavorite } = useFavoriteCalculators()
+  const { isFavorite, toggleFavorite } = useFavoriteCalculators()
 
   const handleCalculatorClick = (calculator: RadiologyCalculator) => {
     setSelectedCalculator(calculator)
@@ -75,7 +75,7 @@ export function CalculatorsDropdown({ editor }: CalculatorsDropdownProps) {
   // Get favorite calculators
   const favoriteCalculators = useMemo(() => {
     return radiologyCalculators.filter(calc => isFavorite(calc.id))
-  }, [favorites, isFavorite])
+  }, [isFavorite])
 
   // Sort calculators within each category (favorites first)
   const sortedCalculatorsByCategory = useMemo(() => {
@@ -88,7 +88,7 @@ export function CalculatorsDropdown({ editor }: CalculatorsDropdownProps) {
       })
     }
     return sorted
-  }, [calculatorsByCategory, isFavorite, favorites])
+  }, [calculatorsByCategory, isFavorite])
 
   return (
     <>

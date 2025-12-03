@@ -36,7 +36,7 @@ export function TablesDropdown({ editor, onInsertTable }: TablesDropdownProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [viewerOpen, setViewerOpen] = useState(false)
   const [selectedTable, setSelectedTable] = useState<RadiologyTable | null>(null)
-  const { favorites, isFavorite, toggleFavorite } = useFavoriteTables()
+  const { isFavorite, toggleFavorite } = useFavoriteTables()
 
   if (!editor) return null
 
@@ -95,7 +95,7 @@ export function TablesDropdown({ editor, onInsertTable }: TablesDropdownProps) {
   // Get favorite tables
   const favoriteTables = useMemo(() => {
     return allTables.filter(table => isFavorite(table.id))
-  }, [allTables, favorites, isFavorite])
+  }, [allTables, isFavorite])
 
   // Sort tables within each category (favorites first)
   const sortedCategories = useMemo(() => {
@@ -107,7 +107,7 @@ export function TablesDropdown({ editor, onInsertTable }: TablesDropdownProps) {
         return aFav - bFav
       })
     }))
-  }, [favorites, isFavorite])
+  }, [isFavorite])
 
   const renderTableItem = (table: RadiologyTable) => (
     <div
