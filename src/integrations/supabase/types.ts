@@ -4442,6 +4442,14 @@ export type Database = {
         Args: { delayed_hu: number; post_hu: number }
         Returns: number
       }
+      check_ai_credits: {
+        Args: { p_user_id: string }
+        Returns: {
+          balance: number
+          monthly_limit: number
+          plan_type: string
+        }[]
+      }
       classificar_aneurisma_aorta:
         | { Args: { p_diametro_mm: number }; Returns: string }
         | {
@@ -8637,6 +8645,20 @@ export type Database = {
           tipo_achado?: string
         }
         Returns: string
+      }
+      consume_ai_credits: {
+        Args: {
+          p_credits_to_consume: number
+          p_description?: string
+          p_feature_used?: string
+          p_metadata?: Json
+          p_user_id: string
+        }
+        Returns: {
+          balance_after: number
+          message: string
+          success: boolean
+        }[]
       }
       consume_whisper_credits: {
         Args: {
