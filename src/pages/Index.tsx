@@ -1,13 +1,15 @@
 import { Link } from 'react-router-dom';
-import { Brain, FileText, Shield, Zap, Check, MessageSquare, ChevronRight, Mic, Copy } from 'lucide-react';
+import { Brain, FileText, Shield, Zap, MessageSquare, ChevronRight, Mic, Copy } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import HeroSection from '@/components/hero/HeroSection';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Skeleton } from '@/components/ui/skeleton';
 import { usePlatformMetrics } from '@/hooks/usePlatformMetrics';
+import { PricingCard } from '@/components/subscription/PricingCard';
+import { generatePlanFeatures } from '@/lib/planFeaturesGenerator';
 
 const Index = () => {
   const { data: platformData, isLoading: metricsLoading } = usePlatformMetrics();
@@ -262,64 +264,25 @@ const Index = () => {
             ) : (
               platformData?.plans?.map((plan) => {
                 const price = plan.prices?.[0];
-                const primaryFeatures = plan.features
-                  ?.filter(f => f.is_primary && f.show_in_card)
-                  .slice(0, 4);
+                const features = generatePlanFeatures(plan);
                 const isFree = plan.code === 'free';
                 
                 return (
-                  <Card 
+                  <PricingCard
                     key={plan.id}
-                    className={`glass-card ${plan.is_highlighted ? 'ring-2 ring-primary shadow-glow' : ''}`}
-                  >
-                    <CardHeader className="pb-2">
-                      {plan.badge && (
-                        <span className={`text-xs font-semibold px-3 py-1 rounded-full w-fit mb-2 ${
-                          plan.is_highlighted 
-                            ? 'bg-gradient-to-r from-cyan-400 to-indigo-500 text-background' 
-                            : 'bg-primary/20 text-primary'
-                        }`}>
-                          {plan.badge}
-                        </span>
-                      )}
-                      <CardTitle className="text-xl">{plan.name}</CardTitle>
-                      {plan.description && (
-                        <CardDescription className="text-xs">{plan.description}</CardDescription>
-                      )}
-                      <div className="mt-2">
-                        <span className="text-3xl font-bold">
-                          {price?.amount_cents ? `R$ ${Math.round(price.amount_cents / 100)}` : 'R$ 0'}
-                        </span>
-                        {!isFree && <span className="text-muted-foreground text-sm">/mês</span>}
-                      </div>
-                    </CardHeader>
-                    <CardContent className="pt-2">
-                      <ul className="space-y-2">
-                        {primaryFeatures?.map((f) => (
-                          <li key={f.id} className="flex items-start gap-2 text-sm">
-                            <Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                            <span>
-                              {f.is_dynamic && f.dynamic_value 
-                                ? `${f.dynamic_value.toLocaleString('pt-BR')} ${f.display_name}`
-                                : f.display_name
-                              }
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                    <CardFooter>
-                      <Button 
-                        variant={isFree ? 'default' : plan.is_highlighted ? 'default' : 'outline'}
-                        className={`w-full ${plan.is_highlighted ? 'btn-premium' : ''}`}
-                        asChild
-                      >
-                        <Link to={isFree ? '/signup' : '/precos'}>
-                          {isFree ? 'Começar grátis' : 'Ver detalhes'}
-                        </Link>
-                      </Button>
-                    </CardFooter>
-                  </Card>
+                    name={plan.name}
+                    description={plan.description}
+                    monthlyPrice={price?.amount_cents || 0}
+                    annualPrice={null}
+                    interval="month"
+                    features={features}
+                    isHighlighted={plan.is_highlighted}
+                    badge={plan.badge}
+                    isFree={isFree}
+                    onSelect={() => {
+                      window.location.href = isFree ? '/signup' : '/precos';
+                    }}
+                  />
                 );
               })
             )}

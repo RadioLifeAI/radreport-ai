@@ -35,19 +35,21 @@ export function generatePlanFeatures(plan: PlanData): FeatureItem[] {
       let text = f.display_name;
       
       // For dynamic features, format the value
+      let included = f.is_included;
       if (f.is_dynamic && f.dynamic_value !== null && f.dynamic_value > 0) {
         text = `${formatNumber(f.dynamic_value)} ${f.dynamic_suffix || f.display_name}`;
       } else if (f.is_dynamic && (f.dynamic_value === null || f.dynamic_value === 0)) {
-        // Dynamic feature with no value - show as "Sem X"
+        // Dynamic feature with no value - mark as not included and hide from primary
         const suffix = f.dynamic_suffix || f.display_name;
         text = `Sem ${suffix.toLowerCase().replace('/mês', '').trim()}`;
+        included = false; // Mark as not included so it shows with X icon
       }
       
       return {
         text,
-        included: f.is_included,
-        highlight: f.is_dynamic && f.is_included,
-        isPrimary: f.is_primary
+        included,
+        highlight: f.is_dynamic && included,
+        isPrimary: f.is_primary && included // Only show as primary if included
       };
     });
 }
