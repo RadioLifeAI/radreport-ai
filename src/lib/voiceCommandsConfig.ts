@@ -1,6 +1,6 @@
 /**
  * Configuração Centralizada de Comandos de Voz em Português
- * RadReport Editor - Comandos Implementados e Funcionais
+ * RadReport Editor - 47 Comandos Implementados e Funcionais
  */
 
 export interface VoiceCommand {
@@ -10,88 +10,118 @@ export interface VoiceCommand {
   category: string;
   description: string;
   examples?: string[];
-  followedBy?: string; // Para comandos compostos como "ponto parágrafo"
+  followedBy?: string;
+  synonyms?: string[];
 }
 
 export const VOICE_COMMANDS_CONFIG: VoiceCommand[] = [
   // ==========================================
-  // COMANDOS DE PONTUAÇÃO (processados via replaceVoiceCommands)
+  // COMANDOS DE PONTUAÇÃO
   // ==========================================
   {
     command: 'vírgula',
     action: 'insert_text',
-    parameters: { text: ', ' },
+    parameters: { text: ',' },
     category: 'pontuação',
-    description: 'Insere vírgula com espaço',
+    description: 'Insere vírgula',
     examples: ['teste vírgula espaço']
   },
   {
     command: 'ponto',
     action: 'insert_text',
-    parameters: { text: '. ' },
+    parameters: { text: '.' },
     category: 'pontuação',
-    description: 'Insere ponto final com espaço',
+    description: 'Insere ponto final',
     examples: ['frase completa ponto']
   },
   {
     command: 'ponto e vírgula',
     action: 'insert_text',
-    parameters: { text: '; ' },
+    parameters: { text: ';' },
     category: 'pontuação',
-    description: 'Insere ponto e vírgula com espaço'
+    description: 'Insere ponto e vírgula'
   },
   {
     command: 'dois pontos',
     action: 'insert_text',
-    parameters: { text: ': ' },
+    parameters: { text: ':' },
     category: 'pontuação',
-    description: 'Insere dois pontos com espaço'
+    description: 'Insere dois pontos'
   },
   {
-    command: 'interrogação',
+    command: 'ponto de interrogação',
     action: 'insert_text',
-    parameters: { text: '? ' },
+    parameters: { text: '?' },
     category: 'pontuação',
-    description: 'Insere ponto de interrogação com espaço'
+    description: 'Insere ponto de interrogação',
+    synonyms: ['interrogação']
   },
   {
-    command: 'exclamação',
+    command: 'ponto de exclamação',
     action: 'insert_text',
-    parameters: { text: '! ' },
+    parameters: { text: '!' },
     category: 'pontuação',
-    description: 'Insere ponto de exclamação com espaço'
-  },
-
-  // ==========================================
-  // COMANDOS DE NAVEGAÇÃO E EDIÇÃO (TipTap Native)
-  // ==========================================
-  {
-    command: 'nova linha',
-    action: 'hard_break',
-    category: 'edição',
-    description: 'Insere quebra de linha (TipTap setHardBreak)',
-    examples: ['texto nova linha continuação']
+    description: 'Insere ponto de exclamação',
+    synonyms: ['exclamação']
   },
   {
-    command: 'novo parágrafo',
-    action: 'split_block',
-    category: 'edição',
-    description: 'Cria novo parágrafo (TipTap splitBlock)',
-    examples: ['tópico novo parágrafo continuação']
+    command: 'reticências',
+    action: 'insert_text',
+    parameters: { text: '...' },
+    category: 'pontuação',
+    description: 'Insere reticências'
   },
   {
-    command: 'próximo parágrafo',
-    action: 'split_block',
-    category: 'edição',
-    description: 'Cria novo parágrafo',
-    examples: ['próximo parágrafo']
+    command: 'abre parênteses',
+    action: 'insert_text',
+    parameters: { text: '(' },
+    category: 'pontuação',
+    description: 'Abre parênteses',
+    synonyms: ['abrir parênteses', 'parênteses abre']
   },
   {
-    command: 'parágrafo',
-    action: 'split_block',
-    category: 'edição',
-    description: 'Cria novo parágrafo',
-    examples: ['parágrafo']
+    command: 'fecha parênteses',
+    action: 'insert_text',
+    parameters: { text: ')' },
+    category: 'pontuação',
+    description: 'Fecha parênteses',
+    synonyms: ['fechar parênteses', 'parênteses fecha']
+  },
+  {
+    command: 'hífen',
+    action: 'insert_text',
+    parameters: { text: '-' },
+    category: 'pontuação',
+    description: 'Insere hífen'
+  },
+  {
+    command: 'travessão',
+    action: 'insert_text',
+    parameters: { text: '—' },
+    category: 'pontuação',
+    description: 'Insere travessão'
+  },
+  {
+    command: 'a crase',
+    action: 'insert_text',
+    parameters: { text: 'à' },
+    category: 'pontuação',
+    description: 'Insere crase (à)',
+    synonyms: ['crase']
+  },
+  {
+    command: 'barra',
+    action: 'insert_text',
+    parameters: { text: '/' },
+    category: 'pontuação',
+    description: 'Insere barra'
+  },
+  {
+    command: 'aspas',
+    action: 'insert_text',
+    parameters: { text: '"' },
+    category: 'pontuação',
+    description: 'Insere aspas'
   },
   {
     command: 'ponto parágrafo',
@@ -99,48 +129,110 @@ export const VOICE_COMMANDS_CONFIG: VoiceCommand[] = [
     parameters: { text: '.' },
     followedBy: 'split_block',
     category: 'pontuação',
-    description: 'Insere ponto e cria novo parágrafo',
-    examples: ['ponto parágrafo']
+    description: 'Insere ponto e cria novo parágrafo'
   },
   {
     command: 'ponto final',
     action: 'insert_text',
     parameters: { text: '.' },
     category: 'pontuação',
-    description: 'Insere ponto final',
-    examples: ['ponto final']
+    description: 'Insere ponto final'
   },
+
+  // ==========================================
+  // COMANDOS ESTRUTURAIS / NAVEGAÇÃO
+  // ==========================================
   {
-    command: 'próxima linha',
+    command: 'nova linha',
     action: 'hard_break',
-    category: 'edição',
-    description: 'Quebra de linha',
-    examples: ['próxima linha']
+    category: 'navegação',
+    description: 'Insere quebra de linha',
+    examples: ['texto nova linha continuação'],
+    synonyms: ['próxima linha', 'linha']
   },
   {
-    command: 'linha',
-    action: 'hard_break',
-    category: 'edição',
-    description: 'Quebra de linha',
-    examples: ['linha']
+    command: 'novo parágrafo',
+    action: 'split_block',
+    category: 'navegação',
+    description: 'Cria novo parágrafo',
+    examples: ['tópico novo parágrafo continuação'],
+    synonyms: ['próximo parágrafo', 'parágrafo']
   },
   {
-    command: 'apagar palavra',
+    command: 'próximo campo',
+    action: 'next_field',
+    category: 'navegação',
+    description: 'Pula para o próximo campo/marcador <>',
+    examples: ['próximo campo']
+  },
+  {
+    command: 'ir para início',
+    action: 'go_start',
+    category: 'navegação',
+    description: 'Move cursor para início do documento',
+    synonyms: ['início']
+  },
+  {
+    command: 'ir para fim',
+    action: 'go_end',
+    category: 'navegação',
+    description: 'Move cursor para fim do documento',
+    synonyms: ['fim']
+  },
+  {
+    command: 'selecionar tudo',
+    action: 'select_all',
+    category: 'navegação',
+    description: 'Seleciona todo o texto'
+  },
+  {
+    command: 'procurar',
+    action: 'search_text',
+    category: 'navegação',
+    description: 'Busca texto no documento',
+    examples: ['procurar hepatomegalia']
+  },
+
+  // ==========================================
+  // COMANDOS DE EDIÇÃO
+  // ==========================================
+  {
+    command: 'apagar isso',
     action: 'delete_word',
     category: 'edição',
-    description: 'Apaga a última palavra ditada'
+    description: 'Apaga a última palavra ditada',
+    synonyms: ['apagar palavra', 'apagar']
+  },
+  {
+    command: 'apagar linha',
+    action: 'delete_line',
+    category: 'edição',
+    description: 'Apaga a linha atual'
+  },
+  {
+    command: 'apagar tudo',
+    action: 'delete_all',
+    category: 'edição',
+    description: 'Apaga todo o conteúdo'
   },
   {
     command: 'desfazer',
     action: 'undo',
     category: 'edição',
-    description: 'Desfaz a última ação'
+    description: 'Desfaz a última ação',
+    synonyms: ['desfaz']
   },
   {
     command: 'refazer',
     action: 'redo',
     category: 'edição',
     description: 'Refaz a última ação desfeita'
+  },
+  {
+    command: 'cancelar',
+    action: 'cancel_dictation',
+    category: 'edição',
+    description: 'Cancela o ditado atual sem salvar'
   },
 
   // ==========================================
@@ -163,6 +255,82 @@ export const VOICE_COMMANDS_CONFIG: VoiceCommand[] = [
     action: 'toggle_underline',
     category: 'formatação',
     description: 'Ativa/desativa sublinhado no texto selecionado'
+  },
+  {
+    command: 'remover formatação',
+    action: 'clear_formatting',
+    category: 'formatação',
+    description: 'Remove toda formatação do texto selecionado',
+    synonyms: ['limpar formatação']
+  },
+  {
+    command: 'alinhar esquerda',
+    action: 'align_left',
+    category: 'formatação',
+    description: 'Alinha texto à esquerda'
+  },
+  {
+    command: 'alinhar centro',
+    action: 'align_center',
+    category: 'formatação',
+    description: 'Centraliza texto',
+    synonyms: ['centralizar']
+  },
+  {
+    command: 'alinhar direita',
+    action: 'align_right',
+    category: 'formatação',
+    description: 'Alinha texto à direita'
+  },
+  {
+    command: 'alinhar justificado',
+    action: 'align_justify',
+    category: 'formatação',
+    description: 'Justifica texto',
+    synonyms: ['justificar']
+  },
+  {
+    command: 'tudo maiúsculo',
+    action: 'uppercase',
+    category: 'formatação',
+    description: 'Converte seleção para maiúsculas',
+    synonyms: ['maiúsculas', 'caixa alta']
+  },
+  {
+    command: 'tudo minúsculo',
+    action: 'lowercase',
+    category: 'formatação',
+    description: 'Converte seleção para minúsculas',
+    synonyms: ['minúsculas', 'caixa baixa']
+  },
+  {
+    command: 'lista',
+    action: 'toggle_bullet_list',
+    category: 'formatação',
+    description: 'Cria/remove lista com marcadores'
+  },
+  {
+    command: 'lista numerada',
+    action: 'toggle_ordered_list',
+    category: 'formatação',
+    description: 'Cria/remove lista numerada'
+  },
+
+  // ==========================================
+  // COMANDOS ESPECIAIS
+  // ==========================================
+  {
+    command: 'inserir data',
+    action: 'insert_date',
+    category: 'especiais',
+    description: 'Insere data atual no formato brasileiro',
+    synonyms: ['data atual', 'hoje']
+  },
+  {
+    command: 'inserir hora',
+    action: 'insert_time',
+    category: 'especiais',
+    description: 'Insere hora atual'
   }
 ];
 
@@ -190,22 +358,31 @@ export const searchCommands = (query: string): VoiceCommand[] => {
   return VOICE_COMMANDS_CONFIG.filter(cmd => 
     cmd.command.toLowerCase().includes(lowerQuery) ||
     cmd.description.toLowerCase().includes(lowerQuery) ||
-    cmd.category.toLowerCase().includes(lowerQuery)
+    cmd.category.toLowerCase().includes(lowerQuery) ||
+    cmd.synonyms?.some(s => s.toLowerCase().includes(lowerQuery))
   );
 };
 
 /**
- * Verifica se um comando existe
+ * Verifica se um comando existe (inclui sinônimos)
  */
 export const commandExists = (commandText: string): boolean => {
-  return VOICE_COMMANDS_CONFIG.some(cmd => cmd.command === commandText);
+  const lower = commandText.toLowerCase();
+  return VOICE_COMMANDS_CONFIG.some(cmd => 
+    cmd.command.toLowerCase() === lower ||
+    cmd.synonyms?.some(s => s.toLowerCase() === lower)
+  );
 };
 
 /**
- * Obtém comando por texto exato
+ * Obtém comando por texto (inclui sinônimos)
  */
 export const getCommand = (commandText: string): VoiceCommand | undefined => {
-  return VOICE_COMMANDS_CONFIG.find(cmd => cmd.command === commandText);
+  const lower = commandText.toLowerCase();
+  return VOICE_COMMANDS_CONFIG.find(cmd => 
+    cmd.command.toLowerCase() === lower ||
+    cmd.synonyms?.some(s => s.toLowerCase() === lower)
+  );
 };
 
 /**
@@ -224,4 +401,19 @@ export const getCommandStats = (): Record<string, number> => {
     stats[cmd.category] = (stats[cmd.category] || 0) + 1;
   });
   return stats;
+};
+
+/**
+ * Lista de todos os padrões de comando para detecção
+ */
+export const getAllCommandPatterns = (): string[] => {
+  const patterns: string[] = [];
+  VOICE_COMMANDS_CONFIG.forEach(cmd => {
+    patterns.push(cmd.command);
+    if (cmd.synonyms) {
+      patterns.push(...cmd.synonyms);
+    }
+  });
+  // Ordenar por tamanho decrescente para evitar conflitos (ex: "ponto e vírgula" antes de "ponto")
+  return patterns.sort((a, b) => b.length - a.length);
 };
