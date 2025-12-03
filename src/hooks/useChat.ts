@@ -187,9 +187,14 @@ export const useChat = () => {
 
     // Credit check (1 credit per message)
     if (!hasEnoughCredits(1)) {
-      toast.error('Créditos AI insuficientes', {
-        description: 'Faça upgrade do seu plano para continuar.'
-      });
+      // Add system message in chat with upgrade prompt
+      setMessages(prev => [...prev, {
+        id: `system-${Date.now()}`,
+        role: 'assistant',
+        content: 'Seus créditos AI acabaram. Faça upgrade do seu plano para continuar usando o assistente.',
+        tipo: 'system_upgrade' as any,
+        created_at: new Date().toISOString()
+      }]);
       return;
     }
 
