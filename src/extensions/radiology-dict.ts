@@ -3378,6 +3378,216 @@ export const dict = {
     "relaxometria", "quantitativo", "quantitativa"
   ],
   
+  // ========================================================================
+  // ADJETIVOS DESCRITIVOS MÉDICOS (~80 termos)
+  // ========================================================================
+  adjetivos_descritivos_medicos: [
+    // FORMA E CONTORNO
+    "irregular", "regulares", "regular", "irregulares",
+    "ovalado", "ovalada", "ovalados", "ovaladas",
+    "arredondado", "arredondada", "arredondados", "arredondadas",
+    "lobulado", "lobulada", "lobulados", "lobuladas",
+    "alongado", "alongada", "alongados", "alongadas",
+    "septado", "septada", "septados", "septadas",
+    "multilobulado", "multilobulada", "multilobulados", "multilobuladas",
+    "circunscrito", "circunscrita", "circunscritos", "circunscritas",
+    "espiculado", "espiculada", "espiculados", "espiculadas",
+    "polipoide", "polipoides", "pediculado", "pediculada",
+    "séssil", "sésseis", "tubular", "tubulares",
+    "fusiforme", "fusiformes", "serpiginoso", "serpiginosa",
+    "nodular", "nodulares", "cístico", "cística",
+    "sólido", "sólida", "sólidos", "sólidas",
+    "misto", "mista", "mistos", "mistas",
+    
+    // TEXTURA E ECOGENICIDADE
+    "heterogêneo", "heterogênea", "heterogêneos", "heterogêneas",
+    "homogêneo", "homogênea", "homogêneos", "homogêneas",
+    "grosseiro", "grosseira", "grosseiros", "grosseiras",
+    "fino", "fina", "finos", "finas",
+    "denso", "densa", "densos", "densas",
+    "rarefeito", "rarefeita", "rarefeitos", "rarefeitas",
+    "compacto", "compacta", "compactos", "compactas",
+    "esponjoso", "esponjosa", "esponjosos", "esponjosas",
+    "reticulado", "reticulada", "reticulados", "reticuladas",
+    "granular", "granulares", "micronodular", "micronodulares",
+    "macronodular", "macronodulares", "trabecular", "trabeculares",
+    
+    // ESTADO E CONDIÇÃO
+    "íntegro", "íntegra", "íntegros", "íntegras",
+    "preservado", "preservada", "preservados", "preservadas",
+    "comprometido", "comprometida", "comprometidos", "comprometidas",
+    "habitual", "habituais", "usual", "usuais",
+    "característico", "característica", "característicos", "características",
+    "patognomônico", "patognomônica", "patognomônicos", "patognomônicas",
+    "típico", "típica", "típicos", "típicas",
+    "atípico", "atípica", "atípicos", "atípicas",
+    "normal", "normais", "anormal", "anormais",
+    "fisiológico", "fisiológica", "fisiológicos", "fisiológicas",
+    "patológico", "patológica", "patológicos", "patológicas",
+    "benigno", "benigna", "benignos", "benignas",
+    "maligno", "maligna", "malignos", "malignas",
+    "indeterminado", "indeterminada", "indeterminados", "indeterminadas",
+    "indefinido", "indefinida", "indefinidos", "indefinidas",
+    "permeável", "permeáveis", "pérvio", "pérvia",
+    "obliterado", "obliterada", "obliterados", "obliteradas",
+    "ocluído", "ocluída", "ocluídos", "ocluídas",
+    "estenosado", "estenosada", "estenosados", "estenosadas"
+  ],
+  
+  // ========================================================================
+  // SUBSTANTIVOS ESTRUTURAIS DE LAUDO (~60 termos)
+  // ========================================================================
+  substantivos_estruturais_laudo: [
+    // PARTES DO EXAME
+    "exame", "exames", "estudo", "estudos",
+    "avaliação", "avaliações", "análise", "análises",
+    "investigação", "investigações", "técnica", "técnicas",
+    "método", "métodos", "protocolo", "protocolos",
+    "sequência", "sequências", "série", "séries",
+    "aquisição", "aquisições", "fase", "fases",
+    "incidência", "incidências", "projeção", "projeções",
+    
+    // ESTRUTURAS GENÉRICAS
+    "estrutura", "estruturas", "formação", "formações",
+    "imagem", "imagens", "lesão", "lesões",
+    "área", "áreas", "região", "regiões",
+    "porção", "porções", "segmento", "segmentos",
+    "componente", "componentes", "elemento", "elementos",
+    "aspecto", "aspectos", "aparência", "aparências",
+    "contorno", "contornos", "limite", "limites",
+    "margem", "margens", "borda", "bordas",
+    "parede", "paredes", "superfície", "superfícies",
+    "conteúdo", "conteúdos", "material", "materiais",
+    "substância", "substâncias", "densidade", "densidades",
+    "sinal", "sinais", "intensidade", "intensidades",
+    "ecogenicidade", "atenuação", "realce", "captação",
+    
+    // DESCRITORES DE LAUDO
+    "descrição", "descrições", "impressão", "impressões",
+    "conclusão", "conclusões", "diagnóstico", "diagnósticos",
+    "hipótese", "hipóteses", "diferencial", "diferenciais",
+    "correlação", "correlações", "comparação", "comparações",
+    "limitação", "limitações", "ressalva", "ressalvas",
+    "observação", "observações", "nota", "notas",
+    "comentário", "comentários", "adendo", "adendos"
+  ],
+  
+  // ========================================================================
+  // ADVÉRBIOS DE LAUDO (~50 termos)
+  // ========================================================================
+  adverbios_laudo: [
+    // MODO
+    "visivelmente", "claramente", "nitidamente",
+    "aparentemente", "evidentemente", "manifestamente",
+    "predominantemente", "principalmente", "majoritariamente",
+    "parcialmente", "completamente", "totalmente",
+    "inteiramente", "plenamente", "absolutamente",
+    "relativamente", "comparativamente", "proporcionalmente",
+    "simetricamente", "assimetricamente", "uniformemente",
+    "difusamente", "focalmente", "segmentarmente",
+    "bilateralmente", "unilateralmente", "centralmente",
+    "perifericamente", "superficialmente", "profundamente",
+    
+    // INTENSIDADE
+    "levemente", "sutilmente", "discretamente",
+    "ligeiramente", "minimamente", "pouco",
+    "moderadamente", "razoavelmente", "consideravelmente",
+    "acentuadamente", "intensamente", "marcadamente",
+    "significativamente", "expressivamente", "notavelmente",
+    "extremamente", "severamente", "gravemente",
+    
+    // FREQUÊNCIA E TEMPO
+    "geralmente", "usualmente", "tipicamente",
+    "normalmente", "regularmente", "constantemente",
+    "ocasionalmente", "esporadicamente", "intermitentemente",
+    "progressivamente", "gradualmente", "lentamente",
+    "rapidamente", "subitamente", "abruptamente"
+  ],
+  
+  // ========================================================================
+  // NUMERAIS E LATERALIDADE (~40 termos)
+  // ========================================================================
+  numerais_lateralidade: [
+    // ORDINAIS
+    "primeiro", "primeira", "primeiros", "primeiras",
+    "segundo", "segunda", "segundos", "segundas",
+    "terceiro", "terceira", "terceiros", "terceiras",
+    "quarto", "quarta", "quartos", "quartas",
+    "quinto", "quinta", "quintos", "quintas",
+    "sexto", "sexta", "sétimo", "sétima",
+    "oitavo", "oitava", "nono", "nona",
+    "décimo", "décima", "último", "última",
+    
+    // CARDINAIS E QUANTIFICADORES
+    "único", "única", "únicos", "únicas",
+    "duplo", "dupla", "duplos", "duplas",
+    "triplo", "tripla", "triplos", "triplas",
+    "quádruplo", "quádrupla", "múltiplo", "múltipla",
+    "par", "ímpar", "pares", "ímpares",
+    "numeroso", "numerosa", "numerosos", "numerosas",
+    "escasso", "escassa", "escassos", "escassas",
+    "abundante", "abundantes", "profuso", "profusa",
+    
+    // LATERALIDADE
+    "direito", "direita", "direitos", "direitas",
+    "esquerdo", "esquerda", "esquerdos", "esquerdas",
+    "bilateral", "bilaterais", "unilateral", "unilaterais",
+    "ipsilateral", "ipsilaterais", "contralateral", "contralaterais",
+    "homolateral", "homolaterais", "heterolateral", "heterolaterais"
+  ],
+  
+  // ========================================================================
+  // VERBOS MÉDICOS ADICIONAIS E CONJUGAÇÕES (~80 termos)
+  // ========================================================================
+  verbos_medicos_adicionais: [
+    // INFINITIVOS
+    "atingir", "acometer", "comprometer", "invadir",
+    "infiltrar", "obliterar", "ocluir", "permear",
+    "persistir", "predominar", "progredir", "regredir",
+    "recidivar", "envolver", "expandir", "comprimir",
+    "deslocar", "herniar", "protrair", "exibir",
+    "revelar", "aparentar", "denotar", "configurar",
+    "compor", "constituir", "delimitar", "circunscrever",
+    "estender", "propagar", "disseminar", "irradiar",
+    "originar", "derivar", "resultar", "decorrer",
+    
+    // GERÚNDIOS
+    "atingindo", "acometendo", "comprometendo", "invadindo",
+    "infiltrando", "obliterando", "ocluindo", "permeando",
+    "persistindo", "predominando", "progredindo", "regredindo",
+    "recidivando", "envolvendo", "expandindo", "comprimindo",
+    "deslocando", "herniando", "protruindo", "exibindo",
+    "revelando", "aparentando", "denotando", "configurando",
+    "compondo", "constituindo", "delimitando", "circunscrevendo",
+    "estendendo", "propagando", "disseminando", "irradiando",
+    
+    // PARTICÍPIOS ADICIONAIS
+    "atingido", "atingida", "atingidos", "atingidas",
+    "acometido", "acometida", "acometidos", "acometidas",
+    "invadido", "invadida", "invadidos", "invadidas",
+    "infiltrado", "infiltrada", "infiltrados", "infiltradas",
+    "permeado", "permeada", "permeados", "permeadas",
+    "envolvido", "envolvida", "envolvidos", "envolvidas",
+    "expandido", "expandida", "expandidos", "expandidas",
+    "comprimido", "comprimida", "comprimidos", "comprimidas",
+    "deslocado", "deslocada", "deslocados", "deslocadas",
+    "herniado", "herniada", "herniados", "herniadas",
+    "protruído", "protruída", "protruídos", "protruídas",
+    "delimitado", "delimitada", "delimitados", "delimitadas",
+    "circunscrito", "circunscrita", "circunscritos", "circunscritas",
+    "estendido", "estendida", "estendidos", "estendidas",
+    "propagado", "propagada", "propagados", "propagadas",
+    "disseminado", "disseminada", "disseminados", "disseminadas",
+    
+    // FORMAS REFLEXIVAS E COMPOSTAS
+    "pode-se", "deve-se", "observa-se", "nota-se",
+    "verifica-se", "constata-se", "identifica-se", "visualiza-se",
+    "evidencia-se", "demonstra-se", "caracteriza-se", "configura-se",
+    "apresentam-se", "mostram-se", "encontram-se", "mantêm-se",
+    "podendo ser", "devendo ser", "parecendo ser", "sugerindo ser",
+    "não podendo", "não devendo", "não havendo", "não sendo"
+  ],
+  
   sinonimos: {
     aneico: ["anecogênico", "sonolucente", "líquido simples", "conteúdo fluídico"],
     hipoecogênico: ["hipoecóico", "escuro ao ultrassom"],
