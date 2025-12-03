@@ -1,9 +1,10 @@
-import { MessageSquare, History, ChevronLeft, Sparkles, TrendingUp, Wand2 } from 'lucide-react'
+import { MessageSquare, History, ChevronLeft, Sparkles, TrendingUp, Wand2, HelpCircle } from 'lucide-react'
 import { Editor } from '@tiptap/react'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import VoiceButton from '@/components/voice/VoiceButton'
 import SpeechStatusPanel from '@/components/voice/SpeechStatusPanel'
+import { VoiceCommandsSheet } from '@/components/voice/VoiceCommandsSheet'
 import EditorAIButton from '@/components/editor/EditorAIButton'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { useFrasesModelo, FraseModelo } from '@/hooks/useFrasesModelo'
@@ -15,6 +16,55 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { useVariableProcessor } from '@/hooks/useVariableProcessor'
 import { useWhisperCredits } from '@/hooks/useWhisperCredits'
 import { useAICredits } from '@/hooks/useAICredits'
+
+// Voice Controls Section with Help Button
+function VoiceControlsSection({
+  isVoiceActive,
+  voiceStatus,
+  onVoiceStart,
+  onVoiceStop,
+  isTranscribing,
+  mediaStream
+}: {
+  isVoiceActive: boolean
+  voiceStatus: 'idle' | 'listening' | 'waiting'
+  onVoiceStart: () => void
+  onVoiceStop: () => void
+  isTranscribing?: boolean
+  mediaStream?: MediaStream | null
+}) {
+  const [voiceCommandsOpen, setVoiceCommandsOpen] = useState(false)
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-medium">Controle de Voz</h3>
+        <button
+          onClick={() => setVoiceCommandsOpen(true)}
+          className="p-1.5 rounded-md hover:bg-muted transition-colors"
+          title="Ver comandos de voz"
+        >
+          <HelpCircle size={16} className="text-muted-foreground hover:text-cyan-500 transition-colors" />
+        </button>
+      </div>
+
+      <VoiceButton
+        isActive={isVoiceActive}
+        status={voiceStatus}
+        onStart={onVoiceStart}
+        onStop={onVoiceStop}
+        isTranscribing={isTranscribing}
+      />
+
+      <SpeechStatusPanel mediaStream={mediaStream} />
+
+      <VoiceCommandsSheet 
+        open={voiceCommandsOpen} 
+        onOpenChange={setVoiceCommandsOpen} 
+      />
+    </div>
+  )
+}
 
 interface EditorRightSidebarProps {
   collapsed: boolean
@@ -317,21 +367,14 @@ export function EditorRightSidebar({
           </div>
 
           {/* Voice Controls */}
-          <div className="space-y-3">
-            <h3 className="text-sm font-medium">Controle de Voz</h3>
-
-            <VoiceButton
-              isActive={isVoiceActive}
-              status={voiceStatus}
-              onStart={onVoiceStart}
-              onStop={onVoiceStop}
-              isTranscribing={isTranscribing}
-            />
-
-            <SpeechStatusPanel 
-              mediaStream={mediaStream}
-            />
-          </div>
+          <VoiceControlsSection
+            isVoiceActive={isVoiceActive}
+            voiceStatus={voiceStatus}
+            onVoiceStart={onVoiceStart}
+            onVoiceStop={onVoiceStop}
+            isTranscribing={isTranscribing}
+            mediaStream={mediaStream}
+          />
 
           {/* AI Assistant Section */}
           <div>
