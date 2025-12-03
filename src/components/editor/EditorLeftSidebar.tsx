@@ -63,7 +63,7 @@ export function EditorLeftSidebar({
           <div>
             <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-3">Templates Recentes</h3>
             <div className="space-y-1">
-              {recentTemplates.slice(0, 5).map(template => (
+              {recentTemplates.slice(0, 4).map(template => (
                 <button
                   key={template.id}
                   onClick={() => onTemplateSelect(template)}
@@ -89,7 +89,7 @@ export function EditorLeftSidebar({
           <div>
             <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-3">Frases Recentes</h3>
             <div className="space-y-1">
-              {recentFrases.slice(0, 5).map(frase => (
+              {recentFrases.slice(0, 4).map(frase => (
                 <button
                   key={frase.id}
                   onClick={() => onFraseSelect(frase)}
@@ -126,7 +126,7 @@ export function EditorLeftSidebar({
                 Calculadoras
               </h3>
               <div className="space-y-1">
-                {topFavoriteCalculators.map(calc => (
+                {topFavoriteCalculators.slice(0, 4).map(calc => (
                   <button
                     key={calc.id}
                     onClick={() => onCalculatorSelect(calc)}
@@ -153,7 +153,7 @@ export function EditorLeftSidebar({
                 Tabelas
               </h3>
               <div className="space-y-1">
-                {topFavoriteTables.map(table => (
+                {topFavoriteTables.slice(0, 4).map(table => (
                   <button
                     key={table.id}
                     onClick={() => onTableSelect(table)}
