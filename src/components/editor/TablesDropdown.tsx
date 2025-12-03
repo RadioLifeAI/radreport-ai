@@ -1,11 +1,10 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Editor } from '@tiptap/react'
-import { Table2, ChevronDown, Award, Baby, Activity, Bone, HeartPulse, Brain, Eye, FileInput, Copy, Bookmark, Stethoscope, Layers } from 'lucide-react'
+import { Table2, ChevronDown, Award, Baby, Activity, Bone, HeartPulse, Brain, Eye, FileInput, Copy, Bookmark, Stethoscope, Layers, Star } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
@@ -14,6 +13,8 @@ import {
 import { Button } from '@/components/ui/button'
 import { RADIOLOGY_TABLES, RadiologyTable } from '@/lib/radiologyTables'
 import { TableViewerModal } from './TableViewerModal'
+import { useFavoriteTables } from '@/hooks/useFavoriteItems'
+import { cn } from '@/lib/utils'
 
 interface TablesDropdownProps {
   editor: Editor | null
@@ -35,6 +36,7 @@ export function TablesDropdown({ editor, onInsertTable }: TablesDropdownProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [viewerOpen, setViewerOpen] = useState(false)
   const [selectedTable, setSelectedTable] = useState<RadiologyTable | null>(null)
+  const { favorites, isFavorite, toggleFavorite } = useFavoriteTables()
 
   if (!editor) return null
 
@@ -45,10 +47,7 @@ export function TablesDropdown({ editor, onInsertTable }: TablesDropdownProps) {
 
   const handleCopyTable = async (table: RadiologyTable) => {
     try {
-      // Cria blob HTML com estilos preservados
       const htmlBlob = new Blob([table.htmlContent], { type: 'text/html' })
-      
-      // Também cria versão texto plano como fallback
       const tempDiv = document.createElement('div')
       tempDiv.innerHTML = table.htmlContent
       const textBlob = new Blob([tempDiv.textContent || ''], { type: 'text/plain' })
@@ -88,6 +87,113 @@ export function TablesDropdown({ editor, onInsertTable }: TablesDropdownProps) {
     toast.success(`Tabela "${table.name}" inserida para edição`)
   }
 
+  // Get all tables flattened
+  const allTables = useMemo(() => {
+    return RADIOLOGY_TABLES.flatMap(category => category.tables)
+  }, [])
+
+  // Get favorite tables
+  const favoriteTables = useMemo(() => {
+    return allTables.filter(table => isFavorite(table.id))
+  }, [allTables, favorites, isFavorite])
+
+  // Sort tables within each category (favorites first)
+  const sortedCategories = useMemo(() => {
+    return RADIOLOGY_TABLES.map(category => ({
+      ...category,
+      tables: [...category.tables].sort((a, b) => {
+        const aFav = isFavorite(a.id) ? -1 : 0
+        const bFav = isFavorite(b.id) ? -1 : 0
+        return aFav - bFav
+      })
+    }))
+  }, [favorites, isFavorite])
+
+  const renderTableItem = (table: RadiologyTable) => (
+    <div
+      key={table.id}
+      className="group flex items-center justify-between px-2 py-1.5 hover:bg-accent rounded-sm transition-colors"
+    >
+      <span className="text-sm truncate flex-1 mr-2">{table.name}</span>
+      <div className="flex items-center gap-1 shrink-0">
+        {/* Favorite Button */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7"
+          onClick={(e) => {
+            e.stopPropagation()
+            toggleFavorite(table.id)
+          }}
+          title={isFavorite(table.id) ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+        >
+          <Star 
+            className={cn(
+              "h-4 w-4 transition-colors",
+              isFavorite(table.id) 
+                ? "fill-amber-500 text-amber-500" 
+                : "text-slate-400 hover:text-amber-500"
+            )}
+          />
+        </Button>
+
+        {table.type === 'informative' ? (
+          <>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={(e) => {
+                e.stopPropagation()
+                handleViewTable(table)
+              }}
+              title="Visualizar tabela"
+            >
+              <Eye className="h-4 w-4 text-slate-400 group-hover:text-white hover:text-blue-400 transition-colors" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={(e) => {
+                e.stopPropagation()
+                handleCopyTable(table)
+              }}
+              title="Copiar para clipboard"
+            >
+              <Copy className="h-4 w-4 text-slate-400 group-hover:text-white hover:text-purple-400 transition-colors" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={(e) => {
+                e.stopPropagation()
+                handleInsertAsReference(table)
+              }}
+              title="Inserir como referência"
+            >
+              <Bookmark className="h-4 w-4 text-slate-400 group-hover:text-white hover:text-cyan-400 transition-colors" />
+            </Button>
+          </>
+        ) : (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7"
+            onClick={(e) => {
+              e.stopPropagation()
+              handleInsertEditable(table)
+            }}
+            title="Inserir para edição"
+          >
+            <FileInput className="h-4 w-4 text-slate-400 group-hover:text-white hover:text-green-400 transition-colors" />
+          </Button>
+        )}
+      </div>
+    </div>
+  )
+
   return (
     <>
       <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
@@ -99,7 +205,21 @@ export function TablesDropdown({ editor, onInsertTable }: TablesDropdownProps) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-72 bg-popover border-border z-[100]">
-          {RADIOLOGY_TABLES.map((category) => {
+          {/* Favorites Section */}
+          {favoriteTables.length > 0 && (
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger className="cursor-pointer">
+                <Star className="mr-2 h-4 w-4 fill-amber-500 text-amber-500" />
+                <span>Favoritos ({favoriteTables.length})</span>
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent className="w-80 bg-popover border-border z-[101]">
+                {favoriteTables.map(renderTableItem)}
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+          )}
+
+          {/* Category Sections */}
+          {sortedCategories.map((category) => {
             const IconComponent = iconMap[category.icon]
             return (
               <DropdownMenuSub key={category.id}>
@@ -108,69 +228,7 @@ export function TablesDropdown({ editor, onInsertTable }: TablesDropdownProps) {
                   <span>{category.name}</span>
                 </DropdownMenuSubTrigger>
                 <DropdownMenuSubContent className="w-80 bg-popover border-border z-[101]">
-                  {category.tables.map((table) => (
-                    <div
-                      key={table.id}
-                      className="group flex items-center justify-between px-2 py-1.5 hover:bg-accent rounded-sm transition-colors"
-                    >
-                      <span className="text-sm truncate flex-1 mr-2">{table.name}</span>
-                      <div className="flex items-center gap-1 shrink-0">
-                        {table.type === 'informative' ? (
-                          <>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handleViewTable(table)
-                              }}
-                              title="Visualizar tabela"
-                            >
-                              <Eye className="h-4 w-4 text-slate-400 group-hover:text-white hover:text-blue-400 transition-colors" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handleCopyTable(table)
-                              }}
-                              title="Copiar para clipboard"
-                            >
-                              <Copy className="h-4 w-4 text-slate-400 group-hover:text-white hover:text-purple-400 transition-colors" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handleInsertAsReference(table)
-                              }}
-                              title="Inserir como referência"
-                            >
-                              <Bookmark className="h-4 w-4 text-slate-400 group-hover:text-white hover:text-cyan-400 transition-colors" />
-                            </Button>
-                          </>
-                        ) : (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handleInsertEditable(table)
-                            }}
-                            title="Inserir para edição"
-                          >
-                            <FileInput className="h-4 w-4 text-slate-400 group-hover:text-white hover:text-green-400 transition-colors" />
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
+                  {category.tables.map(renderTableItem)}
                 </DropdownMenuSubContent>
               </DropdownMenuSub>
             )
