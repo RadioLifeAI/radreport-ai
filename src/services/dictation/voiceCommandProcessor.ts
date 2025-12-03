@@ -16,9 +16,19 @@ const PUNCTUATION_COMMANDS: Array<{ pattern: string; replacement: string }> = [
   { pattern: 'ponto', replacement: '.' },
   { pattern: 'reticências', replacement: '...' },
   { pattern: 'abre parênteses', replacement: '(' },
+  { pattern: 'abrir parênteses', replacement: '(' },
+  { pattern: 'parênteses abre', replacement: '(' },
   { pattern: 'fecha parênteses', replacement: ')' },
+  { pattern: 'fechar parênteses', replacement: ')' },
+  { pattern: 'parênteses fecha', replacement: ')' },
   { pattern: 'hífen', replacement: '-' },
   { pattern: 'travessão', replacement: '—' },
+  { pattern: 'a crase', replacement: 'à' },
+  { pattern: 'crase', replacement: 'à' },
+  { pattern: 'barra', replacement: '/' },
+  { pattern: 'aspas', replacement: '"' },
+  { pattern: 'interrogação', replacement: '?' },
+  { pattern: 'exclamação', replacement: '!' },
 ]
 
 /**
@@ -38,9 +48,62 @@ const STRUCTURAL_COMMANDS = [
  */
 const EDITING_COMMANDS = [
   'apagar isso',
+  'apagar palavra',
+  'apagar',
+  'apagar linha',
+  'apagar tudo',
   'desfazer',
   'desfaz',
   'refazer',
+  'cancelar',
+]
+
+/**
+ * Comandos de formatação
+ */
+const FORMATTING_COMMANDS = [
+  'negrito',
+  'itálico',
+  'sublinhado',
+  'remover formatação',
+  'limpar formatação',
+  'alinhar esquerda',
+  'alinhar centro',
+  'centralizar',
+  'alinhar direita',
+  'alinhar justificado',
+  'justificar',
+  'tudo maiúsculo',
+  'maiúsculas',
+  'caixa alta',
+  'tudo minúsculo',
+  'minúsculas',
+  'caixa baixa',
+  'lista',
+  'lista numerada',
+]
+
+/**
+ * Comandos de navegação
+ */
+const NAVIGATION_COMMANDS = [
+  'próximo campo',
+  'ir para início',
+  'início',
+  'ir para fim',
+  'fim',
+  'selecionar tudo',
+  'procurar',
+]
+
+/**
+ * Comandos especiais
+ */
+const SPECIAL_COMMANDS = [
+  'inserir data',
+  'data atual',
+  'hoje',
+  'inserir hora',
 ]
 
 /**
@@ -131,16 +194,246 @@ export function deleteLastWord(editor: Editor): void {
 }
 
 /**
+ * Deleta a linha atual no editor
+ */
+export function deleteCurrentLine(editor: Editor): void {
+  editor.chain().focus().selectParentNode().deleteSelection().run()
+}
+
+/**
+ * Navega para o próximo campo/marcador <>
+ */
+export function goToNextField(editor: Editor): boolean {
+  const content = editor.state.doc.textContent
+  const currentPos = editor.state.selection.from
+  
+  // Busca padrões de campo: <>, <texto>, [texto], ___
+  const fieldPatterns = [/<[^>]*>/g, /\[[^\]]*\]/g, /_{3,}/g]
+  
+  for (const pattern of fieldPatterns) {
+    let match
+    pattern.lastIndex = 0
+    while ((match = pattern.exec(content)) !== null) {
+      if (match.index > currentPos) {
+        // Encontrou próximo campo, seleciona-o
+        editor.chain().focus().setTextSelection({
+          from: match.index + 1,
+          to: match.index + match[0].length + 1
+        }).run()
+        return true
+      }
+    }
+  }
+  return false
+}
+
+/**
+ * Busca texto no documento
+ */
+export function searchText(editor: Editor, searchTerm: string): boolean {
+  const content = editor.state.doc.textContent.toLowerCase()
+  const index = content.indexOf(searchTerm.toLowerCase())
+  
+  if (index !== -1) {
+    editor.chain().focus().setTextSelection({
+      from: index + 1,
+      to: index + searchTerm.length + 1
+    }).run()
+    return true
+  }
+  return false
+}
+
+/**
+ * Transforma texto selecionado para maiúsculas
+ */
+export function transformToUppercase(editor: Editor): void {
+  const { from, to } = editor.state.selection
+  if (from === to) return
+  
+  const text = editor.state.doc.textBetween(from, to)
+  editor.chain().focus().deleteSelection().insertContent(text.toUpperCase()).run()
+}
+
+/**
+ * Transforma texto selecionado para minúsculas
+ */
+export function transformToLowercase(editor: Editor): void {
+  const { from, to } = editor.state.selection
+  if (from === to) return
+  
+  const text = editor.state.doc.textBetween(from, to)
+  editor.chain().focus().deleteSelection().insertContent(text.toLowerCase()).run()
+}
+
+/**
+ * Processa comandos de formatação
+ */
+export function processFormattingCommand(text: string, editor: Editor): boolean {
+  const lower = text.toLowerCase().trim()
+  
+  // Negrito
+  if (lower === 'negrito') {
+    editor.chain().focus().toggleBold().run()
+    return true
+  }
+  
+  // Itálico
+  if (lower === 'itálico') {
+    editor.chain().focus().toggleItalic().run()
+    return true
+  }
+  
+  // Sublinhado
+  if (lower === 'sublinhado') {
+    editor.chain().focus().toggleUnderline().run()
+    return true
+  }
+  
+  // Remover formatação
+  if (lower === 'remover formatação' || lower === 'limpar formatação') {
+    editor.chain().focus().unsetAllMarks().run()
+    return true
+  }
+  
+  // Alinhamentos
+  if (lower === 'alinhar esquerda') {
+    editor.chain().focus().setTextAlign('left').run()
+    return true
+  }
+  if (lower === 'alinhar centro' || lower === 'centralizar') {
+    editor.chain().focus().setTextAlign('center').run()
+    return true
+  }
+  if (lower === 'alinhar direita') {
+    editor.chain().focus().setTextAlign('right').run()
+    return true
+  }
+  if (lower === 'alinhar justificado' || lower === 'justificar') {
+    editor.chain().focus().setTextAlign('justify').run()
+    return true
+  }
+  
+  // Maiúsculas/Minúsculas
+  if (lower === 'tudo maiúsculo' || lower === 'maiúsculas' || lower === 'caixa alta') {
+    transformToUppercase(editor)
+    return true
+  }
+  if (lower === 'tudo minúsculo' || lower === 'minúsculas' || lower === 'caixa baixa') {
+    transformToLowercase(editor)
+    return true
+  }
+  
+  // Listas
+  if (lower === 'lista') {
+    editor.chain().focus().toggleBulletList().run()
+    return true
+  }
+  if (lower === 'lista numerada') {
+    editor.chain().focus().toggleOrderedList().run()
+    return true
+  }
+  
+  return false
+}
+
+/**
+ * Processa comandos de navegação
+ */
+export function processNavigationCommand(text: string, editor: Editor): boolean {
+  const lower = text.toLowerCase().trim()
+  
+  if (lower === 'próximo campo') {
+    goToNextField(editor)
+    return true
+  }
+  
+  if (lower === 'ir para início' || lower === 'início') {
+    editor.chain().focus().setTextSelection(0).run()
+    return true
+  }
+  
+  if (lower === 'ir para fim' || lower === 'fim') {
+    const endPos = editor.state.doc.content.size
+    editor.chain().focus().setTextSelection(endPos).run()
+    return true
+  }
+  
+  if (lower === 'selecionar tudo') {
+    editor.chain().focus().selectAll().run()
+    return true
+  }
+  
+  // Procurar texto (formato: "procurar [termo]")
+  if (lower.startsWith('procurar ')) {
+    const searchTerm = text.slice(9).trim()
+    if (searchTerm) {
+      searchText(editor, searchTerm)
+    }
+    return true
+  }
+  
+  return false
+}
+
+/**
+ * Processa comandos especiais
+ */
+export function processSpecialCommand(text: string, editor: Editor): boolean {
+  const lower = text.toLowerCase().trim()
+  
+  // Inserir data
+  if (lower === 'inserir data' || lower === 'data atual' || lower === 'hoje') {
+    const today = new Date().toLocaleDateString('pt-BR')
+    editor.chain().focus().insertContent(today + ' ').run()
+    return true
+  }
+  
+  // Inserir hora
+  if (lower === 'inserir hora') {
+    const now = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+    editor.chain().focus().insertContent(now + ' ').run()
+    return true
+  }
+  
+  return false
+}
+
+/**
+ * Verifica se o texto é um comando puro (sem texto adicional)
+ */
+export function isPureCommand(text: string): boolean {
+  const lower = text.toLowerCase().trim()
+  
+  const allCommands = [
+    ...EDITING_COMMANDS,
+    ...FORMATTING_COMMANDS,
+    ...NAVIGATION_COMMANDS.filter(c => c !== 'procurar'),
+    ...SPECIAL_COMMANDS,
+  ]
+  
+  return allCommands.some(cmd => lower === cmd)
+}
+
+/**
  * Processa entrada de voz com comandos estruturais e pontuação
  */
 export function processVoiceInput(text: string, editor: Editor): void {
   if (!text.trim()) return
 
-  const lower = text.toLowerCase()
+  const lower = text.toLowerCase().trim()
 
-  // Comandos de edição
-  if (lower.includes('apagar isso')) {
+  // 1. Comandos de edição (alta prioridade)
+  if (lower.includes('apagar isso') || lower === 'apagar' || lower === 'apagar palavra') {
     deleteLastWord(editor)
+    return
+  }
+  if (lower === 'apagar linha') {
+    deleteCurrentLine(editor)
+    return
+  }
+  if (lower === 'apagar tudo') {
+    editor.chain().focus().clearContent().run()
     return
   }
   if (lower.includes('desfazer') || lower.includes('desfaz')) {
@@ -152,7 +445,22 @@ export function processVoiceInput(text: string, editor: Editor): void {
     return
   }
 
-  // Dividir por comandos estruturais
+  // 2. Comandos de formatação (se é comando puro)
+  if (processFormattingCommand(lower, editor)) {
+    return
+  }
+
+  // 3. Comandos de navegação
+  if (processNavigationCommand(text, editor)) {
+    return
+  }
+
+  // 4. Comandos especiais
+  if (processSpecialCommand(lower, editor)) {
+    return
+  }
+
+  // 5. Dividir por comandos estruturais (nova linha, parágrafo)
   const segments = splitByStructuralCommands(text)
   
   for (const segment of segments) {
@@ -165,7 +473,7 @@ export function processVoiceInput(text: string, editor: Editor): void {
         editor.chain().focus().insertContent('.</p><p>').run()
       }
     } else {
-      // Processar texto com pontuação
+      // 6. Processar texto com pontuação
       let processedText = replacePunctuationCommands(segment.content)
       
       // Aplicar correções médicas
@@ -182,4 +490,23 @@ export function processVoiceInput(text: string, editor: Editor): void {
       editor.commands.insertContent(processedText + ' ')
     }
   }
+}
+
+/**
+ * Extrai comandos de voz do texto para processamento separado
+ */
+export function extractVoiceCommands(text: string): { text: string; commands: string[] } {
+  const commands: string[] = []
+  let processedText = text
+  
+  // Extrair comandos de formatação
+  for (const cmd of FORMATTING_COMMANDS) {
+    const regex = new RegExp(`\\b${cmd}\\b`, 'gi')
+    if (regex.test(processedText)) {
+      commands.push(cmd)
+      processedText = processedText.replace(regex, '').trim()
+    }
+  }
+  
+  return { text: processedText, commands }
 }
