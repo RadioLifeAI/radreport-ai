@@ -29,7 +29,12 @@ export const PricingToggle = ({ interval, onChange }: PricingToggleProps) => {
         )}
       >
         Anual
-        <span className="px-2 py-0.5 text-xs font-bold rounded-full bg-green-500/20 text-green-400 animate-pulse">
+        <span className={cn(
+          "px-2 py-0.5 text-xs font-bold rounded-full transition-all",
+          interval === 'year'
+            ? "bg-green-500 text-white shadow-md"
+            : "bg-green-500/30 text-green-400 animate-pulse"
+        )}>
           -20%
         </span>
       </button>
