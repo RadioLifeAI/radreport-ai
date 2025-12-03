@@ -11,7 +11,7 @@ const logStep = (step: string, details?: any) => {
   console.log(`[CHECK-SUBSCRIPTION] ${step}${detailsStr}`);
 };
 
-// Free plan defaults
+// Free plan defaults - aligned with database and frontend
 const FREE_PLAN_RESPONSE = {
   subscribed: false,
   plan_code: 'free',
@@ -25,48 +25,39 @@ const FREE_PLAN_RESPONSE = {
     feature_ai_conclusion: true,
     feature_ai_rads: false,
     feature_whisper: false,
-    feature_priority_support: false
+    feature_priority_support: false,
+    feature_ai_chat: false,
+    feature_voice_dictation: true,
+    feature_templates: true,
+    feature_export: true
   }
 };
 
-// Helper to find plan by Stripe price ID (checks both test and live fields)
+// Helper to find plan by Stripe price ID (checks ALL price fields including annual)
 async function findPlanByStripePriceId(supabaseAdmin: any, stripePriceId: string) {
-  // First try test price ID
-  let { data: priceData } = await supabaseAdmin
-    .from('subscription_prices')
-    .select('subscription_plans(*)')
-    .eq('stripe_price_id_test', stripePriceId)
-    .single();
+  // Array of all price ID fields to check (monthly and annual, test and live)
+  const priceFields = [
+    'stripe_price_id_test',
+    'stripe_price_id_live',
+    'stripe_price_id_annual_test',
+    'stripe_price_id_annual_live',
+    'stripe_price_id' // legacy fallback
+  ];
 
-  if (priceData?.subscription_plans) {
-    logStep('Found plan by test price ID', { stripePriceId });
-    return priceData;
+  for (const field of priceFields) {
+    const { data: priceData, error } = await supabaseAdmin
+      .from('subscription_prices')
+      .select('subscription_plans(*)')
+      .eq(field, stripePriceId)
+      .single();
+
+    if (priceData?.subscription_plans && !error) {
+      logStep(`Found plan by ${field}`, { stripePriceId });
+      return priceData;
+    }
   }
 
-  // Then try live price ID
-  ({ data: priceData } = await supabaseAdmin
-    .from('subscription_prices')
-    .select('subscription_plans(*)')
-    .eq('stripe_price_id_live', stripePriceId)
-    .single());
-
-  if (priceData?.subscription_plans) {
-    logStep('Found plan by live price ID', { stripePriceId });
-    return priceData;
-  }
-
-  // Fallback: try legacy stripe_price_id field
-  ({ data: priceData } = await supabaseAdmin
-    .from('subscription_prices')
-    .select('subscription_plans(*)')
-    .eq('stripe_price_id', stripePriceId)
-    .single());
-
-  if (priceData?.subscription_plans) {
-    logStep('Found plan by legacy price ID', { stripePriceId });
-    return priceData;
-  }
-
+  logStep('Plan not found for price ID', { stripePriceId });
   return null;
 }
 
@@ -122,7 +113,11 @@ Deno.serve(async (req) => {
           feature_ai_conclusion,
           feature_ai_rads,
           feature_whisper,
-          feature_priority_support
+          feature_priority_support,
+          feature_ai_chat,
+          feature_voice_dictation,
+          feature_templates,
+          feature_export
         )
       `)
       .eq('user_id', user.id)
@@ -146,7 +141,11 @@ Deno.serve(async (req) => {
           feature_ai_conclusion: plan.feature_ai_conclusion,
           feature_ai_rads: plan.feature_ai_rads,
           feature_whisper: plan.feature_whisper,
-          feature_priority_support: plan.feature_priority_support
+          feature_priority_support: plan.feature_priority_support,
+          feature_ai_chat: plan.feature_ai_chat ?? false,
+          feature_voice_dictation: plan.feature_voice_dictation ?? true,
+          feature_templates: plan.feature_templates ?? true,
+          feature_export: plan.feature_export ?? true
         }
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -173,7 +172,7 @@ Deno.serve(async (req) => {
           const stripeSub = subscriptions.data[0];
           const priceId = stripeSub.items.data[0]?.price.id;
 
-          // Find plan by Stripe price ID (checks both test and live fields)
+          // Find plan by Stripe price ID (checks all fields including annual)
           const priceData = await findPlanByStripePriceId(supabaseAdmin, priceId);
 
           if (priceData?.subscription_plans) {
@@ -193,7 +192,11 @@ Deno.serve(async (req) => {
                 feature_ai_conclusion: plan.feature_ai_conclusion,
                 feature_ai_rads: plan.feature_ai_rads,
                 feature_whisper: plan.feature_whisper,
-                feature_priority_support: plan.feature_priority_support
+                feature_priority_support: plan.feature_priority_support,
+                feature_ai_chat: plan.feature_ai_chat ?? false,
+                feature_voice_dictation: plan.feature_voice_dictation ?? true,
+                feature_templates: plan.feature_templates ?? true,
+                feature_export: plan.feature_export ?? true
               }
             }), {
               headers: { ...corsHeaders, 'Content-Type': 'application/json' },
