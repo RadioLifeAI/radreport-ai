@@ -1,7 +1,8 @@
-import { Check, Sparkles, Loader2 } from 'lucide-react';
+import { Check, X, Sparkles, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import type { FeatureItem } from '@/lib/planFeaturesGenerator';
 
 interface PricingCardProps {
   name: string;
@@ -9,7 +10,7 @@ interface PricingCardProps {
   monthlyPrice: number;
   annualPrice: number | null;
   interval: 'month' | 'year';
-  features: string[];
+  features: FeatureItem[] | string[];
   isHighlighted?: boolean;
   isCurrentPlan?: boolean;
   badge?: string | null;
@@ -41,6 +42,14 @@ export const PricingCard = ({
       currency: 'BRL',
       minimumFractionDigits: 0,
     }).format(cents / 100);
+  };
+
+  // Normalize feature to FeatureItem
+  const normalizeFeature = (feature: FeatureItem | string): FeatureItem => {
+    if (typeof feature === 'string') {
+      return { text: feature, included: true };
+    }
+    return feature;
   };
 
   return (
@@ -114,15 +123,35 @@ export const PricingCard = ({
 
       {/* Features */}
       <ul className="space-y-3 mb-8 flex-1">
-        {features.map((feature, index) => (
-          <li key={index} className="flex items-start gap-3">
-            <Check className={cn(
-              "w-5 h-5 flex-shrink-0 mt-0.5",
-              isHighlighted ? "text-cyan-400" : "text-primary"
-            )} />
-            <span className="text-sm text-foreground/80">{feature}</span>
-          </li>
-        ))}
+        {features.map((feature, index) => {
+          const item = normalizeFeature(feature);
+          
+          return (
+            <li 
+              key={index} 
+              className={cn(
+                "flex items-start gap-3",
+                !item.included && "text-muted-foreground/60"
+              )}
+            >
+              {item.included ? (
+                <Check className={cn(
+                  "w-5 h-5 flex-shrink-0 mt-0.5",
+                  isHighlighted ? "text-cyan-400" : "text-green-500"
+                )} />
+              ) : (
+                <X className="w-5 h-5 flex-shrink-0 mt-0.5 text-red-400/60" />
+              )}
+              <span className={cn(
+                "text-sm",
+                item.included ? "text-foreground/80" : "text-muted-foreground/60 line-through",
+                item.highlight && item.included && "font-semibold text-foreground"
+              )}>
+                {item.text}
+              </span>
+            </li>
+          );
+        })}
       </ul>
 
       {/* CTA Button */}

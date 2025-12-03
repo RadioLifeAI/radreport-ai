@@ -1618,6 +1618,39 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_metrics: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          last_calculated_at: string | null
+          metric_key: string
+          metric_value: number
+          source: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          last_calculated_at?: string | null
+          metric_key: string
+          metric_value?: number
+          source?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          last_calculated_at?: string | null
+          metric_key?: string
+          metric_value?: number
+          source?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -8564,6 +8597,7 @@ export type Database = {
       }
       gerar_numero_laudo: { Args: never; Returns: string }
       get_ai_function_config: { Args: { fn_name: string }; Returns: Json }
+      get_platform_metrics: { Args: never; Returns: Json }
       get_user_subscription_status: {
         Args: { p_user_id: string }
         Returns: {
@@ -8735,6 +8769,7 @@ export type Database = {
         Args: { p_diametro_mm: number; p_localizacao?: string }
         Returns: number
       }
+      refresh_platform_metrics: { Args: never; Returns: undefined }
       refund_whisper_credits: {
         Args: {
           p_credits_to_refund: number
