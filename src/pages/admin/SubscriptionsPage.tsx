@@ -114,14 +114,18 @@ export default function SubscriptionsPage() {
   const [editingPrice, setEditingPrice] = useState<EditingPrice | null>(null);
   const [copiedWebhook, setCopiedWebhook] = useState(false);
   
+  // Environment view state for prices tab
+  const [pricesViewEnv, setPricesViewEnv] = useState<'test' | 'live'>('live');
+  
   // Stripe products state - separate for each environment
   const [stripeProductsTest, setStripeProductsTest] = useState<StripeProduct[]>([]);
   const [stripeProductsLive, setStripeProductsLive] = useState<StripeProduct[]>([]);
   const [loadingTest, setLoadingTest] = useState(false);
   const [loadingLive, setLoadingLive] = useState(false);
   
-  // Mapeamentos locais para UI dinâmica
-  const [productMappings, setProductMappings] = useState<Record<string, string>>({});
+  // Mapeamentos locais para UI dinâmica - separados por ambiente
+  const [productMappingsTest, setProductMappingsTest] = useState<Record<string, string>>({});
+  const [productMappingsLive, setProductMappingsLive] = useState<Record<string, string>>({});
   const [savingMapping, setSavingMapping] = useState<string | null>(null);
   const [syncingAll, setSyncingAll] = useState(false);
 
@@ -266,14 +270,18 @@ export default function SubscriptionsPage() {
     updateSettingMutation.mutate({ key: 'environment_mode', value: newMode });
   };
 
-  // Auto-sync ao abrir aba de preços
+  // Auto-sync ao abrir aba de preços (carrega ambiente selecionado)
   useEffect(() => {
-    if (activeTab === 'prices' && stripeProductsLive.length === 0 && !loadingLive) {
-      fetchStripeProducts('live');
+    if (activeTab === 'prices') {
+      if (pricesViewEnv === 'live' && stripeProductsLive.length === 0 && !loadingLive) {
+        fetchStripeProducts('live');
+      } else if (pricesViewEnv === 'test' && stripeProductsTest.length === 0 && !loadingTest) {
+        fetchStripeProducts('test');
+      }
     }
-  }, [activeTab]);
+  }, [activeTab, pricesViewEnv]);
 
-  // Inicializar mapeamentos quando produtos e preços carregam
+  // Inicializar mapeamentos LIVE quando produtos e preços carregam
   useEffect(() => {
     if (stripeProductsLive.length > 0 && prices.length > 0) {
       const mappings: Record<string, string> = {};
@@ -282,12 +290,25 @@ export default function SubscriptionsPage() {
           mappings[price.stripe_product_id_live] = price.plan_id;
         }
       });
-      setProductMappings(mappings);
+      setProductMappingsLive(mappings);
     }
   }, [stripeProductsLive, prices]);
 
+  // Inicializar mapeamentos TEST quando produtos e preços carregam
+  useEffect(() => {
+    if (stripeProductsTest.length > 0 && prices.length > 0) {
+      const mappings: Record<string, string> = {};
+      prices.forEach(price => {
+        if (price.stripe_product_id_test && price.plan_id) {
+          mappings[price.stripe_product_id_test] = price.plan_id;
+        }
+      });
+      setProductMappingsTest(mappings);
+    }
+  }, [stripeProductsTest, prices]);
+
   // Salvar mapeamento de produto Stripe para plano local com captura automática de valores
-  const saveProductMapping = async (stripeProduct: StripeProduct, localPlanId: string) => {
+  const saveProductMapping = async (stripeProduct: StripeProduct, localPlanId: string, env: 'test' | 'live') => {
     setSavingMapping(stripeProduct.id);
     try {
       const monthlyPrice = stripeProduct.prices.find(p => p.interval === 'month');
@@ -300,25 +321,40 @@ export default function SubscriptionsPage() {
         return;
       }
 
+      // Campos dinâmicos baseados no ambiente
+      const productIdField = env === 'test' ? 'stripe_product_id_test' : 'stripe_product_id_live';
+      const priceIdField = env === 'test' ? 'stripe_price_id_test' : 'stripe_price_id_live';
+      const annualPriceIdField = env === 'test' ? 'stripe_price_id_annual_test' : 'stripe_price_id_annual_live';
+
+      // Build update object - sempre salva IDs do Stripe
+      const updateData: Record<string, any> = {
+        [productIdField]: stripeProduct.id,
+        [priceIdField]: monthlyPrice?.id || null,
+        [annualPriceIdField]: yearlyPrice?.id || null,
+      };
+
+      // APENAS atualiza amount_cents e amount_cents_annual se for LIVE (valores de produção)
+      if (env === 'live') {
+        updateData.amount_cents = monthlyPrice?.amount || existingPrice.amount_cents;
+        updateData.amount_cents_annual = yearlyPrice?.amount || null;
+      }
+
       const { error } = await supabase
         .from('subscription_prices')
-        .update({ 
-          stripe_product_id_live: stripeProduct.id,
-          stripe_price_id_live: monthlyPrice?.id || null,
-          stripe_price_id_annual_live: yearlyPrice?.id || null,
-          // CAPTURA AUTOMÁTICA DOS VALORES DO STRIPE
-          amount_cents: monthlyPrice?.amount || existingPrice.amount_cents,
-          amount_cents_annual: yearlyPrice?.amount || null,
-        })
+        .update(updateData)
         .eq('id', existingPrice.id);
 
       if (error) throw error;
 
-      // Atualizar mapeamento local
-      setProductMappings(prev => ({ ...prev, [stripeProduct.id]: localPlanId }));
+      // Atualizar mapeamento local correto
+      if (env === 'test') {
+        setProductMappingsTest(prev => ({ ...prev, [stripeProduct.id]: localPlanId }));
+      } else {
+        setProductMappingsLive(prev => ({ ...prev, [stripeProduct.id]: localPlanId }));
+      }
       
       queryClient.invalidateQueries({ queryKey: ['subscription-prices'] });
-      toast.success(`Mapeamento salvo: ${stripeProduct.name} → ${plans.find(p => p.id === localPlanId)?.name}`);
+      toast.success(`Mapeamento ${env.toUpperCase()} salvo: ${stripeProduct.name} → ${plans.find(p => p.id === localPlanId)?.name}`);
     } catch (error: any) {
       toast.error('Erro ao salvar mapeamento: ' + error.message);
     } finally {
@@ -326,24 +362,37 @@ export default function SubscriptionsPage() {
     }
   };
 
-  // Sincronizar todos os valores do Stripe para o banco local
-  const syncAllPricesFromStripe = async () => {
+  // Sincronizar todos os valores do Stripe para o banco local (apenas LIVE atualiza valores)
+  const syncAllPricesFromStripe = async (env: 'test' | 'live') => {
     setSyncingAll(true);
     let updated = 0;
+    const products = env === 'test' ? stripeProductsTest : stripeProductsLive;
+    const productIdField = env === 'test' ? 'stripe_product_id_test' : 'stripe_product_id_live';
     
     try {
       for (const price of prices) {
-        const product = stripeProductsLive.find(p => p.id === price.stripe_product_id_live);
+        const productId = env === 'test' ? price.stripe_product_id_test : price.stripe_product_id_live;
+        const product = products.find(p => p.id === productId);
         if (product) {
           const monthlyPrice = product.prices.find(p => p.interval === 'month');
           const yearlyPrice = product.prices.find(p => p.interval === 'year');
           
+          // Build update - só atualiza valores monetários se for LIVE
+          const updateData: Record<string, any> = {};
+          if (env === 'live') {
+            updateData.amount_cents = monthlyPrice?.amount || price.amount_cents;
+            updateData.amount_cents_annual = yearlyPrice?.amount || null;
+          }
+          
+          // Se não há nada para atualizar (TEST sem valores), pula
+          if (Object.keys(updateData).length === 0) {
+            updated++;
+            continue;
+          }
+          
           const { error } = await supabase
             .from('subscription_prices')
-            .update({
-              amount_cents: monthlyPrice?.amount || price.amount_cents,
-              amount_cents_annual: yearlyPrice?.amount || null,
-            })
+            .update(updateData)
             .eq('id', price.id);
           
           if (!error) updated++;
@@ -351,7 +400,7 @@ export default function SubscriptionsPage() {
       }
       
       queryClient.invalidateQueries({ queryKey: ['subscription-prices'] });
-      toast.success(`${updated} preços sincronizados com valores do Stripe!`);
+      toast.success(`${updated} preços ${env.toUpperCase()} sincronizados!`);
     } catch (error: any) {
       toast.error('Erro ao sincronizar: ' + error.message);
     } finally {
@@ -359,16 +408,33 @@ export default function SubscriptionsPage() {
     }
   };
 
-  // Obter plano mapeado para um produto Stripe
+  // Helpers para obter mapeamentos do ambiente atual
+  const getCurrentMappings = () => pricesViewEnv === 'test' ? productMappingsTest : productMappingsLive;
+  const setCurrentMappings = (fn: (prev: Record<string, string>) => Record<string, string>) => {
+    if (pricesViewEnv === 'test') {
+      setProductMappingsTest(fn);
+    } else {
+      setProductMappingsLive(fn);
+    }
+  };
+
+  // Obter plano mapeado para um produto Stripe (usa ambiente atual)
   const getMappedPlanForProduct = (stripeProductId: string): SubscriptionPlan | undefined => {
-    const planId = productMappings[stripeProductId];
+    const mappings = getCurrentMappings();
+    const planId = mappings[stripeProductId];
     return plans.find(p => p.id === planId);
   };
 
-  // Verificar se produto está mapeado
+  // Verificar se produto está mapeado (usa ambiente atual)
   const isProductMapped = (stripeProductId: string): boolean => {
-    return !!productMappings[stripeProductId];
+    const mappings = getCurrentMappings();
+    return !!mappings[stripeProductId];
   };
+
+  // Dados dinâmicos baseados no ambiente selecionado
+  const currentProducts = pricesViewEnv === 'test' ? stripeProductsTest : stripeProductsLive;
+  const currentLoading = pricesViewEnv === 'test' ? loadingTest : loadingLive;
+  const currentProductIdField = pricesViewEnv === 'test' ? 'stripe_product_id_test' : 'stripe_product_id_live';
 
   // Calculate system status
   const calculateSystemStatus = () => {
@@ -869,91 +935,190 @@ export default function SubscriptionsPage() {
             </Card>
           </TabsContent>
 
-          {/* Prices Tab - Dynamic Stripe Products */}
+          {/* Prices Tab - Dynamic Stripe Products with TEST/LIVE Toggle */}
           <TabsContent value="prices" className="space-y-4">
-            {/* Header Card */}
+            {/* Environment Control Bar */}
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  {/* View Toggle */}
+                  <div className="flex items-center gap-2">
+                    <Label className="text-sm text-muted-foreground mr-2">Visualizar:</Label>
+                    <div className="flex rounded-lg border overflow-hidden">
+                      <Button
+                        variant={pricesViewEnv === 'test' ? 'default' : 'ghost'}
+                        size="sm"
+                        onClick={() => setPricesViewEnv('test')}
+                        className={`rounded-none gap-1.5 ${pricesViewEnv === 'test' ? 'bg-amber-600 hover:bg-amber-700' : ''}`}
+                      >
+                        <FlaskConical className="h-4 w-4" />
+                        TEST
+                      </Button>
+                      <Button
+                        variant={pricesViewEnv === 'live' ? 'default' : 'ghost'}
+                        size="sm"
+                        onClick={() => setPricesViewEnv('live')}
+                        className={`rounded-none gap-1.5 ${pricesViewEnv === 'live' ? 'bg-green-600 hover:bg-green-700' : ''}`}
+                      >
+                        <Rocket className="h-4 w-4" />
+                        LIVE
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Active Environment Status */}
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="text-muted-foreground">Sistema Ativo:</span>
+                      {isTestMode ? (
+                        <Badge className="bg-amber-500/10 text-amber-500 border-amber-500/20 gap-1">
+                          <FlaskConical className="h-3 w-3" />
+                          TEST
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-green-500/10 text-green-500 border-green-500/20 gap-1">
+                          <Rocket className="h-3 w-3" />
+                          LIVE
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="flex gap-1">
+                      <Button
+                        variant={isTestMode ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => updateSettingMutation.mutate({ key: 'environment_mode', value: 'test' })}
+                        disabled={isTestMode || updateSettingMutation.isPending}
+                        className={`gap-1 ${isTestMode ? 'bg-amber-600 hover:bg-amber-700' : ''}`}
+                      >
+                        <FlaskConical className="h-3 w-3" />
+                        Ativar TEST
+                      </Button>
+                      <Button
+                        variant={!isTestMode ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => updateSettingMutation.mutate({ key: 'environment_mode', value: 'live' })}
+                        disabled={!isTestMode || updateSettingMutation.isPending}
+                        className={`gap-1 ${!isTestMode ? 'bg-green-600 hover:bg-green-700' : ''}`}
+                      >
+                        <Rocket className="h-3 w-3" />
+                        Ativar LIVE
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Products Card */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-4">
                 <div>
                   <CardTitle className="flex items-center gap-2">
-                    <Rocket className="h-5 w-5 text-green-500" />
-                    Produtos Stripe (LIVE)
+                    {pricesViewEnv === 'test' ? (
+                      <FlaskConical className="h-5 w-5 text-amber-500" />
+                    ) : (
+                      <Rocket className="h-5 w-5 text-green-500" />
+                    )}
+                    Produtos Stripe ({pricesViewEnv.toUpperCase()})
                   </CardTitle>
                   <CardDescription>
-                    Lista dinâmica de produtos do Stripe. Associe cada produto a um plano local.
+                    {pricesViewEnv === 'test' 
+                      ? 'Ambiente de TESTE - Use para validar a integração antes de ir para produção.'
+                      : 'Ambiente de PRODUÇÃO - Valores reais de cobrança.'
+                    }
                   </CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    onClick={() => fetchStripeProducts('live')}
-                    disabled={loadingLive}
+                    onClick={() => fetchStripeProducts(pricesViewEnv)}
+                    disabled={currentLoading}
                     className="gap-1.5"
                   >
-                    {loadingLive ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
-                    Sincronizar ({stripeProductsLive.length})
+                    {currentLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
+                    Sincronizar {pricesViewEnv.toUpperCase()} ({currentProducts.length})
                   </Button>
-                  <Button 
-                    variant="default" 
-                    size="sm" 
-                    onClick={syncAllPricesFromStripe}
-                    disabled={syncingAll || stripeProductsLive.length === 0}
-                    className="gap-1.5"
-                  >
-                    {syncingAll ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3 w-3" />}
-                    Sincronizar Valores
-                  </Button>
+                  {pricesViewEnv === 'live' && (
+                    <Button 
+                      variant="default" 
+                      size="sm" 
+                      onClick={() => syncAllPricesFromStripe('live')}
+                      disabled={syncingAll || currentProducts.length === 0}
+                      className="gap-1.5"
+                    >
+                      {syncingAll ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3 w-3" />}
+                      Sincronizar Valores
+                    </Button>
+                  )}
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                {loadingLive ? (
+                {currentLoading ? (
                   <div className="flex items-center justify-center py-8">
                     <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                    <span className="ml-2 text-muted-foreground">Carregando produtos do Stripe...</span>
+                    <span className="ml-2 text-muted-foreground">Carregando produtos do Stripe ({pricesViewEnv.toUpperCase()})...</span>
                   </div>
-                ) : stripeProductsLive.length === 0 ? (
+                ) : currentProducts.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     <Package className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                    <p>Nenhum produto encontrado no Stripe</p>
+                    <p>Nenhum produto encontrado no Stripe ({pricesViewEnv.toUpperCase()})</p>
                     <p className="text-sm">Clique em "Sincronizar" para buscar produtos</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {stripeProductsLive.map((product) => {
+                    {currentProducts.map((product) => {
                       const monthlyPrice = product.prices.find(p => p.interval === 'month');
                       const yearlyPrice = product.prices.find(p => p.interval === 'year');
                       const mappedPlan = getMappedPlanForProduct(product.id);
                       const isMapped = isProductMapped(product.id);
-                      const localPrice = prices.find(p => p.stripe_product_id_live === product.id);
+                      const localPrice = prices.find(p => 
+                        pricesViewEnv === 'test' 
+                          ? p.stripe_product_id_test === product.id
+                          : p.stripe_product_id_live === product.id
+                      );
+                      const currentMappings = getCurrentMappings();
 
                       return (
                         <div 
                           key={product.id} 
                           className={`border rounded-lg p-4 transition-colors ${
                             isMapped 
-                              ? 'bg-green-500/5 border-green-500/30' 
+                              ? pricesViewEnv === 'test'
+                                ? 'bg-amber-500/5 border-amber-500/30'
+                                : 'bg-green-500/5 border-green-500/30' 
                               : 'bg-muted/30 border-border'
                           }`}
                         >
                           {/* Product Header */}
                           <div className="flex items-start justify-between mb-4">
                             <div className="flex items-center gap-3">
-                              <div className={`p-2 rounded-lg ${isMapped ? 'bg-green-500/10' : 'bg-muted'}`}>
-                                <Package className={`h-5 w-5 ${isMapped ? 'text-green-500' : 'text-muted-foreground'}`} />
+                              <div className={`p-2 rounded-lg ${
+                                isMapped 
+                                  ? pricesViewEnv === 'test' ? 'bg-amber-500/10' : 'bg-green-500/10' 
+                                  : 'bg-muted'
+                              }`}>
+                                <Package className={`h-5 w-5 ${
+                                  isMapped 
+                                    ? pricesViewEnv === 'test' ? 'text-amber-500' : 'text-green-500'
+                                    : 'text-muted-foreground'
+                                }`} />
                               </div>
                               <div>
                                 <h3 className="font-semibold flex items-center gap-2">
                                   {product.name}
-                                  {isMapped && <Link2 className="h-3.5 w-3.5 text-green-500" />}
+                                  {isMapped && <Link2 className={`h-3.5 w-3.5 ${pricesViewEnv === 'test' ? 'text-amber-500' : 'text-green-500'}`} />}
                                 </h3>
                                 <code className="text-xs text-muted-foreground">{product.id}</code>
                               </div>
                             </div>
                             {isMapped ? (
-                              <Badge className="bg-green-500/10 text-green-500 border-green-500/20">
+                              <Badge className={pricesViewEnv === 'test' 
+                                ? 'bg-amber-500/10 text-amber-500 border-amber-500/20'
+                                : 'bg-green-500/10 text-green-500 border-green-500/20'
+                              }>
                                 <CheckCircle2 className="h-3 w-3 mr-1" />
-                                Mapeado
+                                Mapeado ({pricesViewEnv.toUpperCase()})
                               </Badge>
                             ) : (
                               <Badge variant="secondary">
@@ -977,7 +1142,7 @@ export default function SubscriptionsPage() {
                                   <code className="block text-xs text-muted-foreground mt-1">
                                     {monthlyPrice.id}
                                   </code>
-                                  {localPrice && localPrice.amount_cents !== monthlyPrice.amount && (
+                                  {pricesViewEnv === 'live' && localPrice && localPrice.amount_cents !== monthlyPrice.amount && (
                                     <p className="text-xs text-amber-500 mt-1">
                                       ⚠️ Local: {formatCurrency(localPrice.amount_cents / 100)}
                                     </p>
@@ -1000,7 +1165,7 @@ export default function SubscriptionsPage() {
                                   <code className="block text-xs text-muted-foreground mt-1">
                                     {yearlyPrice.id}
                                   </code>
-                                  {localPrice && localPrice.amount_cents_annual !== yearlyPrice.amount && (
+                                  {pricesViewEnv === 'live' && localPrice && localPrice.amount_cents_annual !== yearlyPrice.amount && (
                                     <p className="text-xs text-amber-500 mt-1">
                                       ⚠️ Local: {localPrice.amount_cents_annual 
                                         ? formatCurrency(localPrice.amount_cents_annual / 100) 
@@ -1018,10 +1183,10 @@ export default function SubscriptionsPage() {
                           <div className="flex items-center gap-3 pt-3 border-t">
                             <Label className="text-sm whitespace-nowrap">Plano Local:</Label>
                             <Select 
-                              value={productMappings[product.id] || '__none__'}
+                              value={currentMappings[product.id] || '__none__'}
                               onValueChange={(v) => {
                                 const newValue = v === '__none__' ? '' : v;
-                                setProductMappings(prev => ({
+                                setCurrentMappings(prev => ({
                                   ...prev,
                                   [product.id]: newValue
                                 }));
@@ -1045,14 +1210,14 @@ export default function SubscriptionsPage() {
                             <Button
                               size="sm"
                               onClick={() => {
-                                const planId = productMappings[product.id];
+                                const planId = currentMappings[product.id];
                                 if (planId) {
-                                  saveProductMapping(product, planId);
+                                  saveProductMapping(product, planId, pricesViewEnv);
                                 } else {
                                   toast.error('Selecione um plano para mapear');
                                 }
                               }}
-                              disabled={!productMappings[product.id] || savingMapping === product.id}
+                              disabled={!currentMappings[product.id] || savingMapping === product.id}
                               className="gap-1.5"
                             >
                               {savingMapping === product.id ? (
@@ -1068,11 +1233,15 @@ export default function SubscriptionsPage() {
                           {isMapped && localPrice && (
                             <div className="mt-3 pt-3 border-t text-xs text-muted-foreground">
                               <span className="font-medium">Mapeado para:</span> {mappedPlan?.name} • 
-                              <span className="ml-2">Mensal BD:</span> {formatCurrency(localPrice.amount_cents / 100)} • 
-                              <span className="ml-2">Anual BD:</span> {localPrice.amount_cents_annual 
-                                ? formatCurrency(localPrice.amount_cents_annual / 100) 
-                                : <span className="text-amber-500">NULL</span>
-                              }
+                              {pricesViewEnv === 'live' && (
+                                <>
+                                  <span className="ml-2">Mensal BD:</span> {formatCurrency(localPrice.amount_cents / 100)} • 
+                                  <span className="ml-2">Anual BD:</span> {localPrice.amount_cents_annual 
+                                    ? formatCurrency(localPrice.amount_cents_annual / 100) 
+                                    : <span className="text-amber-500">NULL</span>
+                                  }
+                                </>
+                              )}
                             </div>
                           )}
                         </div>
@@ -1086,7 +1255,7 @@ export default function SubscriptionsPage() {
             {/* Summary Card */}
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm">Resumo dos Mapeamentos</CardTitle>
+                <CardTitle className="text-sm">Resumo dos Mapeamentos ({pricesViewEnv.toUpperCase()})</CardTitle>
               </CardHeader>
               <CardContent>
                 <Table>
@@ -1095,13 +1264,14 @@ export default function SubscriptionsPage() {
                       <TableHead>Plano Local</TableHead>
                       <TableHead>Preço Mensal (BD)</TableHead>
                       <TableHead>Preço Anual (BD)</TableHead>
-                      <TableHead>Produto Stripe</TableHead>
+                      <TableHead>Produto Stripe ({pricesViewEnv.toUpperCase()})</TableHead>
                       <TableHead>Status</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {prices.map(price => {
-                      const stripeProduct = stripeProductsLive.find(p => p.id === price.stripe_product_id_live);
+                      const productId = pricesViewEnv === 'test' ? price.stripe_product_id_test : price.stripe_product_id_live;
+                      const stripeProduct = currentProducts.find(p => p.id === productId);
                       const monthlyMatch = stripeProduct?.prices.find(p => p.interval === 'month')?.amount === price.amount_cents;
                       const annualMatch = stripeProduct?.prices.find(p => p.interval === 'year')?.amount === price.amount_cents_annual;
                       
@@ -1113,7 +1283,7 @@ export default function SubscriptionsPage() {
                           <TableCell>
                             <div className="flex items-center gap-2">
                               {formatCurrency(price.amount_cents / 100)}
-                              {stripeProduct && (monthlyMatch ? (
+                              {pricesViewEnv === 'live' && stripeProduct && (monthlyMatch ? (
                                 <CheckCircle2 className="h-3 w-3 text-green-500" />
                               ) : (
                                 <AlertCircle className="h-3 w-3 text-amber-500" />
@@ -1126,7 +1296,7 @@ export default function SubscriptionsPage() {
                                 ? formatCurrency(price.amount_cents_annual / 100)
                                 : <span className="text-muted-foreground">—</span>
                               }
-                              {stripeProduct && price.amount_cents_annual && (annualMatch ? (
+                              {pricesViewEnv === 'live' && stripeProduct && price.amount_cents_annual && (annualMatch ? (
                                 <CheckCircle2 className="h-3 w-3 text-green-500" />
                               ) : (
                                 <AlertCircle className="h-3 w-3 text-amber-500" />
@@ -1134,9 +1304,9 @@ export default function SubscriptionsPage() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            {price.stripe_product_id_live ? (
+                            {productId ? (
                               <code className="text-xs bg-muted px-1.5 py-0.5 rounded">
-                                {truncateId(price.stripe_product_id_live)}
+                                {truncateId(productId)}
                               </code>
                             ) : (
                               <span className="text-muted-foreground">—</span>
