@@ -11,49 +11,59 @@ const logStep = (step: string, details?: any) => {
   console.log(`[STRIPE-WEBHOOK] ${step}${detailsStr}`);
 };
 
-// Helper to find plan by Stripe price ID (checks both test and live fields)
+// Helper to find plan by Stripe price ID (checks ALL price fields including annual)
 async function findPlanByStripePriceId(supabaseAdmin: any, stripePriceId: string) {
-  // First try test price ID
-  let { data: priceData } = await supabaseAdmin
-    .from('subscription_prices')
-    .select('plan_id, subscription_plans(*)')
-    .eq('stripe_price_id_test', stripePriceId)
-    .eq('is_active', true)
-    .single();
+  // Array of all price ID fields to check (monthly and annual, test and live)
+  const priceFields = [
+    'stripe_price_id_test',
+    'stripe_price_id_live',
+    'stripe_price_id_annual_test',
+    'stripe_price_id_annual_live',
+    'stripe_price_id' // legacy fallback
+  ];
 
-  if (priceData) {
-    logStep('Found plan by test price ID', { stripePriceId });
-    return priceData;
-  }
+  for (const field of priceFields) {
+    const { data: priceData, error } = await supabaseAdmin
+      .from('subscription_prices')
+      .select('plan_id, subscription_plans(*)')
+      .eq(field, stripePriceId)
+      .eq('is_active', true)
+      .single();
 
-  // Then try live price ID
-  ({ data: priceData } = await supabaseAdmin
-    .from('subscription_prices')
-    .select('plan_id, subscription_plans(*)')
-    .eq('stripe_price_id_live', stripePriceId)
-    .eq('is_active', true)
-    .single());
-
-  if (priceData) {
-    logStep('Found plan by live price ID', { stripePriceId });
-    return priceData;
-  }
-
-  // Fallback: try legacy stripe_price_id field
-  ({ data: priceData } = await supabaseAdmin
-    .from('subscription_prices')
-    .select('plan_id, subscription_plans(*)')
-    .eq('stripe_price_id', stripePriceId)
-    .eq('is_active', true)
-    .single());
-
-  if (priceData) {
-    logStep('Found plan by legacy price ID', { stripePriceId });
-    return priceData;
+    if (priceData && !error) {
+      logStep(`Found plan by ${field}`, { stripePriceId, planId: priceData.plan_id });
+      return priceData;
+    }
   }
 
   logStep('Plan not found for price ID', { stripePriceId });
   return null;
+}
+
+// Helper to get user by email efficiently (direct query instead of listing all)
+async function getUserByEmail(supabaseAdmin: any, email: string) {
+  try {
+    // Use listUsers with filter - more efficient than loading all users
+    const { data, error } = await supabaseAdmin.auth.admin.listUsers({
+      filter: `email.eq.${email}`,
+      page: 1,
+      perPage: 1
+    });
+
+    if (error) {
+      logStep('Error fetching user by email', { email, error: error.message });
+      return null;
+    }
+
+    if (data?.users?.length > 0) {
+      return data.users[0];
+    }
+
+    return null;
+  } catch (err) {
+    logStep('Exception fetching user by email', { email, error: err instanceof Error ? err.message : 'Unknown' });
+    return null;
+  }
 }
 
 // Helper to renew credits and log result
@@ -169,9 +179,8 @@ Deno.serve(async (req) => {
             break;
           }
 
-          // Get user by email
-          const { data: userData } = await supabaseAdmin.auth.admin.listUsers();
-          const user = userData?.users?.find(u => u.email === customerEmail);
+          // Get user by email - optimized query
+          const user = await getUserByEmail(supabaseAdmin, customerEmail);
 
           if (!user) {
             logStep('ERROR: User not found for email', { email: customerEmail });
@@ -192,7 +201,7 @@ Deno.serve(async (req) => {
           const subscription = await stripe.subscriptions.retrieve(subscriptionId);
           const priceId = subscription.items.data[0]?.price.id;
 
-          // Find plan by stripe_price_id (checks both test and live)
+          // Find plan by stripe_price_id (checks all fields including annual)
           const priceData = await findPlanByStripePriceId(supabaseAdmin, priceId);
 
           if (!priceData) {
