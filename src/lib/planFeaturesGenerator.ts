@@ -1,4 +1,4 @@
-import type { PlatformMetrics, PlanData } from '@/hooks/usePlatformMetrics';
+import type { PlanData, PlanFeature } from '@/hooks/usePlatformMetrics';
 
 export interface FeatureItem {
   text: string;
@@ -14,73 +14,41 @@ const formatNumber = (n: number): string => {
 
 /**
  * Generates a list of features for a subscription plan based on database data
- * @param plan Plan data from database
- * @param metrics Platform metrics from database (templates count, etc.)
- * @returns Array of FeatureItem with text, included status, and optional highlight
+ * Now uses the features array from the plan data returned by get_platform_metrics RPC
  */
-export function generatePlanFeatures(
-  plan: PlanData,
-  metrics: PlatformMetrics
-): FeatureItem[] {
-  const features: FeatureItem[] = [];
-
-  // 1. AI Tokens - always show
-  const tokensText = `${formatNumber(plan.ai_tokens_monthly)} tokens IA/mês`;
-  features.push({ text: tokensText, included: true, highlight: true });
-
-  // 2. Plan-specific features based on code (hierarchy)
-  switch (plan.code) {
-    case 'free':
-      features.push({ text: `${metrics.templates_count} templates de laudo`, included: true });
-      features.push({ text: `${metrics.frases_count} frases modelo`, included: true });
-      features.push({ text: `${metrics.tables_count}+ tabelas de referência`, included: true });
-      features.push({ text: `${metrics.calculators_count} calculadoras médicas`, included: true });
-      features.push({ text: 'Ditado por voz (Web Speech)', included: true });
-      features.push({ text: 'IA Sugestões', included: plan.feature_ai_suggestions });
-      features.push({ text: 'IA Conclusão', included: plan.feature_ai_conclusion });
-      features.push({ text: 'Classificação RADS', included: plan.feature_ai_rads });
-      features.push({ text: 'Whisper Premium', included: plan.feature_whisper });
-      break;
-
-    case 'basico':
-      features.push({ text: 'Tudo do Gratuito', included: true, highlight: true });
-      features.push({ text: 'IA Conclusão (2 tokens/uso)', included: plan.feature_ai_conclusion });
-      features.push({ text: 'IA Sugestões', included: plan.feature_ai_suggestions });
-      features.push({ text: 'Classificação RADS', included: plan.feature_ai_rads });
-      features.push({ text: 'Whisper Premium', included: plan.feature_whisper });
-      features.push({ text: 'Suporte prioritário', included: plan.feature_priority_support });
-      break;
-
-    case 'profissional':
-      features.push({ text: 'Tudo do Básico', included: true, highlight: true });
-      features.push({
-        text: `${plan.whisper_credits_monthly} créditos Whisper/mês`,
-        included: plan.whisper_credits_monthly > 0,
-      });
-      features.push({ text: 'Chat IA Radiológico', included: true });
-      features.push({ text: 'Corretor IA de Voz', included: true });
-      features.push({ text: 'Classificação RADS', included: plan.feature_ai_rads });
-      features.push({ text: 'Suporte prioritário', included: plan.feature_priority_support });
-      break;
-
-    case 'premium':
-      features.push({ text: 'Tudo do Profissional', included: true, highlight: true });
-      features.push({
-        text: `${plan.whisper_credits_monthly} créditos Whisper/mês`,
-        included: true,
-      });
-      features.push({ text: 'Onboarding dedicado', included: true });
-      features.push({ text: 'Suporte VIP', included: true });
-      break;
-
-    default:
-      // Fallback for unknown plan codes
-      features.push({ text: `${metrics.templates_count} templates`, included: true });
-      features.push({ text: `${metrics.frases_count} frases modelo`, included: true });
-      break;
+export function generatePlanFeatures(plan: PlanData): FeatureItem[] {
+  // If plan has features from database, use them directly
+  if (plan.features && plan.features.length > 0) {
+    return plan.features.map((f: PlanFeature) => {
+      let text = f.display_name;
+      
+      // For dynamic features, prepend the value
+      if (f.is_dynamic && f.dynamic_value !== null && f.dynamic_value > 0) {
+        text = `${formatNumber(f.dynamic_value)} ${f.dynamic_suffix || f.display_name}`;
+      } else if (f.is_dynamic && (f.dynamic_value === null || f.dynamic_value === 0)) {
+        // Dynamic feature with no value - show as not included
+        return {
+          text: f.display_name,
+          included: false,
+          highlight: false
+        };
+      }
+      
+      return {
+        text,
+        included: f.is_included,
+        highlight: f.is_dynamic && f.is_included
+      };
+    });
   }
 
-  return features;
+  // Fallback for plans without features (should not happen with new system)
+  return [
+    { text: `${formatNumber(plan.ai_tokens_monthly)} tokens IA/mês`, included: true, highlight: true },
+    { text: 'Ditado por voz nativo', included: true },
+    { text: 'Templates e frases modelo', included: true },
+    { text: 'Tabelas de referência', included: true },
+  ];
 }
 
 // Re-export faqs for backward compatibility

@@ -25,18 +25,6 @@ export const PlansSelectionSheet = ({
   const [interval, setInterval] = useState<'month' | 'year'>('year');
   const [selectedPriceId, setSelectedPriceId] = useState<string | null>(null);
 
-  // Default metrics fallback
-  const defaultMetrics = {
-    templates_count: 149,
-    frases_count: 474,
-    tables_count: 100,
-    calculators_count: 25,
-    dictionary_terms_count: 4300,
-    modalities_count: 5,
-  };
-
-  const metrics = platformData?.metrics || defaultMetrics;
-
   // Get price data from plan's prices array
   const getPriceForInterval = (plan: any) => {
     const prices = plan.prices || [];
@@ -91,9 +79,9 @@ export const PlansSelectionSheet = ({
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {platformData?.plans?.map((plan, index) => {
+            {platformData?.plans?.map((plan, index) => {
                 const prices = getPriceForInterval(plan);
-                const features = generatePlanFeatures(plan, metrics);
+                const features = generatePlanFeatures(plan);
                 const isCurrentPlan = plan.code === currentPlanCode;
                 const isFree = plan.code === 'free';
 

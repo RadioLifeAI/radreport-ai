@@ -8,7 +8,8 @@ import {
   Users, 
   Shield, 
   ChevronLeft,
-  CreditCard 
+  CreditCard,
+  ListChecks
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -19,6 +20,7 @@ const navItems = [
   { to: '/admin/templates', icon: Database, label: 'Templates' },
   { to: '/admin/frases', icon: FileText, label: 'Frases Modelo' },
   { to: '/admin/subscriptions', icon: CreditCard, label: 'Assinaturas' },
+  { to: '/admin/features', icon: ListChecks, label: 'Features Planos' },
   { to: '/admin/users', icon: Users, label: 'Usuários', disabled: true },
   { to: '/admin/settings', icon: Settings, label: 'Configurações', disabled: true },
   { to: '/admin/security', icon: Shield, label: 'Segurança', disabled: true },

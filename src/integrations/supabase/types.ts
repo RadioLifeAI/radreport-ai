@@ -1618,6 +1618,99 @@ export type Database = {
         }
         Relationships: []
       }
+      plan_feature_assignments: {
+        Row: {
+          created_at: string | null
+          custom_text: string | null
+          display_order: number | null
+          feature_id: string
+          id: string
+          is_included: boolean | null
+          plan_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          custom_text?: string | null
+          display_order?: number | null
+          feature_id: string
+          id?: string
+          is_included?: boolean | null
+          plan_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          custom_text?: string | null
+          display_order?: number | null
+          feature_id?: string
+          id?: string
+          is_included?: boolean | null
+          plan_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_feature_assignments_feature_id_fkey"
+            columns: ["feature_id"]
+            isOneToOne: false
+            referencedRelation: "plan_features"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plan_feature_assignments_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plan_features: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          display_name: string
+          display_order: number | null
+          dynamic_field: string | null
+          dynamic_suffix: string | null
+          feature_key: string
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          is_dynamic: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          display_name: string
+          display_order?: number | null
+          dynamic_field?: string | null
+          dynamic_suffix?: string | null
+          feature_key: string
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_dynamic?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          display_name?: string
+          display_order?: number | null
+          dynamic_field?: string | null
+          dynamic_suffix?: string | null
+          feature_key?: string
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_dynamic?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       platform_metrics: {
         Row: {
           created_at: string | null
