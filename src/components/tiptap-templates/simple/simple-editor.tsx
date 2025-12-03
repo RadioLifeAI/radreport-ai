@@ -252,6 +252,10 @@ export function SimpleEditor({
       if (onEditorReady) {
         onEditorReady(editor)
       }
+      // Reportar contagem inicial
+      if (onCharacterCount) {
+        onCharacterCount(editor.storage.characterCount.characters())
+      }
     },
   })
 
@@ -290,11 +294,16 @@ export function SimpleEditor({
         const safePos = Math.min(from, maxPos)
         editor.commands.setTextSelection(safePos)
         
+        // Atualizar contagem após sincronização externa
+        if (onCharacterCount) {
+          onCharacterCount(editor.storage.characterCount.characters())
+        }
+        
         // Resetar flag após atualização
         isUpdatingFromExternal.current = false
       }
     }
-  }, [editor, externalContent])
+  }, [editor, externalContent, onCharacterCount])
 
   const rect = useCursorVisibility({
     editor,
