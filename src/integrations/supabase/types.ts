@@ -2705,6 +2705,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_calculator_usage: {
+        Row: {
+          calculator_id: string
+          id: string
+          usage_count: number | null
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          calculator_id: string
+          id?: string
+          usage_count?: number | null
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          calculator_id?: string
+          id?: string
+          usage_count?: number | null
+          used_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_favorite_calculators: {
         Row: {
           calculator_id: string
@@ -2943,6 +2967,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_table_usage: {
+        Row: {
+          id: string
+          table_id: string
+          usage_count: number | null
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          table_id: string
+          usage_count?: number | null
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          id?: string
+          table_id?: string
+          usage_count?: number | null
+          used_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       user_template_usage: {
         Row: {

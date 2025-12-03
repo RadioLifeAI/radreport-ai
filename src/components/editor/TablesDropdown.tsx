@@ -36,17 +36,11 @@ export function TablesDropdown({ editor, onInsertTable }: TablesDropdownProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [viewerOpen, setViewerOpen] = useState(false)
   const [selectedTable, setSelectedTable] = useState<RadiologyTable | null>(null)
-  const { favorites, isFavorite, toggleFavorite } = useFavoriteTables()
+  const { favorites, isFavorite, toggleFavorite, recordUsage, favoriteTables } = useFavoriteTables()
 
-  // Get all tables flat for favorites lookup
-  const allTables = useMemo(() => {
-    return RADIOLOGY_TABLES.flatMap(category => category.tables)
-  }, [])
-
-  // Get favorite tables
-  const favoriteTables = useMemo(() => {
-    return allTables.filter(table => favorites.includes(table.id))
-  }, [allTables, favorites])
+  // Limit to 3 favorites in dropdown
+  const displayedFavorites = favoriteTables.slice(0, 3)
+  const hiddenCount = favoriteTables.length - 3
 
   if (!editor) return null
 
@@ -89,11 +83,13 @@ export function TablesDropdown({ editor, onInsertTable }: TablesDropdownProps) {
       })
       .run()
     
+    recordUsage(table.id)
     toast.success(`Tabela "${table.name}" inserida como referência`)
   }
 
   const handleInsertEditable = (table: RadiologyTable) => {
     onInsertTable(table.htmlContent)
+    recordUsage(table.id)
     toast.success(`Tabela "${table.name}" inserida para edição`)
   }
 
@@ -186,14 +182,19 @@ export function TablesDropdown({ editor, onInsertTable }: TablesDropdownProps) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-72 bg-popover border-border z-[100]">
-          {/* Seção de Favoritos */}
-          {favoriteTables.length > 0 && (
+          {/* Seção de Favoritos - máximo 3 */}
+          {displayedFavorites.length > 0 && (
             <>
-              <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground flex items-center gap-1">
-                <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                Favoritos
+              <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground flex items-center gap-1 justify-between">
+                <div className="flex items-center gap-1">
+                  <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                  Favoritos
+                </div>
+                {hiddenCount > 0 && (
+                  <span className="text-[10px] text-muted-foreground/70">(+{hiddenCount} na sidebar)</span>
+                )}
               </div>
-              {favoriteTables.map((table) => (
+              {displayedFavorites.map((table) => (
                 <div
                   key={`fav-${table.id}`}
                   className="group flex items-center justify-between px-2 py-1.5 hover:bg-accent rounded-sm transition-colors"

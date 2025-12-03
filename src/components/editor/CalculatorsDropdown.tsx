@@ -45,11 +45,16 @@ export function CalculatorsDropdown({ editor }: CalculatorsDropdownProps) {
   const [selectedCalculator, setSelectedCalculator] = useState<RadiologyCalculator | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
-  const { favorites, isFavorite, toggleFavorite } = useFavoriteCalculators()
+  const { favorites, isFavorite, toggleFavorite, recordUsage, favoriteCalculators } = useFavoriteCalculators()
+
+  // Limit to 3 favorites in dropdown
+  const displayedFavorites = favoriteCalculators.slice(0, 3)
+  const hiddenCount = favoriteCalculators.length - 3
 
   const handleCalculatorClick = (calculator: RadiologyCalculator) => {
     setSelectedCalculator(calculator)
     setIsModalOpen(true)
+    recordUsage(calculator.id)
   }
 
   const handleInsertCalculation = (text: string) => {
@@ -75,9 +80,6 @@ export function CalculatorsDropdown({ editor }: CalculatorsDropdownProps) {
     return acc
   }, {} as Record<string, RadiologyCalculator[]>)
 
-  // Get favorite calculators
-  const favoriteCalculators = radiologyCalculators.filter(calc => favorites.includes(calc.id))
-
   return (
     <>
       <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
@@ -89,14 +91,19 @@ export function CalculatorsDropdown({ editor }: CalculatorsDropdownProps) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-72 bg-popover border-border z-[100]">
-          {/* Seção de Favoritos */}
-          {favoriteCalculators.length > 0 && (
+          {/* Seção de Favoritos - máximo 3 */}
+          {displayedFavorites.length > 0 && (
             <>
-              <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground flex items-center gap-1">
-                <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                Favoritos
+              <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground flex items-center gap-1 justify-between">
+                <div className="flex items-center gap-1">
+                  <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                  Favoritos
+                </div>
+                {hiddenCount > 0 && (
+                  <span className="text-[10px] text-muted-foreground/70">(+{hiddenCount} na sidebar)</span>
+                )}
               </div>
-              {favoriteCalculators.map((calc) => (
+              {displayedFavorites.map((calc) => (
                 <div
                   key={`fav-${calc.id}`}
                   className="group flex items-center justify-between px-2 py-1.5 hover:bg-accent rounded-sm transition-colors cursor-pointer"
