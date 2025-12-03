@@ -1,5 +1,9 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { getCorsHeaders, getAllHeaders } from '../_shared/cors.ts'
+import { AI_CREDIT_COSTS, checkAICredits, consumeAICredits, insufficientCreditsResponse } from '../_shared/aiCredits.ts'
+
+const FEATURE_NAME = 'ai-voice-inline-edit';
+const CREDITS_REQUIRED = AI_CREDIT_COSTS[FEATURE_NAME];
 
 Deno.serve(async (req: Request) => {
   const corsHeaders = getCorsHeaders(req);
@@ -30,6 +34,19 @@ Deno.serve(async (req: Request) => {
     });
   }
 
+  // Create admin client for RPC call
+  const supabaseAdmin = createClient(
+    Deno.env.get('SUPABASE_URL') ?? '',
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+  );
+
+  // ========== CREDIT CHECK ==========
+  const creditCheck = await checkAICredits(supabaseAdmin, user.id, CREDITS_REQUIRED);
+  if (!creditCheck.hasCredits) {
+    console.log(`[${FEATURE_NAME}] Insufficient credits: ${creditCheck.balance}/${CREDITS_REQUIRED}`);
+    return insufficientCreditsResponse(corsHeaders, creditCheck.balance, CREDITS_REQUIRED);
+  }
+
   try {
     const { voiceText, selectedField, currentSectionText, user_id } = await req.json()
 
@@ -40,15 +57,9 @@ Deno.serve(async (req: Request) => {
       )
     }
 
-    // Create admin client for RPC call
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
-
     // Build AI request via RPC (prompts and API key from database/Vault)
     const { data: config, error: rpcError } = await supabaseAdmin.rpc('build_ai_request', {
-      fn_name: 'ai-voice-inline-edit',
+      fn_name: FEATURE_NAME,
       user_data: {
         voice_text: voiceText,
         selected_field: selectedField,
@@ -86,19 +97,21 @@ Deno.serve(async (req: Request) => {
     const content = completion.choices?.[0]?.message?.content || ""
     const parsed = JSON.parse(content || "{}")
 
-    // Log to ai_voice_logs
-    if (user_id) {
-      await supabaseAdmin.from("ai_voice_logs").insert({
-        user_id,
-        action: "voice-inline-edit",
-        raw_voice: String(voiceText),
-        field: String(parsed.field || selectedField),
-        replacement: String(parsed.replacement || ""),
-        created_at: new Date().toISOString(),
-      })
-    }
+    // ========== CONSUME CREDITS AFTER SUCCESS ==========
+    const consumeResult = await consumeAICredits(supabaseAdmin, user.id, CREDITS_REQUIRED, FEATURE_NAME, 'Edição por voz AI');
+    console.log(`[${FEATURE_NAME}] Credits consumed:`, consumeResult);
 
-    return new Response(JSON.stringify(parsed), {
+    // Log to ai_voice_logs
+    await supabaseAdmin.from("ai_voice_logs").insert({
+      user_id: user.id,
+      action: "voice-inline-edit",
+      raw_voice: String(voiceText),
+      field: String(parsed.field || selectedField),
+      replacement: String(parsed.replacement || ""),
+      created_at: new Date().toISOString(),
+    })
+
+    return new Response(JSON.stringify({ ...parsed, credits_remaining: consumeResult.balanceAfter }), {
       status: 200,
       headers: { ...getAllHeaders(req), "Content-Type": "application/json" },
     })

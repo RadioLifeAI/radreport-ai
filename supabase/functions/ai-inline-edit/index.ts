@@ -1,5 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { getCorsHeaders, getAllHeaders } from '../_shared/cors.ts'
+import { AI_CREDIT_COSTS, checkAICredits, consumeAICredits, insufficientCreditsResponse } from '../_shared/aiCredits.ts'
 
 function sanitizeFragment(html: string): string {
   let out = String(html || "")
@@ -33,6 +34,9 @@ function ensureSectionTag(section: string | undefined, html: string): string {
   return frag
 }
 
+const FEATURE_NAME = 'ai-inline-edit';
+const CREDITS_REQUIRED = AI_CREDIT_COSTS[FEATURE_NAME];
+
 Deno.serve(async (req: Request) => {
   const corsHeaders = getCorsHeaders(req);
   
@@ -63,6 +67,19 @@ Deno.serve(async (req: Request) => {
     });
   }
 
+  // Create admin client for RPC call
+  const supabaseAdmin = createClient(
+    Deno.env.get('SUPABASE_URL') ?? '',
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+  );
+
+  // ========== CREDIT CHECK ==========
+  const creditCheck = await checkAICredits(supabaseAdmin, user.id, CREDITS_REQUIRED);
+  if (!creditCheck.hasCredits) {
+    console.log(`[${FEATURE_NAME}] Insufficient credits: ${creditCheck.balance}/${CREDITS_REQUIRED}`);
+    return insufficientCreditsResponse(corsHeaders, creditCheck.balance, CREDITS_REQUIRED);
+  }
+
   try {
     const { userRequest, selection, fullDocument, userId, section } = await req.json()
 
@@ -83,15 +100,9 @@ Deno.serve(async (req: Request) => {
         ? `Seção: IMPRESSÃO — retornar diagnóstico ou síntese final em parágrafo único.`
         : `Seção não especificada — apenas retornar HTML válido.`
 
-    // Create admin client for RPC call
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
-
     // Build AI request via RPC (gets prompt from database, API key from Vault)
     const { data: config, error: rpcError } = await supabaseAdmin.rpc('build_ai_request', {
-      fn_name: 'ai-inline-edit',
+      fn_name: FEATURE_NAME,
       user_data: {
         user_request: String(userRequest || ""),
         selection: selectionHtml,
@@ -123,43 +134,37 @@ Deno.serve(async (req: Request) => {
     const raw = completion.choices?.[0]?.message?.content || ""
     let html = ensureSectionTag(sec, raw)
     html = sanitizeFragment(html)
-    const headers = { ...getAllHeaders(req), "Content-Type": "text/html" }
+
+    // ========== CONSUME CREDITS AFTER SUCCESS ==========
+    const consumeResult = await consumeAICredits(supabaseAdmin, user.id, CREDITS_REQUIRED, FEATURE_NAME, 'Edição inline AI');
+    console.log(`[${FEATURE_NAME}] Credits consumed:`, consumeResult);
 
     // LOG SUPABASE (success)
-    if (userId) {
-      await supabaseAdmin.from("ai_inline_edits_log").insert({
-        user_id: userId,
-        command: String(userRequest || ""),
-        selection_size: selectionHtml.length,
-        response_size: html.length,
-        status: "ok",
-        metadata: { section: sec },
-      })
-    }
+    await supabaseAdmin.from("ai_inline_edits_log").insert({
+      user_id: user.id,
+      command: String(userRequest || ""),
+      selection_size: selectionHtml.length,
+      response_size: html.length,
+      status: "ok",
+      metadata: { section: sec },
+    })
 
-    return new Response(html, { headers })
+    return new Response(html, { headers: { ...getAllHeaders(req), "Content-Type": "text/html" } })
   } catch (err) {
     console.error("Error processing inline edit:", err)
     
     // LOG SUPABASE ERROR
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
-    
     try {
       const bodyText = await req.clone().text();
-      const { userId, userRequest, section } = JSON.parse(bodyText || '{}');
-      if (userId) {
-        await supabaseAdmin.from("ai_inline_edits_log").insert({
-          user_id: userId,
-          command: String(userRequest || ""),
-          selection_size: 0,
-          response_size: 0,
-          status: "error",
-          metadata: { section, message: String((err as any)?.message || err) },
-        })
-      }
+      const { userRequest, section } = JSON.parse(bodyText || '{}');
+      await supabaseAdmin.from("ai_inline_edits_log").insert({
+        user_id: user.id,
+        command: String(userRequest || ""),
+        selection_size: 0,
+        response_size: 0,
+        status: "error",
+        metadata: { section, message: String((err as any)?.message || err) },
+      })
     } catch (logErr) {
       console.error("Error logging to database:", logErr);
     }

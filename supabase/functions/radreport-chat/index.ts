@@ -1,5 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { getCorsHeaders, getAllHeaders } from '../_shared/cors.ts';
+import { AI_CREDIT_COSTS, checkAICredits, consumeAICredits, insufficientCreditsResponse } from '../_shared/aiCredits.ts';
 
 interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
@@ -11,6 +12,9 @@ interface StructuredResponse {
   explicacao?: string;
   tipo: 'achado' | 'conclusao' | 'classificacao' | 'pergunta';
 }
+
+const FEATURE_NAME = 'radreport-chat';
+const CREDITS_REQUIRED = AI_CREDIT_COSTS[FEATURE_NAME];
 
 // Tool definition for structured radiology responses (structural schema, kept in code)
 const tools = [
@@ -82,9 +86,16 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
+    // ========== CREDIT CHECK ==========
+    const creditCheck = await checkAICredits(supabaseAdmin, user.id, CREDITS_REQUIRED);
+    if (!creditCheck.hasCredits) {
+      console.log(`[${FEATURE_NAME}] Insufficient credits: ${creditCheck.balance}/${CREDITS_REQUIRED}`);
+      return insufficientCreditsResponse(corsHeaders, creditCheck.balance, CREDITS_REQUIRED);
+    }
+
     // Build AI request via RPC (prompts and API key from database/Vault)
     const { data: config, error: rpcError } = await supabaseAdmin.rpc('build_ai_request', {
-      fn_name: 'radreport-chat',
+      fn_name: FEATURE_NAME,
       user_data: {
         messages: messages
       }
@@ -143,6 +154,10 @@ Deno.serve(async (req) => {
       console.log('Using fallback content');
     }
 
+    // ========== CONSUME CREDITS AFTER SUCCESS ==========
+    const consumeResult = await consumeAICredits(supabaseAdmin, user.id, CREDITS_REQUIRED, FEATURE_NAME, 'Chat AI');
+    console.log(`[${FEATURE_NAME}] Credits consumed:`, consumeResult);
+
     // Create SSE stream with structured data
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
@@ -167,7 +182,7 @@ Deno.serve(async (req) => {
             await new Promise(resolve => setTimeout(resolve, 20));
           }
 
-          // Send final complete message
+          // Send final complete message with credits info
           controller.enqueue(
             encoder.encode(`data: ${JSON.stringify({ 
               content: '',
@@ -175,7 +190,8 @@ Deno.serve(async (req) => {
               explicacao: structuredResponse!.explicacao || '',
               tipo: structuredResponse!.tipo,
               isPartial: false,
-              isComplete: true
+              isComplete: true,
+              credits_remaining: consumeResult.balanceAfter
             })}\n\n`)
           );
 
