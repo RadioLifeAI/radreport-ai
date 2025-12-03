@@ -8904,10 +8904,12 @@ export type Database = {
         }
         Returns: number
       }
-      renew_monthly_credits: {
-        Args: { p_plan_code: string; p_user_id: string }
-        Returns: undefined
-      }
+      renew_monthly_credits:
+        | {
+            Args: { p_plan_code: string; p_user_id: string }
+            Returns: undefined
+          }
+        | { Args: { p_plan_code: string; p_user_id: string }; Returns: Json }
       rm_craneo_alteracao_corpo_caloso: {
         Args: {
           afilamento?: boolean
