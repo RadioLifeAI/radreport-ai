@@ -144,7 +144,10 @@ export default function Precos() {
             </div>
             
             <div className="glass-card rounded-2xl p-6 overflow-hidden">
-              <FeatureComparisonTable plans={planNames} highlightedIndex={2} />
+              <FeatureComparisonTable 
+                plans={platformData?.plans || planNames} 
+                highlightedIndex={2} 
+              />
             </div>
           </div>
         </section>
