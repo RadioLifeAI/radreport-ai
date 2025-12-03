@@ -56,6 +56,42 @@ async function findPlanByStripePriceId(supabaseAdmin: any, stripePriceId: string
   return null;
 }
 
+// Helper to renew credits and log result
+async function renewCreditsWithLogging(
+  supabaseAdmin: any,
+  userId: string,
+  planCode: string,
+  planDetails: { ai_tokens_monthly?: number; whisper_credits_monthly?: number }
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { error: creditsError } = await supabaseAdmin.rpc('renew_monthly_credits', { 
+      p_user_id: userId,
+      p_plan_code: planCode
+    });
+
+    if (creditsError) {
+      logStep('ERROR: Failed to renew credits', { 
+        userId, 
+        planCode,
+        error: creditsError.message 
+      });
+      return { success: false, error: creditsError.message };
+    }
+
+    logStep('Credits renewed successfully', { 
+      userId, 
+      planCode,
+      ai_tokens: planDetails.ai_tokens_monthly || 0,
+      whisper_credits: planDetails.whisper_credits_monthly || 0
+    });
+    return { success: true };
+  } catch (err) {
+    const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+    logStep('ERROR: Exception renewing credits', { userId, planCode, error: errorMsg });
+    return { success: false, error: errorMsg };
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -112,6 +148,10 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
+    // Track credits result for logging
+    let creditsResult: { success: boolean; error?: string } | null = null;
+    let creditsGranted: { ai_tokens: number; whisper_credits: number } | null = null;
 
     // Process event based on type
     switch (event.type) {
@@ -177,14 +217,24 @@ Deno.serve(async (req) => {
               updated_at: new Date().toISOString()
             }, { onConflict: 'user_id' });
 
-          // Initialize credits for the user
-          await supabaseAdmin.rpc('renew_monthly_credits', { 
-            p_user_id: user.id,
-            p_ai_tokens: plan.ai_tokens_monthly || 0,
-            p_whisper_credits: plan.whisper_credits_monthly || 0
-          });
+          // Initialize credits for the user using correct RPC signature
+          creditsResult = await renewCreditsWithLogging(
+            supabaseAdmin,
+            user.id,
+            plan.code,
+            { ai_tokens_monthly: plan.ai_tokens_monthly, whisper_credits_monthly: plan.whisper_credits_monthly }
+          );
+          
+          creditsGranted = {
+            ai_tokens: plan.ai_tokens_monthly || 0,
+            whisper_credits: plan.whisper_credits_monthly || 0
+          };
 
-          logStep('Subscription created successfully', { userId: user.id, planCode: plan.code });
+          logStep('Subscription created successfully', { 
+            userId: user.id, 
+            planCode: plan.code,
+            creditsRenewed: creditsResult.success 
+          });
         }
         break;
       }
@@ -250,13 +300,25 @@ Deno.serve(async (req) => {
 
           if (sub) {
             const plan = sub.subscription_plans as any;
-            await supabaseAdmin.rpc('renew_monthly_credits', {
-              p_user_id: sub.user_id,
-              p_ai_tokens: plan.ai_tokens_monthly || 0,
-              p_whisper_credits: plan.whisper_credits_monthly || 0
-            });
+            
+            // Renew credits using correct RPC signature
+            creditsResult = await renewCreditsWithLogging(
+              supabaseAdmin,
+              sub.user_id,
+              plan.code,
+              { ai_tokens_monthly: plan.ai_tokens_monthly, whisper_credits_monthly: plan.whisper_credits_monthly }
+            );
+            
+            creditsGranted = {
+              ai_tokens: plan.ai_tokens_monthly || 0,
+              whisper_credits: plan.whisper_credits_monthly || 0
+            };
 
-            logStep('Monthly credits renewed', { userId: sub.user_id });
+            logStep('Monthly credits renewed', { 
+              userId: sub.user_id,
+              planCode: plan.code,
+              success: creditsResult.success 
+            });
           }
         }
         break;
@@ -286,14 +348,18 @@ Deno.serve(async (req) => {
         logStep('Unhandled event type', { type: event.type });
     }
 
-    // Log the event for audit
+    // Log the event for audit with credits details
     await supabaseAdmin
       .from('subscription_events_log')
       .insert({
         stripe_event_id: event.id,
         event_type: event.type,
         event_data: event.data.object,
-        processed_at: new Date().toISOString()
+        processed_at: new Date().toISOString(),
+        credits_renewed: creditsResult?.success ?? null,
+        credits_error: creditsResult?.error ?? null,
+        ai_tokens_granted: creditsGranted?.ai_tokens ?? null,
+        whisper_credits_granted: creditsGranted?.whisper_credits ?? null
       });
 
     return new Response(JSON.stringify({ received: true }), {
