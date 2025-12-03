@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { invokeEdgeFunctionStream } from '@/services/edgeFunctionClient';
 import { useAuth } from './useAuth';
+import { useAICredits } from './useAICredits';
+import { useSubscription } from './useSubscription';
 import { toast } from 'sonner';
 
 export interface Message {

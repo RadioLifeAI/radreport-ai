@@ -1,5 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { getCorsHeaders, getAllHeaders } from '../_shared/cors.ts'
+import { AI_CREDIT_COSTS, checkAICredits, consumeAICredits, insufficientCreditsResponse } from '../_shared/aiCredits.ts'
 
 // ============= Utility Functions (preserved) =============
 
@@ -35,6 +36,9 @@ function splitHtmlIntoParagraphs(html: string): string[] {
   if (byDouble.length > 1) return byDouble.map((s) => `<p>${s}</p>`)
   return [`<p>${html.trim()}</p>`]
 }
+
+const FEATURE_NAME = 'ai-rads-classification';
+const CREDITS_REQUIRED = AI_CREDIT_COSTS[FEATURE_NAME];
 
 // ============= Main Handler =============
 
@@ -73,6 +77,13 @@ Deno.serve(async (req: Request) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
   )
 
+  // ========== CREDIT CHECK ==========
+  const creditCheck = await checkAICredits(supabase, user.id, CREDITS_REQUIRED);
+  if (!creditCheck.hasCredits) {
+    console.log(`[${FEATURE_NAME}] Insufficient credits: ${creditCheck.balance}/${CREDITS_REQUIRED}`);
+    return insufficientCreditsResponse(corsHeaders, creditCheck.balance, CREDITS_REQUIRED);
+  }
+
   let body: any
   try {
     body = await req.json()
@@ -83,7 +94,7 @@ Deno.serve(async (req: Request) => {
   const rawFindings = String(body.findingsHtml || "").slice(0, 8000)
   const examTitle = body.examTitle ? String(body.examTitle).trim() : null
   const modality = (body.modality ?? "unspecified").toString()
-  const user_id = body.user_id ?? null
+  const user_id = user.id
 
   const findingsHtml = sanitizeInputHtml(rawFindings)
   if (!findingsHtml || findingsHtml.trim().length === 0) {
@@ -115,7 +126,7 @@ Deno.serve(async (req: Request) => {
     console.log('[ai-rads-classification] Calling build_ai_request RPC...');
     
     const { data: config, error: rpcError } = await supabase.rpc('build_ai_request', {
-      fn_name: 'ai-rads-classification',
+      fn_name: FEATURE_NAME,
       user_data: {
         findings: paragraphsText,
         modality: modality,
@@ -221,6 +232,10 @@ Deno.serve(async (req: Request) => {
 
     parsed.replacement = normalizeLineBreaks(sanitizeInputHtml(parsed.replacement))
 
+    // ========== CONSUME CREDITS AFTER SUCCESS ==========
+    const consumeResult = await consumeAICredits(supabase, user_id, CREDITS_REQUIRED, FEATURE_NAME, 'Classificação RADS AI');
+    console.log(`[${FEATURE_NAME}] Credits consumed:`, consumeResult);
+
     // ============= Logging =============
     try {
       await supabase.from("ai_rads_logs").insert({
@@ -237,7 +252,7 @@ Deno.serve(async (req: Request) => {
       console.error("[ai-rads-classification] Error logging to Supabase:", err)
     }
 
-    return new Response(JSON.stringify(parsed), { status: 200, headers: { ...getAllHeaders(req), "Content-Type": "application/json" } })
+    return new Response(JSON.stringify({ ...parsed, credits_remaining: consumeResult.balanceAfter }), { status: 200, headers: { ...getAllHeaders(req), "Content-Type": "application/json" } })
   } catch (err: any) {
     console.error("[ai-rads-classification] Error:", err)
     

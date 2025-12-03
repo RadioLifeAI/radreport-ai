@@ -1,5 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { getCorsHeaders, getAllHeaders } from '../_shared/cors.ts'
+import { AI_CREDIT_COSTS, checkAICredits, consumeAICredits, insufficientCreditsResponse } from '../_shared/aiCredits.ts'
 
 // ============= HTML Sanitization Utilities =============
 function sanitizeInputHtml(html: string): string {
@@ -34,6 +35,9 @@ function splitHtmlIntoParagraphs(html: string): string[] {
   if (byDoubleNewline.length > 1) return byDoubleNewline.map((s) => `<p>${s}</p>`)
   return [`<p>${html.trim()}</p>`]
 }
+
+const FEATURE_NAME = 'ai-generate-conclusion';
+const CREDITS_REQUIRED = AI_CREDIT_COSTS[FEATURE_NAME];
 
 Deno.serve(async (req: Request) => {
   const corsHeaders = getCorsHeaders(req);
@@ -70,6 +74,13 @@ Deno.serve(async (req: Request) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
   )
 
+  // ========== CREDIT CHECK ==========
+  const creditCheck = await checkAICredits(supabase, user.id, CREDITS_REQUIRED);
+  if (!creditCheck.hasCredits) {
+    console.log(`[${FEATURE_NAME}] Insufficient credits: ${creditCheck.balance}/${CREDITS_REQUIRED}`);
+    return insufficientCreditsResponse(corsHeaders, creditCheck.balance, CREDITS_REQUIRED);
+  }
+
   let body: any
   try {
     body = await req.json()
@@ -91,7 +102,7 @@ Deno.serve(async (req: Request) => {
   try {
     // Build AI request via RPC (gets prompt, model, API key from database)
     const { data: config, error: rpcError } = await supabase.rpc('build_ai_request', {
-      fn_name: 'ai-generate-conclusion',
+      fn_name: FEATURE_NAME,
       user_data: {
         findings: paragraphsText,
         modality: modality,
@@ -187,6 +198,10 @@ Deno.serve(async (req: Request) => {
 
     console.log("Final replacement length:", parsed.replacement.length)
 
+    // ========== CONSUME CREDITS AFTER SUCCESS ==========
+    const consumeResult = await consumeAICredits(supabase, user_id, CREDITS_REQUIRED, FEATURE_NAME, 'Geração de conclusão AI');
+    console.log(`[${FEATURE_NAME}] Credits consumed:`, consumeResult);
+
     // Log to database
     try {
       await supabase.from("ai_conclusion_logs").insert({
@@ -202,7 +217,7 @@ Deno.serve(async (req: Request) => {
       console.error("Error logging to Supabase:", err)
     }
 
-    return new Response(JSON.stringify(parsed), { status: 200, headers: { ...getAllHeaders(req), "Content-Type": "application/json" } })
+    return new Response(JSON.stringify({ ...parsed, credits_remaining: consumeResult.balanceAfter }), { status: 200, headers: { ...getAllHeaders(req), "Content-Type": "application/json" } })
   } catch (err: any) {
     console.error("Error generating conclusion:", err)
     

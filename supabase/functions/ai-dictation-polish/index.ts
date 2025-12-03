@@ -1,5 +1,9 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { getCorsHeaders, getAllHeaders } from '../_shared/cors.ts';
+import { AI_CREDIT_COSTS, checkAICredits, consumeAICredits, insufficientCreditsResponse } from '../_shared/aiCredits.ts';
+
+const FEATURE_NAME = 'ai-dictation-polish';
+const CREDITS_REQUIRED = AI_CREDIT_COSTS[FEATURE_NAME];
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -32,6 +36,19 @@ Deno.serve(async (req) => {
     });
   }
 
+  // Admin client for RPC calls
+  const supabaseAdmin = createClient(
+    Deno.env.get('SUPABASE_URL') ?? '',
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+  );
+
+  // ========== CREDIT CHECK ==========
+  const creditCheck = await checkAICredits(supabaseAdmin, user.id, CREDITS_REQUIRED);
+  if (!creditCheck.hasCredits) {
+    console.log(`[${FEATURE_NAME}] Insufficient credits: ${creditCheck.balance}/${CREDITS_REQUIRED}`);
+    return insufficientCreditsResponse(corsHeaders, creditCheck.balance, CREDITS_REQUIRED);
+  }
+
   try {
     const { text, user_id } = await req.json();
 
@@ -43,19 +60,14 @@ Deno.serve(async (req) => {
     }
 
     console.log('📝 Correção de ditado:', {
-      user_id,
+      user_id: user.id,
       text_length: text.length,
       text_preview: text.substring(0, 100)
     });
 
     // ========== RPC: Buscar configuração do banco ==========
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
-
     const { data: config, error: rpcError } = await supabaseAdmin.rpc('build_ai_request', {
-      fn_name: 'ai-dictation-polish',
+      fn_name: FEATURE_NAME,
       user_data: { text }
     });
 
@@ -112,6 +124,10 @@ Deno.serve(async (req) => {
       );
     }
 
+    // ========== CONSUME CREDITS AFTER SUCCESS ==========
+    const consumeResult = await consumeAICredits(supabaseAdmin, user.id, CREDITS_REQUIRED, FEATURE_NAME, 'Correção de ditado AI');
+    console.log(`[${FEATURE_NAME}] Credits consumed:`, consumeResult);
+
     console.log('✅ Texto corrigido:', {
       original_length: text.length,
       corrected_length: correctedText.length,
@@ -120,22 +136,20 @@ Deno.serve(async (req) => {
 
     // Logging no banco de dados
     try {
-      if (user_id) {
-        await supabaseAdmin.from('ai_voice_logs').insert({
-          user_id,
-          action: 'dictation-polish',
-          raw_voice: text.substring(0, 500),
-          replacement: correctedText.substring(0, 500),
-          field: 'dictation',
-          created_at: new Date().toISOString(),
-        });
-      }
+      await supabaseAdmin.from('ai_voice_logs').insert({
+        user_id: user.id,
+        action: 'dictation-polish',
+        raw_voice: text.substring(0, 500),
+        replacement: correctedText.substring(0, 500),
+        field: 'dictation',
+        created_at: new Date().toISOString(),
+      });
     } catch (logError) {
       console.error('⚠️ Erro ao logar no banco:', logError);
     }
 
     return new Response(
-      JSON.stringify({ corrected: correctedText }),
+      JSON.stringify({ corrected: correctedText, credits_remaining: consumeResult.balanceAfter }),
       { headers: { ...getAllHeaders(req), 'Content-Type': 'application/json' } }
     );
   } catch (error) {
