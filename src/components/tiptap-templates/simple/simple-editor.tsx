@@ -60,6 +60,7 @@ import {
   MarkButton,
   TextAlignButton,
   UndoRedoButton,
+  SpellcheckSuggestionsPopover,
   FontSizeButton,
   FontFamilyButton
 } from "@/components/tiptap-ui"
@@ -331,6 +332,8 @@ export function SimpleEditor({
           role="presentation"
           className="simple-editor-content"
         />
+        
+        {editor && <SpellcheckSuggestionsPopover editor={editor} />}
       </EditorContext.Provider>
     </div>
   )

@@ -46,7 +46,7 @@ const baseWords: Set<string> = (() => {
   return set
 })()
 
-const proofreader: IProofreaderInterface = {
+export const proofreader: IProofreaderInterface = {
   async proofreadText(sentence: string): Promise<ITextWithPosition[]> {
     const errors: ITextWithPosition[] = []
     const tokens = tokenizeIndices(sentence)
