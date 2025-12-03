@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react'
-import { Calculator, ChevronDown, Heart, Baby, Brain, Ruler, Activity, Scan, Target, Star } from 'lucide-react'
+import { useState } from 'react'
+import { Calculator, ChevronDown, Heart, Baby, Brain, Ruler, Activity, Scan, Target } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,8 +12,6 @@ import { Button } from '@/components/ui/button'
 import { radiologyCalculators, RadiologyCalculator } from '@/lib/radiologyCalculators'
 import { CalculatorModal } from './CalculatorModal'
 import { Editor } from '@tiptap/react'
-import { useFavoriteCalculators } from '@/hooks/useFavoriteItems'
-import { cn } from '@/lib/utils'
 
 interface CalculatorsDropdownProps {
   editor: Editor | null
@@ -45,7 +43,6 @@ export function CalculatorsDropdown({ editor }: CalculatorsDropdownProps) {
   const [selectedCalculator, setSelectedCalculator] = useState<RadiologyCalculator | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
-  const { isFavorite, toggleFavorite } = useFavoriteCalculators()
 
   const handleCalculatorClick = (calculator: RadiologyCalculator) => {
     setSelectedCalculator(calculator)
@@ -62,33 +59,13 @@ export function CalculatorsDropdown({ editor }: CalculatorsDropdownProps) {
   }
 
   // Group calculators by category
-  const calculatorsByCategory = useMemo(() => {
-    return radiologyCalculators.reduce((acc, calc) => {
-      if (!acc[calc.category]) {
-        acc[calc.category] = []
-      }
-      acc[calc.category].push(calc)
-      return acc
-    }, {} as Record<string, RadiologyCalculator[]>)
-  }, [])
-
-  // Get favorite calculators
-  const favoriteCalculators = useMemo(() => {
-    return radiologyCalculators.filter(calc => isFavorite(calc.id))
-  }, [isFavorite])
-
-  // Sort calculators within each category (favorites first)
-  const sortedCalculatorsByCategory = useMemo(() => {
-    const sorted: Record<string, RadiologyCalculator[]> = {}
-    for (const [category, calcs] of Object.entries(calculatorsByCategory)) {
-      sorted[category] = [...calcs].sort((a, b) => {
-        const aFav = isFavorite(a.id) ? -1 : 0
-        const bFav = isFavorite(b.id) ? -1 : 0
-        return aFav - bFav
-      })
+  const calculatorsByCategory = radiologyCalculators.reduce((acc, calc) => {
+    if (!acc[calc.category]) {
+      acc[calc.category] = []
     }
-    return sorted
-  }, [calculatorsByCategory, isFavorite])
+    acc[calc.category].push(calc)
+    return acc
+  }, {} as Record<string, RadiologyCalculator[]>)
 
   return (
     <>
@@ -101,51 +78,7 @@ export function CalculatorsDropdown({ editor }: CalculatorsDropdownProps) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-72 bg-popover border-border z-[100]">
-          {/* Favorites Section */}
-          {favoriteCalculators.length > 0 && (
-            <DropdownMenuSub>
-              <DropdownMenuSubTrigger className="cursor-pointer">
-                <Star className="mr-2 h-4 w-4 fill-amber-500 text-amber-500" />
-                <span>Favoritos ({favoriteCalculators.length})</span>
-              </DropdownMenuSubTrigger>
-              <DropdownMenuSubContent className="w-80 bg-popover border-border z-[101]">
-                {favoriteCalculators.map((calc) => (
-                  <div
-                    key={calc.id}
-                    className="group flex items-center justify-between px-2 py-1.5 hover:bg-accent rounded-sm transition-colors"
-                  >
-                    <div 
-                      className="flex flex-col flex-1 cursor-pointer"
-                      onClick={() => {
-                        handleCalculatorClick(calc)
-                        setDropdownOpen(false)
-                      }}
-                    >
-                      <span className="text-sm font-medium">{calc.name}</span>
-                      <span className="text-xs text-muted-foreground">{calc.description}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          toggleFavorite(calc.id)
-                        }}
-                      >
-                        <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
-                      </Button>
-                      <Calculator className="h-4 w-4 text-muted-foreground" />
-                    </div>
-                  </div>
-                ))}
-              </DropdownMenuSubContent>
-            </DropdownMenuSub>
-          )}
-
-          {/* Category Sections */}
-          {Object.entries(sortedCalculatorsByCategory).map(([category, calcs]) => {
+          {Object.entries(calculatorsByCategory).map(([category, calcs]) => {
             const Icon = categoryIcons[category as keyof typeof categoryIcons]
             const label = categoryLabels[category as keyof typeof categoryLabels]
             
@@ -159,39 +92,17 @@ export function CalculatorsDropdown({ editor }: CalculatorsDropdownProps) {
                   {calcs.map((calc) => (
                     <div
                       key={calc.id}
-                      className="group flex items-center justify-between px-2 py-1.5 hover:bg-accent rounded-sm transition-colors"
+                      className="group flex items-center justify-between px-2 py-1.5 hover:bg-accent rounded-sm transition-colors cursor-pointer"
+                      onClick={() => {
+                        handleCalculatorClick(calc)
+                        setDropdownOpen(false)
+                      }}
                     >
-                      <div 
-                        className="flex flex-col flex-1 cursor-pointer"
-                        onClick={() => {
-                          handleCalculatorClick(calc)
-                          setDropdownOpen(false)
-                        }}
-                      >
+                      <div className="flex flex-col">
                         <span className="text-sm font-medium">{calc.name}</span>
                         <span className="text-xs text-muted-foreground">{calc.description}</span>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            toggleFavorite(calc.id)
-                          }}
-                        >
-                          <Star 
-                            className={cn(
-                              "h-4 w-4 transition-colors",
-                              isFavorite(calc.id) 
-                                ? "fill-amber-500 text-amber-500" 
-                                : "text-muted-foreground hover:text-amber-500"
-                            )}
-                          />
-                        </Button>
-                        <Calculator className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                      </div>
+                      <Calculator className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
                     </div>
                   ))}
                 </DropdownMenuSubContent>

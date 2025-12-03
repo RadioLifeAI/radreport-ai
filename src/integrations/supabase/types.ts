@@ -2705,27 +2705,6 @@ export type Database = {
         }
         Relationships: []
       }
-      user_favorite_calculators: {
-        Row: {
-          calculator_id: string
-          created_at: string | null
-          id: string
-          user_id: string
-        }
-        Insert: {
-          calculator_id: string
-          created_at?: string | null
-          id?: string
-          user_id: string
-        }
-        Update: {
-          calculator_id?: string
-          created_at?: string | null
-          id?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       user_favorite_frases: {
         Row: {
           created_at: string | null
@@ -2754,27 +2733,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      user_favorite_tables: {
-        Row: {
-          created_at: string | null
-          id: string
-          table_id: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          table_id: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          table_id?: string
-          user_id?: string
-        }
-        Relationships: []
       }
       user_favorite_templates: {
         Row: {
