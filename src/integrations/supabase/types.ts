@@ -1668,6 +1668,7 @@ export type Database = {
       }
       plan_features: {
         Row: {
+          category: string | null
           created_at: string | null
           description: string | null
           display_name: string
@@ -1679,9 +1680,12 @@ export type Database = {
           id: string
           is_active: boolean | null
           is_dynamic: boolean | null
+          is_primary: boolean | null
+          show_in_card: boolean | null
           updated_at: string | null
         }
         Insert: {
+          category?: string | null
           created_at?: string | null
           description?: string | null
           display_name: string
@@ -1693,9 +1697,12 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           is_dynamic?: boolean | null
+          is_primary?: boolean | null
+          show_in_card?: boolean | null
           updated_at?: string | null
         }
         Update: {
+          category?: string | null
           created_at?: string | null
           description?: string | null
           display_name?: string
@@ -1707,6 +1714,8 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           is_dynamic?: boolean | null
+          is_primary?: boolean | null
+          show_in_card?: boolean | null
           updated_at?: string | null
         }
         Relationships: []

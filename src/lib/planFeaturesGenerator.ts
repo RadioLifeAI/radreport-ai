@@ -4,6 +4,7 @@ export interface FeatureItem {
   text: string;
   included: boolean;
   highlight?: boolean;
+  isPrimary?: boolean;
 }
 
 // Format large numbers for display
@@ -14,41 +15,67 @@ const formatNumber = (n: number): string => {
 
 /**
  * Generates a list of features for a subscription plan based on database data
- * Now uses the features array from the plan data returned by get_platform_metrics RPC
+ * Filters by show_in_card and formats dynamic values
  */
 export function generatePlanFeatures(plan: PlanData): FeatureItem[] {
-  // If plan has features from database, use them directly
-  if (plan.features && plan.features.length > 0) {
-    return plan.features.map((f: PlanFeature) => {
+  if (!plan.features || plan.features.length === 0) {
+    // Fallback for plans without features
+    return [
+      { text: `${formatNumber(plan.ai_tokens_monthly)} tokens IA/mês`, included: true, highlight: true, isPrimary: true },
+      { text: 'Ditado por voz nativo', included: true },
+      { text: 'Templates e frases modelo', included: true },
+      { text: 'Tabelas de referência', included: true },
+    ];
+  }
+
+  // Filter only features that should show in card
+  return plan.features
+    .filter(f => f.show_in_card !== false)
+    .map((f: PlanFeature) => {
       let text = f.display_name;
       
-      // For dynamic features, prepend the value
+      // For dynamic features, format the value
       if (f.is_dynamic && f.dynamic_value !== null && f.dynamic_value > 0) {
         text = `${formatNumber(f.dynamic_value)} ${f.dynamic_suffix || f.display_name}`;
       } else if (f.is_dynamic && (f.dynamic_value === null || f.dynamic_value === 0)) {
-        // Dynamic feature with no value - show as not included
-        return {
-          text: f.display_name,
-          included: false,
-          highlight: false
-        };
+        // Dynamic feature with no value - show as "Sem X"
+        const suffix = f.dynamic_suffix || f.display_name;
+        text = `Sem ${suffix.toLowerCase().replace('/mês', '').trim()}`;
       }
       
       return {
         text,
         included: f.is_included,
-        highlight: f.is_dynamic && f.is_included
+        highlight: f.is_dynamic && f.is_included,
+        isPrimary: f.is_primary
       };
     });
+}
+
+/**
+ * Get all features for comparison table (includes features hidden from cards)
+ */
+export function getAllPlanFeatures(plan: PlanData): FeatureItem[] {
+  if (!plan.features || plan.features.length === 0) {
+    return [];
   }
 
-  // Fallback for plans without features (should not happen with new system)
-  return [
-    { text: `${formatNumber(plan.ai_tokens_monthly)} tokens IA/mês`, included: true, highlight: true },
-    { text: 'Ditado por voz nativo', included: true },
-    { text: 'Templates e frases modelo', included: true },
-    { text: 'Tabelas de referência', included: true },
-  ];
+  return plan.features.map((f: PlanFeature) => {
+    let text = f.display_name;
+    
+    if (f.is_dynamic && f.dynamic_value !== null && f.dynamic_value > 0) {
+      text = `${formatNumber(f.dynamic_value)} ${f.dynamic_suffix || f.display_name}`;
+    } else if (f.is_dynamic && (f.dynamic_value === null || f.dynamic_value === 0)) {
+      text = '-';
+    }
+    
+    return {
+      text,
+      included: f.is_included,
+      highlight: f.is_dynamic && f.is_included,
+      isPrimary: f.is_primary
+    };
+  });
 }
 
 // Re-export faqs for backward compatibility

@@ -23,6 +23,9 @@ export interface PlanFeature {
   feature_key: string;
   display_name: string;
   is_included: boolean;
+  is_primary: boolean;
+  show_in_card: boolean;
+  category: string;
   is_dynamic: boolean;
   dynamic_field: string | null;
   dynamic_suffix: string | null;
