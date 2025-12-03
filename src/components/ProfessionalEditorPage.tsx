@@ -21,6 +21,12 @@ import { ChatPanel } from '@/components/chat'
 import { insertContent } from '@/editor/commands'
 import { useInternalCheckout } from '@/hooks/useInternalCheckout'
 import { PlansSelectionSheet } from '@/components/subscription'
+import { useFavoriteCalculators } from '@/hooks/useFavoriteCalculators'
+import { useFavoriteTables } from '@/hooks/useFavoriteTables'
+import { CalculatorModal } from '@/components/editor/CalculatorModal'
+import { TableViewerModal } from '@/components/editor/TableViewerModal'
+import { RadiologyCalculator } from '@/lib/radiologyCalculators'
+import { RadiologyTable } from '@/lib/radiologyTables'
 
 interface ProfessionalEditorPageProps {
   onGenerateConclusion?: (conclusion?: string) => void
@@ -63,6 +69,16 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
     closePlansSheet,
     handleSelectPlan,
   } = useInternalCheckout()
+
+  // Favorites hooks for sidebar
+  const { topFavoriteCalculators, recordUsage: recordCalculatorUsage } = useFavoriteCalculators()
+  const { topFavoriteTables, recordUsage: recordTableUsage } = useFavoriteTables()
+  
+  // Calculator/Table modal state for sidebar
+  const [sidebarCalculator, setSidebarCalculator] = useState<RadiologyCalculator | null>(null)
+  const [sidebarCalculatorOpen, setSidebarCalculatorOpen] = useState(false)
+  const [sidebarTable, setSidebarTable] = useState<RadiologyTable | null>(null)
+  const [sidebarTableOpen, setSidebarTableOpen] = useState(false)
 
   // Voice dictation hook - unified system (Web Speech + Whisper chunking)
   const { 
@@ -617,6 +633,18 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
           onTemplateSelect={handleTemplateSelect}
           onFraseSelect={handleFraseSelect}
           isMobile={isMobile}
+          topFavoriteCalculators={topFavoriteCalculators}
+          topFavoriteTables={topFavoriteTables}
+          onCalculatorSelect={(calc) => {
+            setSidebarCalculator(calc)
+            setSidebarCalculatorOpen(true)
+            recordCalculatorUsage(calc.id)
+          }}
+          onTableSelect={(table) => {
+            setSidebarTable(table)
+            setSidebarTableOpen(true)
+            recordTableUsage(table.id)
+          }}
         />
 
         <main className="flex-1 flex flex-col overflow-hidden relative">
@@ -720,6 +748,32 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
         onOpenChange={closePlansSheet}
         onSelectPlan={handleSelectPlan}
         isLoading={checkoutLoading}
+      />
+      
+      {/* Sidebar Calculator Modal */}
+      <CalculatorModal
+        calculator={sidebarCalculator}
+        isOpen={sidebarCalculatorOpen}
+        onClose={() => setSidebarCalculatorOpen(false)}
+        onInsert={(text) => {
+          if (editorInstance) {
+            editorInstance.chain().focus().insertContent(text).run()
+          }
+        }}
+      />
+      
+      {/* Sidebar Table Modal */}
+      <TableViewerModal
+        open={sidebarTableOpen}
+        onOpenChange={setSidebarTableOpen}
+        table={sidebarTable}
+        editor={editorInstance}
+        onInsertTable={(html) => {
+          if (editorInstance) {
+            editorInstance.chain().focus().insertContent(html).run()
+            toast.success('Tabela inserida')
+          }
+        }}
       />
     </div>
   )

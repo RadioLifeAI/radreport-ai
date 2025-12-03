@@ -1,5 +1,8 @@
-import { ChevronLeft } from 'lucide-react'
+import { ChevronLeft, Calculator, Table2, Star } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { Badge } from '@/components/ui/badge'
+import { RadiologyCalculator } from '@/lib/radiologyCalculators'
+import { RadiologyTable } from '@/lib/radiologyTables'
 
 interface EditorLeftSidebarProps {
   collapsed: boolean
@@ -9,6 +12,10 @@ interface EditorLeftSidebarProps {
   onTemplateSelect: (template: any) => void
   onFraseSelect: (frase: any) => void
   isMobile?: boolean
+  topFavoriteCalculators?: RadiologyCalculator[]
+  topFavoriteTables?: RadiologyTable[]
+  onCalculatorSelect?: (calculator: RadiologyCalculator) => void
+  onTableSelect?: (table: RadiologyTable) => void
 }
 
 export function EditorLeftSidebar({
@@ -19,6 +26,10 @@ export function EditorLeftSidebar({
   onTemplateSelect,
   onFraseSelect,
   isMobile = false,
+  topFavoriteCalculators = [],
+  topFavoriteTables = [],
+  onCalculatorSelect,
+  onTableSelect,
 }: EditorLeftSidebarProps) {
   if (collapsed) {
     return (
@@ -105,6 +116,55 @@ export function EditorLeftSidebar({
               ))}
             </div>
           </div>
+
+          {/* Calculadoras Favoritas */}
+          {topFavoriteCalculators.length > 0 && onCalculatorSelect && (
+            <div>
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-3 flex items-center gap-1">
+                <Calculator size={12} />
+                <Star size={10} className="fill-amber-400 text-amber-400" />
+                Calculadoras
+              </h3>
+              <div className="space-y-1">
+                {topFavoriteCalculators.map(calc => (
+                  <button
+                    key={calc.id}
+                    onClick={() => onCalculatorSelect(calc)}
+                    className="w-full text-left p-2 rounded-lg hover:bg-muted/50 transition-colors group"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-sm truncate flex-1">{calc.name}</span>
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 shrink-0">
+                        {calc.category}
+                      </Badge>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Tabelas Favoritas */}
+          {topFavoriteTables.length > 0 && onTableSelect && (
+            <div>
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-3 flex items-center gap-1">
+                <Table2 size={12} />
+                <Star size={10} className="fill-amber-400 text-amber-400" />
+                Tabelas
+              </h3>
+              <div className="space-y-1">
+                {topFavoriteTables.map(table => (
+                  <button
+                    key={table.id}
+                    onClick={() => onTableSelect(table)}
+                    className="w-full text-left p-2 rounded-lg hover:bg-muted/50 transition-colors group"
+                  >
+                    <span className="text-sm truncate block">{table.name}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </aside>
 

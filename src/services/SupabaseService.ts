@@ -691,6 +691,126 @@ class SupabaseService {
       return [];
     }
   }
+
+  // Calculator Usage History
+  async recordCalculatorUsage(calculatorId: string): Promise<boolean> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+
+      const { data: existing } = await supabase
+        .from('user_calculator_usage')
+        .select('id, usage_count')
+        .eq('user_id', user.id)
+        .eq('calculator_id', calculatorId)
+        .maybeSingle();
+
+      if (existing) {
+        const { error } = await supabase
+          .from('user_calculator_usage')
+          .update({
+            used_at: new Date().toISOString(),
+            usage_count: existing.usage_count + 1
+          })
+          .eq('id', existing.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('user_calculator_usage')
+          .insert({
+            user_id: user.id,
+            calculator_id: calculatorId,
+            usage_count: 1
+          });
+        if (error) throw error;
+      }
+      return true;
+    } catch (error) {
+      console.error('Error recording calculator usage:', error);
+      return false;
+    }
+  }
+
+  async getMostUsedFavoriteCalculators(favoriteIds: string[], limit = 5): Promise<Array<{calculator_id: string, usage_count: number}>> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || favoriteIds.length === 0) return [];
+
+      const { data, error } = await supabase
+        .from('user_calculator_usage')
+        .select('calculator_id, usage_count')
+        .eq('user_id', user.id)
+        .in('calculator_id', favoriteIds)
+        .order('usage_count', { ascending: false })
+        .limit(limit);
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error getting most used calculators:', error);
+      return [];
+    }
+  }
+
+  // Table Usage History
+  async recordTableUsage(tableId: string): Promise<boolean> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+
+      const { data: existing } = await supabase
+        .from('user_table_usage')
+        .select('id, usage_count')
+        .eq('user_id', user.id)
+        .eq('table_id', tableId)
+        .maybeSingle();
+
+      if (existing) {
+        const { error } = await supabase
+          .from('user_table_usage')
+          .update({
+            used_at: new Date().toISOString(),
+            usage_count: existing.usage_count + 1
+          })
+          .eq('id', existing.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('user_table_usage')
+          .insert({
+            user_id: user.id,
+            table_id: tableId,
+            usage_count: 1
+          });
+        if (error) throw error;
+      }
+      return true;
+    } catch (error) {
+      console.error('Error recording table usage:', error);
+      return false;
+    }
+  }
+
+  async getMostUsedFavoriteTables(favoriteIds: string[], limit = 5): Promise<Array<{table_id: string, usage_count: number}>> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || favoriteIds.length === 0) return [];
+
+      const { data, error } = await supabase
+        .from('user_table_usage')
+        .select('table_id, usage_count')
+        .eq('user_id', user.id)
+        .in('table_id', favoriteIds)
+        .order('usage_count', { ascending: false })
+        .limit(limit);
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error getting most used tables:', error);
+      return [];
+    }
+  }
 }
 
 export const supabaseService = new SupabaseService();
