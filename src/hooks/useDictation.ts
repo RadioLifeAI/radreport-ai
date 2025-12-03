@@ -42,6 +42,10 @@ interface UseDictationReturn {
   toggleAICorrector: () => void
 }
 
+// Constantes para controle de reinício
+const MAX_RESTARTS = 15  // Máximo de reinícios em sequência sem fala
+const MAX_DICTATION_TIME_MS = 5 * 60 * 1000  // 5 minutos
+
 export function useDictation(editor: Editor | null): UseDictationReturn {
   const [isActive, setIsActive] = useState(false)
   const [status, setStatus] = useState<'idle' | 'waiting' | 'listening'>('idle')
@@ -63,11 +67,21 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   const interimLengthRef = useRef<number>(0)
   const dictationStartRef = useRef<number | null>(null)
   const rawTranscriptRef = useRef<string>('')  // ← RAW transcript para Corretor AI
+  
+  // Refs para controle de reinício robusto
+  const isActiveRef = useRef(false)  // ← CRÍTICO: ref para callback closures
+  const restartCountRef = useRef(0)
+  const dictationStartTimeRef = useRef<number | null>(null)
 
   // Sync editor ref
   useEffect(() => {
     editorRef.current = editor
   }, [editor])
+  
+  // Sync isActive ref com state (CRÍTICO para callbacks)
+  useEffect(() => {
+    isActiveRef.current = isActive
+  }, [isActive])
 
   // Auto-disable Whisper when credits run out
   useEffect(() => {
@@ -110,6 +124,9 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
         const transcript = result[0].transcript
         const confidence = result[0].confidence
         const isFinal = result.isFinal
+
+        // Resetar contador de reinícios - usuário está falando ativamente
+        restartCountRef.current = 0
 
         // DETECÇÃO ANTECIPADA - funciona em interim E final
         const hasCommand = containsVoiceCommand(transcript)
@@ -168,16 +185,92 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       }
 
       recognition.onerror = (event) => {
-        console.error('❌ Recognition error:', event.error)
-        if (event.error === 'no-speech') {
-          recognition.stop()
-          recognition.start()
+        console.warn('⚠️ Recognition error:', event.error)
+        
+        switch (event.error) {
+          case 'no-speech':
+            // Silêncio detectado - reiniciar com contador
+            restartCountRef.current++
+            if (restartCountRef.current <= MAX_RESTARTS && isActiveRef.current) {
+              setTimeout(() => {
+                if (isActiveRef.current && recognitionRef.current) {
+                  try {
+                    recognitionRef.current.start()
+                    console.log('🔄 Reiniciando após silêncio', restartCountRef.current + '/' + MAX_RESTARTS)
+                  } catch (e) {
+                    console.warn('⚠️ Falha ao reiniciar:', e)
+                  }
+                }
+              }, 150)
+            } else if (restartCountRef.current > MAX_RESTARTS) {
+              console.log('⏸️ Muitas pausas consecutivas, aguardando fala...')
+            }
+            break
+            
+          case 'network':
+            // Erro de rede - esperar mais antes de tentar
+            toast.warning('Conexão instável. Reconectando...')
+            setTimeout(() => {
+              if (isActiveRef.current && recognitionRef.current) {
+                try { recognitionRef.current.start() } catch (e) { /* ignore */ }
+              }
+            }, 1000)
+            break
+            
+          case 'aborted':
+            // Cancelado pelo usuário ou sistema - não reiniciar
+            console.log('🛑 Recognition aborted')
+            break
+            
+          case 'audio-capture':
+            // Problema com microfone
+            toast.error('Erro no microfone. Verifique as permissões.')
+            break
+            
+          case 'not-allowed':
+            // Permissão negada
+            toast.error('Permissão de microfone negada.')
+            break
+            
+          default:
+            // Outros erros - tentar reiniciar uma vez
+            setTimeout(() => {
+              if (isActiveRef.current && recognitionRef.current) {
+                try { recognitionRef.current.start() } catch (e) { /* ignore */ }
+              }
+            }, 500)
         }
       }
 
       recognition.onend = () => {
-        if (isActive) {
-          recognition.start()
+        console.log('🔄 Recognition ended, isActive:', isActiveRef.current)
+        
+        if (isActiveRef.current) {
+          // Verificar limite de 5 minutos
+          const elapsed = Date.now() - (dictationStartTimeRef.current || Date.now())
+          if (elapsed >= MAX_DICTATION_TIME_MS) {
+            toast.info('Ditado encerrado após 5 minutos. Clique para reiniciar.')
+            // Chamar stopDictation via timeout para evitar recursão
+            setTimeout(() => {
+              if (recognitionRef.current) {
+                setIsActive(false)
+                setStatus('idle')
+              }
+            }, 0)
+            return
+          }
+          
+          // Reiniciar com delay para evitar race condition
+          setTimeout(() => {
+            if (isActiveRef.current && recognitionRef.current) {
+              try {
+                recognitionRef.current.start()
+                console.log('🎙️ Recognition restarted')
+              } catch (e) {
+                console.warn('⚠️ Failed to restart:', e)
+              }
+            }
+          }, 100)
         }
       }
 
@@ -187,8 +280,10 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       // Salvar posição inicial do ditado
       dictationStartRef.current = editorRef.current.state.selection.from
       
-      // Reset RAW transcript
+      // Reset RAW transcript e contadores
       rawTranscriptRef.current = ''
+      restartCountRef.current = 0
+      dictationStartTimeRef.current = Date.now()
 
       // Start MediaRecorder para Whisper (SEM timeslice)
       if (isWhisperEnabled) {
@@ -228,7 +323,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
       setStatus('idle')
       return null
     }
-  }, [isWhisperEnabled, checkQuota, isActive])
+  }, [isWhisperEnabled, checkQuota])
 
   /**
    * Stop dictation
@@ -368,6 +463,8 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     interimLengthRef.current = 0
     dictationStartRef.current = null
     rawTranscriptRef.current = ''  // ← Resetar RAW
+    restartCountRef.current = 0
+    dictationStartTimeRef.current = null
 
     console.log('🛑 Dictation stopped')
   }, [isWhisperEnabled, isAICorrectorEnabled])
