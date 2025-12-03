@@ -49,9 +49,9 @@ export const PlansSelectionSheet = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[95vw] lg:max-w-6xl max-h-[90vh] overflow-hidden p-0 gap-0 border-border/50 bg-background/95 backdrop-blur-xl">
+      <DialogContent className="max-w-[95vw] lg:max-w-6xl max-h-[90vh] p-0 gap-0 border-border/50 bg-background/95 backdrop-blur-xl flex flex-col">
         {/* Header with gradient background */}
-        <div className="relative px-6 py-6 border-b border-border/30 bg-gradient-to-r from-cyan-500/10 via-indigo-500/5 to-cyan-500/10">
+        <div className="relative px-6 py-6 border-b border-border/30 bg-gradient-to-r from-cyan-500/10 via-indigo-500/5 to-cyan-500/10 flex-shrink-0">
           <div className="absolute inset-0 login-hero-glow opacity-20" />
           <DialogHeader className="relative z-10">
             <div className="flex items-center justify-center gap-3 mb-2">
@@ -72,7 +72,7 @@ export const PlansSelectionSheet = ({
         </div>
         
         {/* Scrollable content area */}
-        <div className="overflow-y-auto p-6 max-h-[calc(90vh-200px)]">
+        <div className="flex-1 min-h-0 overflow-y-auto p-6">
           {metricsLoading ? (
             <div className="flex items-center justify-center h-64">
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -113,7 +113,7 @@ export const PlansSelectionSheet = ({
         </div>
 
         {/* Footer with trust badge */}
-        <div className="px-6 py-4 border-t border-border/30 bg-muted/30">
+        <div className="px-6 py-4 border-t border-border/30 bg-muted/30 flex-shrink-0">
           <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
             <Lock className="w-4 h-4" />
             <span>Pagamento seguro via</span>
