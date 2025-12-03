@@ -442,6 +442,122 @@ class SupabaseService {
     }
   }
 
+  // User Favorites - Calculators
+  async getUserFavoriteCalculators(): Promise<string[]> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+
+      const { data, error } = await supabase
+        .from('user_favorite_calculators')
+        .select('calculator_id')
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      return data?.map(item => item.calculator_id) || [];
+    } catch (error) {
+      console.error('Error getting favorite calculators:', error);
+      return [];
+    }
+  }
+
+  async addFavoriteCalculator(calculatorId: string): Promise<boolean> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+
+      const { error } = await supabase
+        .from('user_favorite_calculators')
+        .insert({
+          user_id: user.id,
+          calculator_id: calculatorId
+        });
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('Error adding favorite calculator:', error);
+      return false;
+    }
+  }
+
+  async removeFavoriteCalculator(calculatorId: string): Promise<boolean> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+
+      const { error } = await supabase
+        .from('user_favorite_calculators')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('calculator_id', calculatorId);
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('Error removing favorite calculator:', error);
+      return false;
+    }
+  }
+
+  // User Favorites - Tables
+  async getUserFavoriteTables(): Promise<string[]> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+
+      const { data, error } = await supabase
+        .from('user_favorite_tables')
+        .select('table_id')
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      return data?.map(item => item.table_id) || [];
+    } catch (error) {
+      console.error('Error getting favorite tables:', error);
+      return [];
+    }
+  }
+
+  async addFavoriteTable(tableId: string): Promise<boolean> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+
+      const { error } = await supabase
+        .from('user_favorite_tables')
+        .insert({
+          user_id: user.id,
+          table_id: tableId
+        });
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('Error adding favorite table:', error);
+      return false;
+    }
+  }
+
+  async removeFavoriteTable(tableId: string): Promise<boolean> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+
+      const { error } = await supabase
+        .from('user_favorite_tables')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('table_id', tableId);
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('Error removing favorite table:', error);
+      return false;
+    }
+  }
+
   // Template Usage History
   async recordTemplateUsage(templateId: string, reportId?: string): Promise<boolean> {
     try {
