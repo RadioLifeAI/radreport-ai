@@ -49,18 +49,6 @@ export default function Precos() {
     return platformData.plans.map(p => p.name);
   }, [platformData]);
 
-  // Default metrics fallback
-  const defaultMetrics = {
-    templates_count: 149,
-    frases_count: 474,
-    tables_count: 100,
-    calculators_count: 25,
-    dictionary_terms_count: 4300,
-    modalities_count: 5,
-  };
-
-  const metrics = platformData?.metrics || defaultMetrics;
-
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -106,9 +94,9 @@ export default function Precos() {
                   <div key={i} className="h-[500px] rounded-2xl bg-muted/30 animate-pulse" />
                 ))
               ) : (
-                platformData?.plans?.map((plan, index) => {
+              platformData?.plans?.map((plan, index) => {
                   const prices = getPriceForInterval(plan);
-                  const features = generatePlanFeatures(plan, metrics);
+                  const features = generatePlanFeatures(plan);
                   
                   return (
                     <div

@@ -18,6 +18,17 @@ export interface PlanPriceData {
   interval: string;
 }
 
+export interface PlanFeature {
+  id: string;
+  feature_key: string;
+  display_name: string;
+  is_included: boolean;
+  is_dynamic: boolean;
+  dynamic_field: string | null;
+  dynamic_suffix: string | null;
+  dynamic_value: number | null;
+}
+
 export interface PlanData {
   id: string;
   code: string;
@@ -34,6 +45,7 @@ export interface PlanData {
   feature_whisper: boolean;
   feature_priority_support: boolean;
   prices: PlanPriceData[] | null;
+  features: PlanFeature[] | null;
 }
 
 export interface PlatformData {
