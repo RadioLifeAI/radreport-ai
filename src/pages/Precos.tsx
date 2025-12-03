@@ -11,12 +11,12 @@ import {
   TrustBadges,
   FeatureComparisonTable,
 } from '@/components/subscription';
-import { usePlans } from '@/hooks/usePlans';
-import { planFeatures, faqs } from '@/lib/planFeatures';
+import { usePlatformMetrics } from '@/hooks/usePlatformMetrics';
+import { generatePlanFeatures, faqs } from '@/lib/planFeaturesGenerator';
 
 export default function Precos() {
   const navigate = useNavigate();
-  const { data: plans, isLoading: plansLoading } = usePlans();
+  const { data: platformData, isLoading: metricsLoading } = usePlatformMetrics();
   
   const [interval, setInterval] = useState<'month' | 'year'>('year');
 
@@ -29,10 +29,10 @@ export default function Precos() {
     }
   };
 
-  // Get price data from single active price record per plan
+  // Get price data from plan's prices array
   const getPriceForInterval = (plan: any) => {
-    const prices = plan.subscription_prices || [];
-    const price = prices.find((p: any) => p.is_active);
+    const prices = plan.prices || [];
+    const price = prices[0]; // First active price
     
     if (!price) {
       return { monthly: 0, annual: null };
@@ -45,9 +45,21 @@ export default function Precos() {
   };
 
   const planNames = useMemo(() => {
-    if (!plans) return ['Gratuito', 'Básico', 'Profissional', 'Premium'];
-    return plans.map(p => p.name);
-  }, [plans]);
+    if (!platformData?.plans) return ['Gratuito', 'Básico', 'Profissional', 'Premium'];
+    return platformData.plans.map(p => p.name);
+  }, [platformData]);
+
+  // Default metrics fallback
+  const defaultMetrics = {
+    templates_count: 149,
+    frases_count: 474,
+    tables_count: 100,
+    calculators_count: 25,
+    dictionary_terms_count: 4300,
+    modalities_count: 5,
+  };
+
+  const metrics = platformData?.metrics || defaultMetrics;
 
   return (
     <div className="min-h-screen bg-background">
@@ -88,15 +100,15 @@ export default function Precos() {
         <section className="py-12 relative">
           <div className="container mx-auto px-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-4 max-w-7xl mx-auto">
-              {plansLoading ? (
+              {metricsLoading ? (
                 // Loading skeletons
                 Array.from({ length: 4 }).map((_, i) => (
                   <div key={i} className="h-[500px] rounded-2xl bg-muted/30 animate-pulse" />
                 ))
               ) : (
-                plans?.map((plan, index) => {
+                platformData?.plans?.map((plan, index) => {
                   const prices = getPriceForInterval(plan);
-                  const features = planFeatures[plan.code] || planFeatures.free;
+                  const features = generatePlanFeatures(plan, metrics);
                   
                   return (
                     <div

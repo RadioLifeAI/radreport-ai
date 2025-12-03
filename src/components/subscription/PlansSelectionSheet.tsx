@@ -1,11 +1,11 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Loader2, Sparkles, Lock, Crown } from 'lucide-react';
-import { usePlans } from '@/hooks/usePlans';
+import { Loader2, Lock, Crown } from 'lucide-react';
 import { useSubscription } from '@/hooks/useSubscription';
 import { PricingToggle } from './PricingToggle';
 import { PricingCard } from './PricingCard';
 import { useState } from 'react';
-import { planFeatures } from '@/lib/planFeatures';
+import { usePlatformMetrics } from '@/hooks/usePlatformMetrics';
+import { generatePlanFeatures } from '@/lib/planFeaturesGenerator';
 
 interface PlansSelectionSheetProps {
   open: boolean;
@@ -20,16 +20,27 @@ export const PlansSelectionSheet = ({
   onSelectPlan,
   isLoading = false,
 }: PlansSelectionSheetProps) => {
-  const { data: plans, isLoading: plansLoading } = usePlans();
+  const { data: platformData, isLoading: metricsLoading } = usePlatformMetrics();
   const { planCode: currentPlanCode } = useSubscription();
   const [interval, setInterval] = useState<'month' | 'year'>('year');
   const [selectedPriceId, setSelectedPriceId] = useState<string | null>(null);
 
-  // Get price data from single active price record per plan
+  // Default metrics fallback
+  const defaultMetrics = {
+    templates_count: 149,
+    frases_count: 474,
+    tables_count: 100,
+    calculators_count: 25,
+    dictionary_terms_count: 4300,
+    modalities_count: 5,
+  };
+
+  const metrics = platformData?.metrics || defaultMetrics;
+
+  // Get price data from plan's prices array
   const getPriceForInterval = (plan: any) => {
-    const prices = plan.subscription_prices || [];
-    // There's only one active price record per plan with both monthly and annual values
-    const price = prices.find((p: any) => p.is_active);
+    const prices = plan.prices || [];
+    const price = prices[0]; // First active price
     
     if (!price) {
       return { monthly: 0, annual: null, priceId: null };
@@ -38,7 +49,7 @@ export const PlansSelectionSheet = ({
     return {
       monthly: price.amount_cents || 0,
       annual: price.amount_cents_annual || null,
-      priceId: price.id, // Same ID for both - Edge Function uses interval to select correct Stripe Price ID
+      priceId: price.id,
     };
   };
 
@@ -74,15 +85,15 @@ export const PlansSelectionSheet = ({
         
         {/* Scrollable content area */}
         <div className="overflow-y-auto p-6 max-h-[calc(90vh-200px)]">
-          {plansLoading ? (
+          {metricsLoading ? (
             <div className="flex items-center justify-center h-64">
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {plans?.map((plan, index) => {
+              {platformData?.plans?.map((plan, index) => {
                 const prices = getPriceForInterval(plan);
-                const features = planFeatures[plan.code] || planFeatures.free;
+                const features = generatePlanFeatures(plan, metrics);
                 const isCurrentPlan = plan.code === currentPlanCode;
                 const isFree = plan.code === 'free';
 
