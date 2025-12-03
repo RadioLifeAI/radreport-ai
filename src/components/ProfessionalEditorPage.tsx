@@ -19,6 +19,8 @@ import { useVariableProcessor } from '@/hooks/useVariableProcessor'
 import { useChat } from '@/hooks/useChat'
 import { ChatPanel } from '@/components/chat'
 import { insertContent } from '@/editor/commands'
+import { useInternalCheckout } from '@/hooks/useInternalCheckout'
+import { PlansSelectionSheet } from '@/components/subscription'
 
 interface ProfessionalEditorPageProps {
   onGenerateConclusion?: (conclusion?: string) => void
@@ -52,6 +54,15 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
     sendMessage,
     startNewConversation
   } = useChat()
+
+  // Internal checkout hook for upgrade modal
+  const {
+    showPlansSheet,
+    isLoading: checkoutLoading,
+    openPlansSheet,
+    closePlansSheet,
+    handleSelectPlan,
+  } = useInternalCheckout()
 
   // Voice dictation hook - unified system (Web Speech + Whisper chunking)
   const { 
@@ -671,6 +682,7 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
           isAICorrectorEnabled={isAICorrectorEnabled}
           toggleAICorrector={toggleAICorrector}
           isMobile={isMobile}
+          onUpgrade={openPlansSheet}
         />
       </div>
       
@@ -700,6 +712,13 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
           }
         }}
         onNewConversation={startNewConversation}
+      />
+      
+      <PlansSelectionSheet
+        open={showPlansSheet}
+        onOpenChange={closePlansSheet}
+        onSelectPlan={handleSelectPlan}
+        isLoading={checkoutLoading}
       />
     </div>
   )

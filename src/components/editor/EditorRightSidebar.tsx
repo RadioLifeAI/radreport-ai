@@ -1,4 +1,4 @@
-import { MessageSquare, History, ChevronLeft, Sparkles, Zap, Wand2 } from 'lucide-react'
+import { MessageSquare, History, ChevronLeft, Sparkles, TrendingUp, Wand2 } from 'lucide-react'
 import { Editor } from '@tiptap/react'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
@@ -11,7 +11,6 @@ import { Badge } from '@/components/ui/badge'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
-import { toast } from 'sonner'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useVariableProcessor } from '@/hooks/useVariableProcessor'
 import { useWhisperCredits } from '@/hooks/useWhisperCredits'
@@ -37,6 +36,7 @@ interface EditorRightSidebarProps {
   isAICorrectorEnabled?: boolean
   toggleAICorrector?: () => void
   isMobile?: boolean
+  onUpgrade?: () => void
 }
 
 export function EditorRightSidebar({
@@ -56,15 +56,12 @@ export function EditorRightSidebar({
   isAICorrectorEnabled = false,
   toggleAICorrector,
   isMobile = false,
+  onUpgrade,
 }: EditorRightSidebarProps) {
   const [frasesOpen, setFrasesOpen] = useState(false)
   const { recentFrases, favoriteFrases } = useFrasesModelo()
   const { hasVariables } = useVariableProcessor()
   const { balance, isLoading: isLoadingCredits, hasEnoughCredits } = useWhisperCredits()
-
-  const openPurchaseModal = () => {
-    toast.info('🚀 Em breve! Pacotes de créditos Whisper disponíveis em dezembro.', { duration: 4000 })
-  }
 
   const handleFraseClick = (frase: FraseModelo) => {
     // Check if frase has variables
@@ -261,15 +258,15 @@ export function EditorRightSidebar({
             </div>
             
             {/* Botão de upgrade */}
-            {balance < 10 && (
+            {balance < 10 && onUpgrade && (
               <Button 
                 variant="default"
                 size="sm"
                 className="w-full bg-gradient-to-r from-cyan-500 to-indigo-500 hover:from-cyan-600 hover:to-indigo-600 text-xs"
-                onClick={openPurchaseModal}
+                onClick={onUpgrade}
               >
-                <Zap size={14} className="mr-1" />
-                {balance === 0 ? 'Obter créditos' : 'Recarregar créditos'}
+                <TrendingUp size={14} className="mr-1" />
+                Upgrade de Plano
               </Button>
             )}
 
