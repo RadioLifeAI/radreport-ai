@@ -4129,6 +4129,193 @@ export const dict = {
     "não podendo", "não devendo", "não havendo", "não sendo"
   ],
   
+  // ============================================================
+  // ANATOMIA VASCULAR COMPLETA (~200 termos)
+  // ============================================================
+  anatomia_vascular: [
+    // === AORTA E GRANDES RAMOS ===
+    "arco aórtico", "aorta ascendente", "aorta descendente", "aorta torácica",
+    "aorta abdominal", "aorta infrarrenal", "aorta suprarrenal", "aorta justarrenal",
+    "raiz da aorta", "seios de Valsalva", "bifurcação aórtica", "junção aortoilíaca",
+    "tronco braquiocefálico", "artéria subclávia", "artéria subclávia direita", "artéria subclávia esquerda",
+    "artéria vertebral", "artéria vertebral direita", "artéria vertebral esquerda",
+    "artérias intercostais", "artérias lombares", "artéria sacral média",
+    "artérias frênicas", "artérias frênicas inferiores",
+    
+    // === ARTÉRIAS CORONÁRIAS ===
+    "artéria coronária direita", "artéria coronária esquerda", "CD", "CE",
+    "tronco da coronária esquerda", "TCE", "tronco coronariano esquerdo",
+    "artéria descendente anterior", "DA", "artéria interventricular anterior",
+    "artéria circunflexa", "Cx", "artéria circunflexa esquerda",
+    "ramo marginal", "ramo marginal obtuso", "ramo marginal agudo",
+    "ramo diagonal", "primeira diagonal", "segunda diagonal",
+    "ramo septal", "ramos septais", "artéria do nó sinusal",
+    "descendente posterior", "DP", "artéria interventricular posterior",
+    "dominância direita", "dominância esquerda", "codominância",
+    "ramo posterolateral", "ramo ventricular posterior",
+    
+    // === TRONCO CELÍACO E RAMOS ===
+    "tronco celíaco", "tripé celíaco", "eixo celíaco",
+    "artéria gástrica esquerda", "artéria gástrica direita",
+    "artéria hepática comum", "artéria hepática própria",
+    "artéria hepática direita", "artéria hepática esquerda", "artéria hepática média",
+    "artéria gastroduodenal", "artéria pancreaticoduodenal",
+    "artéria esplênica", "artéria lienal",
+    "artéria gastroepiploica", "artéria gastroomental",
+    
+    // === ARTÉRIAS MESENTÉRICAS ===
+    "artéria mesentérica superior", "AMS",
+    "artéria mesentérica inferior", "AMI",
+    "artérias jejunais", "artérias ileais", "artéria ileocólica",
+    "artéria cólica direita", "artéria cólica média", "artéria cólica esquerda",
+    "artérias sigmoideas", "artéria retal superior",
+    "artéria apendicular", "artéria marginal de Drummond",
+    "arcada de Riolan", "arco de Riolan", "anastomose mesentérica",
+    
+    // === ARTÉRIAS RENAIS E SUPRARRENAIS ===
+    "artéria renal", "artéria renal direita", "artéria renal esquerda",
+    "artéria renal principal", "artéria renal acessória", "artéria polar",
+    "artéria polar superior", "artéria polar inferior",
+    "artérias segmentares renais", "artérias interlobares",
+    "artérias arqueadas", "artérias interlobulares",
+    "artéria suprarrenal", "artéria adrenal",
+    "artéria suprarrenal superior", "artéria suprarrenal média", "artéria suprarrenal inferior",
+    
+    // === EIXO AORTOILÍACO ===
+    "artéria ilíaca comum", "artéria ilíaca comum direita", "artéria ilíaca comum esquerda",
+    "artéria ilíaca externa", "artéria ilíaca externa direita", "artéria ilíaca externa esquerda",
+    "artéria ilíaca interna", "artéria hipogástrica",
+    "eixo aortoilíaco", "eixo ilíaco", "bifurcação ilíaca",
+    
+    // === ARTÉRIAS MEMBROS INFERIORES ===
+    "artéria femoral comum", "AFC", "artéria femoral",
+    "artéria femoral superficial", "AFS", "artéria femoral profunda", "AFP",
+    "artéria poplítea", "trifurcação poplítea",
+    "tronco tibiofibular", "tronco tibioperoneiro",
+    "artéria tibial anterior", "ATA", "artéria tibial posterior", "ATP",
+    "artéria fibular", "artéria peroneira",
+    "artéria dorsal do pé", "artéria pediosa",
+    "arco plantar", "artérias metatarsais", "artérias digitais plantares",
+    "eixo femoropoplíteo", "eixo infrapoplíteo",
+    
+    // === ARTÉRIAS MEMBROS SUPERIORES ===
+    "artéria axilar", "artéria braquial", "artéria umeral",
+    "artéria radial", "artéria ulnar", "artéria cubital",
+    "arco palmar superficial", "arco palmar profundo",
+    "artéria interóssea", "artéria interóssea comum",
+    "artérias digitais palmares", "artérias metacarpais",
+    
+    // === ARTÉRIAS PÉLVICAS ===
+    "artéria uterina", "artéria ovariana", "artéria testicular",
+    "artéria gonadal", "artéria espermática",
+    "artéria pudenda interna", "artéria pudenda externa",
+    "artéria glútea superior", "artéria glútea inferior",
+    "artéria obturatória", "artéria sacral lateral",
+    "artérias vesicais", "artéria vesical superior", "artéria vesical inferior",
+    "artéria retal média", "artéria retal inferior",
+    "artéria prostática", "artéria vaginal",
+    
+    // === ARTÉRIAS CABEÇA E PESCOÇO EXTRA-CRANIANAS ===
+    "artéria carótida comum", "ACC", "carótida comum direita", "carótida comum esquerda",
+    "artéria carótida interna", "ACI", "carótida interna direita", "carótida interna esquerda",
+    "artéria carótida externa", "ACE", "carótida externa",
+    "bulbo carotídeo", "bifurcação carotídea", "carótida cervical",
+    "artéria facial", "artéria maxilar", "artéria maxilar interna",
+    "artéria temporal superficial", "artéria occipital",
+    "artéria tireoidea superior", "artéria tireoidea inferior",
+    "artéria lingual", "artéria faríngea ascendente",
+    
+    // === ARTÉRIAS INTRACRANIANAS - POLÍGONO DE WILLIS ===
+    "artéria cerebral anterior", "ACA", "cerebral anterior",
+    "artéria cerebral média", "ACM", "cerebral média",
+    "artéria cerebral posterior", "ACP", "cerebral posterior",
+    "artéria basilar", "tronco basilar",
+    "artéria comunicante anterior", "ACoA", "comunicante anterior",
+    "artéria comunicante posterior", "ACoP", "comunicante posterior",
+    "polígono de Willis", "círculo arterial cerebral", "círculo de Willis",
+    "artéria oftálmica", "artéria coroideia anterior",
+    "artérias lenticuloestriadas", "artérias perfurantes",
+    
+    // === ARTÉRIAS CEREBELARES ===
+    "PICA", "artéria cerebelar posteroinferior", "cerebelar posteroinferior",
+    "AICA", "artéria cerebelar anteroinferior", "cerebelar anteroinferior",
+    "SCA", "artéria cerebelar superior", "cerebelar superior",
+    
+    // === SEGMENTOS ARTERIAIS INTRACRANIANOS ===
+    "segmento A1", "segmento A2", "segmento A3",
+    "segmento M1", "segmento M2", "segmento M3", "segmento M4",
+    "segmento P1", "segmento P2", "segmento P3",
+    "segmento C1", "segmento C2", "segmento C3", "segmento C4", "segmento C5", "segmento C6", "segmento C7",
+    "segmento V1", "segmento V2", "segmento V3", "segmento V4",
+    "sifão carotídeo", "porção petrosa", "porção cavernosa", "porção supraclinoidea",
+    
+    // === SISTEMA VENOSO - VEIA CAVA E TRIBUTÁRIAS ===
+    "veia cava superior", "VCS", "veia cava inferior", "VCI",
+    "veia braquiocefálica", "tronco venoso braquiocefálico",
+    "veia jugular interna", "VJI", "veia jugular externa",
+    "veia subclávia", "confluência jugulo-subclávica",
+    
+    // === SISTEMA VENOSO - ABDOME ===
+    "veia porta", "tronco portal", "veia porta principal",
+    "veia porta direita", "veia porta esquerda", "ramos portais",
+    "veia mesentérica superior", "VMS", "veia mesentérica inferior", "VMI",
+    "veia esplênica", "veia lienal", "confluência esplenomesentérica",
+    "veias hepáticas", "veia hepática direita", "veia hepática média", "veia hepática esquerda",
+    "veia renal", "veia renal direita", "veia renal esquerda",
+    "veia gonadal", "veia ovariana", "veia testicular",
+    "veia suprarrenal", "veias lombares",
+    "plexo pampiniforme", "plexo periuterino",
+    
+    // === SISTEMA VENOSO - MEMBROS INFERIORES ===
+    "veia ilíaca comum", "veia ilíaca externa", "veia ilíaca interna",
+    "veia femoral comum", "VFC", "veia femoral superficial", "VFS",
+    "veia femoral profunda", "veia femoral",
+    "veia poplítea", "veias tibiais anteriores", "veias tibiais posteriores",
+    "veias fibulares", "veias peroneiras",
+    "veia safena magna", "veia safena parva", "grande safena", "pequena safena",
+    "safena magna", "safena parva", "VSM", "VSP",
+    "veias perfurantes", "perfurante de Cockett", "perfurante de Boyd", "perfurante de Dodd",
+    "junção safenofemoral", "JSF", "croça da safena",
+    "junção safenopoplítea", "JSP",
+    "arco venoso dorsal do pé", "veias do arco plantar",
+    
+    // === SISTEMA VENOSO - MEMBROS SUPERIORES ===
+    "veia axilar", "veia braquial", "veias braquiais",
+    "veias radiais", "veias ulnares", "veias cubitais",
+    "veia basílica", "veia cefálica", "veia mediana cubital",
+    "veia mediana do antebraço", "arco venoso palmar",
+    "veias metacarpais dorsais",
+    
+    // === SEIOS VENOSOS DURAIS ===
+    "seio sagital superior", "SSS", "seio sagital inferior",
+    "seio transverso", "seio transverso direito", "seio transverso esquerdo",
+    "seio sigmoide", "seio sigmoide direito", "seio sigmoide esquerdo",
+    "seio cavernoso", "seio cavernoso direito", "seio cavernoso esquerdo",
+    "seio petroso superior", "seio petroso inferior",
+    "seio reto", "seio occipital",
+    "tórcula de Herófilo", "confluência dos seios", "prensa de Herófilo",
+    "seio intercavernoso", "seios intercavernosos",
+    
+    // === VEIAS CEREBRAIS ===
+    "veia de Galeno", "veia cerebral magna", "ampola de Galeno",
+    "veia cerebral interna", "veias cerebrais internas",
+    "veias cerebrais superficiais", "veias corticais",
+    "veia de Labbé", "veia anastomótica inferior",
+    "veia de Trolard", "veia anastomótica superior",
+    "veia basal de Rosenthal", "veias basais",
+    
+    // === TERMOS DESCRITIVOS VASCULARES ===
+    "eixo arterial", "árvore arterial", "leito vascular", "território vascular",
+    "circulação colateral", "anastomose", "anastomoses",
+    "variante anatômica vascular", "variante vascular",
+    "hipoplasia arterial", "hipoplasia venosa", "aplasia vascular",
+    "artéria acessória", "duplicação arterial", "duplicação venosa",
+    "bifurcação", "trifurcação", "confluência venosa",
+    "perviedade vascular", "pérvio", "pérvia", "pérvios", "pérvias",
+    "patência vascular", "patente", "patentes",
+    "calibre vascular", "calibre preservado", "calibre reduzido"
+  ],
+  
   sinonimos: {
     aneico: ["anecogênico", "sonolucente", "líquido simples", "conteúdo fluídico"],
     hipoecogênico: ["hipoecóico", "escuro ao ultrassom"],
