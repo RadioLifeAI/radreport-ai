@@ -125,6 +125,7 @@ export const ChatPanel = ({
           messages={messages} 
           onInsertToReport={onInsertToReport}
           isStreaming={isStreaming}
+          onUpgrade={onUpgrade}
         />
       </div>
 

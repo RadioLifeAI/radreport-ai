@@ -712,6 +712,7 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
           }
         }}
         onNewConversation={startNewConversation}
+        onUpgrade={openPlansSheet}
       />
       
       <PlansSelectionSheet

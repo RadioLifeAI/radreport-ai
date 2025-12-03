@@ -328,7 +328,7 @@ export function EditorRightSidebar({
           <div>
             <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-3">Assistente IA</h3>
             <div className="space-y-2">
-              <EditorAIButton editor={editor} />
+              <EditorAIButton editor={editor} onUpgrade={onUpgrade} />
             </div>
           </div>
 
