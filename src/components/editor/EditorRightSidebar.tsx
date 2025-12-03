@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useVariableProcessor } from '@/hooks/useVariableProcessor'
 import { useWhisperCredits } from '@/hooks/useWhisperCredits'
+import { useAICredits } from '@/hooks/useAICredits'
 
 interface EditorRightSidebarProps {
   collapsed: boolean
@@ -62,6 +63,7 @@ export function EditorRightSidebar({
   const { recentFrases, favoriteFrases } = useFrasesModelo()
   const { hasVariables } = useVariableProcessor()
   const { balance, isLoading: isLoadingCredits, hasEnoughCredits } = useWhisperCredits()
+  const { hasEnoughCredits: hasEnoughAICredits } = useAICredits()
 
   const handleFraseClick = (frase: FraseModelo) => {
     // Check if frase has variables
@@ -195,6 +197,7 @@ export function EditorRightSidebar({
             <div className="flex items-center gap-2">
               <Wand2 size={16} className="text-purple-500" />
               <span className="text-sm font-medium">Corretor AI</span>
+              <Badge variant="outline" className="text-[10px] px-1.5 py-0">1 crédito</Badge>
             </div>
             
             <p className="text-[11px] text-muted-foreground leading-relaxed">
@@ -205,19 +208,25 @@ export function EditorRightSidebar({
             {toggleAICorrector && (
               <TooltipProvider>
                 <div className="flex items-center justify-between p-2 bg-background/50 rounded border border-border/50">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span className="text-xs cursor-help">Ativar Corretor</span>
-                    </TooltipTrigger>
-                    <TooltipContent side="left" className="max-w-[200px]">
-                      <p className="text-xs">
-                        Corrige automaticamente pontuação, capitalização e termos médicos após o ditado
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
+                  <div className="flex flex-col">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="text-xs cursor-help">Ativar Corretor</span>
+                      </TooltipTrigger>
+                      <TooltipContent side="left" className="max-w-[200px]">
+                        <p className="text-xs">
+                          Corrige automaticamente pontuação, capitalização e termos médicos após o ditado
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                    {!hasEnoughAICredits(1) && !isAICorrectorEnabled && (
+                      <span className="text-[10px] text-orange-400">Créditos insuficientes</span>
+                    )}
+                  </div>
                   <Switch
                     checked={isAICorrectorEnabled}
                     onCheckedChange={toggleAICorrector}
+                    disabled={!hasEnoughAICredits(1) && !isAICorrectorEnabled}
                   />
                 </div>
               </TooltipProvider>

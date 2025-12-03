@@ -3,6 +3,7 @@ import { Editor } from '@tiptap/react'
 import { processVoiceInput } from '@/services/dictation/voiceCommandProcessor'
 import { blobToBase64, convertNewlinesToHTML } from '@/utils/textFormatter'
 import { useWhisperCredits } from './useWhisperCredits'
+import { useAICredits } from './useAICredits'
 import { invokeEdgeFunction } from '@/services/edgeFunctionClient'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from 'sonner'
@@ -50,6 +51,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
   const [isAICorrectorEnabled, setIsAICorrectorEnabled] = useState(false)
 
   const { balance, hasEnoughCredits, checkQuota } = useWhisperCredits()
+  const { hasEnoughCredits: hasEnoughAICredits, refreshBalance: refreshAIBalance } = useAICredits()
 
   // Refs
   const editorRef = useRef<Editor | null>(null)
@@ -333,11 +335,21 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
             console.log('✅ Corretor AI aplicado com HTML:', htmlContent.substring(0, 80) + '...')
             toast.success('Texto corrigido com IA')
           }
-        } catch (err) {
+        } catch (err: any) {
           console.error('❌ Erro ao processar Corretor AI:', err)
-          toast.error('Erro ao corrigir texto')
+          // Tratar erro 402 (créditos insuficientes)
+          if (err?.message?.includes('INSUFFICIENT_CREDITS') || err?.status === 402) {
+            toast.error('Créditos AI insuficientes', {
+              description: 'Faça upgrade do seu plano para usar o Corretor AI.'
+            })
+            setIsAICorrectorEnabled(false) // Desativar automaticamente
+            refreshAIBalance()
+          } else {
+            toast.error('Erro ao corrigir texto')
+          }
         } finally {
           setIsTranscribing(false)
+          refreshAIBalance() // Atualizar saldo após execução
         }
       }
     }
@@ -382,13 +394,20 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
    */
   const toggleAICorrector = useCallback(() => {
     if (!isAICorrectorEnabled) {
+      // Verificar créditos AI antes de ativar
+      if (!hasEnoughAICredits(1)) {
+        toast.warning('Créditos AI insuficientes para Corretor', {
+          description: 'Faça upgrade do seu plano para usar o Corretor AI.'
+        })
+        return
+      }
       setIsAICorrectorEnabled(true)
-      toast.success('Corretor AI ativado')
+      toast.success('Corretor AI ativado (1 crédito por correção)')
     } else {
       setIsAICorrectorEnabled(false)
       toast.info('Corretor AI desativado')
     }
-  }, [isAICorrectorEnabled])
+  }, [isAICorrectorEnabled, hasEnoughAICredits])
 
   // Privacy: stop on tab hidden
   useEffect(() => {
