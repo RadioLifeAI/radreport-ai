@@ -486,8 +486,17 @@ export function processVoiceInput(text: string, editor: Editor): void {
         processedText = applyCapitalization(processedText)
       }
       
-      // Inserir texto
-      editor.commands.insertContent(processedText + ' ')
+      // Inserir texto com highlight de ditado
+      const insertPos = editor.state.selection.from
+      const textWithSpace = processedText + ' '
+      
+      editor.chain()
+        .focus()
+        .insertContent(textWithSpace)
+        .setTextSelection({ from: insertPos, to: insertPos + textWithSpace.length })
+        .setDictationHighlight({ source: 'dictation', timestamp: Date.now() })
+        .setTextSelection(insertPos + textWithSpace.length)
+        .run()
     }
   }
 }

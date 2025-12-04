@@ -258,3 +258,65 @@
   box-shadow: 0 0 0 2px hsl(var(--primary) / 0.15);
   transition: box-shadow 0.2s ease;
 }
+
+// ============================================
+// Destaque visual para alterações recentes (Track Changes)
+// ============================================
+.dictation-highlight {
+  border-radius: 2px;
+  padding: 0 1px;
+  transition: background-color 0.3s ease;
+  
+  // Texto ditado (WebSpeech/Whisper) - Amarelo suave
+  &-dictation {
+    background-color: hsl(48 96% 53% / 0.25);
+    
+    .dark & {
+      background-color: hsl(48 96% 53% / 0.20);
+    }
+  }
+  
+  // Whisper AI - Amarelo mais intenso
+  &-whisper {
+    background-color: hsl(45 93% 47% / 0.30);
+    
+    .dark & {
+      background-color: hsl(45 93% 47% / 0.25);
+    }
+  }
+  
+  // Correções da IA (Corretor AI) - Verde suave
+  &-ai-corrector {
+    background-color: hsl(142 71% 45% / 0.20);
+    
+    .dark & {
+      background-color: hsl(142 71% 45% / 0.18);
+    }
+  }
+  
+  // Sugestões/Conclusão IA - Azul suave
+  &-ai-suggestion {
+    background-color: hsl(217 91% 60% / 0.20);
+    
+    .dark & {
+      background-color: hsl(217 91% 60% / 0.18);
+    }
+  }
+}
+
+// Animação sutil ao inserir novo destaque
+@keyframes highlight-pulse {
+  0% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.8;
+  }
+}
+
+.dictation-highlight[data-timestamp] {
+  animation: highlight-pulse 0.5s ease-out;
+}

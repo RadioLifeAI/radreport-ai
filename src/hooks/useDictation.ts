@@ -360,13 +360,17 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
                 // SUBSTITUIR texto do WebSpeech pelo texto do Whisper
                 const startPos = dictationStartRef.current
                 const endPos = editorRef.current!.state.selection.from
+                const textLength = data.text.length
                 
                 editorRef.current!.chain()
                   .deleteRange({ from: startPos, to: endPos })
-                  .insertContent(data.text)  // ← Texto do Whisper DIRETO (já formatado)
+                  .insertContent(data.text)
+                  .setTextSelection({ from: startPos, to: startPos + textLength })
+                  .setDictationHighlight({ source: 'whisper', timestamp: Date.now() })
+                  .setTextSelection(startPos + textLength)
                   .run()
                 
-                console.log('✅ Whisper text applied:', data.text.substring(0, 80) + '...')
+                console.log('✅ Whisper text applied with highlight:', data.text.substring(0, 80) + '...')
                 setStats(prev => ({ ...prev, total: prev.total + 1, success: prev.success + 1 }))
               } else {
                 console.warn('⚠️ Whisper returned empty text')
@@ -420,14 +424,18 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
             
             // Converter \n para HTML estruturado
             const htmlContent = convertNewlinesToHTML(data.corrected)
+            const textLength = data.corrected.length
             
-            // Substituir texto pelo corrigido com HTML
+            // Substituir texto pelo corrigido com HTML e aplicar highlight
             editorRef.current.chain()
               .deleteRange({ from: startPos, to: endPos })
               .insertContent(htmlContent)
+              .setTextSelection({ from: startPos, to: startPos + textLength })
+              .setDictationHighlight({ source: 'ai-corrector', timestamp: Date.now() })
+              .setTextSelection(startPos + textLength)
               .run()
             
-            console.log('✅ Corretor AI aplicado com HTML:', htmlContent.substring(0, 80) + '...')
+            console.log('✅ Corretor AI aplicado com highlight:', htmlContent.substring(0, 80) + '...')
             toast.success('Texto corrigido com IA')
           }
         } catch (err: any) {
