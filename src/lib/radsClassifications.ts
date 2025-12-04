@@ -712,10 +712,10 @@ export const biradsMGOptions = {
   ] as BIRADSOption[],
 
   densidade: [
-    { value: 'alta', label: 'Alta densidade', texto: 'de alta densidade', suspeicao: 'suspeito' },
-    { value: 'igual', label: 'Igual densidade', texto: 'de igual densidade', suspeicao: 'indeterminado' },
-    { value: 'baixa', label: 'Baixa densidade', texto: 'de baixa densidade', suspeicao: 'benigno' },
-    { value: 'gordura', label: 'Conteúdo gorduroso', texto: 'com conteúdo gorduroso', suspeicao: 'benigno' },
+    { value: 'hiperdenso', label: 'Hiperdenso', texto: 'hiperdenso', suspeicao: 'suspeito' },
+    { value: 'isodenso', label: 'Isodenso', texto: 'isodenso', suspeicao: 'indeterminado' },
+    { value: 'hipodenso', label: 'Hipodenso', texto: 'hipodenso', suspeicao: 'benigno' },
+    { value: 'adiposo', label: 'Com conteúdo adiposo', texto: 'com conteúdo adiposo', suspeicao: 'benigno_definitivo' },
   ] as BIRADSOption[],
 
   formaMG: [
@@ -788,7 +788,6 @@ export const biradsMGOptions = {
 
 // Avaliar nódulo de mamografia
 const evaluateMGNodulo = (nodulo: BIRADSMGNodulo): number | string => {
-  const getDensidadeOpt = biradsMGOptions.densidade.find(o => o.value === nodulo.densidade)
   const getFormaOpt = biradsMGOptions.formaMG.find(o => o.value === nodulo.forma)
   const getMargensOpt = biradsMGOptions.margensMG.find(o => o.value === nodulo.margens)
 
@@ -817,13 +816,18 @@ const evaluateMGNodulo = (nodulo: BIRADSMGNodulo): number | string => {
     return '4A'
   }
 
-  // Características benignas
-  const isBeningno = 
+  // NÓDULO COM CONTEÚDO ADIPOSO → BI-RADS 2 DIRETO (lipoma/natureza lipomatosa)
+  if (nodulo.densidade === 'adiposo') {
+    return 2
+  }
+
+  // Características benignas (não adiposo)
+  const isBenigno = 
     (nodulo.forma === 'oval' || nodulo.forma === 'redondo') &&
     nodulo.margens === 'circunscrito' &&
-    (nodulo.densidade === 'baixa' || nodulo.densidade === 'gordura')
+    nodulo.densidade === 'hipodenso'
 
-  if (isBeningno) {
+  if (isBenigno) {
     if (nodulo.temComparacao && nodulo.estadoNodulo === 'estavel') {
       const tempoMeses = calcularTempoSeguimento(nodulo.dataExameAnterior)
       if (tempoMeses >= 24) return 2
@@ -1044,11 +1048,30 @@ export const generateBIRADSMGImpression = (data: BIRADSMGData, biradsCategory: n
   const achados: string[] = []
   
   if (data.nodulos.length > 0) {
-    const lados = [...new Set(data.nodulos.map(n => n.lado))]
-    if (data.nodulos.length === 1) {
-      achados.push(`Nódulo ${lados[0] === 'direita' ? 'na mama direita' : 'na mama esquerda'}`)
-    } else {
-      achados.push(`Nódulos ${lados.length > 1 ? 'nas mamas direita e esquerda' : (lados[0] === 'direita' ? 'na mama direita' : 'na mama esquerda')}`)
+    // Separar nódulos adiposos (lipomatosos) dos demais
+    const nodulosAdiposos = data.nodulos.filter(n => n.densidade === 'adiposo')
+    const nodulosNaoAdiposos = data.nodulos.filter(n => n.densidade !== 'adiposo')
+    
+    // Nódulos adiposos → texto específico "natureza lipomatosa"
+    if (nodulosAdiposos.length > 0) {
+      const ladosAdiposos = [...new Set(nodulosAdiposos.map(n => n.lado))]
+      if (nodulosAdiposos.length === 1) {
+        const ladoTexto = ladosAdiposos[0] === 'direita' ? 'à direita' : 'à esquerda'
+        achados.push(`Nódulo mamário de provável natureza lipomatosa ${ladoTexto}`)
+      } else {
+        const ladoTexto = ladosAdiposos.length > 1 ? 'bilaterais' : (ladosAdiposos[0] === 'direita' ? 'à direita' : 'à esquerda')
+        achados.push(`Nódulos mamários de provável natureza lipomatosa ${ladoTexto}`)
+      }
+    }
+    
+    // Outros nódulos → texto padrão
+    if (nodulosNaoAdiposos.length > 0) {
+      const lados = [...new Set(nodulosNaoAdiposos.map(n => n.lado))]
+      if (nodulosNaoAdiposos.length === 1) {
+        achados.push(`Nódulo ${lados[0] === 'direita' ? 'na mama direita' : 'na mama esquerda'}`)
+      } else {
+        achados.push(`Nódulos ${lados.length > 1 ? 'nas mamas direita e esquerda' : (lados[0] === 'direita' ? 'na mama direita' : 'na mama esquerda')}`)
+      }
     }
   }
   
