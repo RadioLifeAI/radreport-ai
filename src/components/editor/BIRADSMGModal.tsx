@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { Editor } from '@tiptap/react'
-import { Plus, Trash2, Calendar, AlertCircle, FileText, ClipboardList, FileCheck } from 'lucide-react'
+import { Plus, Trash2, Calendar, AlertCircle, FileText, ClipboardList, FileCheck, Stethoscope, StickyNote, History } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Textarea } from '@/components/ui/textarea'
 import {
   Select,
   SelectContent,
@@ -21,7 +22,6 @@ import {
 } from '@/components/ui/select'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Separator } from '@/components/ui/separator'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   BIRADSMGData,
   BIRADSMGNodulo,
@@ -44,20 +44,22 @@ interface BIRADSMGModalProps {
   editor: Editor | null
 }
 
-type TabType = 'parenquima' | 'distorcao' | 'assimetria' | 'nodulos' | 'calcificacoes' | 'linfonodos' | 'recomendacao'
+type TabType = 'indicacao' | 'parenquima' | 'distorcao' | 'assimetria' | 'nodulos' | 'calcificacoes' | 'linfonodos' | 'comparativo' | 'notas'
 
 const tabs: { id: TabType; label: string; icon: string }[] = [
+  { id: 'indicacao', label: 'Indicação', icon: '📋' },
   { id: 'parenquima', label: 'Parênquima', icon: '🫁' },
-  { id: 'distorcao', label: 'Distorção Arquitetural', icon: '🔀' },
+  { id: 'distorcao', label: 'Distorção', icon: '🔀' },
   { id: 'assimetria', label: 'Assimetria', icon: '⚖️' },
   { id: 'nodulos', label: 'Nódulos', icon: '⚪' },
   { id: 'calcificacoes', label: 'Calcificações', icon: '✨' },
   { id: 'linfonodos', label: 'Linfonodos', icon: '🔘' },
-  { id: 'recomendacao', label: 'Recomendação', icon: '📋' },
+  { id: 'comparativo', label: 'Comparativo', icon: '📅' },
+  { id: 'notas', label: 'Notas', icon: '📝' },
 ]
 
 export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps) {
-  const [activeTab, setActiveTab] = useState<TabType>('parenquima')
+  const [activeTab, setActiveTab] = useState<TabType>('indicacao')
   const [data, setData] = useState<BIRADSMGData>(createEmptyBIRADSMGData())
 
   const updateData = <K extends keyof BIRADSMGData>(field: K, value: BIRADSMGData[K]) => {
@@ -121,7 +123,7 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
 
   const handleReset = () => {
     setData(createEmptyBIRADSMGData())
-    setActiveTab('parenquima')
+    setActiveTab('indicacao')
   }
 
   const getTempoSeguimento = (nodulo: BIRADSMGNodulo) => {
@@ -136,10 +138,141 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
 
   const renderTabContent = () => {
     switch (activeTab) {
+      case 'indicacao':
+        return (
+          <div className="space-y-4">
+            <h3 className="font-semibold text-sm flex items-center gap-2">
+              <Stethoscope size={16} className="text-pink-500" />
+              Indicação Clínica
+            </h3>
+            
+            <RadioGroup
+              value={data.indicacao.tipo}
+              onValueChange={(v) => updateData('indicacao', { ...data.indicacao, tipo: v as 'rastreamento' | 'diagnostica' })}
+              className="space-y-2"
+            >
+              <div className="flex items-center space-x-3 p-3 rounded-lg border hover:bg-muted/50">
+                <RadioGroupItem value="rastreamento" id="ind-rastreamento" />
+                <Label htmlFor="ind-rastreamento" className="cursor-pointer flex-1">
+                  Mamografia de rastreamento
+                </Label>
+              </div>
+              <div className="flex items-start space-x-3 p-3 rounded-lg border hover:bg-muted/50">
+                <RadioGroupItem value="diagnostica" id="ind-diagnostica" className="mt-1" />
+                <div className="flex-1 space-y-2">
+                  <Label htmlFor="ind-diagnostica" className="cursor-pointer">
+                    Mamografia diagnóstica
+                  </Label>
+                  {data.indicacao.tipo === 'diagnostica' && (
+                    <Input
+                      placeholder="Motivo (ex: nódulo palpável, mastalgia)"
+                      value={data.indicacao.motivoDiagnostica || ''}
+                      onChange={(e) => updateData('indicacao', { ...data.indicacao, motivoDiagnostica: e.target.value })}
+                      className="h-9"
+                    />
+                  )}
+                </div>
+              </div>
+            </RadioGroup>
+
+            <Separator />
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="historia-familiar"
+                checked={data.indicacao.historiaFamiliar}
+                onCheckedChange={(checked) => updateData('indicacao', { ...data.indicacao, historiaFamiliar: !!checked })}
+              />
+              <Label htmlFor="historia-familiar" className="cursor-pointer">História familiar positiva</Label>
+            </div>
+
+            <Separator />
+
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Antecedentes</Label>
+              
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">Neoplasia + Cirurgia conservadora</Label>
+                <Select
+                  value={data.indicacao.antecedentes.neoplasiaCirurgiaConservadora || 'nenhum'}
+                  onValueChange={(v) => updateData('indicacao', { 
+                    ...data.indicacao, 
+                    antecedentes: { ...data.indicacao.antecedentes, neoplasiaCirurgiaConservadora: v === 'nenhum' ? null : v as 'direita' | 'esquerda' } 
+                  })}
+                >
+                  <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="nenhum">Nenhum</SelectItem>
+                    <SelectItem value="direita">À direita</SelectItem>
+                    <SelectItem value="esquerda">À esquerda</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">Neoplasia + Mastectomia</Label>
+                <Select
+                  value={data.indicacao.antecedentes.neoplasiaMastectomia || 'nenhum'}
+                  onValueChange={(v) => updateData('indicacao', { 
+                    ...data.indicacao, 
+                    antecedentes: { ...data.indicacao.antecedentes, neoplasiaMastectomia: v === 'nenhum' ? null : v as 'direita' | 'esquerda' } 
+                  })}
+                >
+                  <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="nenhum">Nenhum</SelectItem>
+                    <SelectItem value="direita">À direita</SelectItem>
+                    <SelectItem value="esquerda">À esquerda</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="mamoplastia"
+                  checked={data.indicacao.antecedentes.mamoplastia}
+                  onCheckedChange={(checked) => updateData('indicacao', { 
+                    ...data.indicacao, 
+                    antecedentes: { ...data.indicacao.antecedentes, mamoplastia: !!checked } 
+                  })}
+                />
+                <Label htmlFor="mamoplastia" className="cursor-pointer">Antecedente de mamoplastia</Label>
+              </div>
+            </div>
+          </div>
+        )
+
       case 'parenquima':
         return (
           <div className="space-y-4">
             <h3 className="font-semibold text-sm">Padrão do Parênquima Mamário</h3>
+            
+            <div className="space-y-2 mb-4">
+              <Label className="text-xs text-muted-foreground">Pele</Label>
+              <RadioGroup
+                value={data.pele}
+                onValueChange={(v) => updateData('pele', v as 'normal' | 'alterada')}
+                className="flex gap-4"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="normal" id="pele-normal" />
+                  <Label htmlFor="pele-normal" className="cursor-pointer text-sm">Normal</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="alterada" id="pele-alterada" />
+                  <Label htmlFor="pele-alterada" className="cursor-pointer text-sm">Alterada</Label>
+                </div>
+              </RadioGroup>
+              {data.pele === 'alterada' && (
+                <Input
+                  placeholder="Descreva as alterações da pele"
+                  value={data.peleDescricao || ''}
+                  onChange={(e) => updateData('peleDescricao', e.target.value)}
+                  className="h-9 mt-2"
+                />
+              )}
+            </div>
+
             <RadioGroup
               value={data.parenquima}
               onValueChange={(v) => updateData('parenquima', v)}
@@ -154,6 +287,34 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
                 </div>
               ))}
             </RadioGroup>
+
+            <Separator />
+
+            <div className="space-y-2">
+              <Label className="text-xs text-muted-foreground">Prolongamentos axilares</Label>
+              <RadioGroup
+                value={data.prolongamentosAxilares}
+                onValueChange={(v) => updateData('prolongamentosAxilares', v as 'normal' | 'alterado')}
+                className="flex gap-4"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="normal" id="prol-normal" />
+                  <Label htmlFor="prol-normal" className="cursor-pointer text-sm">Sem particularidades</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="alterado" id="prol-alterado" />
+                  <Label htmlFor="prol-alterado" className="cursor-pointer text-sm">Alterado</Label>
+                </div>
+              </RadioGroup>
+              {data.prolongamentosAxilares === 'alterado' && (
+                <Input
+                  placeholder="Descreva as alterações"
+                  value={data.prolongamentosDescricao || ''}
+                  onChange={(e) => updateData('prolongamentosDescricao', e.target.value)}
+                  className="h-9 mt-2"
+                />
+              )}
+            </div>
           </div>
         )
 
@@ -289,82 +450,71 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-sm">Nódulos ({data.nodulos.length}/6)</h3>
               <Button variant="outline" size="sm" onClick={handleAddNodulo} disabled={data.nodulos.length >= 6}>
-                <Plus size={14} className="mr-1" /> Adicionar Nódulo
+                <Plus size={14} className="mr-1" /> Adicionar
               </Button>
             </div>
 
             {data.nodulos.length === 0 && (
               <div className="text-center py-8 text-muted-foreground">
                 <p>Nenhum nódulo adicionado.</p>
-                <p className="text-sm">Clique em "Adicionar Nódulo" para começar.</p>
+                <p className="text-sm">Clique em "Adicionar" para começar.</p>
               </div>
             )}
 
             {data.nodulos.map((nodulo, index) => {
               const tempoInfo = getTempoSeguimento(nodulo)
               return (
-                <div key={index} className="space-y-4 p-4 border rounded-lg bg-muted/30">
+                <div key={index} className="space-y-3 p-3 border rounded-lg bg-muted/30">
                   <div className="flex items-center justify-between">
                     <h4 className="font-semibold text-sm">N{index + 1}</h4>
-                    <Button variant="ghost" size="sm" onClick={() => handleRemoveNodulo(index)} className="h-8 w-8 p-0 text-destructive hover:text-destructive">
+                    <Button variant="ghost" size="sm" onClick={() => handleRemoveNodulo(index)} className="h-7 w-7 p-0 text-destructive">
                       <Trash2 size={14} />
                     </Button>
                   </div>
 
                   {/* Comparação temporal */}
-                  <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20 space-y-3">
-                    <div className="flex items-center gap-2">
-                      <Calendar size={16} className="text-blue-500" />
-                      <Label className="text-xs font-medium text-blue-600 dark:text-blue-400">Comparação temporal</Label>
-                    </div>
+                  <div className="p-2 rounded bg-blue-500/10 border border-blue-500/20 space-y-2">
                     <div className="flex items-center space-x-2">
                       <Checkbox
                         id={`comp-${index}`}
                         checked={nodulo.temComparacao}
                         onCheckedChange={(checked) => updateNodulo(index, 'temComparacao', !!checked)}
                       />
-                      <Label htmlFor={`comp-${index}`} className="text-sm cursor-pointer">Comparação disponível</Label>
+                      <Label htmlFor={`comp-${index}`} className="text-xs cursor-pointer">Comparação disponível</Label>
                     </div>
                     {nodulo.temComparacao && (
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-1.5">
-                          <Label className="text-xs">Data anterior</Label>
-                          <Input
-                            type="date"
-                            value={nodulo.dataExameAnterior || ''}
-                            onChange={(e) => updateNodulo(index, 'dataExameAnterior', e.target.value || null)}
-                            className="h-9"
-                            max={new Date().toISOString().split('T')[0]}
-                          />
-                        </div>
-                        <div className="space-y-1.5">
-                          <Label className="text-xs">Estado</Label>
-                          <Select value={nodulo.estadoNodulo} onValueChange={(v) => updateNodulo(index, 'estadoNodulo', v)}>
-                            <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="estavel">Estável</SelectItem>
-                              <SelectItem value="cresceu">Cresceu</SelectItem>
-                              <SelectItem value="diminuiu">Diminuiu</SelectItem>
-                              <SelectItem value="novo">Novo</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <Input
+                          type="date"
+                          value={nodulo.dataExameAnterior || ''}
+                          onChange={(e) => updateNodulo(index, 'dataExameAnterior', e.target.value || null)}
+                          className="h-8 text-xs"
+                          max={new Date().toISOString().split('T')[0]}
+                        />
+                        <Select value={nodulo.estadoNodulo} onValueChange={(v) => updateNodulo(index, 'estadoNodulo', v)}>
+                          <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="estavel">Estável</SelectItem>
+                            <SelectItem value="cresceu">Cresceu</SelectItem>
+                            <SelectItem value="diminuiu">Diminuiu</SelectItem>
+                            <SelectItem value="novo">Novo</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                     )}
                     {tempoInfo && (
-                      <div className={`flex items-center gap-2 text-xs ${tempoInfo.suficiente ? 'text-green-600' : 'text-amber-600'}`}>
-                        {tempoInfo.suficiente ? <span>✓</span> : <AlertCircle size={12} />}
-                        <span>Seguimento: {tempoInfo.texto} {tempoInfo.suficiente ? '(≥2 anos)' : '(<2 anos)'}</span>
+                      <div className={`text-xs ${tempoInfo.suficiente ? 'text-green-600' : 'text-amber-600'}`}>
+                        {tempoInfo.suficiente ? '✓' : '⚠'} {tempoInfo.texto}
                       </div>
                     )}
                   </div>
 
                   {/* Características */}
-                  <div className="grid grid-cols-3 gap-3">
-                    <div className="space-y-1.5">
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="space-y-1">
                       <Label className="text-xs">Densidade</Label>
                       <Select value={nodulo.densidade} onValueChange={(v) => updateNodulo(index, 'densidade', v)}>
-                        <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                        <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           {biradsMGOptions.densidade.map((opt) => (
                             <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
@@ -372,10 +522,10 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="space-y-1.5">
+                    <div className="space-y-1">
                       <Label className="text-xs">Forma</Label>
                       <Select value={nodulo.forma} onValueChange={(v) => updateNodulo(index, 'forma', v)}>
-                        <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                        <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           {biradsMGOptions.formaMG.map((opt) => (
                             <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
@@ -383,10 +533,10 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="space-y-1.5">
+                    <div className="space-y-1">
                       <Label className="text-xs">Margens</Label>
                       <Select value={nodulo.margens} onValueChange={(v) => updateNodulo(index, 'margens', v)}>
-                        <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                        <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           {biradsMGOptions.margensMG.map((opt) => (
                             <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
@@ -396,11 +546,27 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1.5">
+                  {/* Medidas e localização */}
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Medidas (cm)</Label>
+                      <div className="flex gap-1">
+                        {[0, 1, 2].map((i) => (
+                          <Input
+                            key={i}
+                            type="text"
+                            value={formatMeasurement(nodulo.medidas[i])}
+                            onChange={(e) => updateMedida(index, i, e.target.value)}
+                            className="h-8 text-xs text-center"
+                            placeholder={['L', 'A', 'P'][i]}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    <div className="space-y-1">
                       <Label className="text-xs">Lado</Label>
                       <Select value={nodulo.lado} onValueChange={(v) => updateNodulo(index, 'lado', v)}>
-                        <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                        <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           {biradsMGOptions.ladoMG.filter(o => o.value !== 'bilateral').map((opt) => (
                             <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
@@ -408,49 +574,16 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="space-y-1.5">
+                    <div className="space-y-1">
                       <Label className="text-xs">Localização</Label>
                       <Select value={nodulo.localizacao} onValueChange={(v) => updateNodulo(index, 'localizacao', v)}>
-                        <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                        <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           {biradsMGOptions.localizacaoMG.map((opt) => (
                             <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-3">
-                    <div className="space-y-1.5">
-                      <Label className="text-xs">X (cm)</Label>
-                      <Input
-                        type="text"
-                        inputMode="decimal"
-                        value={formatMeasurement(nodulo.medidas[0])}
-                        onChange={(e) => updateMedida(index, 0, e.target.value)}
-                        className="h-9"
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label className="text-xs">Y (cm)</Label>
-                      <Input
-                        type="text"
-                        inputMode="decimal"
-                        value={formatMeasurement(nodulo.medidas[1])}
-                        onChange={(e) => updateMedida(index, 1, e.target.value)}
-                        className="h-9"
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label className="text-xs">Z (cm)</Label>
-                      <Input
-                        type="text"
-                        inputMode="decimal"
-                        value={formatMeasurement(nodulo.medidas[2])}
-                        onChange={(e) => updateMedida(index, 2, e.target.value)}
-                        className="h-9"
-                      />
                     </div>
                   </div>
                 </div>
@@ -488,6 +621,21 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
                   </Select>
                 </div>
 
+                <div className="space-y-2">
+                  <Label className="text-sm">Lado</Label>
+                  <Select
+                    value={data.calcificacoes.lado || ''}
+                    onValueChange={(v) => updateData('calcificacoes', { ...data.calcificacoes, lado: v })}
+                  >
+                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      {biradsMGOptions.ladoMG.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 {data.calcificacoes.tipo === 'suspeitas' && (
                   <>
                     <div className="space-y-2">
@@ -504,6 +652,7 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
                         </SelectContent>
                       </Select>
                     </div>
+
                     <div className="space-y-2">
                       <Label className="text-sm">Distribuição</Label>
                       <Select
@@ -518,45 +667,48 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-2">
-                        <Label className="text-sm">Localização</Label>
-                        <Select
-                          value={data.calcificacoes.localizacao || ''}
-                          onValueChange={(v) => updateData('calcificacoes', { ...data.calcificacoes, localizacao: v })}
-                        >
-                          <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                          <SelectContent>
-                            {biradsMGOptions.localizacaoMG.map((opt) => (
-                              <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-sm">Lado</Label>
-                        <Select
-                          value={data.calcificacoes.lado || ''}
-                          onValueChange={(v) => updateData('calcificacoes', { ...data.calcificacoes, lado: v })}
-                        >
-                          <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                          <SelectContent>
-                            {biradsMGOptions.ladoMG.map((opt) => (
-                              <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-sm">Localização</Label>
+                      <Select
+                        value={data.calcificacoes.localizacao || ''}
+                        onValueChange={(v) => updateData('calcificacoes', { ...data.calcificacoes, localizacao: v })}
+                      >
+                        <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                        <SelectContent>
+                          {biradsMGOptions.localizacaoMG.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </>
                 )}
+              </div>
+            )}
+          </div>
+        )
 
-                {data.calcificacoes.tipo && data.calcificacoes.tipo !== 'suspeitas' && (
+      case 'linfonodos':
+        return (
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="linfono-presente"
+                checked={data.linfonodomegalias.presente}
+                onCheckedChange={(checked) => updateData('linfonodomegalias', { ...data.linfonodomegalias, presente: !!checked })}
+              />
+              <Label htmlFor="linfono-presente" className="font-semibold cursor-pointer">Linfonodomegalias presentes</Label>
+            </div>
+
+            {data.linfonodomegalias.presente && (
+              <div className="space-y-4 pl-6 border-l-2 border-primary/30">
+                <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
                     <Label className="text-sm">Lado</Label>
                     <Select
-                      value={data.calcificacoes.lado || ''}
-                      onValueChange={(v) => updateData('calcificacoes', { ...data.calcificacoes, lado: v })}
+                      value={data.linfonodomegalias.lado || ''}
+                      onValueChange={(v) => updateData('linfonodomegalias', { ...data.linfonodomegalias, lado: v })}
                     >
                       <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                       <SelectContent>
@@ -566,123 +718,46 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
                       </SelectContent>
                     </Select>
                   </div>
-                )}
-              </div>
-            )}
-          </div>
-        )
-
-      case 'linfonodos':
-        return (
-          <div className="space-y-6">
-            {/* Linfonodomegalias */}
-            <div className="space-y-4">
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="linf-presente"
-                  checked={data.linfonodomegalias.presente}
-                  onCheckedChange={(checked) => updateData('linfonodomegalias', { ...data.linfonodomegalias, presente: !!checked })}
-                />
-                <Label htmlFor="linf-presente" className="font-semibold cursor-pointer">Linfonodomegalias presentes</Label>
-              </div>
-
-              {data.linfonodomegalias.presente && (
-                <div className="space-y-3 pl-6 border-l-2 border-primary/30">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-2">
-                      <Label className="text-sm">Localização</Label>
-                      <Select
-                        value={data.linfonodomegalias.localizacao || ''}
-                        onValueChange={(v) => updateData('linfonodomegalias', { ...data.linfonodomegalias, localizacao: v })}
-                      >
-                        <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                        <SelectContent>
-                          {biradsMGOptions.linfonodomegalias.map((opt) => (
-                            <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-sm">Lado</Label>
-                      <Select
-                        value={data.linfonodomegalias.lado || ''}
-                        onValueChange={(v) => updateData('linfonodomegalias', { ...data.linfonodomegalias, lado: v })}
-                      >
-                        <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                        <SelectContent>
-                          {biradsMGOptions.ladoMG.map((opt) => (
-                            <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <Separator />
-
-            {/* Linfonodo intramamário */}
-            <div className="space-y-4">
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="linf-intra"
-                  checked={data.linfonodoIntramamario.presente}
-                  onCheckedChange={(checked) => updateData('linfonodoIntramamario', { ...data.linfonodoIntramamario, presente: !!checked })}
-                />
-                <Label htmlFor="linf-intra" className="font-semibold cursor-pointer">Linfonodo intramamário</Label>
-              </div>
-
-              {data.linfonodoIntramamario.presente && (
-                <div className="space-y-3 pl-6 border-l-2 border-primary/30">
                   <div className="space-y-2">
-                    <Label className="text-sm">Lado</Label>
+                    <Label className="text-sm">Localização</Label>
                     <Select
-                      value={data.linfonodoIntramamario.lado || ''}
-                      onValueChange={(v) => updateData('linfonodoIntramamario', { ...data.linfonodoIntramamario, lado: v })}
+                      value={data.linfonodomegalias.localizacao || ''}
+                      onValueChange={(v) => updateData('linfonodomegalias', { ...data.linfonodomegalias, localizacao: v })}
                     >
                       <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                       <SelectContent>
-                        {biradsMGOptions.ladoMG.filter(o => o.value !== 'bilateral').map((opt) => (
+                        {biradsMGOptions.linfonodomegalias.map((opt) => (
                           <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
-              )}
-            </div>
-          </div>
-        )
+              </div>
+            )}
 
-      case 'recomendacao':
-        return (
-          <div className="space-y-4">
+            <Separator />
+
             <div className="flex items-center space-x-2">
               <Checkbox
-                id="rec-manual"
-                checked={data.recomendacaoManual?.ativo || false}
-                onCheckedChange={(checked) => updateData('recomendacaoManual', { ...data.recomendacaoManual, ativo: !!checked, categoria: data.recomendacaoManual?.categoria || '' })}
+                id="linfono-intram"
+                checked={data.linfonodoIntramamario.presente}
+                onCheckedChange={(checked) => updateData('linfonodoIntramamario', { ...data.linfonodoIntramamario, presente: !!checked })}
               />
-              <Label htmlFor="rec-manual" className="font-semibold cursor-pointer">Forçar BI-RADS 0 (Inconclusivo)</Label>
+              <Label htmlFor="linfono-intram" className="font-semibold cursor-pointer">Linfonodo intramamário</Label>
             </div>
 
-            {data.recomendacaoManual?.ativo && (
-              <div className="space-y-4 pl-6 border-l-2 border-amber-500/30">
-                <p className="text-sm text-muted-foreground">
-                  Selecione o motivo para classificar como BI-RADS 0 e a recomendação correspondente.
-                </p>
+            {data.linfonodoIntramamario.presente && (
+              <div className="space-y-4 pl-6 border-l-2 border-primary/30">
                 <div className="space-y-2">
-                  <Label className="text-sm">Recomendação</Label>
+                  <Label className="text-sm">Lado</Label>
                   <Select
-                    value={data.recomendacaoManual.categoria || ''}
-                    onValueChange={(v) => updateData('recomendacaoManual', { ...data.recomendacaoManual, ativo: true, categoria: v })}
+                    value={data.linfonodoIntramamario.lado || ''}
+                    onValueChange={(v) => updateData('linfonodoIntramamario', { ...data.linfonodoIntramamario, lado: v })}
                   >
-                    <SelectTrigger><SelectValue placeholder="Selecione a recomendação" /></SelectTrigger>
+                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                     <SelectContent>
-                      {biradsMGOptions.recomendacoesBirads0.map((opt) => (
+                      {biradsMGOptions.ladoMG.map((opt) => (
                         <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                       ))}
                     </SelectContent>
@@ -692,82 +767,167 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
             )}
           </div>
         )
+
+      case 'comparativo':
+        return (
+          <div className="space-y-4">
+            <h3 className="font-semibold text-sm flex items-center gap-2">
+              <History size={16} className="text-blue-500" />
+              Estudo Comparativo
+            </h3>
+            
+            <RadioGroup
+              value={data.estudoComparativo.tipo}
+              onValueChange={(v) => updateData('estudoComparativo', { ...data.estudoComparativo, tipo: v as any })}
+              className="space-y-2"
+            >
+              {biradsMGOptions.estudoComparativo.map((opt) => (
+                <div key={opt.value} className="flex items-start space-x-3 p-3 rounded-lg border hover:bg-muted/50">
+                  <RadioGroupItem value={opt.value} id={`comp-${opt.value}`} className="mt-0.5" />
+                  <div className="flex-1 space-y-2">
+                    <Label htmlFor={`comp-${opt.value}`} className="cursor-pointer">
+                      {opt.label}
+                    </Label>
+                    {opt.value === 'sem_alteracoes' && data.estudoComparativo.tipo === 'sem_alteracoes' && (
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Data do exame anterior</Label>
+                        <Input
+                          type="date"
+                          value={data.estudoComparativo.dataExameAnterior || ''}
+                          onChange={(e) => updateData('estudoComparativo', { ...data.estudoComparativo, dataExameAnterior: e.target.value })}
+                          className="h-9"
+                          max={new Date().toISOString().split('T')[0]}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </RadioGroup>
+          </div>
+        )
+
+      case 'notas':
+        return (
+          <div className="space-y-4">
+            <h3 className="font-semibold text-sm flex items-center gap-2">
+              <StickyNote size={16} className="text-amber-500" />
+              Observações
+            </h3>
+            
+            <div className="space-y-3">
+              <div className="flex items-start space-x-2 p-3 rounded-lg border hover:bg-muted/50">
+                <Checkbox
+                  id="nota-us-densas"
+                  checked={data.notas.densaMamasUS}
+                  onCheckedChange={(checked) => updateData('notas', { ...data.notas, densaMamasUS: !!checked })}
+                />
+                <Label htmlFor="nota-us-densas" className="cursor-pointer text-sm leading-relaxed">
+                  A ultrassonografia pode ser útil em mamas densas se houver alterações palpáveis ou se a paciente apresentar risco elevado para câncer de mama.
+                </Label>
+              </div>
+
+              <div className="flex items-start space-x-2 p-3 rounded-lg border hover:bg-muted/50">
+                <Checkbox
+                  id="nota-correlacao"
+                  checked={data.notas.densaMamasCorrelacao}
+                  onCheckedChange={(checked) => updateData('notas', { ...data.notas, densaMamasCorrelacao: !!checked })}
+                />
+                <Label htmlFor="nota-correlacao" className="cursor-pointer text-sm leading-relaxed">
+                  A mamografia possui baixa sensibilidade em mamas densas. Recomenda-se correlação ultrassonográfica.
+                </Label>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm">Outra observação</Label>
+                <Textarea
+                  placeholder="Digite uma observação adicional..."
+                  value={data.notas.outraObservacao || ''}
+                  onChange={(e) => updateData('notas', { ...data.notas, outraObservacao: e.target.value })}
+                  className="min-h-[80px]"
+                />
+              </div>
+            </div>
+          </div>
+        )
+
+      default:
+        return null
     }
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col overflow-hidden p-0">
-        <DialogHeader className="flex-shrink-0 px-6 pt-6">
+      <DialogContent className="max-w-4xl max-h-[90vh] p-0 overflow-hidden">
+        <DialogHeader className="p-4 pb-2 border-b">
           <DialogTitle className="flex items-center gap-2">
-            <span>🎀</span>
+            <span className="text-xl">📷</span>
             ACR BI-RADS® - Mamografia
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex flex-1 overflow-hidden">
-          {/* Sidebar com abas */}
-          <div className="w-48 border-r bg-muted/30 flex-shrink-0">
-            <ScrollArea className="h-full">
-              <div className="py-2">
-                {tabs.map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`w-full flex items-center gap-2 px-4 py-2.5 text-sm text-left transition-colors ${
-                      activeTab === tab.id
-                        ? 'bg-primary/10 text-primary border-r-2 border-primary font-medium'
-                        : 'hover:bg-muted text-muted-foreground'
-                    }`}
-                  >
-                    <span>{tab.icon}</span>
-                    <span className="truncate">{tab.label}</span>
-                  </button>
-                ))}
-              </div>
-            </ScrollArea>
+        <div className="flex flex-1 min-h-0">
+          {/* Sidebar de navegação */}
+          <div className="w-48 border-r bg-muted/30 p-2 space-y-1 overflow-y-auto">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left text-sm transition-colors ${
+                  activeTab === tab.id
+                    ? 'bg-primary text-primary-foreground'
+                    : 'hover:bg-muted'
+                }`}
+              >
+                <span>{tab.icon}</span>
+                <span className="truncate">{tab.label}</span>
+              </button>
+            ))}
           </div>
 
-          {/* Conteúdo */}
-          <div className="flex-1 flex flex-col overflow-hidden">
-            <ScrollArea className="flex-1 px-6 py-4">
+          {/* Conteúdo principal */}
+          <div className="flex-1 flex flex-col min-h-0">
+            <div className="flex-1 overflow-y-auto p-4" style={{ maxHeight: 'calc(90vh - 280px)' }}>
               {renderTabContent()}
-            </ScrollArea>
+            </div>
 
             {/* Classificação */}
-            <div className="px-6 py-4 border-t bg-muted/20">
-              <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
-                <div className="mb-2">
-                  <span className="text-lg font-bold text-primary">
-                    Classificação: ACR BI-RADS {biradsCategory}
+            <div className="border-t p-3 bg-muted/30">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-medium">Classificação:</span>
+                  <span className={`px-3 py-1 rounded-full text-sm font-bold ${
+                    typeof biradsCategory === 'number' && biradsCategory <= 2 ? 'bg-green-500/20 text-green-700 dark:text-green-400' :
+                    biradsCategory === 3 ? 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-400' :
+                    biradsCategory === 0 ? 'bg-gray-500/20 text-gray-700 dark:text-gray-400' :
+                    'bg-red-500/20 text-red-700 dark:text-red-400'
+                  }`}>
+                    ACR BI-RADS {biradsCategory}
                   </span>
                 </div>
                 {categoryInfo && (
-                  <div className="flex items-center justify-between text-sm text-muted-foreground">
-                    <span>{categoryInfo.name}</span>
-                    <span>Risco: {categoryInfo.risco}</span>
-                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    {categoryInfo.name}
+                  </span>
                 )}
               </div>
             </div>
           </div>
         </div>
 
-        <DialogFooter className="flex-shrink-0 px-6 py-4 border-t gap-2">
-          <Button variant="ghost" onClick={handleReset}>
+        <DialogFooter className="p-4 pt-2 border-t gap-2 flex-wrap">
+          <Button variant="ghost" size="sm" onClick={handleReset}>
             Limpar
           </Button>
-          <Button variant="outline" onClick={handleInsertAchados}>
-            <ClipboardList size={14} className="mr-1" />
-            Achados
+          <div className="flex-1" />
+          <Button variant="outline" size="sm" onClick={handleInsertAchados}>
+            <FileText size={14} className="mr-1" /> Achados
           </Button>
-          <Button variant="outline" onClick={handleInsertImpressao}>
-            <FileText size={14} className="mr-1" />
-            Impressão
+          <Button variant="outline" size="sm" onClick={handleInsertImpressao}>
+            <ClipboardList size={14} className="mr-1" /> Impressão
           </Button>
-          <Button onClick={handleInsertLaudoCompleto}>
-            <FileCheck size={14} className="mr-1" />
-            Laudo Completo
+          <Button size="sm" onClick={handleInsertLaudoCompleto} className="bg-pink-600 hover:bg-pink-700">
+            <FileCheck size={14} className="mr-1" /> Laudo Completo
           </Button>
         </DialogFooter>
       </DialogContent>
