@@ -440,12 +440,11 @@ export function BIRADSModal({ open, onOpenChange, editor }: BIRADSModalProps) {
 
           {/* Classificação */}
           <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium">Classificação Final</span>
-              <span className="text-lg font-bold text-primary">
-                BI-RADS {biradsCategory}
-              </span>
-            </div>
+              <div className="mb-2">
+                <span className="text-lg font-bold text-primary">
+                  Classificação: ACR BI-RADS {biradsCategory}
+                </span>
+              </div>
             {categoryInfo && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
