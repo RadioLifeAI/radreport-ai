@@ -164,6 +164,11 @@ export function EditorHeader({
                 searchTerm={searchTerm}
                 onTemplateSearch={onTemplateSearch}
                 onTemplateSelect={handleTemplateSelect}
+                onTemplateSelectDirect={onTemplateSelect}
+                onTemplateSelectWithVariables={(template) => {
+                  setSelectedTemplateForModal(template as TemplateWithVariables)
+                  setTemplateModalOpen(true)
+                }}
                 onModalityClick={onModalityClick}
                 onCategoriaClick={onCategoriaClick}
                 onFavoriteToggle={onFavoriteToggle}
@@ -179,6 +184,7 @@ export function EditorHeader({
                 selectedCategoria={selectedCategoria}
                 isFavorite={isFavorite}
                 modalities={modalities}
+                needsVariableInput={needsVariableInput}
               />
             </div>
 

@@ -15,6 +15,7 @@ import { EditorRightSidebar } from '@/components/editor/EditorRightSidebar'
 import { EditorFooter } from '@/components/editor/EditorFooter'
 import { Macro } from '@/components/selectors/MacroSelector'
 import { VariablesModal } from '@/components/editor/VariablesModal'
+import { TemplateVariablesModal } from '@/components/editor/TemplateVariablesModal'
 import { useVariableProcessor } from '@/hooks/useVariableProcessor'
 import { useChat } from '@/hooks/useChat'
 import { ChatPanel } from '@/components/chat'
@@ -28,6 +29,7 @@ import { TableViewerModal } from '@/components/editor/TableViewerModal'
 import { RadiologyCalculator } from '@/lib/radiologyCalculators'
 import { RadiologyTable } from '@/lib/radiologyTables'
 import { UserDictionaryProvider } from '@/contexts/UserDictionaryContext'
+import { TemplateWithVariables, TemplateVariableValues } from '@/types/templateVariables'
 
 interface ProfessionalEditorPageProps {
   onGenerateConclusion?: (conclusion?: string) => void
@@ -47,9 +49,14 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
   const [selectedMacro, setSelectedMacro] = useState('Frases rápidas')
   const [mediaStream, setMediaStream] = useState<MediaStream | null>(null)
   
-  // Variables modal state
+  // Variables modal state (for frases)
   const [variablesModalOpen, setVariablesModalOpen] = useState(false)
   const [selectedFraseForVariables, setSelectedFraseForVariables] = useState<FraseModelo | null>(null)
+  
+  // Template variables modal state
+  const [templateVariablesModalOpen, setTemplateVariablesModalOpen] = useState(false)
+  const [selectedTemplateForVariables, setSelectedTemplateForVariables] = useState<TemplateWithVariables | null>(null)
+  
   const [isChatOpen, setIsChatOpen] = useState(false)
   
   const { hasVariables } = useVariableProcessor()
@@ -421,15 +428,39 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
     }
   }, [findDocumentSections])
 
-  // Template selection handler
-  const handleTemplateSelect = useCallback((template: any) => {
+  // Template selection handler - direct (no modal)
+  const handleTemplateSelectDirect = useCallback((template: any) => {
     setSelectedTemplate(template.titulo)
     setSelectedModality(template.modalidade_codigo)
-    
     hookApplyTemplate(template)
     setFraseSearchTerm('')
     setDropdownVisible(false)
   }, [hookApplyTemplate, setSelectedModality, setFraseSearchTerm, setDropdownVisible])
+
+  // Template selection handler - with variables modal
+  const handleTemplateSelectWithVariables = useCallback((template: any) => {
+    setSelectedTemplateForVariables(template as TemplateWithVariables)
+    setTemplateVariablesModalOpen(true)
+    setDropdownVisible(false)
+  }, [])
+
+  // Template selection handler - auto-detect
+  const handleTemplateSelect = useCallback((template: any) => {
+    if (needsVariableInput(template)) {
+      handleTemplateSelectWithVariables(template)
+    } else {
+      handleTemplateSelectDirect(template)
+    }
+  }, [needsVariableInput, handleTemplateSelectDirect, handleTemplateSelectWithVariables])
+
+  // Template variables modal submit handler
+  const handleTemplateVariablesSubmit = useCallback((selectedTechnique: string | null, variableValues: TemplateVariableValues) => {
+    if (selectedTemplateForVariables) {
+      applyTemplateWithVariables(selectedTemplateForVariables as any, selectedTechnique, variableValues)
+    }
+    setTemplateVariablesModalOpen(false)
+    setSelectedTemplateForVariables(null)
+  }, [selectedTemplateForVariables, applyTemplateWithVariables])
 
   // Modality click handler
   const handleModalityClick = useCallback((modality: string) => {
@@ -716,7 +747,7 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
         />
       </div>
       
-      {/* Variables Modal */}
+      {/* Variables Modal (for Frases) */}
       {selectedFraseForVariables && (
         <VariablesModal
           open={variablesModalOpen}
@@ -728,6 +759,14 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
           onSubmit={handleVariablesSubmit}
         />
       )}
+      
+      {/* Template Variables Modal */}
+      <TemplateVariablesModal
+        open={templateVariablesModalOpen}
+        onOpenChange={setTemplateVariablesModalOpen}
+        template={selectedTemplateForVariables}
+        onSubmit={handleTemplateVariablesSubmit}
+      />
       
       <ChatPanel
         isOpen={isChatOpen}
