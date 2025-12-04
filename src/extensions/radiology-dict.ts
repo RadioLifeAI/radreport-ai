@@ -4937,6 +4937,403 @@ export const dict = {
     "calibre vascular", "calibre preservado", "calibre reduzido"
   ],
   
+  patologias_especificas: [
+    // ===============================================================
+    // === PATOLOGIAS DO FÍGADO (~80 termos) ===
+    // ===============================================================
+    
+    // === ESTEATOSE E HEPATOPATIA ===
+    "infiltração gordurosa", "esteatose multinodular", "esteatose nodular",
+    "preservação focal", "hepatopatia parenquimatosa", "hepatopatia crônica",
+    "cirrose hepática", "micronodularidade", "macronodularidade",
+    "hipertrofia do lobo caudado", "hipertrofia compensatória", "atrofia lobar",
+    "contornos serrilhados", "bordos rombos", "bordas rombas",
+    "alterações perfusionais", "impregnação heterogênea", "densificação perilesional",
+    "heterogeneidade parenquimatosa", "padrão nodular", "aspecto micronodular",
+    
+    // === LESÕES FOCAIS HEPÁTICAS ===
+    "hemangioma cavernoso", "hemangioma típico", "hemangioma atípico",
+    "enchimento centrípeto", "enchimento globuliforme", "impregnação tardia",
+    "hiperplasia nodular focal", "HNF", "cicatriz central", "cicatriz estrelada",
+    "adenoma hepatocelular", "adenoma hepático", "adenomatose",
+    "nódulo regenerativo", "nódulo displásico", "nódulo siderótico",
+    "hepatocarcinoma", "CHC", "carcinoma hepatocelular", "tumor hepático",
+    "cápsula tumoral", "pseudocápsula", "trombose portal tumoral",
+    "colangiocarcinoma", "colangiocarcinoma intra-hepático", "colangiocarcinoma periférico",
+    "metástase hepática", "metástases hepáticas", "lesões secundárias",
+    "lesões-filhas", "satelitose", "disseminação intra-hepática",
+    "nódulo hipervascular", "nódulo hipovascular", "wash-in", "wash-out",
+    "realce em anel", "ring enhancement", "realce periférico",
+    
+    // === TRAUMA E OUTROS HEPÁTICOS ===
+    "contusão hepática", "laceração hepática", "hematoma subcapsular",
+    "hematoma intraparenquimatoso", "hemoperitônio", "lesão de Glisson",
+    "cisto hidático", "hidatidose hepática", "membrana germinativa",
+    "vesículas-filhas", "colangiograma", "colangiorressonância",
+    "abscesso hepático", "abscesso piogênico", "abscesso amebiano",
+    "cisto hepático simples", "cistos hepáticos múltiplos", "doença policística",
+    
+    // ===============================================================
+    // === PATOLOGIAS DAS VIAS BILIARES E PÂNCREAS (~60 termos) ===
+    // ===============================================================
+    
+    // === VIAS BILIARES ===
+    "colelitíase", "colecistopatia calculosa", "lama biliar",
+    "colecistite aguda", "colecistite crônica", "colecistite complicada",
+    "colecistite gangrenosa", "perfuração vesicular", "abscesso pericolecístico",
+    "Murphy ultrassonográfico", "sinal de Murphy", "halo hipoecogênico",
+    "coledocolitíase", "microlitíase", "microcálculos",
+    "colangite", "colangite aguda", "colangite esclerosante",
+    "dilatação das vias biliares", "dilatação do hepatocolédoco",
+    "cisto de colédoco", "doença de Caroli", "coledococele",
+    "vesícula em porcelana", "vesícula escleroatrófica", "vesícula hidrópica",
+    "adenomiomatose vesicular", "pólipo vesicular", "barro biliar",
+    "síndrome de Mirizzi", "fístula biliodigestiva", "íleo biliar",
+    "colangiocarcinoma hilar", "tumor de Klatskin", "bismuth",
+    "estenose biliar", "stricture biliar", "obstrução biliar",
+    
+    // === PÂNCREAS ===
+    "pancreatite aguda", "pancreatite crônica", "pancreatite necrotizante",
+    "necrose glandular", "necrose periglandular", "pancreatite edematosa",
+    "coleções líquidas agudas", "pseudocisto pancreático", "liquefação",
+    "densificação dos planos adiposos", "borramento peripancreático",
+    "pancreatite enfisematosa", "pancreatite autoimune", "pancreatite do sulco",
+    "dilatação do ducto pancreático", "dilatação do Wirsung", "Wirsung ectasiado",
+    "IPMT", "neoplasia intraductal", "neoplasia mucinosa", "neoplasia serosa",
+    "adenocarcinoma pancreático", "carcinoma de pâncreas", "câncer pancreático",
+    "lipossubstituição pancreática", "atrofia pancreática", "calcificações pancreáticas",
+    
+    // ===============================================================
+    // === PATOLOGIAS RENAIS E URINÁRIAS (~80 termos) ===
+    // ===============================================================
+    
+    // === LITÍASE URINÁRIA ===
+    "litíase renal", "nefrolitíase", "ureterolitíase",
+    "cálculo obstrutivo", "cálculo não obstrutivo", "cálculo impactado",
+    "cálculo coraliforme", "cálculo staghorn", "cálculo de cálice",
+    "dilatação pielocalicinal", "dilatação a montante", "uropatia obstrutiva",
+    "hidronefrose leve", "hidronefrose moderada", "hidronefrose acentuada",
+    "distância cálculo-pele", "densitometria do cálculo", "composição do cálculo",
+    "junção ureterovesical", "JUV", "junção pieloureteral", "JPU",
+    "hidroureter", "megaureter", "ureter tortuoso",
+    
+    // === DOENÇAS RENAIS ===
+    "pielonefrite aguda", "pielonefrite crônica", "pionefrose",
+    "nefrograma estriado", "retardo do nefrograma", "nefrograma heterogêneo",
+    "abscesso renal", "abscesso perirrenal", "pielonefrite xantogranulomatosa",
+    "nefropatia parenquimatosa", "nefropatia crônica", "rim em ferradura",
+    "duplicidade pieloureteral", "duplicidade renal", "ureter bífido",
+    "nefrocalcinose", "calcificação medular", "rim esponja medular",
+    "cisto renal simples", "cisto renal complexo", "cisto parapiélico",
+    "Bosniak I", "Bosniak II", "Bosniak IIF", "Bosniak III", "Bosniak IV",
+    "rim atrófico", "rim hipotrófico", "afilamento cortical",
+    "diferenciação córtico-medular reduzida", "perda da diferenciação",
+    
+    // === TUMORES RENAIS ===
+    "angiomiolipoma", "AML", "angiomiolipoma pobre em gordura",
+    "carcinoma de células renais", "CCR", "tumor de células claras",
+    "oncocitoma", "adenoma renal", "tumor de Wilms",
+    "invasão do sistema coletor", "invasão da veia renal", "trombo tumoral",
+    "escore RENAL", "nefrometria", "complexidade tumoral",
+    "carcinoma papilífero", "carcinoma cromófobo", "neoplasia renal",
+    
+    // ===============================================================
+    // === PATOLOGIAS DE PELVE FEMININA (~80 termos) ===
+    // ===============================================================
+    
+    // === ÚTERO ===
+    "leiomioma uterino", "mioma", "fibroma uterino",
+    "mioma submucoso", "mioma intramural", "mioma subseroso",
+    "mioma pediculado", "miomatose uterina", "útero miomatoso",
+    "degeneração miomatosa", "degeneração hialina", "degeneração vermelha",
+    "adenomiose", "adenomiose difusa", "adenomioma", "espessamento juncional",
+    "espessamento endometrial", "hiperplasia endometrial", "pólipo endometrial",
+    "carcinoma endometrial", "neoplasia endometrial", "invasão miometrial",
+    "útero bicorno", "útero didelfo", "útero septado", "útero arqueado",
+    "malformação mülleriana", "anomalia uterina", "agenesia uterina",
+    
+    // === OVÁRIOS ===
+    "cisto funcional", "cisto folicular", "cisto de corpo lúteo",
+    "cisto dermóide", "teratoma ovariano", "teratoma maduro",
+    "cistoadenoma seroso", "cistoadenoma mucinoso", "cistadenoma",
+    "endometrioma", "cisto de chocolate", "cisto endometriótico",
+    "torção ovariana", "torção anexial", "ausência de fluxo ovariano",
+    "síndrome do ovário policístico", "SOP", "ovários policísticos",
+    "tumor de células da granulosa", "fibroma ovariano", "fibrotecoma",
+    "carcinoma ovariano", "neoplasia ovariana", "implantes peritoneais",
+    "cisto ovariano complexo", "cisto multiloculado", "vegetações internas",
+    "O-RADS", "lesão anexial suspeita", "massa anexial",
+    
+    // === ENDOMETRIOSE ===
+    "endometriose profunda", "endometriose pélvica", "endometriose superficial",
+    "foco endometriótico", "nódulo endometriótico", "implante endometriótico",
+    "endometriose retrocervical", "endometriose retossigmóidea",
+    "ligamento uterossacro", "obliteração do fundo de saco", "kissing ovaries",
+    "endometriose vesical", "endometriose intestinal", "endometriose ovariana",
+    
+    // ===============================================================
+    // === PATOLOGIAS DE PELVE MASCULINA (~50 termos) ===
+    // ===============================================================
+    
+    // === PRÓSTATA ===
+    "hiperplasia prostática", "HPB", "hiperplasia benigna",
+    "zona de transição", "zona periférica", "zona central",
+    "nódulo prostático", "lesão PI-RADS", "lesão índice",
+    "adenocarcinoma prostático", "carcinoma de próstata", "neoplasia prostática",
+    "prostatite", "prostatite crônica", "prostatite granulomatosa",
+    "abscesso prostático", "cisto prostático", "cisto de utrículo",
+    "vesiculite seminal", "vesículas seminais proeminentes",
+    "calcificação prostática", "corpo amiláceo", "calcificação central",
+    "PI-RADS 3", "PI-RADS 4", "PI-RADS 5", "lesão clinicamente significativa",
+    "extensão extracapsular", "invasão de vesícula seminal",
+    
+    // === ESCROTO E TESTÍCULO ===
+    "hidrocele", "varicocele", "espermatocele",
+    "orquite", "epididimite", "orquiepididimite",
+    "torção testicular", "torção de apêndice testicular",
+    "tumor testicular", "seminoma", "tumor de células germinativas",
+    "não-seminoma", "teratoma testicular", "tumor do saco vitelino",
+    "microlitíase testicular", "cisto de epidídimo", "nódulo testicular",
+    
+    // ===============================================================
+    // === PATOLOGIAS DO TÓRAX (~100 termos) ===
+    // ===============================================================
+    
+    // === VIAS AÉREAS ===
+    "diverticulação traqueal", "papilomatose traqueobronquica",
+    "broncomucocele", "broncolito", "impactação mucóide",
+    "traqueobroncomalácia", "colapso traqueobrônquico", "lesão endobrônquica",
+    "broncopatia inflamatória", "espessamento brônquico",
+    "bronquiectasias cilíndricas", "bronquiectasias varicosas", "bronquiectasias císticas",
+    "espessamento peribrônquico", "espessamento das paredes brônquicas",
+    
+    // === SÍNDROMES PULMONARES ===
+    "síndrome de MacLeod", "Swyer-James", "fibrose cística",
+    "policondrite recidivante", "bronquiolite constritiva", "BOOP",
+    "pneumonia intersticial usual", "PIU", "PINE", "padrão UIP",
+    "pneumonite por hipersensibilidade", "alveolite alérgica extrínseca",
+    "pneumonia eosinofílica", "pneumonite por amiodarona",
+    "fibrose pulmonar idiopática", "FPI", "doença intersticial",
+    "pneumonia organizante", "COP", "bronquiolite obliterante",
+    
+    // === ACHADOS PARENQUIMATOSOS ===
+    "opacidades centrolobulares", "opacidades acinares", "pseudocavitação",
+    "alterações fibroatelectásicas", "distorção arquitetural",
+    "bronquiectasias de tração", "bronquiolectasias de tração",
+    "faveolamento subpleural", "espessamento septal", "espessamento intersticial",
+    "padrão de perfusão em mosaico", "aprisionamento aéreo",
+    "disseminação broncogênica", "linfangite carcinomatosa",
+    "hemangiomatose capilar pulmonar", "hipertensão pulmonar",
+    "consolidação pulmonar", "área de consolidação", "broncograma aéreo",
+    "opacidade em vidro fosco", "vidro fosco", "ground-glass",
+    "nódulo pulmonar", "nódulo sólido", "nódulo subsolido", "nódulo em vidro fosco",
+    "massa pulmonar", "carcinoma broncogênico", "adenocarcinoma pulmonar",
+    "carcinoma epidermoide pulmonar", "carcinoma de pequenas células",
+    
+    // === MEDIASTINO E PLEURA ===
+    "linfonodomegalia mediastinal", "linfonodomegalias", "adenomegalia",
+    "timoma", "hiperplasia tímica", "cisto tímico",
+    "linfoma mediastinal", "massas mediastinais", "tumor germinativo",
+    "cisto broncogênico", "cisto de duplicação", "sequestro pulmonar",
+    "derrame pleural", "espessamento pleural", "calcificação pleural",
+    "pneumotórax", "hidropneumotórax", "empiema",
+    "mesotelioma", "tumor pleural", "placas pleurais",
+    
+    // ===============================================================
+    // === PATOLOGIAS DE CABEÇA E PESCOÇO (~80 termos) ===
+    // ===============================================================
+    
+    // === SEIOS PARANASAIS ===
+    "sinusopatia", "sinusite", "sinusite aguda", "sinusite crônica",
+    "espessamento mucoso", "mucocele", "mucopiocele",
+    "pólipo nasossinusal", "polipose nasal", "cisto de retenção",
+    "obliteração da unidade óstiomeatal", "bloqueio infundibular",
+    "concha média bolhosa", "concha bolhosa", "desvio septal",
+    "papiloma invertido", "papiloma nasossinusal", "tumor sinusal",
+    "carcinoma espinocelular sinusal", "carcinoma adenoide cístico",
+    "rinossinusite", "pansinusopatia", "velamento sinusal",
+    
+    // === GLÂNDULAS SALIVARES ===
+    "sialolitíase", "cálculo salivar", "sialolito",
+    "sialoadenite", "parotidite", "submandibulite",
+    "síndrome de Sjögren", "sialadenose", "sialose",
+    "adenoma pleomórfico", "tumor de Warthin", "tumor de glândula salivar",
+    "parótida", "glândula submandibular", "glândula sublingual",
+    "cisto linfoepitelial", "ranula", "mucocele salivar",
+    
+    // === TIREOIDE ===
+    "tireoidite", "tireoidite de Hashimoto", "tireoidite autoimune",
+    "bócio nodular", "bócio multinodular", "bócio difuso",
+    "nódulo tireoidiano suspeito", "TI-RADS", "nódulo suspeito",
+    "microcalcificações tireoideas", "macrocalcificações",
+    "carcinoma papilífero", "carcinoma folicular", "carcinoma medular",
+    "linfadenopatia cervical", "linfonodo reacional cervical",
+    "carcinoma anaplásico", "neoplasia folicular", "adenoma folicular",
+    "nódulo espongiforme", "nódulo coloide", "pseudonódulo",
+    
+    // ===============================================================
+    // === PATOLOGIAS MUSCULOESQUELÉTICAS (~100 termos) ===
+    // ===============================================================
+    
+    // === ARTICULARES ===
+    "artropatia degenerativa", "artrose", "osteoartrite",
+    "redução do espaço articular", "osteofitose marginal", "esclerose subcondral",
+    "cistos subcondrais", "geodos", "alterações fibrocísticas",
+    "sinovite", "derrame articular", "sinovite hipertrófica",
+    "corpo livre intra-articular", "corpos livres", "osteocondrite dissecante",
+    "condromalácia", "condropatia", "lesão condral",
+    "erosão óssea", "erosão marginal", "erosão cortical",
+    "artrite reumatoide", "artrite psoriásica", "artrite gotosa",
+    "espondiloartropatia", "sacroileíte", "espondilite anquilosante",
+    
+    // === TENDINOSAS E LIGAMENTARES ===
+    "tendinopatia", "tendinose", "tendinite",
+    "rotura tendínea", "rotura parcial", "rotura completa",
+    "rotura do manguito rotador", "rotura do supraespinhal",
+    "entesopatia", "entesófito", "entesite",
+    "epicondilite lateral", "epicondilite medial", "cotovelo de tenista",
+    "fasciíte plantar", "esporão de calcâneo", "talalgia",
+    "rotura ligamentar", "estiramento ligamentar", "instabilidade articular",
+    "lesão do ligamento cruzado anterior", "lesão do LCA", "lesão do LCP",
+    "lesão meniscal", "rotura de menisco", "menisco degenerado",
+    "tenossinovite", "tenossinovite estenosante", "dedo em gatilho",
+    "bursite", "bursite subacromial", "bursite trocantérica",
+    
+    // === ÓSSEAS ===
+    "fratura por estresse", "fratura por insuficiência", "fratura patológica",
+    "contusão óssea", "bone bruise", "edema ósseo",
+    "osteonecrose", "necrose avascular", "osteonecrose da cabeça femoral",
+    "osteoporose", "osteopenia", "rarefação óssea",
+    "osteomielite", "osteomielite crônica", "sequestro ósseo",
+    "osteoma", "osteocondroma", "exostose", "encondroma",
+    "fratura vertebral", "acunhamento vertebral", "fratura de vértebra",
+    "listese", "espondilolistese", "retrolistese", "anterolistese",
+    "espondilólise", "estenose de canal", "estenose foraminal",
+    
+    // === TUMORES ÓSSEOS ===
+    "tumor ósseo primário", "tumor ósseo benigno", "tumor ósseo maligno",
+    "osteossarcoma", "condrossarcoma", "sarcoma de Ewing",
+    "mieloma múltiplo", "plasmocitoma", "lesão lítica",
+    "metástase óssea", "lesão blástica", "lesão mista",
+    "tumor de células gigantes", "fibroma não-ossificante", "cisto ósseo",
+    "cisto ósseo aneurismático", "displasia fibrosa", "hemangioma ósseo",
+    
+    // ===============================================================
+    // === PATOLOGIAS VASCULARES E DOPPLER (~80 termos) ===
+    // ===============================================================
+    
+    // === TROMBOSE VENOSA ===
+    "trombose venosa profunda", "TVP", "trombo intraluminal",
+    "veia não compressível", "incompressibilidade venosa",
+    "trombo oclusivo", "trombo mural", "trombo flutuante",
+    "trombo agudo", "trombo subagudo", "trombo crônico",
+    "síndrome pós-trombótica", "refluxo venoso", "insuficiência venosa",
+    "varizes", "veias varicosas", "ectasia venosa",
+    "safena incompetente", "insuficiência de safena", "refluxo safenomagna",
+    "tromboflebite", "tromboflebite superficial", "flebite",
+    "síndrome de May-Thurner", "compressão ilíaca",
+    
+    // === ARTERIAL ===
+    "doença arterial periférica", "DAP", "ateromatose periférica",
+    "placa aterosclerótica", "placa de ateroma", "placa calcificada",
+    "estenose arterial", "estenose significativa", "estenose crítica",
+    "oclusão arterial", "arteriopatia obliterante",
+    "claudicação intermitente", "isquemia crítica",
+    "aneurisma de artéria poplítea", "aneurisma periférico",
+    "pseudoaneurisma", "fístula arteriovenosa", "FAV pós-traumática",
+    "dissecção arterial", "hematoma intramural arterial",
+    
+    // === CAROTÍDEO ===
+    "espessamento mediointimal", "IMT aumentado",
+    "placa carotídea", "estenose carotídea", "estenose do bulbo",
+    "oclusão carotídea", "string sign", "near occlusion",
+    "dissecção carotídea", "flap intimal carotídeo",
+    "placa ulcerada", "placa instável", "placa vulnerável",
+    "estenose NASCET", "estenose ECST", "estenose hemodinamicamente significativa",
+    
+    // ===============================================================
+    // === PATOLOGIAS OBSTÉTRICAS E TGI (~100 termos) ===
+    // ===============================================================
+    
+    // === OBSTÉTRICAS ===
+    "gestação ectópica", "gravidez ectópica", "gestação tubária",
+    "mola hidatiforme", "doença trofoblástica", "mola parcial",
+    "aborto retido", "aborto incompleto", "aborto inevitável",
+    "descolamento ovular", "hematoma subcoriônico", "hematoma retrocoriônico",
+    "placenta prévia", "placenta de inserção baixa", "acretismo placentário",
+    "oligoâmnio", "polidrâmnio", "anidrâmnio",
+    "restrição de crescimento", "RCIU", "crescimento fetal restrito",
+    "macrossomia", "feto grande para idade gestacional", "GIG",
+    "malformação fetal", "anomalia congênita", "defeito do tubo neural",
+    "onfalocele", "gastrosquise", "hérnia diafragmática congênita",
+    "hidropsia fetal", "derrame pericárdico fetal", "ascite fetal",
+    
+    // === TGI - TRATO GASTROINTESTINAL ===
+    "apendicite aguda", "apêndice espessado", "apendicolito",
+    "diverticulite", "diverticulose", "divertículo de Meckel",
+    "obstrução intestinal", "íleo paralítico", "íleo adinâmico",
+    "vólvulo", "intussuscepção", "hérnia interna",
+    "doença de Crohn", "retocolite ulcerativa", "doença inflamatória intestinal",
+    "colite", "enterite", "tiflite",
+    "úlcera gástrica", "úlcera duodenal", "úlcera perfurada",
+    "gastrite", "gastropatia", "espessamento gástrico",
+    "hérnia de hiato", "hérnia inguinal", "hérnia umbilical",
+    "hérnia incisional", "eventração", "diástase dos retos",
+    "adenocarcinoma gástrico", "carcinoma colorretal", "adenocarcinoma de cólon",
+    "tumor de reto", "pólipo colônico", "polipose adenomatosa",
+    "isquemia mesentérica", "trombose mesentérica", "pneumatose intestinal",
+    
+    // ===============================================================
+    // === VERBOS, CONECTORES E DESCRITORES DE LAUDO (~100 termos) ===
+    // ===============================================================
+    
+    // === VERBOS DE LAUDO ===
+    "delimitando", "delimita", "delimitado", "delimitada", "delimitadas",
+    "circundando", "circunda", "circundado", "circundada",
+    "envolvendo", "envolve", "envolvido", "envolvida",
+    "marginando", "margeia", "marginado", "marginada",
+    "coletado", "coletada", "coletados", "coleção",
+    "ulcerado", "ulcerada", "ulceração", "ulcerados",
+    "organizado", "organizada", "organização", "organizando",
+    "recanalizado", "recanalizada", "recanalização", "recanalizando",
+    "reagudizado", "reagudizada", "reagudização", "reagudizando",
+    "cronicizado", "cronicizada", "cronicidade", "cronicização",
+    "calcificado", "calcificada", "calcificadas", "calcificação",
+    "necrosado", "necrosada", "necrose", "necrótico",
+    "infiltrado", "infiltrada", "infiltração", "infiltrando",
+    "comprimindo", "comprime", "comprimido", "comprimida",
+    "deslocando", "desloca", "deslocado", "deslocada",
+    "obliterando", "oblitera", "obliterado", "obliterada",
+    
+    // === DESCRITORES GERAIS ===
+    "geográfico", "geográfica", "configuração geográfica",
+    "serpiginoso", "serpiginosa", "aspecto serpiginoso",
+    "bocelado", "bocelada", "contornos bocelados",
+    "lobulado", "lobulada", "lobulações", "multilobulado",
+    "septado", "septada", "septações", "multisseptado",
+    "loculado", "loculada", "loculações", "multiloculado",
+    "estratificado", "estratificada", "estratificação",
+    "vegetante", "vegetação", "componente vegetante",
+    "nodulariforme", "nodulariformes", "aspecto nodulariforme",
+    "polipoide", "polipoidal", "aspecto polipoide",
+    "pediculado", "pediculada", "pedículo", "séssil",
+    "exofítico", "exofítica", "componente exofítico",
+    "endofítico", "endofítica", "componente endofítico",
+    "espiculado", "espiculada", "espículas", "margens espiculadas",
+    "irregularmente", "regularmente", "parcialmente", "completamente",
+    
+    // === CONECTORES E EXPRESSÕES ===
+    "compatível com", "sugestivo de", "indicativo de", "consistente com",
+    "não se pode excluir", "a considerar", "considerar possibilidade de",
+    "em correlação clínica", "correlacionar clinicamente",
+    "na dependência de", "a critério clínico", "se clinicamente indicado",
+    "evolução favorável", "regressão parcial", "regressão completa",
+    "progressão de doença", "estabilidade lesional", "sem alterações significativas",
+    "achado incidental", "achado secundário", "achado principal",
+    "dentro dos limites da normalidade", "sem particularidades",
+    "aspecto habitual", "padrão habitual", "sem anormalidades"
+  ],
+  
   sinonimos: {
     aneico: ["anecogênico", "sonolucente", "líquido simples", "conteúdo fluídico"],
     hipoecogênico: ["hipoecóico", "escuro ao ultrassom"],
