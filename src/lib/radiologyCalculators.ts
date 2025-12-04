@@ -18,6 +18,12 @@ export interface CalculatorResult {
   formattedText: string
 }
 
+export interface CalculatorInfo {
+  purpose: string
+  usage: string[]
+  grading?: string[]
+}
+
 export interface RadiologyCalculator {
   id: string
   name: string
@@ -30,6 +36,7 @@ export interface RadiologyCalculator {
     text: string
     url: string
   }
+  info?: CalculatorInfo
 }
 
 // Helper: Formatação decimal brasileira (vírgula)
@@ -83,6 +90,14 @@ export const radiologyCalculators: RadiologyCalculator[] = [
     reference: {
       text: 'Fórmula padrão para volumes elipsoides',
       url: 'https://radiopaedia.org/articles/ellipsoid-volume-formula'
+    },
+    info: {
+      purpose: 'Fórmula universal para estimar o volume de estruturas com formato aproximadamente elipsoide. Amplamente utilizada em radiologia para cálculo de volumes de órgãos, nódulos, cistos e outras lesões.',
+      usage: [
+        'Meça os três diâmetros perpendiculares máximos da estrutura',
+        'Insira as medidas em centímetros',
+        'O fator 0,52 (≈ π/6) corrige a fórmula para formato elipsoide'
+      ]
     }
   },
 
@@ -113,6 +128,14 @@ export const radiologyCalculators: RadiologyCalculator[] = [
     reference: {
       text: 'Método Naegele para cálculo de idade gestacional',
       url: 'https://www.acog.org/clinical/clinical-guidance/committee-opinion/articles/2017/05/methods-for-estimating-the-due-date'
+    },
+    info: {
+      purpose: 'Calcular a idade gestacional a partir da data da última menstruação, método mais utilizado quando a paciente tem ciclos regulares e conhece a data exata da DUM.',
+      usage: [
+        'Insira a data do primeiro dia da última menstruação',
+        'O cálculo considera ciclos regulares de 28 dias',
+        'Compare com a biometria fetal para confirmar datação'
+      ]
     }
   },
 
@@ -152,6 +175,15 @@ export const radiologyCalculators: RadiologyCalculator[] = [
     reference: {
       text: 'Hadlock FP et al. Radiology 1984',
       url: 'https://pubmed.ncbi.nlm.nih.gov/6333079/'
+    },
+    info: {
+      purpose: 'Estimar o peso fetal usando a fórmula de Hadlock com 4 parâmetros biométricos. É a fórmula mais validada e utilizada mundialmente, com margem de erro de ±15%.',
+      usage: [
+        'Meça DBP no plano transventricular axial padrão',
+        'Meça CC no mesmo plano do DBP',
+        'Meça CA no plano do estômago e veia umbilical intrahepática',
+        'Meça CF em toda extensão da diáfise femoral'
+      ]
     }
   },
 
@@ -192,6 +224,14 @@ export const radiologyCalculators: RadiologyCalculator[] = [
     reference: {
       text: 'Catalona WJ et al. JAMA 1994',
       url: 'https://pubmed.ncbi.nlm.nih.gov/7512908/'
+    },
+    info: {
+      purpose: 'Calcular o volume prostático e a densidade de PSA para auxiliar na diferenciação entre hiperplasia prostática benigna e câncer de próstata.',
+      usage: [
+        'Meça as três dimensões prostáticas no US ou RM',
+        'Insira o valor do PSA total sérico',
+        'PSA density >0,15 ng/mL/cm³ sugere maior risco de neoplasia'
+      ]
     }
   },
 
@@ -231,6 +271,15 @@ export const radiologyCalculators: RadiologyCalculator[] = [
     reference: {
       text: 'Kothari RU et al. Stroke 1996',
       url: 'https://pubmed.ncbi.nlm.nih.gov/8610308/'
+    },
+    info: {
+      purpose: 'Estimar rapidamente o volume de hematomas intracranianos na TC para auxílio na decisão terapêutica. Volumes >30mL em hematomas hipertensivos podem indicar cirurgia.',
+      usage: [
+        'A: maior diâmetro do hematoma no corte de maior área',
+        'B: diâmetro perpendicular a A no mesmo corte',
+        'C: número de cortes com hematoma × espessura do corte',
+        'Fórmula simplifica o cálculo volumétrico para emergências'
+      ]
     }
   },
 
@@ -266,6 +315,15 @@ export const radiologyCalculators: RadiologyCalculator[] = [
     reference: {
       text: 'Evans WA. Arch Neurol Psychiatry 1942',
       url: 'https://radiopaedia.org/articles/evans-index-1'
+    },
+    info: {
+      purpose: 'Avaliar dilatação ventricular e screening para hidrocefalia. Índice >0,3 indica ventriculomegalia e é critério obrigatório para diagnóstico de hidrocefalia de pressão normal.',
+      usage: [
+        'Meça a maior largura dos cornos frontais no plano axial',
+        'Meça o diâmetro biparietal interno no mesmo nível',
+        'Índice >0,3 = ventriculomegalia',
+        'Avalie junto com outros sinais de hidrocefalia'
+      ]
     }
   },
 
@@ -301,6 +359,15 @@ export const radiologyCalculators: RadiologyCalculator[] = [
     reference: {
       text: 'Danzer CS. Am J Med Sci 1919',
       url: 'https://radiopaedia.org/articles/cardiothoracic-ratio'
+    },
+    info: {
+      purpose: 'Avaliar cardiomegalia na radiografia de tórax PA em inspiração. Método simples e reprodutível para screening de aumento cardíaco.',
+      usage: [
+        'Use apenas radiografias PA em inspiração profunda',
+        'Some as distâncias máximas do coração às linhas medianas (D + E)',
+        'Meça o diâmetro torácico máximo interno',
+        'Razão >0,5 = cardiomegalia'
+      ]
     }
   },
 
@@ -348,6 +415,20 @@ export const radiologyCalculators: RadiologyCalculator[] = [
     reference: {
       text: 'OMS - Organização Mundial da Saúde',
       url: 'https://www.who.int/health-topics/obesity'
+    },
+    info: {
+      purpose: 'Classificar o estado nutricional do paciente segundo critérios da OMS. Importante para ajuste de doses de contraste e avaliação de risco cardiovascular.',
+      usage: [
+        'Insira peso em quilogramas',
+        'Insira altura em metros',
+        'O resultado classifica automaticamente o estado nutricional'
+      ],
+      grading: [
+        '<18,5: Baixo peso',
+        '18,5-24,9: Peso normal',
+        '25-29,9: Sobrepeso',
+        '≥30: Obesidade'
+      ]
     }
   },
 
@@ -383,6 +464,14 @@ export const radiologyCalculators: RadiologyCalculator[] = [
     reference: {
       text: 'DuBois D, DuBois EF. Arch Intern Med 1916',
       url: 'https://pubmed.ncbi.nlm.nih.gov/2520314/'
+    },
+    info: {
+      purpose: 'Calcular a área de superfície corporal para normalização de medidas cardíacas, cálculo de doses de quimioterápicos e índices cardíacos.',
+      usage: [
+        'Insira o peso em quilogramas',
+        'Insira a altura em centímetros',
+        'Use para indexar volumes cardíacos e diâmetros aórticos'
+      ]
     }
   },
 
@@ -443,6 +532,21 @@ export const radiologyCalculators: RadiologyCalculator[] = [
     reference: {
       text: 'Inker LA et al. N Engl J Med 2021',
       url: 'https://pubmed.ncbi.nlm.nih.gov/34554658/'
+    },
+    info: {
+      purpose: 'Estimar a função renal para avaliação pré-contraste iodado ou gadolínio. Fundamental para prevenção de nefropatia induzida por contraste.',
+      usage: [
+        'Insira creatinina sérica recente (idealmente <3 meses)',
+        'Idade em anos',
+        'Sexo biológico para ajuste da fórmula'
+      ],
+      grading: [
+        '≥90: G1 - Normal',
+        '60-89: G2 - Leve redução',
+        '30-59: G3 - Moderada redução',
+        '15-29: G4 - Severa redução',
+        '<15: G5 - Insuficiência renal'
+      ]
     }
   },
 
@@ -473,6 +577,15 @@ export const radiologyCalculators: RadiologyCalculator[] = [
     reference: {
       text: 'Robinson HP, Fleming JE. BJOG 1975',
       url: 'https://pubmed.ncbi.nlm.nih.gov/1156108/'
+    },
+    info: {
+      purpose: 'Datação gestacional precisa no primeiro trimestre (6-14 semanas). É o parâmetro mais acurado para determinar idade gestacional, com erro de ±3-5 dias.',
+      usage: [
+        'Meça o CCN em corte sagital do embrião/feto',
+        'Inclua do polo cefálico ao polo caudal',
+        'Exclua o saco vitelino da medida',
+        'Ideal entre 7-13 semanas de gestação'
+      ]
     }
   },
 
@@ -506,6 +619,14 @@ export const radiologyCalculators: RadiologyCalculator[] = [
     reference: {
       text: 'ACOG Committee Opinion 2017',
       url: 'https://www.acog.org/clinical/clinical-guidance/committee-opinion/articles/2017/05/methods-for-estimating-the-due-date'
+    },
+    info: {
+      purpose: 'Calcular a data provável do parto pela regra de Naegele. Considera gestação de 280 dias (40 semanas) a partir da DUM.',
+      usage: [
+        'Insira a data do primeiro dia da última menstruação',
+        'Considera ciclo regular de 28 dias',
+        'Ajuste pode ser necessário se ciclos irregulares'
+      ]
     }
   },
 
@@ -557,6 +678,21 @@ export const radiologyCalculators: RadiologyCalculator[] = [
     reference: {
       text: 'Phelan JP et al. Am J Obstet Gynecol 1987',
       url: 'https://pubmed.ncbi.nlm.nih.gov/3322321/'
+    },
+    info: {
+      purpose: 'Avaliar o volume de líquido amniótico somando a maior bolsa vertical livre de cordão em cada quadrante uterino.',
+      usage: [
+        'Divida o útero em 4 quadrantes usando a linha nigra e cicatriz umbilical',
+        'Meça a maior bolsa vertical em cada quadrante',
+        'Mantenha o transdutor perpendicular ao chão',
+        'Exclua bolsas com cordão umbilical'
+      ],
+      grading: [
+        '<5 cm: Oligoidrâmnio severo',
+        '5-8 cm: Oligoidrâmnio limítrofe',
+        '8-24 cm: Normal',
+        '>24 cm: Polidrâmnio'
+      ]
     }
   },
 
@@ -618,6 +754,19 @@ export const radiologyCalculators: RadiologyCalculator[] = [
     reference: {
       text: 'INTERGROWTH-21st Fetal Growth Standards',
       url: 'https://intergrowth21.tghn.org/'
+    },
+    info: {
+      purpose: 'Classificar o peso fetal em relação às curvas de crescimento INTERGROWTH-21st para identificar restrição de crescimento ou macrossomia.',
+      usage: [
+        'Calcule primeiro o peso fetal estimado (Hadlock)',
+        'Confirme a idade gestacional',
+        'O percentil indica a posição na curva de crescimento'
+      ],
+      grading: [
+        '<10: Pequeno para IG (PIG)',
+        '10-90: Adequado para IG (AIG)',
+        '>90: Grande para IG (GIG)'
+      ]
     }
   },
 
@@ -667,6 +816,20 @@ export const radiologyCalculators: RadiologyCalculator[] = [
     reference: {
       text: 'Heymsfield SB et al. J Nutr 2014',
       url: 'https://pubmed.ncbi.nlm.nih.gov/24500935/'
+    },
+    info: {
+      purpose: 'Estimar o volume hepático total para avaliação de hepatomegalia ou planejamento pré-transplante/ressecção.',
+      usage: [
+        'Meça o maior eixo craniocaudal (lobo direito)',
+        'Meça a maior largura transversa',
+        'Meça a maior dimensão anteroposterior'
+      ],
+      grading: [
+        '<1000 mL: Volume reduzido',
+        '1000-1800 mL: Normal',
+        '1800-2500 mL: Hepatomegalia leve',
+        '>2500 mL: Hepatomegalia significativa'
+      ]
     }
   },
 
@@ -714,6 +877,19 @@ export const radiologyCalculators: RadiologyCalculator[] = [
     reference: {
       text: 'Bezerra AS et al. Radiol Bras 2005',
       url: 'https://www.scielo.br/j/rb/a/8YcWHLTMxJjdnzQkHbkRX4F/'
+    },
+    info: {
+      purpose: 'Quantificar o volume esplênico para diagnóstico e acompanhamento de esplenomegalia. Normal: até 250 mL ou 13 cm de comprimento.',
+      usage: [
+        'Meça o maior eixo craniocaudal do baço',
+        'Meça a largura e espessura no hilo',
+        'Comprimento >13 cm já indica esplenomegalia'
+      ],
+      grading: [
+        '≤250 mL: Normal',
+        '250-500 mL: Esplenomegalia leve',
+        '>500 mL: Esplenomegalia acentuada'
+      ]
     }
   },
 
@@ -760,6 +936,19 @@ export const radiologyCalculators: RadiologyCalculator[] = [
     reference: {
       text: 'Emamian SA et al. Radiology 1993',
       url: 'https://pubmed.ncbi.nlm.nih.gov/8248734/'
+    },
+    info: {
+      purpose: 'Estimar o volume renal para avaliação de nefropatia crônica, assimetria renal ou doença policística.',
+      usage: [
+        'Meça o comprimento bipolar máximo',
+        'Meça largura e espessura no hilo renal',
+        'Compare ambos os rins para avaliar assimetria'
+      ],
+      grading: [
+        '<80 mL: Possível atrofia',
+        '80-180 mL: Normal',
+        '>180 mL: Volume aumentado'
+      ]
     }
   },
 
@@ -810,6 +999,21 @@ export const radiologyCalculators: RadiologyCalculator[] = [
     reference: {
       text: 'Caoili EM et al. Radiology 2002',
       url: 'https://pubmed.ncbi.nlm.nih.gov/12091681/'
+    },
+    info: {
+      purpose: 'Diferenciar adenomas adrenais de metástases/feocromocitomas usando o padrão de washout do contraste na TC.',
+      usage: [
+        'Meça a atenuação na fase sem contraste',
+        'Meça na fase portal (60-90 segundos)',
+        'Meça na fase tardia (10-15 minutos)',
+        'Coloque ROI na área mais sólida do nódulo'
+      ],
+      grading: [
+        'APW ≥60%: Adenoma',
+        'RPW ≥40%: Adenoma',
+        'Pré-contraste ≤10 HU: Adenoma rico em lipídios',
+        'Outros valores: Indeterminado'
+      ]
     }
   },
 
@@ -857,6 +1061,19 @@ export const radiologyCalculators: RadiologyCalculator[] = [
     reference: {
       text: 'Brunn J et al. Ultrasound Med Biol 1981',
       url: 'https://pubmed.ncbi.nlm.nih.gov/7256012/'
+    },
+    info: {
+      purpose: 'Quantificar o volume tireoidiano para diagnóstico de bócio e acompanhamento pós-tratamento.',
+      usage: [
+        'Meça cada lobo em 3 dimensões perpendiculares',
+        'Inclua apenas parênquima, exclua nódulos se necessário',
+        'O istmo geralmente contribui pouco e pode ser ignorado'
+      ],
+      grading: [
+        '≤18 mL: Normal (adultos)',
+        '18-25 mL: Discretamente aumentado',
+        '>25 mL: Bócio'
+      ]
     }
   },
 
@@ -904,6 +1121,20 @@ export const radiologyCalculators: RadiologyCalculator[] = [
     reference: {
       text: 'NASCET Collaborators. N Engl J Med 1991',
       url: 'https://pubmed.ncbi.nlm.nih.gov/1852179/'
+    },
+    info: {
+      purpose: 'Calcular o grau de estenose carotídea pelo método NASCET, padrão para indicação de endarterectomia ou stent.',
+      usage: [
+        'Meça o menor diâmetro luminal no ponto de máxima estenose',
+        'Meça o diâmetro da ACI distal normal (sem placa)',
+        'Estenose ≥70% sintomática = indicação cirúrgica classe I'
+      ],
+      grading: [
+        '<50%: Estenose leve',
+        '50-69%: Estenose moderada',
+        '70-99%: Estenose severa',
+        '100%: Oclusão completa'
+      ]
     }
   },
 
@@ -953,6 +1184,20 @@ export const radiologyCalculators: RadiologyCalculator[] = [
     reference: {
       text: 'Hiratzka LF et al. Circulation 2010',
       url: 'https://www.ahajournals.org/doi/10.1161/CIR.0b013e3181d4739e'
+    },
+    info: {
+      purpose: 'Avaliar dilatação aórtica e classificar ectasia/aneurisma. O Z-score permite comparação ajustada pela superfície corporal.',
+      usage: [
+        'Meça o diâmetro perpendicular ao fluxo',
+        'Use técnica leading-edge to leading-edge ou inner-edge to inner-edge',
+        'Calcule BSA previamente para Z-score'
+      ],
+      grading: [
+        '<40 mm: Normal',
+        '40-44 mm: Ectasia leve',
+        '45-54 mm: Aneurisma',
+        '≥55 mm: Aneurisma volumoso (indicação cirúrgica)'
+      ]
     }
   },
 
@@ -969,38 +1214,51 @@ export const radiologyCalculators: RadiologyCalculator[] = [
       const score = values.score as number
       
       let interpretation = ''
-      let risk = ''
       let color: 'success' | 'warning' | 'danger' = 'success'
       
       if (score === 0) {
-        interpretation = 'Ausência de calcificação'
-        risk = 'risco muito baixo'
+        interpretation = 'Ausência de calcificação coronariana - risco muito baixo'
         color = 'success'
-      } else if (score < 100) {
-        interpretation = 'Calcificação leve'
-        risk = 'risco baixo a moderado'
+      } else if (score <= 10) {
+        interpretation = 'Calcificação mínima - risco baixo'
         color = 'success'
-      } else if (score < 400) {
-        interpretation = 'Calcificação moderada'
-        risk = 'risco moderado a alto'
+      } else if (score <= 100) {
+        interpretation = 'Calcificação leve - risco moderado baixo'
+        color = 'warning'
+      } else if (score <= 400) {
+        interpretation = 'Calcificação moderada - risco moderado alto'
         color = 'warning'
       } else {
-        interpretation = 'Calcificação severa'
-        risk = 'risco alto'
+        interpretation = 'Calcificação extensa - risco alto'
         color = 'danger'
       }
       
       return {
         value: score,
-        unit: '',
-        interpretation: `${interpretation}. ${risk}`,
+        unit: 'UA',
+        interpretation,
         color,
-        formattedText: `Escore de Agatston: ${formatBR(score, 0)}, ${risk}.`
+        formattedText: `Escore de Agatston: ${score} UA, ${interpretation.toLowerCase()}.`
       }
     },
     reference: {
       text: 'Agatston AS et al. J Am Coll Cardiol 1990',
       url: 'https://pubmed.ncbi.nlm.nih.gov/2407762/'
+    },
+    info: {
+      purpose: 'Quantificar a carga de cálcio nas artérias coronárias como marcador de risco cardiovascular e doença aterosclerótica.',
+      usage: [
+        'Obtido por TC cardíaca sincronizada ao ECG sem contraste',
+        'Software calcula automaticamente o score',
+        'Considerar percentil para idade/sexo em relatórios completos'
+      ],
+      grading: [
+        '0: Sem calcificação - risco muito baixo',
+        '1-10: Calcificação mínima - risco baixo',
+        '11-100: Calcificação leve - risco moderado',
+        '101-400: Calcificação moderada - risco moderado-alto',
+        '>400: Calcificação extensa - risco alto'
+      ]
     }
   },
 
@@ -1045,6 +1303,19 @@ export const radiologyCalculators: RadiologyCalculator[] = [
     reference: {
       text: 'Hahn FJ et al. AJNR 1985',
       url: 'https://pubmed.ncbi.nlm.nih.gov/3933954/'
+    },
+    info: {
+      purpose: 'Avaliar atrofia subcortical, especialmente dos núcleos da base. Útil em doenças de Huntington, Parkinson e demências.',
+      usage: [
+        'Meça a menor distância entre as cabeças dos núcleos caudados',
+        'Meça a largura cerebral no mesmo nível axial',
+        'Use corte ao nível dos núcleos caudados'
+      ],
+      grading: [
+        '<0,15: Normal',
+        '0,15-0,18: Limítrofe',
+        '>0,18: Atrofia subcortical'
+      ]
     }
   },
 
@@ -1094,6 +1365,20 @@ export const radiologyCalculators: RadiologyCalculator[] = [
     reference: {
       text: 'Eisenhauer EA et al. Eur J Cancer 2009',
       url: 'https://pubmed.ncbi.nlm.nih.gov/19095497/'
+    },
+    info: {
+      purpose: 'Avaliar resposta tumoral ao tratamento oncológico comparando a soma dos diâmetros das lesões alvo com o exame basal.',
+      usage: [
+        'Selecione até 5 lesões alvo (2 por órgão) no baseline',
+        'Meça o maior diâmetro axial de cada lesão',
+        'Compare a soma atual com a soma do baseline',
+        'Considere também lesões não-alvo e novas lesões'
+      ],
+      grading: [
+        '≤-30%: Resposta parcial (RP)',
+        '-30% a +20%: Doença estável (DE)',
+        '>+20% ou nova lesão: Doença progressiva (DP)'
+      ]
     }
   },
 
@@ -1140,6 +1425,19 @@ export const radiologyCalculators: RadiologyCalculator[] = [
     reference: {
       text: 'Pavlik EJ et al. Ultrasound Obstet Gynecol 2000',
       url: 'https://pubmed.ncbi.nlm.nih.gov/11169286/'
+    },
+    info: {
+      purpose: 'Calcular o volume ovariano para avaliação de síndrome dos ovários policísticos, menopausa ou massas ovarianas.',
+      usage: [
+        'Meça as três dimensões perpendiculares máximas',
+        'Em idade reprodutiva, normal até 10-12 cm³',
+        'Pós-menopausa, considerar volumes menores como normais'
+      ],
+      grading: [
+        '≤10 cm³: Normal (idade reprodutiva)',
+        '10-20 cm³: Discretamente aumentado',
+        '>20 cm³: Aumentado'
+      ]
     }
   },
 
@@ -1199,6 +1497,21 @@ export const radiologyCalculators: RadiologyCalculator[] = [
     reference: {
       text: 'Barber PA et al. Lancet 2000',
       url: 'https://pubmed.ncbi.nlm.nih.gov/10859037/'
+    },
+    info: {
+      purpose: 'Quantificar a extensão do AVC isquêmico agudo no território da artéria cerebral média na TC sem contraste. Fundamental para decisão de trombectomia mecânica.',
+      usage: [
+        'Analise TC de crânio sem contraste nas primeiras 6 horas do AVC',
+        'Avalie cada uma das 10 regiões do território da ACM',
+        'Marque 1 para região normal, 0 para região com sinais precoces de isquemia',
+        'Sinais precoces: hipodensidade, apagamento de sulcos, perda da diferenciação córtico-subcortical'
+      ],
+      grading: [
+        '10: Normal, sem sinais de isquemia',
+        '8-9: Infarto pequeno - candidato a trombectomia',
+        '6-7: Infarto moderado - avaliar caso a caso',
+        '≤5: Infarto extenso - risco elevado de transformação hemorrágica'
+      ]
     }
   },
 
@@ -1248,6 +1561,20 @@ export const radiologyCalculators: RadiologyCalculator[] = [
     reference: {
       text: 'Fazekas F et al. AJNR 1987',
       url: 'https://pubmed.ncbi.nlm.nih.gov/3496763/'
+    },
+    info: {
+      purpose: 'Classificar a carga de lesões de substância branca (leucoaraiose) em RM de crânio. Útil para avaliar microangiopatia e risco de demência vascular.',
+      usage: [
+        'Avalie imagens T2/FLAIR de RM de crânio',
+        'Classifique separadamente lesões periventriculares e profundas',
+        'Use o maior score como classificação final'
+      ],
+      grading: [
+        '0: Ausência de lesões',
+        '1: Lesões punctiformes/focais (caps periventriculares)',
+        '2: Lesões confluentes iniciais',
+        '3: Lesões confluentes extensas'
+      ]
     }
   },
 
@@ -1295,6 +1622,22 @@ export const radiologyCalculators: RadiologyCalculator[] = [
     reference: {
       text: 'Claassen J et al. Stroke 2001',
       url: 'https://pubmed.ncbi.nlm.nih.gov/11546890/'
+    },
+    info: {
+      purpose: 'Classificar a hemorragia subaracnóidea e predizer o risco de vasoespasmo cerebral. Modificada para incluir hemorragia intraventricular (HIV).',
+      usage: [
+        'Avalie TC de crânio sem contraste',
+        'Determine espessura da HSA nas cisternas',
+        'Verifique presença de hemorragia intraventricular',
+        'HSA espessa = >1mm de sangue nas cisternas basais'
+      ],
+      grading: [
+        '0: Sem HSA/HIV - risco mínimo',
+        '1: HSA fina, sem HIV - risco baixo (24%)',
+        '2: HSA fina + HIV bilateral - risco moderado (33%)',
+        '3: HSA espessa, sem HIV - risco moderado-alto (33%)',
+        '4: HSA espessa + HIV - risco alto (40%)'
+      ]
     }
   },
 
@@ -1338,6 +1681,23 @@ export const radiologyCalculators: RadiologyCalculator[] = [
     reference: {
       text: 'Marshall LF et al. J Neurosurg 1992',
       url: 'https://pubmed.ncbi.nlm.nih.gov/1545238/'
+    },
+    info: {
+      purpose: 'Classificar a gravidade do TCE por TC e estimar prognóstico. DLM = desvio da linha média.',
+      usage: [
+        'Avalie presença das cisternas basais',
+        'Meça o desvio da linha média',
+        'Identifique lesões de massa >25 cm³',
+        'Verifique se houve evacuação cirúrgica'
+      ],
+      grading: [
+        'I: TC normal - mortalidade 10%',
+        'II: Alterações difusas leves - mortalidade 14%',
+        'III: Cisternas comprimidas - mortalidade 34%',
+        'IV: DLM >5mm - mortalidade 56%',
+        'V: Lesão evacuada - mortalidade variável',
+        'VI: Lesão de massa não evacuada - mortalidade 53%'
+      ]
     }
   },
 
@@ -1377,6 +1737,22 @@ export const radiologyCalculators: RadiologyCalculator[] = [
     reference: {
       text: 'Kellgren JH & Lawrence JS. Ann Rheum Dis 1957',
       url: 'https://pubmed.ncbi.nlm.nih.gov/13498604/'
+    },
+    info: {
+      purpose: 'Classificar o grau de osteoartrose em radiografias. Padrão-ouro para estudos epidemiológicos e indicação cirúrgica.',
+      usage: [
+        'Avalie radiografia com carga da articulação',
+        'Identifique osteófitos marginais',
+        'Avalie redução do espaço articular',
+        'Observe esclerose subcondral e cistos'
+      ],
+      grading: [
+        '0: Normal - sem alterações',
+        '1: Duvidoso - osteófito mínimo incerto',
+        '2: Mínimo - osteófitos definidos, espaço preservado',
+        '3: Moderado - redução moderada do espaço',
+        '4: Grave - redução acentuada, esclerose subcondral'
+      ]
     }
   },
 
@@ -1417,6 +1793,22 @@ export const radiologyCalculators: RadiologyCalculator[] = [
     reference: {
       text: 'Pfirrmann CW et al. Spine 2001',
       url: 'https://pubmed.ncbi.nlm.nih.gov/11568697/'
+    },
+    info: {
+      purpose: 'Classificar o grau de degeneração discal na coluna vertebral em RM T2. NP = núcleo pulposo, AF = anel fibroso.',
+      usage: [
+        'Avalie imagens T2 sagitais da coluna',
+        'Compare sinal do disco com líquor (referência)',
+        'Observe distinção entre núcleo pulposo e anel fibroso',
+        'Avalie altura do disco'
+      ],
+      grading: [
+        'I: Disco normal - hipersinal T2 homogêneo',
+        'II: Disco levemente degenerado - sinal heterogêneo',
+        'III: Degeneração moderada - sinal intermediário',
+        'IV: Degeneração acentuada - hiposinal T2',
+        'V: Degeneração grave - disco colapsado'
+      ]
     }
   },
 
@@ -1464,6 +1856,22 @@ export const radiologyCalculators: RadiologyCalculator[] = [
     reference: {
       text: 'Goutallier D et al. Clin Orthop Relat Res 1994',
       url: 'https://pubmed.ncbi.nlm.nih.gov/8020238/'
+    },
+    info: {
+      purpose: 'Classificar a degeneração gordurosa dos músculos do manguito rotador em TC/RM. Importante para prognóstico de reparo cirúrgico.',
+      usage: [
+        'Avalie cortes sagitais oblíquos T1 ou TC',
+        'Compare quantidade de gordura vs músculo',
+        'Avalie cada músculo separadamente',
+        'Grau ≥3 = alto risco de retear após reparo'
+      ],
+      grading: [
+        '0: Normal - sem infiltração gordurosa',
+        '1: Algumas estrias gordurosas',
+        '2: Menos gordura que músculo (<50%)',
+        '3: Gordura igual ao músculo (50%)',
+        '4: Mais gordura que músculo (>50%)'
+      ]
     }
   },
 
@@ -1517,6 +1925,23 @@ export const radiologyCalculators: RadiologyCalculator[] = [
     reference: {
       text: 'Balthazar EJ et al. Radiology 1990',
       url: 'https://pubmed.ncbi.nlm.nih.gov/2217773/'
+    },
+    info: {
+      purpose: 'Classificar a gravidade da pancreatite aguda por TC e predizer morbidade/mortalidade. CTSI = Balthazar + pontos de necrose.',
+      usage: [
+        'Realize TC com contraste 48-72h após início dos sintomas',
+        'Classifique alterações pancreáticas (Balthazar A-E)',
+        'Avalie extensão da necrose pancreática',
+        'Some os pontos para CTSI total'
+      ],
+      grading: [
+        'A (0 pts): Pâncreas normal',
+        'B (1 pt): Aumento pancreático',
+        'C (2 pts): Inflamação peripancreática',
+        'D (3 pts): Uma coleção',
+        'E (4 pts): Múltiplas coleções/gás',
+        'Necrose: 0=nenhuma, 2=<30%, 4=30-50%, 6=>50%'
+      ]
     }
   },
 
@@ -1555,6 +1980,21 @@ export const radiologyCalculators: RadiologyCalculator[] = [
     reference: {
       text: 'Hamaguchi M et al. J Gastroenterol 2007',
       url: 'https://pubmed.ncbi.nlm.nih.gov/17530363/'
+    },
+    info: {
+      purpose: 'Classificar o grau de esteatose hepática por US baseado na ecogenicidade e visualização de estruturas vasculares.',
+      usage: [
+        'Compare ecogenicidade hepática com córtex renal direito',
+        'Avalie visualização dos vasos intra-hepáticos',
+        'Avalie visualização do diafragma posterior',
+        'Fígado normal = isoecogênico ou discretamente hiperecogênico ao rim'
+      ],
+      grading: [
+        '0: Ausente - ecogenicidade normal',
+        'I: Leve - eco levemente aumentada, vasos normais',
+        'II: Moderada - eco aumentada, vasos borrados',
+        'III: Acentuada - eco muito aumentada, vasos não visíveis'
+      ]
     }
   },
 
@@ -1618,6 +2058,23 @@ export const radiologyCalculators: RadiologyCalculator[] = [
     reference: {
       text: 'MacMahon H et al. Radiology 2017',
       url: 'https://pubmed.ncbi.nlm.nih.gov/28240562/'
+    },
+    info: {
+      purpose: 'Definir recomendações de seguimento para nódulos pulmonares incidentais baseado em tamanho, tipo e fatores de risco do paciente.',
+      usage: [
+        'Meça o nódulo no maior eixo',
+        'Classifique como sólido ou subsólido (vidro fosco/misto)',
+        'Avalie fatores de risco: tabagismo, história familiar, exposições',
+        'Alto risco: tabagista atual/ex, história de câncer pulmonar familiar'
+      ],
+      grading: [
+        'Sólido <6mm, baixo risco: sem seguimento',
+        'Sólido <6mm, alto risco: TC opcional 12m',
+        'Sólido 6-8mm: TC 6-12m',
+        'Sólido >8mm: TC 3m ou PET/biópsia',
+        'Subsólido <6mm: sem seguimento',
+        'Subsólido ≥6mm: TC 6-12m, depois anual por 5 anos'
+      ]
     }
   }
 ]
