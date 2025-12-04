@@ -21,7 +21,7 @@ export interface CalculatorResult {
 export interface RadiologyCalculator {
   id: string
   name: string
-  category: 'geral' | 'obstetricia' | 'neuro' | 'cardio' | 'urologia' | 'abdome' | 'vascular' | 'oncologia'
+  category: 'geral' | 'obstetricia' | 'neuro' | 'cardio' | 'urologia' | 'abdome' | 'vascular' | 'oncologia' | 'msk' | 'torax'
   subcategory?: string
   description: string
   inputs: CalculatorInput[]
@@ -1140,6 +1140,484 @@ export const radiologyCalculators: RadiologyCalculator[] = [
     reference: {
       text: 'Pavlik EJ et al. Ultrasound Obstet Gynecol 2000',
       url: 'https://pubmed.ncbi.nlm.nih.gov/11169286/'
+    }
+  },
+
+  // ============================================
+  // NOVAS ESCALAS RADIOLÓGICAS ESSENCIAIS
+  // ============================================
+
+  // 26. ASPECTS (Alberta Stroke Program Early CT Score)
+  {
+    id: 'aspects',
+    name: 'ASPECTS',
+    category: 'neuro',
+    description: 'Alberta Stroke Program Early CT Score - AVC isquêmico agudo',
+    inputs: [
+      { name: 'caudate', label: 'Núcleo Caudado (C)', unit: '', type: 'number', min: 0, max: 1, step: 1, defaultValue: 1 },
+      { name: 'lentiform', label: 'Núcleo Lentiforme (L)', unit: '', type: 'number', min: 0, max: 1, step: 1, defaultValue: 1 },
+      { name: 'insula', label: 'Ínsula (I)', unit: '', type: 'number', min: 0, max: 1, step: 1, defaultValue: 1 },
+      { name: 'ic', label: 'Cápsula Interna (IC)', unit: '', type: 'number', min: 0, max: 1, step: 1, defaultValue: 1 },
+      { name: 'm1', label: 'ACM anterior (M1)', unit: '', type: 'number', min: 0, max: 1, step: 1, defaultValue: 1 },
+      { name: 'm2', label: 'ACM lateral (M2)', unit: '', type: 'number', min: 0, max: 1, step: 1, defaultValue: 1 },
+      { name: 'm3', label: 'ACM posterior (M3)', unit: '', type: 'number', min: 0, max: 1, step: 1, defaultValue: 1 },
+      { name: 'm4', label: 'ACM anterior sup. (M4)', unit: '', type: 'number', min: 0, max: 1, step: 1, defaultValue: 1 },
+      { name: 'm5', label: 'ACM lateral sup. (M5)', unit: '', type: 'number', min: 0, max: 1, step: 1, defaultValue: 1 },
+      { name: 'm6', label: 'ACM posterior sup. (M6)', unit: '', type: 'number', min: 0, max: 1, step: 1, defaultValue: 1 }
+    ],
+    calculate: (values) => {
+      const score = (values.caudate as number) + (values.lentiform as number) + 
+                    (values.insula as number) + (values.ic as number) +
+                    (values.m1 as number) + (values.m2 as number) + (values.m3 as number) +
+                    (values.m4 as number) + (values.m5 as number) + (values.m6 as number)
+      
+      let interpretation = ''
+      let color: 'success' | 'warning' | 'danger' = 'success'
+      
+      if (score === 10) {
+        interpretation = 'Normal (sem alterações isquêmicas precoces)'
+        color = 'success'
+      } else if (score >= 8) {
+        interpretation = 'Alterações discretas - candidato a trombectomia'
+        color = 'warning'
+      } else if (score >= 6) {
+        interpretation = 'Alterações moderadas - avaliar trombectomia'
+        color = 'warning'
+      } else {
+        interpretation = 'Alterações extensas - prognóstico reservado'
+        color = 'danger'
+      }
+      
+      return {
+        value: score,
+        unit: 'pontos',
+        interpretation,
+        color,
+        formattedText: `ASPECTS: ${score}/10, ${interpretation.toLowerCase()}.`
+      }
+    },
+    reference: {
+      text: 'Barber PA et al. Lancet 2000',
+      url: 'https://pubmed.ncbi.nlm.nih.gov/10859037/'
+    }
+  },
+
+  // 27. Escala de Fazekas
+  {
+    id: 'fazekas',
+    name: 'Escala de Fazekas',
+    category: 'neuro',
+    description: 'Classificação de lesões de substância branca em RM',
+    inputs: [
+      { name: 'periventricular', label: 'Lesões Periventriculares (0-3)', unit: '', type: 'number', min: 0, max: 3, step: 1, defaultValue: 0 },
+      { name: 'deep', label: 'Lesões Profundas (0-3)', unit: '', type: 'number', min: 0, max: 3, step: 1, defaultValue: 0 }
+    ],
+    calculate: (values) => {
+      const peri = values.periventricular as number
+      const deep = values.deep as number
+      const totalScore = Math.max(peri, deep)
+      
+      const periDesc = ['ausentes', 'caps ou linha fina', 'halo liso', 'lesões periventriculares irregulares estendendo-se à substância branca profunda'][peri]
+      const deepDesc = ['ausentes', 'focos puntiformes', 'lesões confluentes iniciais', 'lesões confluentes extensas'][deep]
+      
+      let interpretation = ''
+      let color: 'success' | 'warning' | 'danger' = 'success'
+      
+      if (totalScore === 0) {
+        interpretation = 'Sem alterações de substância branca'
+        color = 'success'
+      } else if (totalScore === 1) {
+        interpretation = 'Alterações leves/fisiológicas'
+        color = 'success'
+      } else if (totalScore === 2) {
+        interpretation = 'Alterações moderadas - microangiopatia'
+        color = 'warning'
+      } else {
+        interpretation = 'Alterações acentuadas - leucoaraiose significativa'
+        color = 'danger'
+      }
+      
+      return {
+        value: `PV: ${peri}, Prof: ${deep}`,
+        unit: '',
+        interpretation,
+        color,
+        formattedText: `Fazekas periventricular grau ${peri} (${periDesc}) e profundo grau ${deep} (${deepDesc}), ${interpretation.toLowerCase()}.`
+      }
+    },
+    reference: {
+      text: 'Fazekas F et al. AJNR 1987',
+      url: 'https://pubmed.ncbi.nlm.nih.gov/3496763/'
+    }
+  },
+
+  // 28. Escala de Fisher Modificada
+  {
+    id: 'fisher-modified',
+    name: 'Fisher Modificada',
+    category: 'neuro',
+    description: 'Classificação de HSA e risco de vasoespasmo',
+    inputs: [
+      { name: 'grade', label: 'Grau (0-4)', unit: '', type: 'number', min: 0, max: 4, step: 1, defaultValue: 0 }
+    ],
+    calculate: (values) => {
+      const grade = values.grade as number
+      
+      const descriptions = [
+        'Sem HSA ou HIV detectada',
+        'HSA fina difusa, sem HIV',
+        'HSA fina difusa com HIV bilateral',
+        'HSA espessa cisternal (>1mm), sem HIV',
+        'HSA espessa cisternal com HIV bilateral'
+      ]
+      
+      const riskLevels = [
+        'Risco mínimo de vasoespasmo',
+        'Baixo risco de vasoespasmo (24%)',
+        'Risco moderado de vasoespasmo (33%)',
+        'Risco moderado-alto de vasoespasmo (33%)',
+        'Alto risco de vasoespasmo (40%)'
+      ]
+      
+      let color: 'success' | 'warning' | 'danger' = 'success'
+      if (grade === 0) color = 'success'
+      else if (grade <= 2) color = 'warning'
+      else color = 'danger'
+      
+      return {
+        value: grade,
+        unit: '',
+        interpretation: `${descriptions[grade]}. ${riskLevels[grade]}`,
+        color,
+        formattedText: `Fisher modificada grau ${grade}: ${descriptions[grade].toLowerCase()}, ${riskLevels[grade].toLowerCase()}.`
+      }
+    },
+    reference: {
+      text: 'Claassen J et al. Stroke 2001',
+      url: 'https://pubmed.ncbi.nlm.nih.gov/11546890/'
+    }
+  },
+
+  // 29. Classificação de Marshall (TCE)
+  {
+    id: 'marshall-tce',
+    name: 'Marshall (TCE)',
+    category: 'neuro',
+    description: 'Classificação de traumatismo cranioencefálico por TC',
+    inputs: [
+      { name: 'category', label: 'Categoria (1-6)', unit: '', type: 'number', min: 1, max: 6, step: 1, defaultValue: 1 }
+    ],
+    calculate: (values) => {
+      const cat = values.category as number
+      
+      const descriptions = [
+        '',
+        'I - Sem patologia intracraniana visível',
+        'II - Cisternas presentes, DLM 0-5mm, sem lesão >25cm³',
+        'III - Cisternas comprimidas/ausentes, DLM 0-5mm, sem lesão >25cm³',
+        'IV - DLM >5mm, sem lesão >25cm³',
+        'V - Qualquer lesão evacuada cirurgicamente',
+        'VI - Lesão de alta/mista densidade >25cm³ não evacuada'
+      ]
+      
+      const mortality = ['', '10%', '14%', '34%', '56%', '77%', '53%']
+      
+      let color: 'success' | 'warning' | 'danger' = 'success'
+      if (cat <= 2) color = 'success'
+      else if (cat <= 4) color = 'warning'
+      else color = 'danger'
+      
+      return {
+        value: cat,
+        unit: '',
+        interpretation: `${descriptions[cat]}. Mortalidade estimada: ${mortality[cat]}`,
+        color,
+        formattedText: `Marshall categoria ${cat}: ${descriptions[cat].toLowerCase()}, mortalidade estimada ${mortality[cat]}.`
+      }
+    },
+    reference: {
+      text: 'Marshall LF et al. J Neurosurg 1992',
+      url: 'https://pubmed.ncbi.nlm.nih.gov/1545238/'
+    }
+  },
+
+  // 30. Kellgren-Lawrence
+  {
+    id: 'kellgren-lawrence',
+    name: 'Kellgren-Lawrence',
+    category: 'msk',
+    description: 'Classificação de osteoartrose',
+    inputs: [
+      { name: 'grade', label: 'Grau (0-4)', unit: '', type: 'number', min: 0, max: 4, step: 1, defaultValue: 0 }
+    ],
+    calculate: (values) => {
+      const grade = values.grade as number
+      
+      const descriptions = [
+        'Normal - sem alterações',
+        'Duvidoso - osteófito mínimo de significado incerto',
+        'Mínimo - osteófitos definidos, espaço articular preservado',
+        'Moderado - redução moderada do espaço articular',
+        'Grave - redução acentuada do espaço articular com esclerose subcondral'
+      ]
+      
+      let color: 'success' | 'warning' | 'danger' = 'success'
+      if (grade === 0) color = 'success'
+      else if (grade <= 2) color = 'warning'
+      else color = 'danger'
+      
+      return {
+        value: grade,
+        unit: '',
+        interpretation: descriptions[grade],
+        color,
+        formattedText: `Kellgren-Lawrence grau ${grade}: ${descriptions[grade].toLowerCase()}.`
+      }
+    },
+    reference: {
+      text: 'Kellgren JH & Lawrence JS. Ann Rheum Dis 1957',
+      url: 'https://pubmed.ncbi.nlm.nih.gov/13498604/'
+    }
+  },
+
+  // 31. Pfirrmann
+  {
+    id: 'pfirrmann',
+    name: 'Pfirrmann',
+    category: 'msk',
+    description: 'Classificação de degeneração discal em RM',
+    inputs: [
+      { name: 'grade', label: 'Grau (1-5)', unit: '', type: 'number', min: 1, max: 5, step: 1, defaultValue: 1 }
+    ],
+    calculate: (values) => {
+      const grade = values.grade as number
+      
+      const descriptions = [
+        '',
+        'I - Hipersinal homogêneo T2, altura normal, distinção NP/AF clara',
+        'II - Hipersinal heterogêneo T2, altura normal, distinção NP/AF clara',
+        'III - Sinal intermediário T2, altura normal/levemente reduzida, distinção NP/AF obscurecida',
+        'IV - Hiposinal T2, altura reduzida, distinção NP/AF perdida',
+        'V - Hiposinal T2, espaço discal colapsado'
+      ]
+      
+      let color: 'success' | 'warning' | 'danger' = 'success'
+      if (grade <= 2) color = 'success'
+      else if (grade <= 3) color = 'warning'
+      else color = 'danger'
+      
+      return {
+        value: grade,
+        unit: '',
+        interpretation: descriptions[grade],
+        color,
+        formattedText: `Pfirrmann grau ${grade}: ${descriptions[grade].substring(descriptions[grade].indexOf('-') + 2).toLowerCase()}.`
+      }
+    },
+    reference: {
+      text: 'Pfirrmann CW et al. Spine 2001',
+      url: 'https://pubmed.ncbi.nlm.nih.gov/11568697/'
+    }
+  },
+
+  // 32. Goutallier
+  {
+    id: 'goutallier',
+    name: 'Goutallier',
+    category: 'msk',
+    description: 'Classificação de infiltração gordurosa do manguito rotador',
+    inputs: [
+      { name: 'grade', label: 'Grau (0-4)', unit: '', type: 'number', min: 0, max: 4, step: 1, defaultValue: 0 }
+    ],
+    calculate: (values) => {
+      const grade = values.grade as number
+      
+      const descriptions = [
+        'Normal - músculo completamente normal',
+        'Estrias gordurosas - alguma infiltração gordurosa',
+        'Infiltração gordurosa presente, porém menos gordura que músculo',
+        'Infiltração gordurosa igual à quantidade de músculo (50%)',
+        'Mais gordura que músculo (>50% de infiltração gordurosa)'
+      ]
+      
+      const prognosis = [
+        'Excelente prognóstico cirúrgico',
+        'Bom prognóstico cirúrgico',
+        'Prognóstico cirúrgico moderado',
+        'Prognóstico cirúrgico reservado',
+        'Mau prognóstico - degeneração muscular irreversível'
+      ]
+      
+      let color: 'success' | 'warning' | 'danger' = 'success'
+      if (grade <= 1) color = 'success'
+      else if (grade <= 2) color = 'warning'
+      else color = 'danger'
+      
+      return {
+        value: grade,
+        unit: '',
+        interpretation: `${descriptions[grade]}. ${prognosis[grade]}`,
+        color,
+        formattedText: `Goutallier grau ${grade}: ${descriptions[grade].toLowerCase()}, ${prognosis[grade].toLowerCase()}.`
+      }
+    },
+    reference: {
+      text: 'Goutallier D et al. Clin Orthop Relat Res 1994',
+      url: 'https://pubmed.ncbi.nlm.nih.gov/8020238/'
+    }
+  },
+
+  // 33. Balthazar / CTSI
+  {
+    id: 'balthazar-ctsi',
+    name: 'Balthazar / CTSI',
+    category: 'abdome',
+    description: 'Índice de gravidade de TC para pancreatite aguda',
+    inputs: [
+      { name: 'balthazar', label: 'Grau Balthazar (A=0, B=1, C=2, D=3, E=4)', unit: '', type: 'number', min: 0, max: 4, step: 1, defaultValue: 0 },
+      { name: 'necrosis', label: 'Necrose (0=nenhuma, 2=<30%, 4=30-50%, 6=>50%)', unit: '', type: 'number', min: 0, max: 6, step: 2, defaultValue: 0 }
+    ],
+    calculate: (values) => {
+      const balthazar = values.balthazar as number
+      const necrosis = values.necrosis as number
+      const ctsi = balthazar + necrosis
+      
+      const balthazarDesc = [
+        'A - Pâncreas normal',
+        'B - Aumento focal ou difuso do pâncreas',
+        'C - Anormalidades pancreáticas + inflamação peripancreática',
+        'D - Coleção líquida única',
+        'E - Duas ou mais coleções líquidas e/ou gás'
+      ]
+      
+      const necrosisDesc = ['sem necrose', 'necrose <30%', '', 'necrose 30-50%', '', '', 'necrose >50%']
+      
+      let interpretation = ''
+      let color: 'success' | 'warning' | 'danger' = 'success'
+      
+      if (ctsi <= 3) {
+        interpretation = 'Pancreatite leve - mortalidade ~3%'
+        color = 'success'
+      } else if (ctsi <= 6) {
+        interpretation = 'Pancreatite moderada - mortalidade ~6%'
+        color = 'warning'
+      } else {
+        interpretation = 'Pancreatite grave - mortalidade ~17%'
+        color = 'danger'
+      }
+      
+      return {
+        value: ctsi,
+        unit: 'pontos',
+        interpretation,
+        color,
+        formattedText: `CTSI: ${ctsi}/10 (Balthazar ${String.fromCharCode(65 + balthazar)}${necrosis > 0 ? ', ' + necrosisDesc[necrosis] : ''}), ${interpretation.toLowerCase()}.`
+      }
+    },
+    reference: {
+      text: 'Balthazar EJ et al. Radiology 1990',
+      url: 'https://pubmed.ncbi.nlm.nih.gov/2217773/'
+    }
+  },
+
+  // 34. Grau de Esteatose Hepática
+  {
+    id: 'hepatic-steatosis',
+    name: 'Esteatose Hepática',
+    category: 'abdome',
+    description: 'Classificação de esteatose hepática por US/TC',
+    inputs: [
+      { name: 'grade', label: 'Grau (0-3)', unit: '', type: 'number', min: 0, max: 3, step: 1, defaultValue: 0 }
+    ],
+    calculate: (values) => {
+      const grade = values.grade as number
+      
+      const descriptions = [
+        'Ausente - ecogenicidade hepática normal',
+        'Leve (grau I) - ecogenicidade levemente aumentada, visualização normal de diafragma e vasos',
+        'Moderada (grau II) - ecogenicidade moderadamente aumentada, visualização prejudicada de vasos e diafragma',
+        'Acentuada (grau III) - ecogenicidade acentuadamente aumentada, má visualização de vasos intra-hepáticos e diafragma'
+      ]
+      
+      let color: 'success' | 'warning' | 'danger' = 'success'
+      if (grade === 0) color = 'success'
+      else if (grade === 1) color = 'warning'
+      else color = 'danger'
+      
+      return {
+        value: grade,
+        unit: '',
+        interpretation: descriptions[grade],
+        color,
+        formattedText: `Esteatose hepática grau ${grade === 0 ? '0 (ausente)' : grade + '/III'}: ${descriptions[grade].toLowerCase()}.`
+      }
+    },
+    reference: {
+      text: 'Hamaguchi M et al. J Gastroenterol 2007',
+      url: 'https://pubmed.ncbi.nlm.nih.gov/17530363/'
+    }
+  },
+
+  // 35. Fleischner Guidelines
+  {
+    id: 'fleischner',
+    name: 'Fleischner Guidelines',
+    category: 'torax',
+    description: 'Recomendações para nódulos pulmonares incidentais',
+    inputs: [
+      { name: 'size', label: 'Tamanho do nódulo', unit: 'mm', type: 'number', min: 1, max: 30, step: 1, defaultValue: 6 },
+      { name: 'type', label: 'Tipo (0=sólido, 1=subsólido)', unit: '', type: 'number', min: 0, max: 1, step: 1, defaultValue: 0 },
+      { name: 'risk', label: 'Risco (0=baixo, 1=alto)', unit: '', type: 'number', min: 0, max: 1, step: 1, defaultValue: 0 }
+    ],
+    calculate: (values) => {
+      const size = values.size as number
+      const isSolid = (values.type as number) === 0
+      const isHighRisk = (values.risk as number) === 1
+      
+      let recommendation = ''
+      let color: 'success' | 'warning' | 'danger' = 'success'
+      
+      if (isSolid) {
+        // Nódulos sólidos
+        if (size < 6) {
+          recommendation = isHighRisk 
+            ? 'TC opcional em 12 meses' 
+            : 'Sem seguimento de rotina'
+          color = 'success'
+        } else if (size <= 8) {
+          recommendation = isHighRisk 
+            ? 'TC em 6-12 meses, depois considerar TC em 18-24 meses' 
+            : 'TC em 6-12 meses, depois considerar TC em 18-24 meses'
+          color = 'warning'
+        } else {
+          recommendation = 'TC em 3 meses, PET/TC ou biópsia'
+          color = 'danger'
+        }
+      } else {
+        // Nódulos subsólidos
+        if (size < 6) {
+          recommendation = 'Sem seguimento de rotina'
+          color = 'success'
+        } else {
+          recommendation = 'TC em 6-12 meses para verificar persistência, depois TC anual por 5 anos'
+          color = 'warning'
+        }
+      }
+      
+      const typeDesc = isSolid ? 'sólido' : 'subsólido'
+      const riskDesc = isHighRisk ? 'alto risco' : 'baixo risco'
+      
+      return {
+        value: `${size}mm`,
+        unit: '',
+        interpretation: recommendation,
+        color,
+        formattedText: `Nódulo pulmonar ${typeDesc} de ${size} mm em paciente de ${riskDesc}: ${recommendation.toLowerCase()}.`
+      }
+    },
+    reference: {
+      text: 'MacMahon H et al. Radiology 2017',
+      url: 'https://pubmed.ncbi.nlm.nih.gov/28240562/'
     }
   }
 ]

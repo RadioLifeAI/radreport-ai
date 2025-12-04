@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Calculator, ChevronDown, Heart, Baby, Brain, Ruler, Activity, Scan, Target, Star } from 'lucide-react'
+import { Calculator, ChevronDown, Heart, Baby, Brain, Ruler, Activity, Scan, Target, Star, Bone, Wind } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,7 +27,9 @@ const categoryIcons = {
   urologia: Ruler,
   abdome: Scan,
   vascular: Activity,
-  oncologia: Target
+  oncologia: Target,
+  msk: Bone,
+  torax: Wind
 }
 
 const categoryLabels = {
@@ -38,7 +40,9 @@ const categoryLabels = {
   urologia: 'Urologia',
   abdome: 'Abdome',
   vascular: 'Vascular',
-  oncologia: 'Oncologia'
+  oncologia: 'Oncologia',
+  msk: 'Musculoesquelético',
+  torax: 'Tórax'
 }
 
 export function CalculatorsDropdown({ editor }: CalculatorsDropdownProps) {
