@@ -394,6 +394,529 @@ export const createEmptyBIRADSFinding = (): BIRADSFindingData => ({
   estadoNodulo: 'novo',
 })
 
+// ==========================================
+// BI-RADS USG EXPANDED DATA STRUCTURES
+// ==========================================
+
+export interface BIRADSUSGCisto {
+  presente: boolean
+  tipo: 'simples' | 'complicado' | 'complexo' | 'microcistos'
+  quantidade: 'um' | 'multiplos'
+  lado: string
+  localizacao: string
+  medidas: [number, number, number]
+}
+
+export interface BIRADSUSGData {
+  // Indicação
+  indicacao: {
+    tipo: 'rastreamento' | 'rotina' | 'acompanhamento_nodulo' | 'achados_mamograficos' | 'pos_operatorio' | 'pesquisa_colecao' | 'avaliacao_implante' | null
+  }
+  
+  // Cirurgias
+  cirurgia: {
+    tipo: 'sem_cirurgias' | 'mastectomia' | 'quadrantectomia' | 'mamoplastia'
+    lado: string | null
+    reconstrucao: 'protese' | 'retalho' | null
+  }
+  
+  // Parênquima
+  parenquima: {
+    tipo: 'homogeneo_gorduroso' | 'homogeneo_fibroglandular' | 'heterogeneo'
+    ecotextura: 'normal' | 'alterada'
+    ecotexturaDesc: string
+  }
+  
+  // Cistos
+  cistos: BIRADSUSGCisto[]
+  cistosPresente: 'ausencia' | 'presente'
+  
+  // Nódulos (reutiliza BIRADSFindingData[])
+  nodulos: BIRADSFindingData[]
+  nodulosPresente: 'ausencia' | 'presente'
+  
+  // Ectasia Ductal
+  ectasiaDuctal: {
+    presente: boolean
+    conteudo: 'sem_conteudo' | 'com_conteudo'
+    lado: string
+    localizacao: string
+    calibre: number
+  }
+  
+  // Distorção Arquitetural
+  distorcaoArquitetural: {
+    presente: boolean
+    tipo: 'sitio_cirurgico' | 'fora_sitio'
+    lado: string
+    localizacao: string
+  }
+  
+  // Implante Mamário
+  implanteMamario: {
+    presente: boolean
+    posicao: 'retroglandular' | 'retromuscular'
+    integridade: 'integros' | 'rotura_intracapsular' | 'rotura_extracapsular'
+    lado: string | null
+    siliconeDesc: string
+  }
+  
+  // Linfonodomegalia
+  linfonodomegalia: {
+    tipo: 'ausente' | 'presente_normal' | 'perda_padrao'
+    lado: string
+    descricao: string
+  }
+  
+  // Exames Comparativos
+  comparativo: {
+    tipo: 'nao_citar' | 'nao_disponivel' | 'disponivel'
+    dataExame: string | null
+    evolucao: 'sem_alteracao' | 'nodulo_estavel' | 'nodulo_cresceu' | 'nodulo_diminuiu'
+  }
+  
+  // Achados Adicionais
+  achadosAdicionais: string
+  
+  // Notas
+  notas: {
+    correlacaoMamografia: boolean
+    outraObservacao: string
+  }
+}
+
+export const biradsUSGExpandedOptions = {
+  tipoIndicacao: [
+    { value: 'rastreamento', label: 'Rastreamento', texto: 'Rastreamento.' },
+    { value: 'rotina', label: 'Rotina', texto: 'Rotina.' },
+    { value: 'acompanhamento_nodulo', label: 'Acompanhamento de nódulo', texto: 'Acompanhamento de nódulo.' },
+    { value: 'achados_mamograficos', label: 'Achados mamográficos', texto: 'Complementação de achados mamográficos.' },
+    { value: 'pos_operatorio', label: 'Pós-operatório', texto: 'Avaliação pós-operatória.' },
+    { value: 'pesquisa_colecao', label: 'Pesquisa de coleção', texto: 'Pesquisa de coleção.' },
+    { value: 'avaliacao_implante', label: 'Avaliação de implante mamário', texto: 'Avaliação de implante mamário.' },
+  ],
+  
+  tipoCirurgia: [
+    { value: 'sem_cirurgias', label: 'Sem cirurgias prévias', texto: '' },
+    { value: 'mastectomia', label: 'Mastectomia', texto: 'Antecedente de mastectomia' },
+    { value: 'quadrantectomia', label: 'Quadrantectomia', texto: 'Antecedente de quadrantectomia' },
+    { value: 'mamoplastia', label: 'Mamoplastia', texto: 'Antecedente de mamoplastia' },
+  ],
+  
+  tipoReconstrucao: [
+    { value: 'protese', label: 'Prótese', texto: 'com reconstrução por prótese' },
+    { value: 'retalho', label: 'Retalho miocutâneo', texto: 'com reconstrução por retalho miocutâneo' },
+  ],
+  
+  parenquima: [
+    { value: 'homogeneo_gorduroso', label: 'Homogêneo - Predomínio gorduroso', texto: 'Parênquima mamário homogêneo, com predomínio de tecido adiposo.' },
+    { value: 'homogeneo_fibroglandular', label: 'Homogêneo - Predomínio fibroglandular', texto: 'Parênquima mamário homogêneo, com predomínio de tecido fibroglandular.' },
+    { value: 'heterogeneo', label: 'Heterogêneo', texto: 'Parênquima mamário heterogêneo.' },
+  ],
+  
+  tipoCisto: [
+    { value: 'simples', label: 'Cisto simples', texto: 'cisto simples', birads: 2 },
+    { value: 'complicado', label: 'Cisto complicado', texto: 'cisto complicado', birads: 3 },
+    { value: 'complexo', label: 'Cisto complexo', texto: 'cisto complexo', birads: '4A' },
+    { value: 'microcistos', label: 'Microcistos agrupados', texto: 'microcistos agrupados', birads: 2 },
+  ],
+  
+  ectasiaConteudo: [
+    { value: 'sem_conteudo', label: 'Sem conteúdo sólido', texto: 'sem conteúdo sólido em seu interior' },
+    { value: 'com_conteudo', label: 'Com conteúdo sólido', texto: 'com conteúdo sólido em seu interior' },
+  ],
+  
+  implantePosicao: [
+    { value: 'retroglandular', label: 'Retroglandular', texto: 'em posição retroglandular' },
+    { value: 'retromuscular', label: 'Retromuscular', texto: 'em posição retromuscular' },
+  ],
+  
+  implanteIntegridade: [
+    { value: 'integros', label: 'Íntegros', texto: 'apresentando envelope íntegro' },
+    { value: 'rotura_intracapsular', label: 'Rotura intracapsular', texto: 'com sinais de rotura intracapsular' },
+    { value: 'rotura_extracapsular', label: 'Rotura extracapsular', texto: 'com sinais de rotura extracapsular' },
+  ],
+  
+  linfonodomegalia: [
+    { value: 'ausente', label: 'Ausente', texto: '' },
+    { value: 'presente_normal', label: 'Presente com morfologia preservada', texto: 'Linfonodos axilares visualizados, com morfologia preservada.' },
+    { value: 'perda_padrao', label: 'Com alteração morfológica', texto: 'Linfonodos axilares com alteração de morfologia' },
+  ],
+  
+  comparativoTipo: [
+    { value: 'nao_citar', label: 'Não citar comparação', texto: '' },
+    { value: 'nao_disponivel', label: 'Exames anteriores não disponíveis', texto: 'Exames anteriores não disponíveis para comparação.' },
+    { value: 'disponivel', label: 'Comparação disponível', texto: '' },
+  ],
+  
+  comparativoEvolucao: [
+    { value: 'sem_alteracao', label: 'Sem alterações significativas', texto: 'Sem alterações significativas em relação ao exame anterior' },
+    { value: 'nodulo_estavel', label: 'Nódulo estável', texto: 'Nódulo estável em relação ao exame anterior' },
+    { value: 'nodulo_cresceu', label: 'Nódulo com crescimento', texto: 'Nódulo apresentando crescimento em relação ao exame anterior' },
+    { value: 'nodulo_diminuiu', label: 'Nódulo com redução', texto: 'Nódulo apresentando redução em relação ao exame anterior' },
+  ],
+}
+
+export const createEmptyBIRADSUSGCisto = (): BIRADSUSGCisto => ({
+  presente: true,
+  tipo: 'simples',
+  quantidade: 'um',
+  lado: 'direita',
+  localizacao: '12h',
+  medidas: [0.5, 0.5, 0.5],
+})
+
+export const createEmptyBIRADSUSGData = (): BIRADSUSGData => ({
+  indicacao: { tipo: 'rastreamento' },
+  cirurgia: { tipo: 'sem_cirurgias', lado: null, reconstrucao: null },
+  parenquima: { tipo: 'homogeneo_gorduroso', ecotextura: 'normal', ecotexturaDesc: '' },
+  cistos: [],
+  cistosPresente: 'ausencia',
+  nodulos: [],
+  nodulosPresente: 'ausencia',
+  ectasiaDuctal: { presente: false, conteudo: 'sem_conteudo', lado: 'direita', localizacao: 'retroareolar', calibre: 0 },
+  distorcaoArquitetural: { presente: false, tipo: 'sitio_cirurgico', lado: 'direita', localizacao: '' },
+  implanteMamario: { presente: false, posicao: 'retroglandular', integridade: 'integros', lado: null, siliconeDesc: '' },
+  linfonodomegalia: { tipo: 'ausente', lado: '', descricao: '' },
+  comparativo: { tipo: 'nao_citar', dataExame: null, evolucao: 'sem_alteracao' },
+  achadosAdicionais: '',
+  notas: { correlacaoMamografia: false, outraObservacao: '' },
+})
+
+// Evaluate BI-RADS USG expanded
+export const evaluateBIRADSUSGExpanded = (data: BIRADSUSGData): number | string => {
+  let worstCategory: number | string = 1 // Default negativo
+  
+  const categoryOrder = [0, 1, 2, 3, '4A', '4B', '4C', 5, 6]
+  
+  const updateWorst = (cat: number | string) => {
+    const currentIdx = categoryOrder.indexOf(worstCategory)
+    const newIdx = categoryOrder.indexOf(cat)
+    if (newIdx > currentIdx) worstCategory = cat
+  }
+  
+  // Avaliar cistos
+  if (data.cistos.length > 0) {
+    for (const cisto of data.cistos) {
+      const tipoOpt = biradsUSGExpandedOptions.tipoCisto.find(o => o.value === cisto.tipo)
+      if (tipoOpt?.birads) updateWorst(tipoOpt.birads)
+    }
+  }
+  
+  // Avaliar nódulos (usando lógica existente)
+  if (data.nodulos.length > 0) {
+    const noduloCat = calculateBIRADSCategory(data.nodulos)
+    updateWorst(noduloCat)
+  }
+  
+  // Ectasia ductal com conteúdo = suspeito
+  if (data.ectasiaDuctal.presente && data.ectasiaDuctal.conteudo === 'com_conteudo') {
+    updateWorst('4A')
+  }
+  
+  // Distorção fora de sítio cirúrgico = muito suspeito
+  if (data.distorcaoArquitetural.presente && data.distorcaoArquitetural.tipo === 'fora_sitio') {
+    updateWorst('4B')
+  }
+  
+  // Implante com rotura
+  if (data.implanteMamario.presente) {
+    if (data.implanteMamario.integridade === 'rotura_extracapsular') {
+      updateWorst(0) // Achado que requer avaliação adicional
+    }
+  }
+  
+  // Linfonodomegalia com perda de padrão
+  if (data.linfonodomegalia.tipo === 'perda_padrao') {
+    updateWorst('4A')
+  }
+  
+  // Se comparativo mostra crescimento
+  if (data.comparativo.tipo === 'disponivel' && data.comparativo.evolucao === 'nodulo_cresceu') {
+    updateWorst('4A')
+  }
+  
+  // Se não há achados, retorna negativo ou achado benigno
+  if (data.cistosPresente === 'ausencia' && 
+      data.nodulosPresente === 'ausencia' && 
+      !data.ectasiaDuctal.presente && 
+      !data.distorcaoArquitetural.presente &&
+      !data.implanteMamario.presente &&
+      data.linfonodomegalia.tipo === 'ausente') {
+    return 1 // Negativo
+  }
+  
+  return worstCategory
+}
+
+// Generate USG Indicação text
+export const generateBIRADSUSGIndicacao = (data: BIRADSUSGData): string => {
+  if (!data.indicacao.tipo) return ''
+  const opt = biradsUSGExpandedOptions.tipoIndicacao.find(o => o.value === data.indicacao.tipo)
+  return opt?.texto || ''
+}
+
+// Generate USG Técnica text
+export const generateBIRADSUSGTecnica = (): string => {
+  return 'Exame realizado com transdutor linear de alta frequência.'
+}
+
+// Generate USG Achados text
+export const generateBIRADSUSGAchados = (data: BIRADSUSGData): string => {
+  const achados: string[] = []
+  
+  // Cirurgia
+  if (data.cirurgia.tipo !== 'sem_cirurgias') {
+    const cirOpt = biradsUSGExpandedOptions.tipoCirurgia.find(o => o.value === data.cirurgia.tipo)
+    if (cirOpt?.texto) {
+      let cirTexto = cirOpt.texto
+      if (data.cirurgia.lado) {
+        cirTexto += ` à ${data.cirurgia.lado}`
+      }
+      if (data.cirurgia.reconstrucao) {
+        const recOpt = biradsUSGExpandedOptions.tipoReconstrucao.find(o => o.value === data.cirurgia.reconstrucao)
+        if (recOpt) cirTexto += ` ${recOpt.texto}`
+      }
+      achados.push(cirTexto + '.')
+    }
+  }
+  
+  // Parênquima
+  const parOpt = biradsUSGExpandedOptions.parenquima.find(o => o.value === data.parenquima.tipo)
+  if (parOpt) achados.push(parOpt.texto)
+  
+  if (data.parenquima.ecotextura === 'alterada' && data.parenquima.ecotexturaDesc) {
+    achados.push(`Ecotextura alterada: ${data.parenquima.ecotexturaDesc}.`)
+  }
+  
+  // Cistos
+  if (data.cistos.length > 0) {
+    for (const cisto of data.cistos) {
+      const tipoOpt = biradsUSGExpandedOptions.tipoCisto.find(o => o.value === cisto.tipo)
+      const locOpt = biradsUSGOptions.localizacao.find(o => o.value === cisto.localizacao)
+      const ladoOpt = biradsUSGOptions.lado.find(o => o.value === cisto.lado)
+      const medidasStr = cisto.medidas.map(m => formatMeasurement(m)).join(' x ')
+      
+      let cistoTexto = `${tipoOpt?.texto || 'Cisto'}`
+      if (cisto.quantidade === 'multiplos') {
+        cistoTexto = tipoOpt?.value === 'microcistos' ? 'Microcistos agrupados' : `Múltiplos ${tipoOpt?.texto}s`
+      }
+      cistoTexto += ` ${locOpt?.texto || ''} ${ladoOpt?.texto || ''}`
+      if (cisto.medidas[0] > 0) cistoTexto += `, medindo ${medidasStr} cm`
+      achados.push(cistoTexto + '.')
+    }
+  }
+  
+  // Nódulos
+  if (data.nodulos.length > 0) {
+    data.nodulos.forEach((nodulo, idx) => {
+      achados.push(generateBIRADSFindingDescription(nodulo, idx))
+    })
+  }
+  
+  // Ectasia Ductal
+  if (data.ectasiaDuctal.presente) {
+    const contOpt = biradsUSGExpandedOptions.ectasiaConteudo.find(o => o.value === data.ectasiaDuctal.conteudo)
+    const ladoOpt = biradsUSGOptions.lado.find(o => o.value === data.ectasiaDuctal.lado)
+    const locOpt = biradsUSGOptions.localizacao.find(o => o.value === data.ectasiaDuctal.localizacao)
+    let ectTexto = `Ectasia ductal ${locOpt?.texto || ''} ${ladoOpt?.texto || ''}`
+    if (data.ectasiaDuctal.calibre > 0) {
+      ectTexto += `, com calibre de ${formatMeasurement(data.ectasiaDuctal.calibre)} mm`
+    }
+    ectTexto += `, ${contOpt?.texto || ''}`
+    achados.push(ectTexto + '.')
+  }
+  
+  // Distorção Arquitetural
+  if (data.distorcaoArquitetural.presente) {
+    const tipoTexto = data.distorcaoArquitetural.tipo === 'sitio_cirurgico' 
+      ? 'em sítio cirúrgico' 
+      : 'fora de sítio cirúrgico'
+    achados.push(`Distorção arquitetural ${tipoTexto} à ${data.distorcaoArquitetural.lado}${data.distorcaoArquitetural.localizacao ? `, na região ${data.distorcaoArquitetural.localizacao}` : ''}.`)
+  }
+  
+  // Implante Mamário
+  if (data.implanteMamario.presente) {
+    const posOpt = biradsUSGExpandedOptions.implantePosicao.find(o => o.value === data.implanteMamario.posicao)
+    const intOpt = biradsUSGExpandedOptions.implanteIntegridade.find(o => o.value === data.implanteMamario.integridade)
+    let impTexto = `Implantes mamários ${posOpt?.texto || ''}`
+    if (data.implanteMamario.lado) {
+      impTexto = `Implante mamário ${posOpt?.texto || ''} à ${data.implanteMamario.lado}`
+    }
+    impTexto += `, ${intOpt?.texto || ''}`
+    if (data.implanteMamario.siliconeDesc) {
+      impTexto += `. ${data.implanteMamario.siliconeDesc}`
+    }
+    achados.push(impTexto + '.')
+  }
+  
+  // Linfonodomegalia
+  const linfOpt = biradsUSGExpandedOptions.linfonodomegalia.find(o => o.value === data.linfonodomegalia.tipo)
+  if (linfOpt?.texto) {
+    let linfTexto = linfOpt.texto
+    if (data.linfonodomegalia.tipo === 'perda_padrao' && data.linfonodomegalia.lado) {
+      linfTexto += ` à ${data.linfonodomegalia.lado}`
+    }
+    if (data.linfonodomegalia.descricao) {
+      linfTexto += `. ${data.linfonodomegalia.descricao}`
+    }
+    achados.push(linfTexto + '.')
+  }
+  
+  // Achados adicionais
+  if (data.achadosAdicionais) {
+    achados.push(data.achadosAdicionais)
+  }
+  
+  return achados.join('\n')
+}
+
+// Generate USG Comparativo text
+export const generateBIRADSUSGComparativo = (data: BIRADSUSGData): string => {
+  if (data.comparativo.tipo === 'nao_citar') return ''
+  if (data.comparativo.tipo === 'nao_disponivel') {
+    return 'Exames anteriores não disponíveis para comparação.'
+  }
+  if (data.comparativo.tipo === 'disponivel') {
+    const evolOpt = biradsUSGExpandedOptions.comparativoEvolucao.find(o => o.value === data.comparativo.evolucao)
+    let texto = evolOpt?.texto || ''
+    if (data.comparativo.dataExame) {
+      const dataFormatada = new Date(data.comparativo.dataExame).toLocaleDateString('pt-BR')
+      texto += ` de ${dataFormatada}`
+    }
+    return texto + '.'
+  }
+  return ''
+}
+
+// Generate USG Impression text
+export const generateBIRADSUSGImpression = (data: BIRADSUSGData, biradsCategory: number | string): string => {
+  const achados: string[] = []
+  
+  // Cistos
+  if (data.cistos.length > 0) {
+    const tiposUnicos = [...new Set(data.cistos.map(c => c.tipo))]
+    const ladosUnicos = [...new Set(data.cistos.map(c => c.lado))]
+    for (const tipo of tiposUnicos) {
+      const tipoOpt = biradsUSGExpandedOptions.tipoCisto.find(o => o.value === tipo)
+      const quantTipo = data.cistos.filter(c => c.tipo === tipo).length
+      let texto = quantTipo > 1 ? `${tipoOpt?.texto}s` : tipoOpt?.texto || ''
+      texto = texto.charAt(0).toUpperCase() + texto.slice(1)
+      if (ladosUnicos.length === 1) {
+        texto += ` ${ladosUnicos[0] === 'direita' ? 'na mama direita' : 'na mama esquerda'}`
+      } else {
+        texto += ' bilaterais'
+      }
+      achados.push(texto)
+    }
+  }
+  
+  // Nódulos - usar generateBIRADSImpression existente se houver
+  if (data.nodulos.length > 0) {
+    const noduloImpressao = generateBIRADSImpression(data.nodulos, calculateBIRADSCategory(data.nodulos))
+    // Extrair apenas a primeira linha (sem BI-RADS e nota)
+    const primeiraLinha = noduloImpressao.split('\n')[0]
+    achados.push(primeiraLinha)
+  }
+  
+  // Ectasia
+  if (data.ectasiaDuctal.presente) {
+    const texto = data.ectasiaDuctal.conteudo === 'com_conteudo' 
+      ? 'Ectasia ductal com conteúdo sólido - requer investigação'
+      : 'Ectasia ductal'
+    achados.push(texto)
+  }
+  
+  // Distorção
+  if (data.distorcaoArquitetural.presente) {
+    const texto = data.distorcaoArquitetural.tipo === 'fora_sitio'
+      ? 'Distorção arquitetural fora de sítio cirúrgico - requer investigação'
+      : 'Distorção arquitetural em sítio cirúrgico'
+    achados.push(texto)
+  }
+  
+  // Implante
+  if (data.implanteMamario.presente && data.implanteMamario.integridade !== 'integros') {
+    achados.push(`Sinais de ${data.implanteMamario.integridade === 'rotura_intracapsular' ? 'rotura intracapsular' : 'rotura extracapsular'} de implante mamário`)
+  }
+  
+  // Linfonodos
+  if (data.linfonodomegalia.tipo === 'perda_padrao') {
+    achados.push('Linfonodomegalia axilar com alteração morfológica')
+  }
+  
+  // Se não há achados significativos
+  if (achados.length === 0) {
+    return `Estudo ultrassonográfico mamário sem alterações.\nBI-RADS USG: categoria 1.\nNota: A critério clínico, sugere-se controle de rotina de acordo com o indicado para a faixa etária.`
+  }
+  
+  // Categoria info
+  const catInfo = biradsCategories.find(c => c.value === biradsCategory || c.value.toString() === biradsCategory.toString())
+  let nota = ''
+  if (typeof biradsCategory === 'number' && biradsCategory <= 2) {
+    nota = '\nNota: A critério clínico, sugere-se controle de rotina de acordo com o indicado para a faixa etária.'
+  } else if (biradsCategory === 3) {
+    nota = '\nRecomenda-se controle ultrassonográfico em 6 meses.'
+  } else if (biradsCategory === '4A' || biradsCategory === '4B' || biradsCategory === '4C' || biradsCategory === 5) {
+    nota = '\nEstudo histopatológico deve ser considerado.\nEm caso de realização de nova mamografia ou ultrassonografia mamária, é necessário trazer exames anteriores.'
+  }
+  
+  return `${achados.join('.\n')}.\nBI-RADS USG: categoria ${biradsCategory}.${nota}`
+}
+
+// Generate USG Notas text
+export const generateBIRADSUSGNotas = (data: BIRADSUSGData): string => {
+  const notas: string[] = []
+  
+  if (data.notas.correlacaoMamografia) {
+    notas.push('A ultrassonografia mamária não substitui a mamografia. Recomenda-se correlação mamográfica conforme indicação clínica.')
+  }
+  
+  if (data.notas.outraObservacao) {
+    notas.push(data.notas.outraObservacao)
+  }
+  
+  return notas.join('\n')
+}
+
+// Generate USG Laudo Completo HTML
+export const generateBIRADSUSGLaudoCompletoHTML = (data: BIRADSUSGData, biradsCategory: number | string): string => {
+  const indicacao = generateBIRADSUSGIndicacao(data)
+  const tecnica = generateBIRADSUSGTecnica()
+  const achados = generateBIRADSUSGAchados(data)
+  const comparativo = generateBIRADSUSGComparativo(data)
+  const impressao = generateBIRADSUSGImpression(data, biradsCategory)
+  const notas = generateBIRADSUSGNotas(data)
+  
+  let html = `<h2 style="text-align: center; text-transform: uppercase; margin-bottom: 24pt;">ULTRASSONOGRAFIA DAS MAMAS</h2>`
+  
+  if (indicacao) {
+    html += `<h3 style="text-transform: uppercase; margin-top: 18pt; margin-bottom: 8pt;">INDICAÇÃO CLÍNICA</h3>`
+    html += `<p style="text-align: justify; margin: 6pt 0;">${indicacao}</p>`
+  }
+  
+  html += `<h3 style="text-transform: uppercase; margin-top: 18pt; margin-bottom: 8pt;">TÉCNICA</h3>`
+  html += `<p style="text-align: justify; margin: 6pt 0;">${tecnica}</p>`
+  
+  html += `<h3 style="text-transform: uppercase; margin-top: 18pt; margin-bottom: 8pt;">ACHADOS</h3>`
+  html += `<p style="text-align: justify; margin: 6pt 0;">${achados.replace(/\n/g, '<br>')}</p>`
+  
+  if (comparativo) {
+    html += `<h3 style="text-transform: uppercase; margin-top: 18pt; margin-bottom: 8pt;">ESTUDO COMPARATIVO</h3>`
+    html += `<p style="text-align: justify; margin: 6pt 0;">${comparativo}</p>`
+  }
+  
+  html += `<h3 style="text-transform: uppercase; margin-top: 18pt; margin-bottom: 8pt;">IMPRESSÃO DIAGNÓSTICA</h3>`
+  html += `<p style="text-align: justify; margin: 6pt 0;">${impressao.replace(/\n/g, '<br>')}</p>`
+  
+  if (notas) {
+    html += `<h3 style="text-transform: uppercase; margin-top: 18pt; margin-bottom: 8pt;">NOTAS</h3>`
+    html += `<p style="text-align: justify; margin: 6pt 0;">${notas.replace(/\n/g, '<br>')}</p>`
+  }
+  
+  return html
+}
+
 export interface NoduleData {
   composicao: string
   ecogenicidade: string
