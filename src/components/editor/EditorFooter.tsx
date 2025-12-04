@@ -2,6 +2,7 @@ import { RotateCcw, Sparkles, CheckCircle2 } from 'lucide-react'
 import { Editor } from '@tiptap/react'
 import { TablesDropdown } from './TablesDropdown'
 import { CalculatorsDropdown } from './CalculatorsDropdown'
+import { RADSDropdown } from './RADSDropdown'
 import { toast } from 'sonner'
 
 interface EditorFooterProps {
@@ -59,6 +60,7 @@ export function EditorFooter({ editor, onRestart, onCopy }: EditorFooterProps) {
         
         <TablesDropdown editor={editor} onInsertTable={handleInsertTable} />
         <CalculatorsDropdown editor={editor} />
+        <RADSDropdown editor={editor} />
         
         {hasHighlights && (
           <button
