@@ -101,40 +101,43 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
         <div className="template-modality-badge">{template.modalidade}</div>
         <div className="template-title flex-1">{template.titulo}</div>
         
-        {hasVariables ? (
-          <div className="flex items-center gap-1">
-            {/* Badge indicator */}
-            <span className="text-[9px] px-1.5 py-0.5 bg-cyan-500/20 text-cyan-400 rounded font-medium">
-              VAR
-            </span>
-            
-            {/* Completo button */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                onTemplateSelectDirect?.(template)
-                setDropdownVisible(false)
-              }}
-              className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors opacity-0 group-hover:opacity-100"
-              title="Inserir completo (com placeholders)"
-            >
-              <FileText size={14} />
-            </button>
-            
-            {/* Variáveis button */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                onTemplateSelectWithVariables?.(template)
-                setDropdownVisible(false)
-              }}
-              className="p-1.5 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/20 rounded transition-colors"
-              title="Preencher variáveis"
-            >
-              <Edit3 size={14} />
-            </button>
-          </div>
-        ) : (
+        <div className="flex items-center gap-1">
+          {hasVariables && (
+            <>
+              {/* Badge indicator */}
+              <span className="text-[9px] px-1.5 py-0.5 bg-cyan-500/20 text-cyan-400 rounded font-medium">
+                VAR
+              </span>
+              
+              {/* Completo button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onTemplateSelectDirect?.(template)
+                  setDropdownVisible(false)
+                }}
+                className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors opacity-0 group-hover:opacity-100"
+                title="Inserir completo (com placeholders)"
+              >
+                <FileText size={14} />
+              </button>
+              
+              {/* Variáveis button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onTemplateSelectWithVariables?.(template)
+                  setDropdownVisible(false)
+                }}
+                className="p-1.5 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/20 rounded transition-colors"
+                title="Preencher variáveis"
+              >
+                <Edit3 size={14} />
+              </button>
+            </>
+          )}
+          
+          {/* Botão favorito SEMPRE visível */}
           <button
             onClick={(e) => {
               e.stopPropagation()
@@ -144,7 +147,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
           >
             <Star size={14} />
           </button>
-        )}
+        </div>
       </div>
     )
   }
