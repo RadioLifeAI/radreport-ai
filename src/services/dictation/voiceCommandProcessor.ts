@@ -486,7 +486,7 @@ export function processVoiceInput(text: string, editor: Editor): void {
         processedText = applyCapitalization(processedText)
       }
       
-      // Inserir texto com highlight de ditado
+      // Inserir texto com cor de ditado
       const insertPos = editor.state.selection.from
       const textWithSpace = processedText + ' '
       
@@ -494,7 +494,7 @@ export function processVoiceInput(text: string, editor: Editor): void {
         .focus()
         .insertContent(textWithSpace)
         .setTextSelection({ from: insertPos, to: insertPos + textWithSpace.length })
-        .setDictationHighlight({ source: 'dictation', timestamp: Date.now() })
+        .setColor('#D97706')
         .setTextSelection(insertPos + textWithSpace.length)
         .run()
     }

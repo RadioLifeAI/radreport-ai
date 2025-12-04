@@ -187,10 +187,10 @@ export default function EditorAIButton({ editor, onUpgrade }: EditorAIButtonProp
           emitUpdate: true,
           parseOptions: { preserveWhitespace: false }
         })
-        // Apply highlight to entire document
+        // Apply color to entire document
         editor.chain()
           .selectAll()
-          .setDictationHighlight({ source: 'ai-suggestion', timestamp: Date.now() })
+          .setColor('#2563EB')
           .setTextSelection(editor.state.doc.content.size)
           .run()
         toast.success('Correções aplicadas com sucesso')
@@ -244,7 +244,7 @@ export default function EditorAIButton({ editor, onUpgrade }: EditorAIButtonProp
       if (startPos > 0 && endPos > startPos) {
         ed.chain()
           .setTextSelection({ from: startPos, to: endPos })
-          .setDictationHighlight({ source: 'ai-suggestion', timestamp: Date.now() })
+          .setColor('#2563EB')
           .setTextSelection(endPos)
           .run()
       }
