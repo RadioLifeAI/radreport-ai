@@ -6,9 +6,11 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
 import { TIRADSModal } from './TIRADSModal'
 import { BIRADSModal } from './BIRADSModal'
+import { BIRADSMGModal } from './BIRADSMGModal'
 
 interface RADSDropdownProps {
   editor: Editor | null
@@ -16,7 +18,8 @@ interface RADSDropdownProps {
 
 export function RADSDropdown({ editor }: RADSDropdownProps) {
   const [tiradsOpen, setTiradsOpen] = useState(false)
-  const [biradsOpen, setBiradsOpen] = useState(false)
+  const [biradsUSGOpen, setBiradsUSGOpen] = useState(false)
+  const [biradsMGOpen, setBiradsMGOpen] = useState(false)
 
   return (
     <>
@@ -28,15 +31,21 @@ export function RADSDropdown({ editor }: RADSDropdownProps) {
             <ChevronDown size={14} className="opacity-50" />
           </button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-56">
+        <DropdownMenuContent align="start" className="w-64">
           <DropdownMenuItem onClick={() => setTiradsOpen(true)} className="cursor-pointer">
             <span className="mr-2">🦋</span>
             ACR TI-RADS (Tireoide)
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setBiradsOpen(true)} className="cursor-pointer">
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => setBiradsUSGOpen(true)} className="cursor-pointer">
             <span className="mr-2">🎀</span>
             ACR BI-RADS (Mama - USG)
           </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setBiradsMGOpen(true)} className="cursor-pointer">
+            <span className="mr-2">📷</span>
+            ACR BI-RADS (Mama - Mamografia)
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
           <DropdownMenuItem disabled className="opacity-50">
             <span className="mr-2">🫁</span>
             Lung-RADS (Pulmão) - Em breve
@@ -67,8 +76,14 @@ export function RADSDropdown({ editor }: RADSDropdownProps) {
       />
 
       <BIRADSModal
-        open={biradsOpen}
-        onOpenChange={setBiradsOpen}
+        open={biradsUSGOpen}
+        onOpenChange={setBiradsUSGOpen}
+        editor={editor}
+      />
+
+      <BIRADSMGModal
+        open={biradsMGOpen}
+        onOpenChange={setBiradsMGOpen}
         editor={editor}
       />
     </>
