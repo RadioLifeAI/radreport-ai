@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { Editor } from '@tiptap/react'
-import { Plus, Trash2, Calendar, AlertCircle, FileText, ClipboardList, FileCheck, Stethoscope, StickyNote, History, Eye, EyeOff, Check, Minus, ChevronRight } from 'lucide-react'
+import { Plus, Trash2, Calendar, AlertCircle, FileText, ClipboardList, FileCheck, Stethoscope, StickyNote, History, Eye, EyeOff, Check, Minus, ChevronRight, Activity, Shuffle, Scale, Circle, Sparkles, Target, LucideIcon } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -51,17 +51,17 @@ interface BIRADSMGModalProps {
 
 type TabType = 'indicacao' | 'parenquima' | 'distorcao' | 'assimetria' | 'nodulos' | 'calcificacoes' | 'linfonodos' | 'comparativo' | 'recomendacao' | 'notas'
 
-const tabs: { id: TabType; label: string; icon: string }[] = [
-  { id: 'indicacao', label: 'Indicação', icon: '📋' },
-  { id: 'parenquima', label: 'Parênquima', icon: '🫁' },
-  { id: 'distorcao', label: 'Distorção', icon: '🔀' },
-  { id: 'assimetria', label: 'Assimetria', icon: '⚖️' },
-  { id: 'nodulos', label: 'Nódulos', icon: '⚪' },
-  { id: 'calcificacoes', label: 'Calcificações', icon: '✨' },
-  { id: 'linfonodos', label: 'Linfonodos', icon: '🔘' },
-  { id: 'comparativo', label: 'Comparativo', icon: '📅' },
-  { id: 'recomendacao', label: 'Recomendação', icon: '📄' },
-  { id: 'notas', label: 'Notas', icon: '📝' },
+const tabs: { id: TabType; label: string; icon: LucideIcon }[] = [
+  { id: 'indicacao', label: 'Indicação', icon: ClipboardList },
+  { id: 'parenquima', label: 'Parênquima', icon: Activity },
+  { id: 'distorcao', label: 'Distorção', icon: Shuffle },
+  { id: 'assimetria', label: 'Assimetria', icon: Scale },
+  { id: 'nodulos', label: 'Nódulos', icon: Circle },
+  { id: 'calcificacoes', label: 'Calcificações', icon: Sparkles },
+  { id: 'linfonodos', label: 'Linfonodos', icon: Target },
+  { id: 'comparativo', label: 'Comparativo', icon: Calendar },
+  { id: 'recomendacao', label: 'Recomendação', icon: FileCheck },
+  { id: 'notas', label: 'Notas', icon: FileText },
 ]
 
 // Componente de seção do preview
@@ -1033,7 +1033,7 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl max-h-[90vh] p-0 overflow-hidden">
+      <DialogContent className="max-w-6xl max-h-[90vh] p-0 overflow-hidden" onPointerDownOutside={(e) => e.preventDefault()} onInteractOutside={(e) => e.preventDefault()}>
         <DialogHeader className="p-4 pb-2 border-b">
           <div className="flex items-center justify-between">
             <DialogTitle className="flex items-center gap-2">
@@ -1055,20 +1055,23 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
         <div className="flex flex-1 min-h-0">
           {/* Sidebar de navegação */}
           <div className="w-44 border-r bg-muted/30 p-2 space-y-1 overflow-y-auto shrink-0">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left text-sm transition-colors ${
-                  activeTab === tab.id
-                    ? 'bg-primary text-primary-foreground'
-                    : 'hover:bg-muted'
-                }`}
-              >
-                <span>{tab.icon}</span>
-                <span className="truncate">{tab.label}</span>
-              </button>
-            ))}
+            {tabs.map((tab) => {
+              const IconComponent = tab.icon
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left text-sm transition-colors ${
+                    activeTab === tab.id
+                      ? 'bg-primary text-primary-foreground'
+                      : 'hover:bg-muted'
+                  }`}
+                >
+                  <IconComponent size={14} className="opacity-70 shrink-0" />
+                  <span className="truncate">{tab.label}</span>
+                </button>
+              )
+            })}
           </div>
 
           {/* Conteúdo principal */}

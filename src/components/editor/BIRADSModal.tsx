@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { Editor } from '@tiptap/react'
-import { Plus, Trash2, Calendar, AlertCircle, FileText, ClipboardList, FileCheck, Stethoscope, StickyNote, Eye, EyeOff, Check, Minus } from 'lucide-react'
+import { Plus, Trash2, Calendar, AlertCircle, FileText, ClipboardList, FileCheck, Stethoscope, StickyNote, Eye, EyeOff, Check, Minus, Scissors, Activity, Droplet, Circle, RefreshCw, Shuffle, Gem, Target, LucideIcon } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -54,18 +54,18 @@ interface BIRADSModalProps {
 
 type TabType = 'indicacao' | 'cirurgia' | 'parenquima' | 'cisto' | 'nodulo' | 'ectasia' | 'distorcao' | 'implante' | 'linfonodo' | 'comparativo' | 'notas'
 
-const tabs: { id: TabType; label: string; icon: string }[] = [
-  { id: 'indicacao', label: 'Indicação', icon: '📋' },
-  { id: 'cirurgia', label: 'Cirurgias', icon: '🔪' },
-  { id: 'parenquima', label: 'Parênquima', icon: '🫁' },
-  { id: 'cisto', label: 'Cistos', icon: '💧' },
-  { id: 'nodulo', label: 'Nódulos', icon: '⚪' },
-  { id: 'ectasia', label: 'Ectasia Ductal', icon: '🔄' },
-  { id: 'distorcao', label: 'Distorção', icon: '🔀' },
-  { id: 'implante', label: 'Implante', icon: '💠' },
-  { id: 'linfonodo', label: 'Linfonodos', icon: '🔘' },
-  { id: 'comparativo', label: 'Comparativo', icon: '📅' },
-  { id: 'notas', label: 'Notas', icon: '📝' },
+const tabs: { id: TabType; label: string; icon: LucideIcon }[] = [
+  { id: 'indicacao', label: 'Indicação', icon: ClipboardList },
+  { id: 'cirurgia', label: 'Cirurgias', icon: Scissors },
+  { id: 'parenquima', label: 'Parênquima', icon: Activity },
+  { id: 'cisto', label: 'Cistos', icon: Droplet },
+  { id: 'nodulo', label: 'Nódulos', icon: Circle },
+  { id: 'ectasia', label: 'Ectasia Ductal', icon: RefreshCw },
+  { id: 'distorcao', label: 'Distorção', icon: Shuffle },
+  { id: 'implante', label: 'Implante', icon: Gem },
+  { id: 'linfonodo', label: 'Linfonodos', icon: Target },
+  { id: 'comparativo', label: 'Comparativo', icon: Calendar },
+  { id: 'notas', label: 'Notas', icon: FileText },
 ]
 
 // Componente de seção do preview
@@ -1020,7 +1020,7 @@ export function BIRADSModal({ open, onOpenChange, editor }: BIRADSModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl max-h-[90vh] p-0 overflow-hidden">
+      <DialogContent className="max-w-6xl max-h-[90vh] p-0 overflow-hidden" onPointerDownOutside={(e) => e.preventDefault()} onInteractOutside={(e) => e.preventDefault()}>
         <DialogHeader className="p-4 pb-2 border-b">
           <div className="flex items-center justify-between">
             <DialogTitle className="flex items-center gap-2">
@@ -1042,20 +1042,23 @@ export function BIRADSModal({ open, onOpenChange, editor }: BIRADSModalProps) {
         <div className="flex flex-1 min-h-0">
           {/* Sidebar de navegação */}
           <div className="w-40 border-r bg-muted/30 p-2 space-y-1 overflow-y-auto shrink-0">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left text-sm transition-colors ${
-                  activeTab === tab.id
-                    ? 'bg-primary text-primary-foreground'
-                    : 'hover:bg-muted'
-                }`}
-              >
-                <span>{tab.icon}</span>
-                <span className="truncate text-xs">{tab.label}</span>
-              </button>
-            ))}
+            {tabs.map((tab) => {
+              const IconComponent = tab.icon
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left text-sm transition-colors ${
+                    activeTab === tab.id
+                      ? 'bg-primary text-primary-foreground'
+                      : 'hover:bg-muted'
+                  }`}
+                >
+                  <IconComponent size={14} className="opacity-70 shrink-0" />
+                  <span className="truncate text-xs">{tab.label}</span>
+                </button>
+              )
+            })}
           </div>
 
           {/* Conteúdo principal */}
