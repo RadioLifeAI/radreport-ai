@@ -3,7 +3,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Calculator, ExternalLink } from 'lucide-react'
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible'
+import { Calculator, ExternalLink, Info, ChevronDown } from 'lucide-react'
 import { RadiologyCalculator, CalculatorResult } from '@/lib/radiologyCalculators'
 
 interface CalculatorModalProps {
@@ -16,6 +17,7 @@ interface CalculatorModalProps {
 export function CalculatorModal({ calculator, isOpen, onClose, onInsert }: CalculatorModalProps) {
   const [values, setValues] = useState<Record<string, number | string>>({})
   const [result, setResult] = useState<CalculatorResult | null>(null)
+  const [infoOpen, setInfoOpen] = useState(false)
 
   useEffect(() => {
     if (calculator && isOpen) {
@@ -27,6 +29,7 @@ export function CalculatorModal({ calculator, isOpen, onClose, onInsert }: Calcu
         }
       })
       setValues(initialValues)
+      setInfoOpen(false)
     }
   }, [calculator, isOpen])
 
@@ -106,6 +109,54 @@ export function CalculatorModal({ calculator, isOpen, onClose, onInsert }: Calcu
         </DialogHeader>
 
         <div className="space-y-6 py-4">
+          {/* Collapsible Info Card */}
+          {calculator.info && (
+            <Collapsible open={infoOpen} onOpenChange={setInfoOpen}>
+              <CollapsibleTrigger className="flex items-center gap-2 w-full p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-950/50 transition-colors group">
+                <Info className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                  Sobre esta escala
+                </span>
+                <ChevronDown className={`w-4 h-4 ml-auto text-blue-600 dark:text-blue-400 transition-transform duration-200 ${infoOpen ? 'rotate-180' : ''}`} />
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-2 p-4 bg-muted/50 rounded-lg space-y-4 animate-in slide-in-from-top-2 duration-200">
+                {/* Purpose */}
+                <div>
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">Finalidade</h4>
+                  <p className="text-sm text-foreground leading-relaxed">{calculator.info.purpose}</p>
+                </div>
+                
+                {/* Usage */}
+                <div>
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">Como usar</h4>
+                  <ul className="text-sm space-y-1.5">
+                    {calculator.info.usage.map((item, i) => (
+                      <li key={i} className="flex gap-2">
+                        <span className="text-primary font-bold">•</span>
+                        <span className="text-foreground">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                
+                {/* Grading (if exists) */}
+                {calculator.info.grading && calculator.info.grading.length > 0 && (
+                  <div>
+                    <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">Graduação</h4>
+                    <ul className="text-sm space-y-1">
+                      {calculator.info.grading.map((item, i) => (
+                        <li key={i} className="flex gap-2">
+                          <span className="text-muted-foreground font-mono text-xs min-w-[1.5rem]">{i}:</span>
+                          <span className="text-foreground">{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </CollapsibleContent>
+            </Collapsible>
+          )}
+
           {/* Inputs */}
           <div className="space-y-4">
             <h3 className="text-sm font-semibold text-foreground">Parâmetros</h3>
