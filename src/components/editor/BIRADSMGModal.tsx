@@ -30,7 +30,8 @@ import {
   evaluateBIRADSMG,
   generateBIRADSMGAchados,
   generateBIRADSMGImpression,
-  generateBIRADSMGLaudoCompleto,
+  generateBIRADSMGLaudoCompletoHTML,
+  generateBIRADSMGRecomendacao,
   createEmptyBIRADSMGNodulo,
   createEmptyBIRADSMGData,
   formatMeasurement,
@@ -44,7 +45,7 @@ interface BIRADSMGModalProps {
   editor: Editor | null
 }
 
-type TabType = 'indicacao' | 'parenquima' | 'distorcao' | 'assimetria' | 'nodulos' | 'calcificacoes' | 'linfonodos' | 'comparativo' | 'notas'
+type TabType = 'indicacao' | 'parenquima' | 'distorcao' | 'assimetria' | 'nodulos' | 'calcificacoes' | 'linfonodos' | 'comparativo' | 'recomendacao' | 'notas'
 
 const tabs: { id: TabType; label: string; icon: string }[] = [
   { id: 'indicacao', label: 'Indicação', icon: '📋' },
@@ -55,6 +56,7 @@ const tabs: { id: TabType; label: string; icon: string }[] = [
   { id: 'calcificacoes', label: 'Calcificações', icon: '✨' },
   { id: 'linfonodos', label: 'Linfonodos', icon: '🔘' },
   { id: 'comparativo', label: 'Comparativo', icon: '📅' },
+  { id: 'recomendacao', label: 'Recomendação', icon: '📄' },
   { id: 'notas', label: 'Notas', icon: '📝' },
 ]
 
@@ -98,7 +100,7 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
 
   const achadosTexto = useMemo(() => generateBIRADSMGAchados(data), [data])
   const impressaoTexto = useMemo(() => generateBIRADSMGImpression(data, biradsCategory), [data, biradsCategory])
-  const laudoCompleto = useMemo(() => generateBIRADSMGLaudoCompleto(data, biradsCategory), [data, biradsCategory])
+  const recomendacaoTexto = useMemo(() => generateBIRADSMGRecomendacao(data, biradsCategory), [data, biradsCategory])
 
   const handleInsertAchados = () => {
     if (editor) {
@@ -116,7 +118,13 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
 
   const handleInsertLaudoCompleto = () => {
     if (editor) {
-      editor.chain().focus().insertContent(laudoCompleto.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>')).run()
+      // Substitui todo o conteúdo do editor com HTML formatado
+      editor.chain()
+        .focus()
+        .selectAll()
+        .deleteSelection()
+        .insertContent(generateBIRADSMGLaudoCompletoHTML(data, biradsCategory))
+        .run()
       onOpenChange(false)
     }
   }
@@ -804,6 +812,110 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
                 </div>
               ))}
             </RadioGroup>
+          </div>
+        )
+
+      case 'recomendacao':
+        const selectedRecOpt = biradsMGOptions.recomendacaoManual.find(o => o.value === data.recomendacaoManual?.categoria)
+        return (
+          <div className="space-y-4">
+            <h3 className="font-semibold text-sm flex items-center gap-2">
+              <FileCheck size={16} className="text-blue-500" />
+              Recomendação
+            </h3>
+            
+            <div className="flex items-start space-x-2 p-3 rounded-lg border bg-blue-500/10 border-blue-500/30">
+              <Checkbox
+                id="rec-manual-ativo"
+                checked={data.recomendacaoManual?.ativo || false}
+                onCheckedChange={(checked) => updateData('recomendacaoManual', { 
+                  ...data.recomendacaoManual!, 
+                  ativo: !!checked 
+                })}
+              />
+              <div className="flex-1">
+                <Label htmlFor="rec-manual-ativo" className="cursor-pointer font-medium">
+                  Usar recomendação manual
+                </Label>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Override do cálculo automático baseado na classificação
+                </p>
+              </div>
+            </div>
+
+            {data.recomendacaoManual?.ativo && (
+              <>
+                <RadioGroup
+                  value={data.recomendacaoManual?.categoria || '2'}
+                  onValueChange={(v) => updateData('recomendacaoManual', { ...data.recomendacaoManual!, categoria: v })}
+                  className="space-y-2"
+                >
+                  {biradsMGOptions.recomendacaoManual.map((opt) => (
+                    <div key={opt.value} className={`flex items-center space-x-3 p-3 rounded-lg border hover:bg-muted/50 ${
+                      data.recomendacaoManual?.categoria === opt.value ? 'bg-primary/10 border-primary/50' : ''
+                    }`}>
+                      <RadioGroupItem value={opt.value} id={`rec-${opt.value}`} />
+                      <Label htmlFor={`rec-${opt.value}`} className="cursor-pointer flex-1 text-sm">
+                        {opt.label}
+                      </Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+
+                {/* Select de lado - para BI-RADS 0 */}
+                {selectedRecOpt?.usaLado && (
+                  <div className="space-y-2 p-3 rounded-lg border bg-muted/30">
+                    <Label className="text-sm font-medium">Mama</Label>
+                    <Select
+                      value={data.recomendacaoManual?.lado || 'direita'}
+                      onValueChange={(v) => updateData('recomendacaoManual', { 
+                        ...data.recomendacaoManual!, 
+                        lado: v as 'direita' | 'esquerda' | 'bilateral' 
+                      })}
+                    >
+                      <SelectTrigger className="h-9">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="direita">Direita</SelectItem>
+                        <SelectItem value="esquerda">Esquerda</SelectItem>
+                        <SelectItem value="bilateral">Bilateral</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {/* Select de meses - para BI-RADS 3 */}
+                {selectedRecOpt?.usaMeses && (
+                  <div className="space-y-2 p-3 rounded-lg border bg-muted/30">
+                    <Label className="text-sm font-medium">Controle em</Label>
+                    <Select
+                      value={data.recomendacaoManual?.mesesControle?.toString() || '6'}
+                      onValueChange={(v) => updateData('recomendacaoManual', { 
+                        ...data.recomendacaoManual!, 
+                        mesesControle: parseInt(v) as 6 | 12 
+                      })}
+                    >
+                      <SelectTrigger className="h-9">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="6">6 meses</SelectItem>
+                        <SelectItem value="12">12 meses</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* Preview da recomendação */}
+            <div className="p-3 rounded-lg bg-muted/50 border">
+              <Label className="text-xs text-muted-foreground mb-2 block">
+                {data.recomendacaoManual?.ativo ? 'Recomendação manual:' : 'Recomendação automática (BI-RADS ' + biradsCategory + '):'}
+              </Label>
+              <p className="text-sm whitespace-pre-wrap">{recomendacaoTexto}</p>
+            </div>
           </div>
         )
 

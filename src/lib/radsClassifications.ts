@@ -632,8 +632,18 @@ export interface BIRADSMGData {
   recomendacaoManual?: {
     ativo: boolean
     categoria: string
-    lado?: string
+    lado?: 'direita' | 'esquerda' | 'bilateral'
+    mesesControle?: 6 | 12
   }
+}
+
+// Interface para opções de recomendação
+export interface BIRADSRecomendacaoOption {
+  value: string
+  label: string
+  texto: string
+  usaLado?: boolean
+  usaMeses?: boolean
 }
 
 export const biradsMGOptions = {
@@ -666,6 +676,19 @@ export const biradsMGOptions = {
     { value: 'us_densas_palpavel', label: 'US útil em mamas densas', texto: 'Obs.: A ultrassonografia pode ser útil em mamas densas se houver alterações palpáveis ou se a paciente apresentar risco elevado para câncer de mama.' },
     { value: 'us_densas_correlacao', label: 'Baixa sensibilidade em mamas densas', texto: 'Obs.: A mamografia possui baixa sensibilidade em mamas densas. Recomenda-se correlação ultrassonográfica.' },
   ] as BIRADSOption[],
+
+  // RECOMENDAÇÃO MANUAL
+  recomendacaoManual: [
+    { value: '0-assimetria-compressao', label: 'BI-RADS 0 - Assimetria + compressão', texto: 'Considerar compressão localizada em craniocaudal e mediolateral da assimetria na mama {lado}.', usaLado: true },
+    { value: '0-assimetria-ultrassom', label: 'BI-RADS 0 - Assimetria + ultrassom', texto: 'Considerar complementação com estudo ultrassonográfico da mama {lado}.', usaLado: true },
+    { value: '0-calcificacao', label: 'BI-RADS 0 - Microcalcificações', texto: 'Considerar incidências magnificadas em craniocaudal e perfil da mama {lado}.', usaLado: true },
+    { value: '0-nodulo', label: 'BI-RADS 0 - Nódulo', texto: 'Considerar complementação com estudo ultrassonográfico da mama {lado}.', usaLado: true },
+    { value: '1', label: 'BI-RADS 1', texto: 'Na ausência de achados clínicos, considerar controle de rotina de acordo com a faixa etária.' },
+    { value: '2', label: 'BI-RADS 2', texto: 'Na ausência de achados clínicos, considerar controle de rotina de acordo com a faixa etária.' },
+    { value: '3', label: 'BI-RADS 3', texto: 'Na ausência de achados clínicos, considerar novo controle em {meses} meses.', usaMeses: true },
+    { value: '4', label: 'BI-RADS 4', texto: 'Estudo histopatológico deve ser considerado.\nEm caso de realização de nova mamografia ou ultrassonografia mamária, é necessário trazer exames anteriores.' },
+    { value: '5', label: 'BI-RADS 5', texto: 'Recomenda-se prosseguir investigação com estudo histopatológico.\nEm caso de realização de nova mamografia ou ultrassonografia mamária, é necessário trazer exames anteriores.' },
+  ] as BIRADSRecomendacaoOption[],
 
   // PARÊNQUIMA
   parenquima: [
@@ -1134,50 +1157,91 @@ export const generateBIRADSMGNotas = (data: BIRADSMGData): string => {
   return lines.join('\n')
 }
 
-// Gerar laudo completo MG
+// Gerar recomendação
+export const generateBIRADSMGRecomendacao = (data: BIRADSMGData, biradsCategory: number | string): string => {
+  // Se recomendação manual ativa
+  if (data.recomendacaoManual?.ativo && data.recomendacaoManual.categoria) {
+    const opt = biradsMGOptions.recomendacaoManual.find(o => o.value === data.recomendacaoManual!.categoria)
+    if (opt) {
+      let texto = opt.texto
+      if (opt.usaLado && data.recomendacaoManual.lado) {
+        const ladoTexto = data.recomendacaoManual.lado === 'bilateral' ? 'bilateralmente' : data.recomendacaoManual.lado
+        texto = texto.replace('{lado}', ladoTexto)
+      }
+      if (opt.usaMeses && data.recomendacaoManual.mesesControle) {
+        texto = texto.replace('{meses}', data.recomendacaoManual.mesesControle.toString())
+      }
+      return texto
+    }
+  }
+  
+  // Recomendação automática
+  const categoryNum = typeof biradsCategory === 'number' ? biradsCategory : parseInt(biradsCategory.toString().charAt(0))
+  
+  if (categoryNum === 0) return 'Avaliação adicional necessária.'
+  if (categoryNum <= 2) return 'Na ausência de achados clínicos, considerar controle de rotina de acordo com a faixa etária.'
+  if (categoryNum === 3) return 'Na ausência de achados clínicos, considerar novo controle em 6 meses.'
+  if (categoryNum >= 4) return 'Estudo histopatológico deve ser considerado.\nEm caso de realização de nova mamografia ou ultrassonografia mamária, é necessário trazer exames anteriores.'
+  
+  return ''
+}
+
+// Gerar laudo completo MG (texto simples)
 export const generateBIRADSMGLaudoCompleto = (data: BIRADSMGData, biradsCategory: number | string): string => {
   const sections: string[] = []
-  
-  // Título
   sections.push('MAMOGRAFIA DIGITAL')
+  sections.push(`Indicação clínica:\n${generateBIRADSMGIndicacao(data)}`)
+  sections.push(`Análise:\n${generateBIRADSMGAchados(data)}`)
+  const comparativo = generateBIRADSMGComparativo(data)
+  if (comparativo) sections.push(`Estudo Comparativo:\n${comparativo}`)
+  sections.push(`Impressão diagnóstica:\n${generateBIRADSMGImpression(data, biradsCategory)}`)
+  const recomendacao = generateBIRADSMGRecomendacao(data, biradsCategory)
+  if (recomendacao) sections.push(`Recomendação:\n${recomendacao}`)
+  const notas = generateBIRADSMGNotas(data)
+  if (notas) sections.push(notas)
+  return sections.join('\n\n')
+}
+
+// Gerar laudo completo MG com HTML formatado
+export const generateBIRADSMGLaudoCompletoHTML = (data: BIRADSMGData, biradsCategory: number | string): string => {
+  const sections: string[] = []
+  
+  // Título principal
+  sections.push('<h2 style="text-align: center; text-transform: uppercase; margin-bottom: 24px;">MAMOGRAFIA DIGITAL</h2>')
   
   // Indicação clínica
-  sections.push(`Indicação clínica:\n${generateBIRADSMGIndicacao(data)}`)
+  sections.push('<h3 style="text-transform: uppercase; margin-top: 18px; margin-bottom: 8px;">Indicação Clínica:</h3>')
+  sections.push(`<p style="text-align: justify;">${generateBIRADSMGIndicacao(data).replace(/\n/g, '<br>')}</p>`)
   
   // Análise
-  sections.push(`Análise:\n${generateBIRADSMGAchados(data)}`)
+  sections.push('<h3 style="text-transform: uppercase; margin-top: 18px; margin-bottom: 8px;">Análise:</h3>')
+  sections.push(`<p style="text-align: justify;">${generateBIRADSMGAchados(data).replace(/\n/g, '<br>')}</p>`)
   
   // Estudo comparativo
   const comparativo = generateBIRADSMGComparativo(data)
   if (comparativo) {
-    sections.push(`Estudo Comparativo:\n${comparativo}`)
+    sections.push('<h3 style="text-transform: uppercase; margin-top: 18px; margin-bottom: 8px;">Estudo Comparativo:</h3>')
+    sections.push(`<p style="text-align: justify;">${comparativo}</p>`)
   }
   
   // Impressão diagnóstica
-  sections.push(`Impressão diagnóstica:\n${generateBIRADSMGImpression(data, biradsCategory)}`)
+  sections.push('<h3 style="text-transform: uppercase; margin-top: 18px; margin-bottom: 8px;">Impressão Diagnóstica:</h3>')
+  sections.push(`<p style="text-align: justify;">${generateBIRADSMGImpression(data, biradsCategory).replace(/\n/g, '<br>')}</p>`)
   
   // Recomendação
-  const categoryNum = typeof biradsCategory === 'number' ? biradsCategory : parseInt(biradsCategory.toString().charAt(0))
-  let recomendacao = ''
-  if (categoryNum <= 2) {
-    recomendacao = 'Sugere-se mamografia anual.'
-  } else if (categoryNum === 3) {
-    recomendacao = 'Sugere-se controle mamográfico em 6 meses.'
-  } else if (biradsCategory === 0) {
-    const recOpt = biradsMGOptions.recomendacoesBirads0.find(o => o.value === data.recomendacaoManual?.categoria)
-    recomendacao = recOpt?.texto || 'Avaliação adicional necessária.'
-  }
+  const recomendacao = generateBIRADSMGRecomendacao(data, biradsCategory)
   if (recomendacao) {
-    sections.push(`Recomendação:\n${recomendacao}`)
+    sections.push('<h3 style="text-transform: uppercase; margin-top: 18px; margin-bottom: 8px;">Recomendação:</h3>')
+    sections.push(`<p style="text-align: justify;">${recomendacao.replace(/\n/g, '<br>')}</p>`)
   }
   
   // Notas
   const notas = generateBIRADSMGNotas(data)
   if (notas) {
-    sections.push(notas)
+    sections.push(`<p style="margin-top: 18px; text-align: justify; font-style: italic;">${notas.replace(/\n/g, '<br>')}</p>`)
   }
   
-  return sections.join('\n\n')
+  return sections.join('')
 }
 
 export const createEmptyBIRADSMGNodulo = (): BIRADSMGNodulo => ({
@@ -1217,5 +1281,11 @@ export const createEmptyBIRADSMGData = (): BIRADSMGData => ({
   notas: {
     densaMamasUS: false,
     densaMamasCorrelacao: false,
+  },
+  recomendacaoManual: {
+    ativo: false,
+    categoria: '2',
+    lado: 'direita',
+    mesesControle: 6,
   },
 })
