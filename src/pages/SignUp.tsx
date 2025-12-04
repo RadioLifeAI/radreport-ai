@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import TurnstileWidget from '@/components/TurnstileWidget';
@@ -6,6 +6,7 @@ import LoginHeroBackground from '@/components/LoginHeroBackground';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { isValidEmail, validateMedicalPassword, sanitizeInput } from '@/utils/validation';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function SignUp() {
   const { register } = useAuth();
@@ -52,15 +53,30 @@ export default function SignUp() {
     !name ||
     !email ||
     !password ||
-    !confirmPassword;
+    !confirmPassword ||
+    !turnstileToken;
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (disabled) return;
     setErr(null);
+    setTurnstileError(null);
     setLoading(true);
 
     try {
+      // Validate Turnstile token first
+      const { data: turnstileResult, error: turnstileErr } = await supabase.functions.invoke('verify-turnstile', {
+        body: { token: turnstileToken }
+      });
+      
+      if (turnstileErr || !turnstileResult?.success) {
+        setTurnstileError('Verificação de segurança falhou. Tente novamente.');
+        setTurnstileToken(null);
+        setLoading(false);
+        return;
+      }
+
+      // Proceed with registration
       const sanitizedName = sanitizeInput(name);
       const sanitizedEmail = sanitizeInput(email);
 
@@ -161,13 +177,14 @@ export default function SignUp() {
               {confirmPasswordError && <p className="text-destructive text-sm mt-1">{confirmPasswordError}</p>}
             </div>
 
-            {/* Turnstile temporarily disabled */}
-            {/*
             <div>
-              <TurnstileWidget onSuccess={setTurnstileToken} onError={setTurnstileError} />
-              {turnstileError && <p className="text-destructive text-sm mt-1">{turnstileError}</p>}
+              <TurnstileWidget 
+                onSuccess={setTurnstileToken} 
+                onError={setTurnstileError}
+                onExpire={() => setTurnstileToken(null)}
+              />
+              {turnstileError && <p className="text-destructive text-sm mt-1 text-center">{turnstileError}</p>}
             </div>
-            */}
 
             {err && (
               <div className="bg-destructive/20 border border-destructive/30 rounded-lg p-3 text-destructive text-sm">

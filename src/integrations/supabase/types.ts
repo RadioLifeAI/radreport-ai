@@ -1330,6 +1330,7 @@ export type Database = {
           created_by: string | null
           estrutura_anatomica_id: string | null
           id: string
+          indicacao_clinica: string | null
           modalidade_codigo: string | null
           modalidade_id: string | null
           observacao: string | null
@@ -1352,6 +1353,7 @@ export type Database = {
           created_by?: string | null
           estrutura_anatomica_id?: string | null
           id?: string
+          indicacao_clinica?: string | null
           modalidade_codigo?: string | null
           modalidade_id?: string | null
           observacao?: string | null
@@ -1374,6 +1376,7 @@ export type Database = {
           created_by?: string | null
           estrutura_anatomica_id?: string | null
           id?: string
+          indicacao_clinica?: string | null
           modalidade_codigo?: string | null
           modalidade_id?: string | null
           observacao?: string | null
@@ -2355,6 +2358,7 @@ export type Database = {
           created_at: string | null
           id: string
           impressao: string
+          indicacao_clinica: string | null
           modalidade_codigo: string
           regiao_codigo: string
           tags: string[] | null
@@ -2375,6 +2379,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           impressao: string
+          indicacao_clinica?: string | null
           modalidade_codigo: string
           regiao_codigo: string
           tags?: string[] | null
@@ -2395,6 +2400,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           impressao?: string
+          indicacao_clinica?: string | null
           modalidade_codigo?: string
           regiao_codigo?: string
           tags?: string[] | null

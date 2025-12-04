@@ -4,11 +4,13 @@ import { useAuth } from '@/hooks/useAuth';
 import GoogleOneTap from '@/components/GoogleOneTap';
 import GoogleLoginButton from '@/components/GoogleLoginButton';
 import EmailVerificationNotice from '@/components/EmailVerificationNotice';
+import TurnstileWidget from '@/components/TurnstileWidget';
 import LoginHeroBackground from '@/components/LoginHeroBackground';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { isValidEmail, sanitizeInput } from '@/utils/validation';
 import { useRateLimit } from '@/hooks/useRateLimit';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function Login() {
   const { login, user, isAuthenticated } = useAuth();
@@ -20,6 +22,8 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [showEmailVerification, setShowEmailVerification] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileError, setTurnstileError] = useState<string | null>(null);
   const { checkRateLimit, remainingTime } = useRateLimit({ maxAttempts: 5, windowMs: 60000 });
 
   useEffect(() => {
@@ -83,7 +87,7 @@ export default function Login() {
     return null;
   }, [email]);
 
-  const disabled = Boolean(loading || !!emailError || !email || !password);
+  const disabled = Boolean(loading || !!emailError || !email || !password || !turnstileToken);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -96,8 +100,23 @@ export default function Login() {
     }
     
     setErr(null);
+    setTurnstileError(null);
     setLoading(true);
+    
     try {
+      // Validate Turnstile token first
+      const { data: turnstileResult, error: turnstileErr } = await supabase.functions.invoke('verify-turnstile', {
+        body: { token: turnstileToken }
+      });
+      
+      if (turnstileErr || !turnstileResult?.success) {
+        setTurnstileError('Verificação de segurança falhou. Tente novamente.');
+        setTurnstileToken(null);
+        setLoading(false);
+        return;
+      }
+
+      // Proceed with login
       const sanitizedEmail = sanitizeInput(email);
       await login(sanitizedEmail, password);
       
@@ -203,6 +222,15 @@ export default function Login() {
               <Link to="/forgot-password" className="text-primary hover:text-primary/80 text-sm font-medium">
                 Esqueceu a senha?
               </Link>
+            </div>
+
+            <div>
+              <TurnstileWidget 
+                onSuccess={setTurnstileToken} 
+                onError={setTurnstileError}
+                onExpire={() => setTurnstileToken(null)}
+              />
+              {turnstileError && <p className="text-destructive text-sm mt-1 text-center">{turnstileError}</p>}
             </div>
 
             {err && (
