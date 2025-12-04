@@ -386,27 +386,31 @@ export const radiologyCalculators: RadiologyCalculator[] = [
     }
   },
 
-  // 10. TFGe (eGFR CKD-EPI)
+  // 10. TFGe (eGFR CKD-EPI 2021)
   {
     id: 'egfr-ckd-epi',
     name: 'TFGe (CKD-EPI)',
     category: 'geral',
-    description: 'Taxa de Filtração Glomerular estimada (CKD-EPI)',
+    description: 'Taxa de Filtração Glomerular estimada (CKD-EPI 2021)',
     inputs: [
       { name: 'creatinine', label: 'Creatinina sérica', unit: 'mg/dL', type: 'number', min: 0.1, max: 20, step: 0.1, defaultValue: 1.0 },
-      { name: 'age', label: 'Idade', unit: 'anos', type: 'number', min: 18, max: 120, step: 1, defaultValue: 50 }
+      { name: 'age', label: 'Idade', unit: 'anos', type: 'number', min: 18, max: 120, step: 1, defaultValue: 50 },
+      { name: 'sex', label: 'Sexo (0=Feminino, 1=Masculino)', unit: '', type: 'number', min: 0, max: 1, step: 1, defaultValue: 1 }
     ],
     calculate: (values) => {
       const cr = values.creatinine as number
       const age = values.age as number
+      const isFemale = (values.sex as number) === 0
       
-      // Fórmula CKD-EPI simplificada (assumindo sexo masculino, não-negro)
-      const kappa = 0.9
-      const alpha = -0.411
+      // Fórmula CKD-EPI 2021 (sem correção de raça)
+      const kappa = isFemale ? 0.7 : 0.9
+      const alpha = isFemale ? -0.241 : -0.302
+      const femaleFactor = isFemale ? 1.012 : 1.0
+      
       const minValue = Math.min(cr / kappa, 1)
       const maxValue = Math.max(cr / kappa, 1)
       
-      const egfr = 141 * Math.pow(minValue, alpha) * Math.pow(maxValue, -1.209) * Math.pow(0.993, age)
+      const egfr = 142 * Math.pow(minValue, alpha) * Math.pow(maxValue, -1.200) * Math.pow(0.9938, age) * femaleFactor
       
       let interpretation = ''
       let color: 'success' | 'warning' | 'danger' = 'success'
@@ -437,8 +441,8 @@ export const radiologyCalculators: RadiologyCalculator[] = [
       }
     },
     reference: {
-      text: 'Levey AS et al. Ann Intern Med 2009',
-      url: 'https://pubmed.ncbi.nlm.nih.gov/19414839/'
+      text: 'Inker LA et al. N Engl J Med 2021',
+      url: 'https://pubmed.ncbi.nlm.nih.gov/34554658/'
     }
   },
 
@@ -704,7 +708,7 @@ export const radiologyCalculators: RadiologyCalculator[] = [
         unit: 'mL',
         interpretation,
         color,
-        formattedText: `Volume esplênico: ${formatBR(volume, 0)} mL, índice ${formatBR(splenicIndex, 0)}, ${interpretation.toLowerCase()}.`
+        formattedText: `Volume esplênico: ${formatBR(volume, 0)} mL, ${interpretation.toLowerCase()}.`
       }
     },
     reference: {
@@ -991,7 +995,7 @@ export const radiologyCalculators: RadiologyCalculator[] = [
         unit: '',
         interpretation: `${interpretation}. ${risk}`,
         color,
-        formattedText: `Escore de Agatston: ${formatBR(score, 0)}, ${interpretation.toLowerCase()}, ${risk}.`
+        formattedText: `Escore de Agatston: ${formatBR(score, 0)}, ${risk}.`
       }
     },
     reference: {
