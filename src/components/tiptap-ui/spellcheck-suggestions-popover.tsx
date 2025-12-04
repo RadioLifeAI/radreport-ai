@@ -2,6 +2,8 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 import { Editor } from '@tiptap/react'
 import { Portal } from '@/components/ui/portal'
 import { proofreader } from '@/extensions/RadiologySpellChecker'
+import { useUserDictionaryContext } from '@/contexts/UserDictionaryContext'
+import { Plus } from 'lucide-react'
 
 interface SpellcheckSuggestionsPopoverProps {
   editor: Editor | null
@@ -20,6 +22,7 @@ export function SpellcheckSuggestionsPopover({ editor }: SpellcheckSuggestionsPo
   const [errorInfo, setErrorInfo] = useState<ErrorInfo | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const popoverRef = useRef<HTMLDivElement>(null)
+  const { addWord } = useUserDictionaryContext()
 
   const handleSelectSuggestion = useCallback((suggestion: string) => {
     if (editor && errorInfo) {
@@ -33,6 +36,18 @@ export function SpellcheckSuggestionsPopover({ editor }: SpellcheckSuggestionsPo
     }
     setIsOpen(false)
   }, [editor, errorInfo])
+
+  const handleAddToDictionary = useCallback(async () => {
+    if (errorInfo?.word) {
+      const success = await addWord(errorInfo.word)
+      if (success && editor) {
+        // Force re-render to remove underline
+        const html = editor.getHTML()
+        editor.commands.setContent(html)
+      }
+      setIsOpen(false)
+    }
+  }, [errorInfo, addWord, editor])
 
   // Fechar ao clicar fora
   useEffect(() => {
@@ -160,6 +175,18 @@ export function SpellcheckSuggestionsPopover({ editor }: SpellcheckSuggestionsPo
             Sem sugestões
           </div>
         )}
+        
+        {/* Divider */}
+        <div className="spellcheck-divider" />
+        
+        {/* Add to dictionary button */}
+        <button 
+          className="spellcheck-add-dictionary"
+          onClick={handleAddToDictionary}
+        >
+          <Plus className="w-4 h-4" />
+          Adicionar ao dicionário
+        </button>
         
         {errorInfo && (
           <div className="spellcheck-word-info">

@@ -28,6 +28,8 @@ import FontFamily from "@tiptap/extension-font-family"
 import Dropcursor from "@tiptap/extension-dropcursor"
 import Focus from "@tiptap/extension-focus"
 import { RadiologySpellChecker, FontSize, InformativeTable } from "@/extensions"
+import { setUserDictionaryWords } from "@/extensions/RadiologySpellChecker"
+import { useUserDictionaryContext } from "@/contexts/UserDictionaryContext"
 
 // --- UI Primitives ---
 import { Button } from "@/components/tiptap-ui-primitive/button"
@@ -310,6 +312,18 @@ export function SimpleEditor({
     editor,
     overlayHeight: toolbarRef.current?.getBoundingClientRect().height ?? 0,
   })
+
+  // Sync user dictionary words with spellchecker
+  const { words: userDictionaryWords } = useUserDictionaryContext()
+  
+  useEffect(() => {
+    setUserDictionaryWords(userDictionaryWords)
+    // Force re-check spell if editor exists
+    if (editor) {
+      const html = editor.getHTML()
+      editor.commands.setContent(html)
+    }
+  }, [userDictionaryWords, editor])
 
   return (
     <div className="simple-editor-wrapper">

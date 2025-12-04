@@ -209,6 +209,34 @@
     border-top: 1px solid hsl(var(--border));
     margin-top: 0.25rem;
   }
+  
+  .spellcheck-divider {
+    height: 1px;
+    background: hsl(var(--border));
+    margin: 0.25rem 0;
+  }
+  
+  .spellcheck-add-dictionary {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    background: transparent;
+    border: none;
+    color: hsl(var(--primary));
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    
+    &:hover {
+      background: hsl(var(--accent));
+    }
+    
+    svg {
+      opacity: 0.7;
+    }
+  }
 }
 
 @keyframes spellcheck-fade-in {

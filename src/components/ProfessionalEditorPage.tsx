@@ -27,6 +27,7 @@ import { CalculatorModal } from '@/components/editor/CalculatorModal'
 import { TableViewerModal } from '@/components/editor/TableViewerModal'
 import { RadiologyCalculator } from '@/lib/radiologyCalculators'
 import { RadiologyTable } from '@/lib/radiologyTables'
+import { UserDictionaryProvider } from '@/contexts/UserDictionaryContext'
 
 interface ProfessionalEditorPageProps {
   onGenerateConclusion?: (conclusion?: string) => void
@@ -560,6 +561,7 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
   }, [editorInstance, findDocumentSections, replaceConclusionText, selectedFraseForVariables, hookApplyFrase])
 
   return (
+    <UserDictionaryProvider>
     <div className="h-screen flex flex-col bg-background">
       <EditorHeader
         selectedTemplate={selectedTemplate}
@@ -776,5 +778,6 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
         }}
       />
     </div>
+    </UserDictionaryProvider>
   )
 }
