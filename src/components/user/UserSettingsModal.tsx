@@ -673,17 +673,15 @@ export const UserSettingsModal = ({ open, onOpenChange, defaultTab = 'profile', 
                   <Crown size={16} className="mr-2" />
                   Ver Planos
                 </Button>
-                {isSubscribed && (
-                  <Button 
-                    variant="outline" 
-                    onClick={() => openPortal()} 
-                    className="flex-1"
-                    disabled={isOpeningPortal}
-                  >
-                    <ExternalLink size={16} className="mr-2" />
-                    {isOpeningPortal ? 'Abrindo...' : 'Gerenciar Assinatura'}
-                  </Button>
-                )}
+                <Button 
+                  variant="outline" 
+                  onClick={() => openPortal()} 
+                  className="flex-1"
+                  disabled={isOpeningPortal}
+                >
+                  <ExternalLink size={16} className="mr-2" />
+                  {isOpeningPortal ? 'Abrindo...' : 'Gerenciar Assinatura'}
+                </Button>
               </div>
             </div>
           </TabsContent>
