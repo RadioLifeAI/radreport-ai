@@ -46,6 +46,17 @@ const baseWords: Set<string> = (() => {
   return set
 })()
 
+// Global user dictionary words - updated by UserDictionaryContext
+let userDictionaryWords: Set<string> = new Set()
+
+export function setUserDictionaryWords(words: Set<string>) {
+  userDictionaryWords = words
+}
+
+export function getUserDictionaryWords(): Set<string> {
+  return userDictionaryWords
+}
+
 export const proofreader: IProofreaderInterface = {
   async proofreadText(sentence: string): Promise<ITextWithPosition[]> {
     const errors: ITextWithPosition[] = []
@@ -65,6 +76,9 @@ export const proofreader: IProofreaderInterface = {
       
       // Ignorar palavras do dicionário médico
       if (baseWords.has(lowerWord)) continue
+      
+      // Ignorar palavras do dicionário pessoal do usuário
+      if (userDictionaryWords.has(lowerWord)) continue
       
       // Ignorar palavras com correção automática (serão corrigidas pelo plugin)
       if (corrections[lowerWord]) continue

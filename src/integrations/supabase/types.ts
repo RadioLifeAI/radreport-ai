@@ -2729,6 +2729,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_dictionary: {
+        Row: {
+          created_at: string | null
+          id: string
+          user_id: string
+          word: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          user_id: string
+          word: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          user_id?: string
+          word?: string
+        }
+        Relationships: []
+      }
       user_favorite_calculators: {
         Row: {
           calculator_id: string
