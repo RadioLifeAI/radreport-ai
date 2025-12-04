@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { Editor } from '@tiptap/react'
-import { Plus, Trash2, Calendar, AlertCircle, FileText, ClipboardList, FileCheck, Stethoscope, StickyNote, History } from 'lucide-react'
+import { Plus, Trash2, Calendar, AlertCircle, FileText, ClipboardList, FileCheck, Stethoscope, StickyNote, History, Eye, EyeOff, Check, Minus, ChevronRight } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/select'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Separator } from '@/components/ui/separator'
+import { Progress } from '@/components/ui/progress'
 import {
   BIRADSMGData,
   BIRADSMGNodulo,
@@ -32,6 +33,9 @@ import {
   generateBIRADSMGImpression,
   generateBIRADSMGLaudoCompletoHTML,
   generateBIRADSMGRecomendacao,
+  generateBIRADSMGIndicacao,
+  generateBIRADSMGComparativo,
+  generateBIRADSMGNotas,
   createEmptyBIRADSMGNodulo,
   createEmptyBIRADSMGData,
   formatMeasurement,
@@ -60,9 +64,36 @@ const tabs: { id: TabType; label: string; icon: string }[] = [
   { id: 'notas', label: 'Notas', icon: '📝' },
 ]
 
+// Componente de seção do preview
+interface SectionPreviewProps {
+  title: string
+  content: string
+  hasContent: boolean
+  isRequired?: boolean
+}
+
+const SectionPreview = ({ title, content, hasContent, isRequired = false }: SectionPreviewProps) => (
+  <div className={`mb-3 rounded-md p-2 ${!hasContent && isRequired ? 'bg-destructive/10 border-l-2 border-destructive' : hasContent ? 'bg-muted/30' : ''}`}>
+    <div className="flex items-center gap-1.5 mb-1">
+      {hasContent ? (
+        <Check size={12} className="text-green-500 shrink-0" />
+      ) : isRequired ? (
+        <AlertCircle size={12} className="text-destructive shrink-0" />
+      ) : (
+        <Minus size={12} className="text-muted-foreground shrink-0" />
+      )}
+      <span className="text-[10px] font-semibold uppercase text-muted-foreground tracking-wide">{title}</span>
+    </div>
+    <p className="text-[11px] leading-relaxed whitespace-pre-wrap text-foreground/80">
+      {content || <span className="italic text-muted-foreground">Não preenchido</span>}
+    </p>
+  </div>
+)
+
 export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps) {
   const [activeTab, setActiveTab] = useState<TabType>('indicacao')
   const [data, setData] = useState<BIRADSMGData>(createEmptyBIRADSMGData())
+  const [showPreview, setShowPreview] = useState(true)
 
   const updateData = <K extends keyof BIRADSMGData>(field: K, value: BIRADSMGData[K]) => {
     setData(prev => ({ ...prev, [field]: value }))
@@ -98,9 +129,41 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
   const biradsCategory = useMemo(() => evaluateBIRADSMG(data), [data])
   const categoryInfo = biradsCategories.find(c => c.value === biradsCategory || c.value.toString() === biradsCategory.toString())
 
+  const indicacaoTexto = useMemo(() => generateBIRADSMGIndicacao(data), [data])
   const achadosTexto = useMemo(() => generateBIRADSMGAchados(data), [data])
   const impressaoTexto = useMemo(() => generateBIRADSMGImpression(data, biradsCategory), [data, biradsCategory])
   const recomendacaoTexto = useMemo(() => generateBIRADSMGRecomendacao(data, biradsCategory), [data, biradsCategory])
+  const comparativoTexto = useMemo(() => generateBIRADSMGComparativo(data), [data])
+  const notasTexto = useMemo(() => generateBIRADSMGNotas(data), [data])
+
+  // Cálculo de completude
+  const completeness = useMemo(() => {
+    let filled = 0
+    const total = 10
+
+    // Indicação (obrigatório)
+    if (data.indicacao.tipo) filled++
+    // Parênquima (obrigatório)
+    if (data.parenquima) filled++
+    // Pele
+    if (data.pele) filled++
+    // Distorção (check if evaluated)
+    filled++ // sempre conta como preenchido (pode ser "sem distorção")
+    // Assimetria
+    filled++ // sempre conta como preenchido
+    // Nódulos
+    filled++ // sempre conta como preenchido
+    // Calcificações
+    filled++ // sempre conta como preenchido
+    // Linfonodos
+    filled++ // sempre conta como preenchido
+    // Comparativo
+    filled++ // sempre conta como preenchido
+    // Recomendação sempre gerada
+    filled++
+
+    return { filled, total, percentage: Math.round((filled / total) * 100) }
+  }, [data])
 
   const handleInsertAchados = () => {
     if (editor) {
@@ -970,17 +1033,28 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] p-0 overflow-hidden">
+      <DialogContent className="max-w-6xl max-h-[90vh] p-0 overflow-hidden">
         <DialogHeader className="p-4 pb-2 border-b">
-          <DialogTitle className="flex items-center gap-2">
-            <span className="text-xl">📷</span>
-            ACR BI-RADS® - Mamografia
-          </DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="flex items-center gap-2">
+              <span className="text-xl">📷</span>
+              ACR BI-RADS® - Mamografia
+            </DialogTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowPreview(!showPreview)}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              {showPreview ? <EyeOff size={16} /> : <Eye size={16} />}
+              <span className="ml-1.5 text-xs">{showPreview ? 'Ocultar' : 'Preview'}</span>
+            </Button>
+          </div>
         </DialogHeader>
 
         <div className="flex flex-1 min-h-0">
           {/* Sidebar de navegação */}
-          <div className="w-48 border-r bg-muted/30 p-2 space-y-1 overflow-y-auto">
+          <div className="w-44 border-r bg-muted/30 p-2 space-y-1 overflow-y-auto shrink-0">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
@@ -998,7 +1072,7 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
           </div>
 
           {/* Conteúdo principal */}
-          <div className="flex-1 flex flex-col min-h-0">
+          <div className="flex-1 flex flex-col min-h-0 min-w-0">
             <div className="flex-1 overflow-y-auto p-4" style={{ maxHeight: 'calc(90vh - 280px)' }}>
               {renderTabContent()}
             </div>
@@ -1025,6 +1099,76 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
               </div>
             </div>
           </div>
+
+          {/* Painel de Preview */}
+          {showPreview && (
+            <div className="w-72 border-l bg-background flex flex-col shrink-0">
+              {/* Header do Preview */}
+              <div className="px-3 py-2 border-b bg-muted/50 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Eye size={14} className="text-pink-500" />
+                  <span className="text-xs font-medium">Preview do Laudo</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Progress value={completeness.percentage} className="w-12 h-1.5" />
+                  <span className="text-[10px] text-muted-foreground">
+                    {completeness.filled}/{completeness.total}
+                  </span>
+                </div>
+              </div>
+
+              {/* Conteúdo do Preview */}
+              <div className="flex-1 overflow-y-auto p-3" style={{ maxHeight: 'calc(90vh - 280px)' }}>
+                {/* Título */}
+                <h3 className="text-center font-bold text-xs mb-4 uppercase tracking-wide text-foreground">
+                  MAMOGRAFIA DIGITAL
+                </h3>
+
+                <SectionPreview
+                  title="Indicação Clínica"
+                  content={indicacaoTexto}
+                  hasContent={!!indicacaoTexto && indicacaoTexto.length > 0}
+                  isRequired
+                />
+
+                <SectionPreview
+                  title="Análise"
+                  content={achadosTexto}
+                  hasContent={!!achadosTexto && achadosTexto.length > 0}
+                  isRequired
+                />
+
+                {comparativoTexto && (
+                  <SectionPreview
+                    title="Estudo Comparativo"
+                    content={comparativoTexto}
+                    hasContent={!!comparativoTexto}
+                  />
+                )}
+
+                <SectionPreview
+                  title="Impressão Diagnóstica"
+                  content={impressaoTexto}
+                  hasContent={!!impressaoTexto && impressaoTexto.length > 0}
+                  isRequired
+                />
+
+                <SectionPreview
+                  title="Recomendação"
+                  content={recomendacaoTexto}
+                  hasContent={!!recomendacaoTexto && recomendacaoTexto.length > 0}
+                />
+
+                {notasTexto && (
+                  <SectionPreview
+                    title="Notas"
+                    content={notasTexto}
+                    hasContent={!!notasTexto}
+                  />
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         <DialogFooter className="p-4 pt-2 border-t gap-2 flex-wrap">
