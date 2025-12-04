@@ -8,6 +8,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { TIRADSModal } from './TIRADSModal'
+import { BIRADSModal } from './BIRADSModal'
 
 interface RADSDropdownProps {
   editor: Editor | null
@@ -15,6 +16,7 @@ interface RADSDropdownProps {
 
 export function RADSDropdown({ editor }: RADSDropdownProps) {
   const [tiradsOpen, setTiradsOpen] = useState(false)
+  const [biradsOpen, setBiradsOpen] = useState(false)
 
   return (
     <>
@@ -31,9 +33,9 @@ export function RADSDropdown({ editor }: RADSDropdownProps) {
             <span className="mr-2">🦋</span>
             ACR TI-RADS (Tireoide)
           </DropdownMenuItem>
-          <DropdownMenuItem disabled className="opacity-50">
+          <DropdownMenuItem onClick={() => setBiradsOpen(true)} className="cursor-pointer">
             <span className="mr-2">🎀</span>
-            ACR BI-RADS (Mama) - Em breve
+            ACR BI-RADS (Mama - USG)
           </DropdownMenuItem>
           <DropdownMenuItem disabled className="opacity-50">
             <span className="mr-2">🫁</span>
@@ -61,6 +63,12 @@ export function RADSDropdown({ editor }: RADSDropdownProps) {
       <TIRADSModal
         open={tiradsOpen}
         onOpenChange={setTiradsOpen}
+        editor={editor}
+      />
+
+      <BIRADSModal
+        open={biradsOpen}
+        onOpenChange={setBiradsOpen}
         editor={editor}
       />
     </>
