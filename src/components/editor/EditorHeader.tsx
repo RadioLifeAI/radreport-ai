@@ -3,11 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import { useTheme } from 'next-themes'
 import TemplateSelector from '@/components/selectors/TemplateSelector'
 import MacroSelector, { Macro } from '@/components/selectors/MacroSelector'
-import { TemplateVariablesModal } from './TemplateVariablesModal'
 import { UserProfileDropdown } from '@/components/user/UserProfileDropdown'
 import { UserSettingsModal } from '@/components/user/UserSettingsModal'
 import { PlansSelectionSheet } from '@/components/subscription'
-import { TemplateWithVariables, TemplateVariableValues } from '@/types/templateVariables'
 import { useState } from 'react'
 import { useAdmin } from '@/hooks/useAdmin'
 import { useInternalCheckout } from '@/hooks/useInternalCheckout'
@@ -17,6 +15,8 @@ interface EditorHeaderProps {
   searchTerm: string
   onTemplateSearch: (term: string) => void
   onTemplateSelect: (template: any) => void
+  onTemplateSelectDirect?: (template: any) => void
+  onTemplateSelectWithVariables?: (template: any) => void
   onModalityClick: (modality: string) => void
   onCategoriaClick: (categoria: string | null) => void
   onFavoriteToggle: (id: string) => void
@@ -58,7 +58,6 @@ interface EditorHeaderProps {
   
   // Template variables support
   needsVariableInput: (template: any) => boolean
-  applyTemplateWithVariables: (template: any, selectedTechnique: string | null, variableValues: TemplateVariableValues) => void
 }
 
 export function EditorHeader({
@@ -66,6 +65,8 @@ export function EditorHeader({
   searchTerm,
   onTemplateSearch,
   onTemplateSelect,
+  onTemplateSelectDirect,
+  onTemplateSelectWithVariables,
   onModalityClick,
   onCategoriaClick,
   onFavoriteToggle,
@@ -103,15 +104,12 @@ export function EditorHeader({
   macroModalities,
   onChatToggle,
   needsVariableInput,
-  applyTemplateWithVariables,
 }: EditorHeaderProps) {
   const navigate = useNavigate()
   const { theme, setTheme } = useTheme()
   const { isAdmin, loading: adminLoading } = useAdmin()
   
-  // Template variables modal state
-  const [templateModalOpen, setTemplateModalOpen] = useState(false)
-  const [selectedTemplateForModal, setSelectedTemplateForModal] = useState<TemplateWithVariables | null>(null)
+  // User settings modal state (kept here as it's EditorHeader specific)
   const [settingsModalOpen, setSettingsModalOpen] = useState(false)
   const [settingsDefaultTab, setSettingsDefaultTab] = useState('profile')
   
@@ -123,30 +121,6 @@ export function EditorHeader({
     closePlansSheet,
     handleSelectPlan,
   } = useInternalCheckout()
-  
-  // Handle template selection with variable check
-  const handleTemplateSelect = (template: any) => {
-    if (needsVariableInput(template)) {
-      // Open modal for variable input
-      setSelectedTemplateForModal(template as TemplateWithVariables)
-      setTemplateModalOpen(true)
-    } else {
-      // Apply directly
-      onTemplateSelect(template)
-    }
-  }
-  
-  // Handle template submission with variables
-  const handleTemplateVariablesSubmit = (
-    selectedTechnique: string | null,
-    variableValues: TemplateVariableValues
-  ) => {
-    if (selectedTemplateForModal) {
-      applyTemplateWithVariables(selectedTemplateForModal, selectedTechnique, variableValues)
-      setTemplateModalOpen(false)
-      setSelectedTemplateForModal(null)
-    }
-  }
 
   return (
     <>
@@ -163,12 +137,9 @@ export function EditorHeader({
                 selectedTemplate={selectedTemplate}
                 searchTerm={searchTerm}
                 onTemplateSearch={onTemplateSearch}
-                onTemplateSelect={handleTemplateSelect}
-                onTemplateSelectDirect={onTemplateSelect}
-                onTemplateSelectWithVariables={(template) => {
-                  setSelectedTemplateForModal(template as TemplateWithVariables)
-                  setTemplateModalOpen(true)
-                }}
+                onTemplateSelect={onTemplateSelect}
+                onTemplateSelectDirect={onTemplateSelectDirect}
+                onTemplateSelectWithVariables={onTemplateSelectWithVariables}
                 onModalityClick={onModalityClick}
                 onCategoriaClick={onCategoriaClick}
                 onFavoriteToggle={onFavoriteToggle}
@@ -251,14 +222,6 @@ export function EditorHeader({
         />
         </div>
       </header>
-
-      {/* Template Variables Modal */}
-      <TemplateVariablesModal
-        open={templateModalOpen}
-        onOpenChange={setTemplateModalOpen}
-        template={selectedTemplateForModal}
-        onSubmit={handleTemplateVariablesSubmit}
-      />
 
       {/* User Settings Modal */}
       <UserSettingsModal

@@ -653,7 +653,8 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
         categories={fraseCategories}
         macroModalities={['RM', 'TC', 'USG', 'RX', 'MG']}
         needsVariableInput={needsVariableInput}
-        applyTemplateWithVariables={applyTemplateWithVariables}
+        onTemplateSelectDirect={handleTemplateSelectDirect}
+        onTemplateSelectWithVariables={handleTemplateSelectWithVariables}
         onChatToggle={() => setIsChatOpen(!isChatOpen)}
       />
 
