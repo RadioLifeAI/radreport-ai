@@ -32,6 +32,14 @@ export interface RadiologyCalculator {
   }
 }
 
+// Helper: Formatação decimal brasileira (vírgula)
+const formatBR = (num: number, decimals: number = 1): string => {
+  return num.toLocaleString('pt-BR', { 
+    minimumFractionDigits: decimals, 
+    maximumFractionDigits: decimals 
+  })
+}
+
 // Funções auxiliares para cálculos
 const getDaysBetweenDates = (date1: Date, date2: Date): number => {
   const diffTime = Math.abs(date2.getTime() - date1.getTime())
@@ -69,7 +77,7 @@ export const radiologyCalculators: RadiologyCalculator[] = [
         unit: 'cm³',
         interpretation,
         color,
-        formattedText: `Volume calculado: ${volume.toFixed(1)} cm³ (fórmula elipsoide: L × W × H × 0,52 = ${L.toFixed(1)} × ${W.toFixed(1)} × ${H.toFixed(1)} × 0,52).`
+        formattedText: `Volume calculado: ${formatBR(volume)} cm³.`
       }
     },
     reference: {
@@ -99,7 +107,7 @@ export const radiologyCalculators: RadiologyCalculator[] = [
         value: gestationalAge,
         interpretation: weeks < 37 ? 'Pré-termo' : weeks > 42 ? 'Pós-termo' : 'Termo',
         color: weeks >= 37 && weeks <= 42 ? 'success' : 'warning',
-        formattedText: `Idade gestacional pela DUM: ${gestationalAge} (${weeks}+${remainingDays}).`
+        formattedText: `Idade gestacional pela DUM: ${weeks}+${remainingDays} semanas.`
       }
     },
     reference: {
@@ -138,7 +146,7 @@ export const radiologyCalculators: RadiologyCalculator[] = [
         unit: 'g',
         interpretation,
         color,
-        formattedText: `Peso fetal estimado (Hadlock): ${weight.toFixed(0)} g. ${interpretation}.`
+        formattedText: `Peso fetal estimado (Hadlock): ${formatBR(weight, 0)} g, ${interpretation.toLowerCase()}.`
       }
     },
     reference: {
@@ -178,7 +186,7 @@ export const radiologyCalculators: RadiologyCalculator[] = [
         unit: 'cm³',
         interpretation,
         color,
-        formattedText: `Volume prostático: ${volume.toFixed(1)} cm³. PSA density: ${psaDensity.toFixed(3)} ng/mL/cm³. ${interpretation}.`
+        formattedText: `Volume prostático: ${formatBR(volume)} cm³, PSA density: ${formatBR(psaDensity, 3)} ng/mL/cm³, ${psaDensity > 0.15 ? 'elevada' : 'normal'}.`
       }
     },
     reference: {
@@ -217,7 +225,7 @@ export const radiologyCalculators: RadiologyCalculator[] = [
         unit: 'cm³',
         interpretation,
         color,
-        formattedText: `Volume do hematoma (ABC/2): ${volume.toFixed(1)} cm³. ${interpretation}.`
+        formattedText: `Volume do hematoma (ABC/2): ${formatBR(volume)} cm³, ${interpretation.toLowerCase()}.`
       }
     },
     reference: {
@@ -243,8 +251,8 @@ export const radiologyCalculators: RadiologyCalculator[] = [
       const evansIndex = frontalHorns / bpd
       
       const interpretation = evansIndex > 0.3 
-        ? 'Índice de Evans aumentado (sugestivo de ventriculomegalia)' 
-        : 'Índice de Evans normal'
+        ? 'Aumentado (sugestivo de ventriculomegalia)' 
+        : 'Normal'
       const color: 'success' | 'warning' | 'danger' = evansIndex <= 0.3 ? 'success' : 'warning'
       
       return {
@@ -252,7 +260,7 @@ export const radiologyCalculators: RadiologyCalculator[] = [
         unit: '',
         interpretation,
         color,
-        formattedText: `Índice de Evans: ${evansIndex.toFixed(2)} (${(evansIndex * 100).toFixed(0)}%). ${interpretation}.`
+        formattedText: `Índice de Evans: ${formatBR(evansIndex, 2)}, ${interpretation.toLowerCase()}.`
       }
     },
     reference: {
@@ -278,7 +286,7 @@ export const radiologyCalculators: RadiologyCalculator[] = [
       const ratio = cardiac / thoracic
       
       const interpretation = ratio > 0.5 
-        ? 'Cardiomegalia (índice cardiotorácico aumentado)' 
+        ? 'Cardiomegalia' 
         : 'Área cardíaca normal'
       const color: 'success' | 'warning' | 'danger' = ratio <= 0.5 ? 'success' : 'warning'
       
@@ -287,7 +295,7 @@ export const radiologyCalculators: RadiologyCalculator[] = [
         unit: '',
         interpretation,
         color,
-        formattedText: `Índice cardiotorácico: ${ratio.toFixed(2)} (${(ratio * 100).toFixed(0)}%). ${interpretation}.`
+        formattedText: `Índice cardiotorácico: ${formatBR(ratio, 2)}, ${interpretation.toLowerCase()}.`
       }
     },
     reference: {
@@ -334,7 +342,7 @@ export const radiologyCalculators: RadiologyCalculator[] = [
         unit: 'kg/m²',
         interpretation,
         color,
-        formattedText: `IMC: ${bmi.toFixed(1)} kg/m². ${interpretation}.`
+        formattedText: `IMC: ${formatBR(bmi)} kg/m², ${interpretation.toLowerCase()}.`
       }
     },
     reference: {
@@ -360,8 +368,8 @@ export const radiologyCalculators: RadiologyCalculator[] = [
       const bsa = 0.007184 * Math.pow(weight, 0.425) * Math.pow(height, 0.725)
       
       const interpretation = bsa >= 1.5 && bsa <= 2.0 
-        ? 'ASC dentro da normalidade' 
-        : 'ASC fora da faixa habitual'
+        ? 'Dentro da normalidade' 
+        : 'Fora da faixa habitual'
       const color: 'success' | 'warning' = bsa >= 1.5 && bsa <= 2.0 ? 'success' : 'warning'
       
       return {
@@ -369,7 +377,7 @@ export const radiologyCalculators: RadiologyCalculator[] = [
         unit: 'm²',
         interpretation,
         color,
-        formattedText: `Área de superfície corporal (Dubois): ${bsa.toFixed(2)} m². ${interpretation}.`
+        formattedText: `Área de superfície corporal: ${formatBR(bsa, 2)} m².`
       }
     },
     reference: {
@@ -404,19 +412,19 @@ export const radiologyCalculators: RadiologyCalculator[] = [
       let color: 'success' | 'warning' | 'danger' = 'success'
       
       if (egfr >= 90) {
-        interpretation = 'Função renal normal (Estágio 1)'
+        interpretation = 'Função renal normal (G1)'
         color = 'success'
       } else if (egfr >= 60) {
-        interpretation = 'Leve redução da função renal (Estágio 2)'
+        interpretation = 'Leve redução (G2)'
         color = 'success'
       } else if (egfr >= 30) {
-        interpretation = 'Moderada redução da função renal (Estágio 3)'
+        interpretation = 'Moderada redução (G3)'
         color = 'warning'
       } else if (egfr >= 15) {
-        interpretation = 'Severa redução da função renal (Estágio 4)'
+        interpretation = 'Severa redução (G4)'
         color = 'danger'
       } else {
-        interpretation = 'Insuficiência renal terminal (Estágio 5)'
+        interpretation = 'Insuficiência renal (G5)'
         color = 'danger'
       }
       
@@ -425,7 +433,7 @@ export const radiologyCalculators: RadiologyCalculator[] = [
         unit: 'mL/min/1,73m²',
         interpretation,
         color,
-        formattedText: `TFGe (CKD-EPI): ${egfr.toFixed(1)} mL/min/1,73m². ${interpretation}.`
+        formattedText: `TFGe (CKD-EPI): ${formatBR(egfr)} mL/min/1,73m², ${interpretation.toLowerCase()}.`
       }
     },
     reference: {
@@ -453,9 +461,9 @@ export const radiologyCalculators: RadiologyCalculator[] = [
       
       return {
         value: `${weeks} semanas e ${remainingDays} dias`,
-        interpretation: `CCN de ${crl.toFixed(1)} mm corresponde a ${weeks}+${remainingDays} semanas`,
+        interpretation: `CCN de ${formatBR(crl)} mm`,
         color: 'success',
-        formattedText: `Idade gestacional por CCN (${crl.toFixed(1)} mm): ${weeks} semanas e ${remainingDays} dias (${weeks}+${remainingDays}).`
+        formattedText: `Idade gestacional por CCN: ${weeks}+${remainingDays} semanas.`
       }
     },
     reference: {
@@ -486,9 +494,9 @@ export const radiologyCalculators: RadiologyCalculator[] = [
       
       return {
         value: formatDate(dppDate),
-        interpretation: 'Data calculada pela regra de Naegele (DUM + 280 dias)',
+        interpretation: 'Regra de Naegele (DUM + 280 dias)',
         color: 'success',
-        formattedText: `Data provável do parto (DPP): ${formatDate(dppDate)}.`
+        formattedText: `Data provável do parto: ${formatDate(dppDate)}.`
       }
     },
     reference: {
@@ -527,7 +535,7 @@ export const radiologyCalculators: RadiologyCalculator[] = [
         interpretation = 'Oligoidrâmnio limítrofe'
         color = 'warning'
       } else if (ila <= 24) {
-        interpretation = 'Líquido amniótico normal'
+        interpretation = 'Normal'
         color = 'success'
       } else {
         interpretation = 'Polidrâmnio'
@@ -539,7 +547,7 @@ export const radiologyCalculators: RadiologyCalculator[] = [
         unit: 'cm',
         interpretation,
         color,
-        formattedText: `ILA (Índice de Líquido Amniótico): ${ila.toFixed(1)} cm. ${interpretation}.`
+        formattedText: `ILA: ${formatBR(ila)} cm, ${interpretation.toLowerCase()}.`
       }
     },
     reference: {
@@ -585,13 +593,13 @@ export const radiologyCalculators: RadiologyCalculator[] = [
       let color: 'success' | 'warning' | 'danger' = 'success'
       
       if (percentile < 10) {
-        interpretation = 'Pequeno para idade gestacional (PIG)'
+        interpretation = 'Pequeno para IG (PIG)'
         color = 'warning'
       } else if (percentile > 90) {
-        interpretation = 'Grande para idade gestacional (GIG)'
+        interpretation = 'Grande para IG (GIG)'
         color = 'warning'
       } else {
-        interpretation = 'Adequado para idade gestacional (AIG)'
+        interpretation = 'Adequado para IG (AIG)'
         color = 'success'
       }
       
@@ -600,7 +608,7 @@ export const radiologyCalculators: RadiologyCalculator[] = [
         unit: '',
         interpretation,
         color,
-        formattedText: `Peso fetal de ${weight.toFixed(0)} g com ${weeks} semanas: percentil ${percentile} (Z-score: ${zScore.toFixed(2)}). ${interpretation}.`
+        formattedText: `Peso fetal ${formatBR(weight, 0)} g com ${weeks} semanas: percentil ${percentile}, ${interpretation.toLowerCase()}.`
       }
     },
     reference: {
@@ -631,10 +639,10 @@ export const radiologyCalculators: RadiologyCalculator[] = [
       let color: 'success' | 'warning' | 'danger' = 'success'
       
       if (volume < 1000) {
-        interpretation = 'Volume hepático reduzido'
+        interpretation = 'Volume reduzido'
         color = 'warning'
       } else if (volume <= 1800) {
-        interpretation = 'Volume hepático dentro da normalidade'
+        interpretation = 'Dentro da normalidade'
         color = 'success'
       } else if (volume <= 2500) {
         interpretation = 'Hepatomegalia leve'
@@ -649,7 +657,7 @@ export const radiologyCalculators: RadiologyCalculator[] = [
         unit: 'mL',
         interpretation,
         color,
-        formattedText: `Volume hepático estimado: ${volume.toFixed(0)} mL. ${interpretation}.`
+        formattedText: `Volume hepático: ${formatBR(volume, 0)} mL, ${interpretation.toLowerCase()}.`
       }
     },
     reference: {
@@ -681,7 +689,7 @@ export const radiologyCalculators: RadiologyCalculator[] = [
       let color: 'success' | 'warning' | 'danger' = 'success'
       
       if (volume <= 250) {
-        interpretation = 'Baço de dimensões normais'
+        interpretation = 'Dimensões normais'
         color = 'success'
       } else if (volume <= 500) {
         interpretation = 'Esplenomegalia leve'
@@ -696,7 +704,7 @@ export const radiologyCalculators: RadiologyCalculator[] = [
         unit: 'mL',
         interpretation,
         color,
-        formattedText: `Volume esplênico: ${volume.toFixed(0)} mL. Índice esplênico: ${splenicIndex.toFixed(0)}. ${interpretation}.`
+        formattedText: `Volume esplênico: ${formatBR(volume, 0)} mL, índice ${formatBR(splenicIndex, 0)}, ${interpretation.toLowerCase()}.`
       }
     },
     reference: {
@@ -727,13 +735,13 @@ export const radiologyCalculators: RadiologyCalculator[] = [
       let color: 'success' | 'warning' | 'danger' = 'success'
       
       if (volume < 80) {
-        interpretation = 'Volume renal reduzido (possível atrofia)'
+        interpretation = 'Volume reduzido (possível atrofia)'
         color = 'warning'
       } else if (volume <= 180) {
-        interpretation = 'Volume renal dentro da normalidade'
+        interpretation = 'Dentro da normalidade'
         color = 'success'
       } else {
-        interpretation = 'Volume renal aumentado'
+        interpretation = 'Volume aumentado'
         color = 'warning'
       }
       
@@ -742,7 +750,7 @@ export const radiologyCalculators: RadiologyCalculator[] = [
         unit: 'mL',
         interpretation,
         color,
-        formattedText: `Volume renal: ${volume.toFixed(0)} mL. ${interpretation}.`
+        formattedText: `Volume renal: ${formatBR(volume, 0)} mL, ${interpretation.toLowerCase()}.`
       }
     },
     reference: {
@@ -777,13 +785,13 @@ export const radiologyCalculators: RadiologyCalculator[] = [
       let color: 'success' | 'warning' | 'danger' = 'success'
       
       if (apw >= 60 || rpw >= 40) {
-        interpretation = 'Washout compatível com adenoma benigno'
+        interpretation = 'Compatível com adenoma'
         color = 'success'
       } else if (pre <= 10) {
-        interpretation = 'Nódulo hipodenso, provável adenoma rico em lipídios'
+        interpretation = 'Provável adenoma rico em lipídios'
         color = 'success'
       } else {
-        interpretation = 'Washout indeterminado, considerar outras etiologias'
+        interpretation = 'Indeterminado'
         color = 'warning'
       }
       
@@ -792,7 +800,7 @@ export const radiologyCalculators: RadiologyCalculator[] = [
         unit: '%',
         interpretation,
         color,
-        formattedText: `Washout absoluto (APW): ${apw.toFixed(1)}%. Washout relativo (RPW): ${rpw.toFixed(1)}%. ${interpretation}.`
+        formattedText: `Washout absoluto: ${formatBR(apw)}%, relativo: ${formatBR(rpw)}%, ${interpretation.toLowerCase()}.`
       }
     },
     reference: {
@@ -824,13 +832,13 @@ export const radiologyCalculators: RadiologyCalculator[] = [
       let color: 'success' | 'warning' | 'danger' = 'success'
       
       if (totalVolume <= 18) {
-        interpretation = 'Volume tireoidiano dentro da normalidade'
+        interpretation = 'Dentro da normalidade'
         color = 'success'
       } else if (totalVolume <= 25) {
-        interpretation = 'Volume tireoidiano discretamente aumentado'
+        interpretation = 'Discretamente aumentado'
         color = 'warning'
       } else {
-        interpretation = 'Bócio (volume tireoidiano aumentado)'
+        interpretation = 'Bócio'
         color = 'warning'
       }
       
@@ -839,7 +847,7 @@ export const radiologyCalculators: RadiologyCalculator[] = [
         unit: 'mL',
         interpretation,
         color,
-        formattedText: `Volume tireoidiano total: ${totalVolume.toFixed(1)} mL (lobo direito: ${rightVol.toFixed(1)} mL, lobo esquerdo: ${leftVol.toFixed(1)} mL). ${interpretation}.`
+        formattedText: `Volume tireoidiano: ${formatBR(totalVolume)} mL (LD ${formatBR(rightVol)} mL, LE ${formatBR(leftVol)} mL), ${interpretation.toLowerCase()}.`
       }
     },
     reference: {
@@ -874,7 +882,7 @@ export const radiologyCalculators: RadiologyCalculator[] = [
         interpretation = 'Estenose moderada (50-69%)'
         color = 'warning'
       } else if (stenosis < 99) {
-        interpretation = 'Estenose severa (70-99%) - considerar endarterectomia'
+        interpretation = 'Estenose severa (70-99%)'
         color = 'danger'
       } else {
         interpretation = 'Oclusão completa'
@@ -886,7 +894,7 @@ export const radiologyCalculators: RadiologyCalculator[] = [
         unit: '%',
         interpretation,
         color,
-        formattedText: `Estenose carotídea (NASCET): ${stenosis.toFixed(0)}%. ${interpretation}.`
+        formattedText: `Estenose carotídea (NASCET): ${formatBR(stenosis, 0)}%, ${interpretation.toLowerCase()}.`
       }
     },
     reference: {
@@ -917,16 +925,16 @@ export const radiologyCalculators: RadiologyCalculator[] = [
       let color: 'success' | 'warning' | 'danger' = 'success'
       
       if (diameter < 40) {
-        interpretation = 'Diâmetro aórtico normal'
+        interpretation = 'Normal'
         color = 'success'
       } else if (diameter < 45) {
-        interpretation = 'Ectasia aórtica leve'
+        interpretation = 'Ectasia leve'
         color = 'warning'
       } else if (diameter < 55) {
-        interpretation = 'Aneurisma de aorta'
+        interpretation = 'Aneurisma'
         color = 'danger'
       } else {
-        interpretation = 'Aneurisma de aorta de grandes dimensões'
+        interpretation = 'Aneurisma volumoso'
         color = 'danger'
       }
       
@@ -935,7 +943,7 @@ export const radiologyCalculators: RadiologyCalculator[] = [
         unit: 'mm',
         interpretation,
         color,
-        formattedText: `Diâmetro aórtico: ${diameter.toFixed(1)} mm. Z-score: ${zScore.toFixed(2)}. ${interpretation}.`
+        formattedText: `Diâmetro aórtico: ${formatBR(diameter)} mm (Z-score ${formatBR(zScore, 2)}), ${interpretation.toLowerCase()}.`
       }
     },
     reference: {
@@ -961,20 +969,20 @@ export const radiologyCalculators: RadiologyCalculator[] = [
       let color: 'success' | 'warning' | 'danger' = 'success'
       
       if (score === 0) {
-        interpretation = 'Ausência de calcificação coronariana'
-        risk = 'Risco cardiovascular muito baixo'
+        interpretation = 'Ausência de calcificação'
+        risk = 'risco muito baixo'
         color = 'success'
       } else if (score < 100) {
-        interpretation = 'Calcificação coronariana leve'
-        risk = 'Risco cardiovascular baixo a moderado'
+        interpretation = 'Calcificação leve'
+        risk = 'risco baixo a moderado'
         color = 'success'
       } else if (score < 400) {
-        interpretation = 'Calcificação coronariana moderada'
-        risk = 'Risco cardiovascular moderado a alto'
+        interpretation = 'Calcificação moderada'
+        risk = 'risco moderado a alto'
         color = 'warning'
       } else {
-        interpretation = 'Calcificação coronariana severa'
-        risk = 'Risco cardiovascular alto'
+        interpretation = 'Calcificação severa'
+        risk = 'risco alto'
         color = 'danger'
       }
       
@@ -983,7 +991,7 @@ export const radiologyCalculators: RadiologyCalculator[] = [
         unit: '',
         interpretation: `${interpretation}. ${risk}`,
         color,
-        formattedText: `Escore de cálcio coronariano (Agatston): ${score.toFixed(0)}. ${interpretation}. ${risk}.`
+        formattedText: `Escore de Agatston: ${formatBR(score, 0)}, ${interpretation.toLowerCase()}, ${risk}.`
       }
     },
     reference: {
@@ -1012,13 +1020,13 @@ export const radiologyCalculators: RadiologyCalculator[] = [
       let color: 'success' | 'warning' | 'danger' = 'success'
       
       if (index < 0.15) {
-        interpretation = 'Índice bicaudado normal'
+        interpretation = 'Normal'
         color = 'success'
       } else if (index < 0.18) {
-        interpretation = 'Índice bicaudado limítrofe (possível atrofia leve)'
+        interpretation = 'Limítrofe (possível atrofia leve)'
         color = 'warning'
       } else {
-        interpretation = 'Índice bicaudado aumentado (atrofia subcortical)'
+        interpretation = 'Aumentado (atrofia subcortical)'
         color = 'warning'
       }
       
@@ -1027,7 +1035,7 @@ export const radiologyCalculators: RadiologyCalculator[] = [
         unit: '',
         interpretation,
         color,
-        formattedText: `Índice bicaudado: ${index.toFixed(3)} (${(index * 100).toFixed(1)}%). ${interpretation}.`
+        formattedText: `Índice bicaudado: ${formatBR(index, 3)}, ${interpretation.toLowerCase()}.`
       }
     },
     reference: {
@@ -1076,7 +1084,7 @@ export const radiologyCalculators: RadiologyCalculator[] = [
         unit: 'mm',
         interpretation: response,
         color,
-        formattedText: `RECIST 1.1 - Soma atual: ${currentSum.toFixed(1)} mm. Baseline: ${baseline.toFixed(1)} mm. Variação: ${percentChange.toFixed(1)}%. ${response}.`
+        formattedText: `RECIST 1.1: soma ${formatBR(currentSum)} mm (variação ${formatBR(percentChange)}%), ${response.toLowerCase()}.`
       }
     },
     reference: {
@@ -1107,13 +1115,13 @@ export const radiologyCalculators: RadiologyCalculator[] = [
       let color: 'success' | 'warning' | 'danger' = 'success'
       
       if (volume <= 10) {
-        interpretation = 'Volume ovariano dentro da normalidade (menacme)'
+        interpretation = 'Dentro da normalidade'
         color = 'success'
       } else if (volume <= 20) {
-        interpretation = 'Volume ovariano discretamente aumentado'
+        interpretation = 'Discretamente aumentado'
         color = 'warning'
       } else {
-        interpretation = 'Volume ovariano aumentado'
+        interpretation = 'Aumentado'
         color = 'warning'
       }
       
@@ -1122,7 +1130,7 @@ export const radiologyCalculators: RadiologyCalculator[] = [
         unit: 'cm³',
         interpretation,
         color,
-        formattedText: `Volume ovariano: ${volume.toFixed(1)} cm³. ${interpretation}.`
+        formattedText: `Volume ovariano: ${formatBR(volume)} cm³, ${interpretation.toLowerCase()}.`
       }
     },
     reference: {
