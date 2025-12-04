@@ -539,3 +539,482 @@ export const createEmptyNodule = (): NoduleData => ({
   localizacao: 'ld_med',
   medidas: [1.0, 1.0, 1.0],
 })
+
+// ============================================
+// BI-RADS MAMOGRAFIA (MG) Classification System
+// ============================================
+
+export interface BIRADSMGNodulo {
+  densidade: string
+  forma: string
+  margens: string
+  medidas: [number, number, number]
+  lado: string
+  localizacao: string
+  temComparacao: boolean
+  dataExameAnterior: string | null
+  estadoNodulo: 'estavel' | 'cresceu' | 'diminuiu' | 'novo'
+}
+
+export interface BIRADSMGCalcificacao {
+  tipo: string
+  morfologia?: string
+  distribuicao?: string
+  lado: string
+  localizacao: string
+}
+
+export interface BIRADSMGData {
+  parenquima: string
+  distorcaoArquitetural: {
+    presente: boolean
+    tipo?: string
+    lado?: string
+    localizacao?: string
+  }
+  assimetria: {
+    presente: boolean
+    tipo?: string
+    lado?: string
+    localizacao?: string
+  }
+  nodulos: BIRADSMGNodulo[]
+  calcificacoes: {
+    presente: boolean
+    tipo?: string
+    morfologia?: string
+    distribuicao?: string
+    lado?: string
+    localizacao?: string
+  }
+  linfonodomegalias: {
+    presente: boolean
+    lado?: string
+    localizacao?: string
+  }
+  linfonodoIntramamario: {
+    presente: boolean
+    lado?: string
+  }
+  recomendacaoManual?: {
+    ativo: boolean
+    categoria: string
+    lado?: string
+  }
+}
+
+export const biradsMGOptions = {
+  parenquima: [
+    { value: 'adiposas', label: 'Mamas predominantemente adiposas', texto: 'Mamas predominantemente adiposas.' },
+    { value: 'fibroglandulares', label: 'Densidades fibroglandulares esparsas', texto: 'Mamas com densidades fibroglandulares esparsas.' },
+    { value: 'heterogeneamente_densas', label: 'Heterogeneamente densas', texto: 'Mamas heterogeneamente densas, o que pode obscurecer pequenas lesões.' },
+    { value: 'extremamente_densas', label: 'Extremamente densas', texto: 'Mamas extremamente densas, o que reduz a sensibilidade da mamografia.' },
+  ] as BIRADSOption[],
+
+  distorcaoArquitetural: [
+    { value: 'sitio_cirurgico', label: 'Em sítio cirúrgico', texto: 'distorção arquitetural em sítio cirúrgico', suspeicao: 'benigno' },
+    { value: 'fora_sitio', label: 'Fora de sítio cirúrgico', texto: 'distorção arquitetural fora de sítio cirúrgico', suspeicao: 'alto' },
+    { value: 'rearranjo', label: 'Rearranjo arquitetural', texto: 'rearranjo arquitetural', suspeicao: 'indeterminado' },
+  ] as BIRADSOption[],
+
+  assimetria: [
+    { value: 'assimetria', label: 'Assimetria', texto: 'assimetria', suspeicao: 'indeterminado' },
+    { value: 'focal', label: 'Assimetria focal', texto: 'assimetria focal', suspeicao: 'indeterminado' },
+    { value: 'global', label: 'Assimetria global', texto: 'assimetria global', suspeicao: 'benigno' },
+    { value: 'em_desenvolvimento', label: 'Assimetria em desenvolvimento', texto: 'assimetria em desenvolvimento', suspeicao: 'suspeito' },
+  ] as BIRADSOption[],
+
+  densidade: [
+    { value: 'alta', label: 'Alta densidade', texto: 'de alta densidade', suspeicao: 'suspeito' },
+    { value: 'igual', label: 'Igual densidade', texto: 'de igual densidade', suspeicao: 'indeterminado' },
+    { value: 'baixa', label: 'Baixa densidade', texto: 'de baixa densidade', suspeicao: 'benigno' },
+    { value: 'gordura', label: 'Conteúdo gorduroso', texto: 'com conteúdo gorduroso', suspeicao: 'benigno' },
+  ] as BIRADSOption[],
+
+  formaMG: [
+    { value: 'oval', label: 'Oval', texto: 'oval', suspeicao: 'benigno' },
+    { value: 'redondo', label: 'Redondo', texto: 'redondo', suspeicao: 'benigno' },
+    { value: 'irregular', label: 'Irregular', texto: 'irregular', suspeicao: 'suspeito' },
+  ] as BIRADSOption[],
+
+  margensMG: [
+    { value: 'circunscrito', label: 'Circunscrito', texto: 'de margens circunscritas', suspeicao: 'benigno' },
+    { value: 'obscurecido', label: 'Obscurecido', texto: 'de margens obscurecidas', suspeicao: 'indeterminado' },
+    { value: 'microlobulado', label: 'Microlobulado', texto: 'de margens microlobuladas', suspeicao: 'suspeito' },
+    { value: 'indistinto', label: 'Indistinto', texto: 'de margens indistintas', suspeicao: 'suspeito' },
+    { value: 'espiculado', label: 'Espiculado', texto: 'de margens espiculadas', suspeicao: 'alto' },
+  ] as BIRADSOption[],
+
+  calcificacoes: [
+    { value: 'benignas', label: 'Calcificações tipicamente benignas', texto: 'Calcificações tipicamente benignas', suspeicao: 'benigno' },
+    { value: 'leite_calcio', label: 'Aspecto de "leite de cálcio"', texto: 'Calcificações com aspecto de "leite de cálcio"', suspeicao: 'benigno' },
+    { value: 'mastopatia', label: 'Mastopatia secretória', texto: 'Calcificações compatíveis com mastopatia secretória', suspeicao: 'benigno' },
+    { value: 'vasculares', label: 'Calcificações vasculares', texto: 'Calcificações vasculares', suspeicao: 'benigno' },
+    { value: 'suspeitas', label: 'Calcificações suspeitas', texto: 'Calcificações suspeitas', suspeicao: 'suspeito' },
+  ] as BIRADSOption[],
+
+  morfologiaCalcificacoes: [
+    { value: 'amorfa', label: 'Amorfa', texto: 'de morfologia amorfa', suspeicao: 'suspeito' },
+    { value: 'grosseira_heterogenea', label: 'Grosseira heterogênea', texto: 'de morfologia grosseira heterogênea', suspeicao: 'indeterminado' },
+    { value: 'puntiforme', label: 'Puntiforme', texto: 'de morfologia puntiforme', suspeicao: 'indeterminado' },
+    { value: 'pleomorfica', label: 'Pleomórfica fina', texto: 'de morfologia pleomórfica fina', suspeicao: 'alto' },
+    { value: 'linear_ramificada', label: 'Linear fina/ramificada', texto: 'de morfologia linear fina/ramificada', suspeicao: 'alto' },
+  ] as BIRADSOption[],
+
+  distribuicaoCalcificacoes: [
+    { value: 'difusa', label: 'Difusa', texto: 'de distribuição difusa', suspeicao: 'benigno' },
+    { value: 'regional', label: 'Regional', texto: 'de distribuição regional', suspeicao: 'indeterminado' },
+    { value: 'agrupada', label: 'Agrupada', texto: 'de distribuição agrupada', suspeicao: 'suspeito' },
+    { value: 'linear', label: 'Linear', texto: 'de distribuição linear', suspeicao: 'suspeito' },
+    { value: 'segmentar', label: 'Segmentar', texto: 'de distribuição segmentar', suspeicao: 'alto' },
+  ] as BIRADSOption[],
+
+  localizacaoMG: [
+    { value: 'qsl', label: 'Quadrante súpero-lateral', texto: 'no quadrante súpero-lateral' },
+    { value: 'qsm', label: 'Quadrante súpero-medial', texto: 'no quadrante súpero-medial' },
+    { value: 'qil', label: 'Quadrante ínfero-lateral', texto: 'no quadrante ínfero-lateral' },
+    { value: 'qim', label: 'Quadrante ínfero-medial', texto: 'no quadrante ínfero-medial' },
+    { value: 'retroareolar', label: 'Retroareolar', texto: 'na região retroareolar' },
+    { value: 'prolongamento', label: 'Prolongamento axilar', texto: 'no prolongamento axilar' },
+  ] as BIRADSOption[],
+
+  ladoMG: [
+    { value: 'direita', label: 'Mama direita', texto: 'da mama direita' },
+    { value: 'esquerda', label: 'Mama esquerda', texto: 'da mama esquerda' },
+    { value: 'bilateral', label: 'Bilateral', texto: 'em ambas as mamas' },
+  ] as BIRADSOption[],
+
+  linfonodomegalias: [
+    { value: 'axilar', label: 'Axilar', texto: 'na região axilar' },
+    { value: 'intramamario', label: 'Intramamário', texto: 'intramamário' },
+  ] as BIRADSOption[],
+
+  recomendacoesBirads0: [
+    { value: '0-assimetria-compressao', label: 'Assimetria → Compressão localizada', texto: 'Avaliação adicional com incidências complementares (compressão localizada) recomendada.' },
+    { value: '0-assimetria-ultrassom', label: 'Assimetria → Ultrassonografia', texto: 'Avaliação adicional com ultrassonografia mamária recomendada.' },
+    { value: '0-calcificacao', label: 'Calcificação → Magnificação', texto: 'Avaliação adicional com magnificação recomendada.' },
+    { value: '0-nodulo-usg', label: 'Nódulo → Ultrassonografia', texto: 'Avaliação adicional com ultrassonografia mamária recomendada para caracterização do nódulo.' },
+    { value: '0-comparacao', label: 'Necessita comparação', texto: 'Necessária comparação com exames anteriores.' },
+  ] as BIRADSOption[],
+}
+
+// Avaliar nódulo de mamografia
+const evaluateMGNodulo = (nodulo: BIRADSMGNodulo): number | string => {
+  const getDensidadeOpt = biradsMGOptions.densidade.find(o => o.value === nodulo.densidade)
+  const getFormaOpt = biradsMGOptions.formaMG.find(o => o.value === nodulo.forma)
+  const getMargensOpt = biradsMGOptions.margensMG.find(o => o.value === nodulo.margens)
+
+  // Se cresceu → 4A
+  if (nodulo.temComparacao && nodulo.estadoNodulo === 'cresceu') {
+    return '4A'
+  }
+
+  // Margens espiculadas → 5
+  if (getMargensOpt?.suspeicao === 'alto') {
+    return 5
+  }
+
+  // Forma irregular + margens suspeitas → 4C
+  if (getFormaOpt?.suspeicao === 'suspeito' && getMargensOpt?.suspeicao === 'suspeito') {
+    return '4C'
+  }
+
+  // Margens indistintas/microlobuladas → 4B
+  if (getMargensOpt?.suspeicao === 'suspeito') {
+    return '4B'
+  }
+
+  // Forma irregular isolada → 4A
+  if (getFormaOpt?.suspeicao === 'suspeito') {
+    return '4A'
+  }
+
+  // Características benignas
+  const isBeningno = 
+    (nodulo.forma === 'oval' || nodulo.forma === 'redondo') &&
+    nodulo.margens === 'circunscrito' &&
+    (nodulo.densidade === 'baixa' || nodulo.densidade === 'gordura')
+
+  if (isBeningno) {
+    if (nodulo.temComparacao && nodulo.estadoNodulo === 'estavel') {
+      const tempoMeses = calcularTempoSeguimento(nodulo.dataExameAnterior)
+      if (tempoMeses >= 24) return 2
+    }
+    return 3
+  }
+
+  // Default: provavelmente benigno
+  return 3
+}
+
+// Avaliar categoria final BI-RADS MG
+export const evaluateBIRADSMG = (data: BIRADSMGData): number | string => {
+  // Se tem recomendação manual ativada
+  if (data.recomendacaoManual?.ativo && data.recomendacaoManual.categoria) {
+    return 0
+  }
+
+  const categoryOrder = [0, 1, 2, 3, '4A', '4B', '4C', 5, 6]
+  let worstIndex = 1 // Começa com BI-RADS 1 (sem achados)
+
+  // Calcificações suspeitas
+  if (data.calcificacoes.presente && data.calcificacoes.tipo === 'suspeitas') {
+    const morfOpt = biradsMGOptions.morfologiaCalcificacoes.find(o => o.value === data.calcificacoes.morfologia)
+    const distOpt = biradsMGOptions.distribuicaoCalcificacoes.find(o => o.value === data.calcificacoes.distribuicao)
+    
+    // Pleomórfica/linear + segmentar/linear → 4C ou 5
+    if (morfOpt?.suspeicao === 'alto') {
+      if (distOpt?.suspeicao === 'alto') {
+        const idx = categoryOrder.indexOf(5)
+        worstIndex = Math.max(worstIndex, idx)
+      } else {
+        const idx = categoryOrder.indexOf('4C')
+        worstIndex = Math.max(worstIndex, idx)
+      }
+    } else if (morfOpt?.suspeicao === 'suspeito') {
+      const idx = categoryOrder.indexOf('4B')
+      worstIndex = Math.max(worstIndex, idx)
+    } else {
+      const idx = categoryOrder.indexOf('4A')
+      worstIndex = Math.max(worstIndex, idx)
+    }
+  } else if (data.calcificacoes.presente) {
+    // Calcificações benignas
+    const idx = categoryOrder.indexOf(2)
+    worstIndex = Math.max(worstIndex, idx)
+  }
+
+  // Distorção arquitetural
+  if (data.distorcaoArquitetural.presente) {
+    const tipoOpt = biradsMGOptions.distorcaoArquitetural.find(o => o.value === data.distorcaoArquitetural.tipo)
+    if (tipoOpt?.suspeicao === 'alto') {
+      const idx = categoryOrder.indexOf('4B')
+      worstIndex = Math.max(worstIndex, idx)
+    } else if (tipoOpt?.suspeicao === 'benigno') {
+      const idx = categoryOrder.indexOf(2)
+      worstIndex = Math.max(worstIndex, idx)
+    }
+  }
+
+  // Assimetria
+  if (data.assimetria.presente) {
+    const tipoOpt = biradsMGOptions.assimetria.find(o => o.value === data.assimetria.tipo)
+    if (tipoOpt?.suspeicao === 'suspeito') {
+      const idx = categoryOrder.indexOf('4A')
+      worstIndex = Math.max(worstIndex, idx)
+    } else {
+      // Assimetria sem comparação → BI-RADS 0
+      return 0
+    }
+  }
+
+  // Nódulos
+  for (const nodulo of data.nodulos) {
+    const cat = evaluateMGNodulo(nodulo)
+    const idx = categoryOrder.indexOf(cat)
+    worstIndex = Math.max(worstIndex, idx)
+  }
+
+  // Linfonodomegalias axilares (sem tumor primário) → suspeito
+  if (data.linfonodomegalias.presente) {
+    const idx = categoryOrder.indexOf('4A')
+    worstIndex = Math.max(worstIndex, idx)
+  }
+
+  return categoryOrder[worstIndex]
+}
+
+// Gerar texto de achados MG
+export const generateBIRADSMGAchados = (data: BIRADSMGData): string => {
+  const sections: string[] = []
+
+  // Parênquima
+  const parenquimaOpt = biradsMGOptions.parenquima.find(o => o.value === data.parenquima)
+  sections.push(`Parênquima mamário: ${parenquimaOpt?.texto || 'Não informado'}`)
+
+  // Distorção arquitetural
+  if (data.distorcaoArquitetural.presente) {
+    const tipoOpt = biradsMGOptions.distorcaoArquitetural.find(o => o.value === data.distorcaoArquitetural.tipo)
+    const locOpt = biradsMGOptions.localizacaoMG.find(o => o.value === data.distorcaoArquitetural.localizacao)
+    const ladoOpt = biradsMGOptions.ladoMG.find(o => o.value === data.distorcaoArquitetural.lado)
+    sections.push(`Distorção arquitetural: Observa-se ${tipoOpt?.texto || ''} ${locOpt?.texto || ''} ${ladoOpt?.texto || ''}.`)
+  } else {
+    sections.push('Distorção arquitetural: Ausente.')
+  }
+
+  // Assimetria
+  if (data.assimetria.presente) {
+    const tipoOpt = biradsMGOptions.assimetria.find(o => o.value === data.assimetria.tipo)
+    const locOpt = biradsMGOptions.localizacaoMG.find(o => o.value === data.assimetria.localizacao)
+    const ladoOpt = biradsMGOptions.ladoMG.find(o => o.value === data.assimetria.lado)
+    sections.push(`Assimetria: Observa-se ${tipoOpt?.texto || ''} ${locOpt?.texto || ''} ${ladoOpt?.texto || ''}.`)
+  } else {
+    sections.push('Assimetria: Ausente.')
+  }
+
+  // Nódulos
+  if (data.nodulos.length > 0) {
+    const nodulosTexto = data.nodulos.map((n, i) => {
+      const densOpt = biradsMGOptions.densidade.find(o => o.value === n.densidade)
+      const formaOpt = biradsMGOptions.formaMG.find(o => o.value === n.forma)
+      const margensOpt = biradsMGOptions.margensMG.find(o => o.value === n.margens)
+      const locOpt = biradsMGOptions.localizacaoMG.find(o => o.value === n.localizacao)
+      const ladoOpt = biradsMGOptions.ladoMG.find(o => o.value === n.lado)
+      const medidas = n.medidas.map(m => formatMeasurement(m)).join(' x ')
+      
+      let texto = `N${i + 1} - Nódulo ${densOpt?.texto || ''}, ${formaOpt?.texto || ''}, ${margensOpt?.texto || ''}, medindo ${medidas} cm, localizado ${locOpt?.texto || ''} ${ladoOpt?.texto || ''}.`
+      
+      if (n.temComparacao && n.dataExameAnterior) {
+        const dataFormatada = new Date(n.dataExameAnterior).toLocaleDateString('pt-BR')
+        const tempoMeses = calcularTempoSeguimento(n.dataExameAnterior)
+        const tempoFormatado = formatarTempoSeguimento(tempoMeses)
+        
+        if (n.estadoNodulo === 'estavel') {
+          texto += ` Estável em relação ao exame de ${dataFormatada} (${tempoFormatado} de seguimento).`
+        } else if (n.estadoNodulo === 'cresceu') {
+          texto += ` Apresentou crescimento em relação ao exame de ${dataFormatada}.`
+        } else if (n.estadoNodulo === 'diminuiu') {
+          texto += ` Apresentou redução em relação ao exame de ${dataFormatada}.`
+        }
+      }
+      
+      return texto
+    }).join('\n')
+    sections.push(`Nódulos:\n${nodulosTexto}`)
+  } else {
+    sections.push('Nódulos: Ausentes.')
+  }
+
+  // Calcificações
+  if (data.calcificacoes.presente) {
+    const tipoOpt = biradsMGOptions.calcificacoes.find(o => o.value === data.calcificacoes.tipo)
+    let calcTexto = tipoOpt?.texto || ''
+    
+    if (data.calcificacoes.tipo === 'suspeitas' && data.calcificacoes.morfologia) {
+      const morfOpt = biradsMGOptions.morfologiaCalcificacoes.find(o => o.value === data.calcificacoes.morfologia)
+      const distOpt = biradsMGOptions.distribuicaoCalcificacoes.find(o => o.value === data.calcificacoes.distribuicao)
+      const locOpt = biradsMGOptions.localizacaoMG.find(o => o.value === data.calcificacoes.localizacao)
+      const ladoOpt = biradsMGOptions.ladoMG.find(o => o.value === data.calcificacoes.lado)
+      calcTexto = `Calcificações ${morfOpt?.texto || ''}, ${distOpt?.texto || ''}, localizadas ${locOpt?.texto || ''} ${ladoOpt?.texto || ''}.`
+    } else {
+      const ladoOpt = biradsMGOptions.ladoMG.find(o => o.value === data.calcificacoes.lado)
+      calcTexto = `${tipoOpt?.texto || ''} ${ladoOpt?.texto || ''}.`
+    }
+    sections.push(`Calcificações: ${calcTexto}`)
+  } else {
+    sections.push('Calcificações: Ausentes.')
+  }
+
+  // Linfonodomegalias
+  if (data.linfonodomegalias.presente) {
+    const ladoOpt = biradsMGOptions.ladoMG.find(o => o.value === data.linfonodomegalias.lado)
+    const locOpt = biradsMGOptions.linfonodomegalias.find(o => o.value === data.linfonodomegalias.localizacao)
+    sections.push(`Linfonodomegalias: Presente ${locOpt?.texto || ''} ${ladoOpt?.texto || ''}.`)
+  } else {
+    sections.push('Linfonodomegalias: Ausentes.')
+  }
+
+  // Linfonodo intramamário
+  if (data.linfonodoIntramamario.presente) {
+    const ladoOpt = biradsMGOptions.ladoMG.find(o => o.value === data.linfonodoIntramamario.lado)
+    sections.push(`Linfonodo intramamário: Presente ${ladoOpt?.texto || ''}.`)
+  }
+
+  return sections.join('\n\n')
+}
+
+// Gerar impressão MG
+export const generateBIRADSMGImpression = (data: BIRADSMGData, biradsCategory: number | string): string => {
+  const categoryNum = typeof biradsCategory === 'string' ? biradsCategory : biradsCategory.toString()
+  
+  // BI-RADS 0 com recomendação manual
+  if (categoryNum === '0' && data.recomendacaoManual?.ativo) {
+    const recOpt = biradsMGOptions.recomendacoesBirads0.find(o => o.value === data.recomendacaoManual?.categoria)
+    return `Estudo mamográfico inconclusivo.\nClassificação: ACR BI-RADS 0.\n${recOpt?.texto || 'Avaliação adicional necessária.'}`
+  }
+
+  // Determinar achados para impressão
+  const achados: string[] = []
+  
+  if (data.nodulos.length > 0) {
+    const lados = [...new Set(data.nodulos.map(n => n.lado))]
+    if (data.nodulos.length === 1) {
+      achados.push(`Nódulo ${lados[0] === 'direita' ? 'na mama direita' : 'na mama esquerda'}`)
+    } else {
+      achados.push(`Nódulos ${lados.length > 1 ? 'nas mamas direita e esquerda' : (lados[0] === 'direita' ? 'na mama direita' : 'na mama esquerda')}`)
+    }
+  }
+  
+  if (data.calcificacoes.presente && data.calcificacoes.tipo === 'suspeitas') {
+    achados.push('Calcificações suspeitas')
+  }
+  
+  if (data.distorcaoArquitetural.presente && data.distorcaoArquitetural.tipo === 'fora_sitio') {
+    achados.push('Distorção arquitetural')
+  }
+  
+  if (data.assimetria.presente && data.assimetria.tipo === 'em_desenvolvimento') {
+    achados.push('Assimetria em desenvolvimento')
+  }
+
+  const achadosTexto = achados.length > 0 ? achados.join('. ') + '.' : ''
+
+  switch (categoryNum) {
+    case '0':
+      return `Estudo mamográfico inconclusivo.\nClassificação: ACR BI-RADS 0.\nAvaliação adicional necessária.`
+
+    case '1':
+      return `Estudo mamográfico sem alterações.\nClassificação: ACR BI-RADS 1.\nA critério clínico, sugere-se controle de rotina de acordo com o indicado para a faixa etária.`
+
+    case '2':
+      return `${achadosTexto || 'Achados benignos.'}\nClassificação: ACR BI-RADS 2.\nA critério clínico, sugere-se controle de rotina de acordo com o indicado para a faixa etária.`
+
+    case '3':
+      return `${achadosTexto}\nClassificação: ACR BI-RADS 3 - Achado provavelmente benigno.\nRecomenda-se controle mamográfico em 6 meses.`
+
+    case '4A':
+    case '4B':
+    case '4C':
+      return `${achadosTexto}\nClassificação: ACR BI-RADS ${categoryNum} - Achado suspeito.\nEstudo histopatológico deve ser considerado.\nEm caso de realização de nova mamografia ou ultrassonografia mamária, é necessário trazer exames anteriores.`
+
+    case '5':
+      return `${achadosTexto}\nClassificação: ACR BI-RADS 5 - Achado altamente sugestivo de malignidade.\nRecomenda-se prosseguir investigação com estudo histopatológico.\nEm caso de realização de nova mamografia ou ultrassonografia mamária, é necessário trazer exames anteriores.`
+
+    case '6':
+      return `Malignidade conhecida.\nClassificação: ACR BI-RADS 6.\nTratamento oncológico adequado indicado.`
+
+    default:
+      return `Classificação: ACR BI-RADS ${biradsCategory}.`
+  }
+}
+
+// Gerar laudo completo MG
+export const generateBIRADSMGLaudoCompleto = (data: BIRADSMGData, biradsCategory: number | string): string => {
+  const tecnica = 'TÉCNICA:\nMamografia digital bilateral em duas incidências (craniocaudal e médio-lateral oblíqua).'
+  const achados = `ACHADOS:\n${generateBIRADSMGAchados(data)}`
+  const impressao = `IMPRESSÃO:\n${generateBIRADSMGImpression(data, biradsCategory)}`
+  
+  return `${tecnica}\n\n${achados}\n\n${impressao}`
+}
+
+export const createEmptyBIRADSMGNodulo = (): BIRADSMGNodulo => ({
+  densidade: 'igual',
+  forma: 'oval',
+  margens: 'circunscrito',
+  medidas: [1.0, 1.0, 1.0],
+  lado: 'direita',
+  localizacao: 'qsl',
+  temComparacao: false,
+  dataExameAnterior: null,
+  estadoNodulo: 'novo',
+})
+
+export const createEmptyBIRADSMGData = (): BIRADSMGData => ({
+  parenquima: 'fibroglandulares',
+  distorcaoArquitetural: { presente: false },
+  assimetria: { presente: false },
+  nodulos: [],
+  calcificacoes: { presente: false },
+  linfonodomegalias: { presente: false },
+  linfonodoIntramamario: { presente: false },
+})
