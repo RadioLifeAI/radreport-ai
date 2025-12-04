@@ -295,12 +295,11 @@ export function BIRADSModal({ open, onOpenChange, editor }: BIRADSModalProps) {
                   <div className="space-y-2">
                     <Label className="text-sm">Reconstrução</Label>
                     <Select
-                      value={data.cirurgia.reconstrucao || ''}
+                      value={data.cirurgia.reconstrucao || undefined}
                       onValueChange={(v) => updateData('cirurgia', { ...data.cirurgia, reconstrucao: v as any })}
                     >
                       <SelectTrigger><SelectValue placeholder="Sem reconstrução" /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Sem reconstrução</SelectItem>
                         {biradsUSGExpandedOptions.tipoReconstrucao.map((opt) => (
                           <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                         ))}
