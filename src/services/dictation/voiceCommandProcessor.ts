@@ -494,7 +494,7 @@ export function processVoiceInput(text: string, editor: Editor): void {
         .focus()
         .insertContent(textWithSpace)
         .setTextSelection({ from: insertPos, to: insertPos + textWithSpace.length })
-        .setColor('#D97706')
+        .setColor('var(--highlight-dictation)')
         .setTextSelection(insertPos + textWithSpace.length)
         .run()
     }

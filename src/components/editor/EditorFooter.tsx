@@ -30,15 +30,14 @@ export function EditorFooter({ editor, onRestart, onCopy }: EditorFooterProps) {
     toast.success('Alterações aceitas', { description: 'Cores removidas do documento' })
   }
 
-  // Check if there are any color marks in the document (highlight colors)
-  const HIGHLIGHT_COLORS = ['#D97706', '#EA580C', '#16A34A', '#2563EB']
+  // Check if there are any CSS variable highlight colors in the document
   const hasHighlights = editor?.state.doc.textContent ? (() => {
     let found = false
     editor.state.doc.descendants((node) => {
       if (node.marks?.some(mark => 
         mark.type.name === 'textStyle' && 
         mark.attrs.color && 
-        HIGHLIGHT_COLORS.includes(mark.attrs.color)
+        mark.attrs.color.startsWith('var(--highlight-')
       )) {
         found = true
         return false // stop iteration

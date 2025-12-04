@@ -85,6 +85,12 @@
     --z-popover: 1060;
     --z-tooltip: 1070;
     --z-float: 10;
+    
+    /* Track Changes Highlight Colors - Light Mode (darker for white bg) */
+    --highlight-dictation: #B45309;
+    --highlight-whisper: #C2410C;
+    --highlight-ai-corrector: #15803D;
+    --highlight-ai-suggestion: #1D4ED8;
   }
 
   .dark {
@@ -141,6 +147,12 @@
     --sidebar-accent-foreground: 210 40% 98%;
     --sidebar-border: 217 25% 20%;
     --sidebar-ring: 189 94% 43%;
+    
+    /* Track Changes Highlight Colors - Dark Mode (brighter for dark bg) */
+    --highlight-dictation: #FBBF24;
+    --highlight-whisper: #FB923C;
+    --highlight-ai-corrector: #4ADE80;
+    --highlight-ai-suggestion: #60A5FA;
   }
 }
 

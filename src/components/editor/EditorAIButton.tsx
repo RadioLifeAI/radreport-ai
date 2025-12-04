@@ -190,7 +190,7 @@ export default function EditorAIButton({ editor, onUpgrade }: EditorAIButtonProp
         // Apply color to entire document
         editor.chain()
           .selectAll()
-          .setColor('#2563EB')
+          .setColor('var(--highlight-ai-suggestion)')
           .setTextSelection(editor.state.doc.content.size)
           .run()
         toast.success('Correções aplicadas com sucesso')
@@ -244,7 +244,7 @@ export default function EditorAIButton({ editor, onUpgrade }: EditorAIButtonProp
       if (startPos > 0 && endPos > startPos) {
         ed.chain()
           .setTextSelection({ from: startPos, to: endPos })
-          .setColor('#2563EB')
+          .setColor('var(--highlight-ai-suggestion)')
           .setTextSelection(endPos)
           .run()
       }
