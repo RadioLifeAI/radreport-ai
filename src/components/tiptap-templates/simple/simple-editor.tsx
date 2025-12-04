@@ -27,7 +27,7 @@ import { Color } from "@tiptap/extension-color"
 import FontFamily from "@tiptap/extension-font-family"
 import Dropcursor from "@tiptap/extension-dropcursor"
 import Focus from "@tiptap/extension-focus"
-import { RadiologySpellChecker, FontSize, InformativeTable } from "@/extensions"
+import { RadiologySpellChecker, FontSize, InformativeTable, DictationHighlight } from "@/extensions"
 import { setUserDictionaryWords } from "@/extensions/RadiologySpellChecker"
 import { useUserDictionaryContext } from "@/contexts/UserDictionaryContext"
 
@@ -243,6 +243,7 @@ export function SimpleEditor({
         className: 'has-focus',
         mode: 'all',
       }),
+      DictationHighlight,
     ],
     content: externalContent || '',
     onUpdate: ({ editor }) => {

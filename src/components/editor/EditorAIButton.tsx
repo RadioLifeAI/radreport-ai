@@ -187,16 +187,26 @@ export default function EditorAIButton({ editor, onUpgrade }: EditorAIButtonProp
           emitUpdate: true,
           parseOptions: { preserveWhitespace: false }
         })
+        // Apply highlight to entire document
+        editor.chain()
+          .selectAll()
+          .setDictationHighlight({ source: 'ai-suggestion', timestamp: Date.now() })
+          .setTextSelection(editor.state.doc.content.size)
+          .run()
         toast.success('Correções aplicadas com sucesso')
         break
         
       case 'conclusion':
         replaceImpressionSection(editor, pendingAISuggestion.content)
+        // Apply highlight to impression section (last section typically)
+        applyHighlightToImpressionSection(editor)
         toast.success('Conclusão inserida com sucesso')
         break
         
       case 'rads':
         replaceImpressionSection(editor, pendingAISuggestion.content)
+        // Apply highlight to impression section
+        applyHighlightToImpressionSection(editor)
         if (pendingAISuggestion.radsInfo) {
           toast.success(`${pendingAISuggestion.radsInfo.system} - ${pendingAISuggestion.radsInfo.category}`)
         } else {
@@ -207,6 +217,38 @@ export default function EditorAIButton({ editor, onUpgrade }: EditorAIButtonProp
     
     setPreviewModalOpen(false)
     setPendingAISuggestion(null)
+  }
+  
+  // Helper to apply highlight to impression section
+  const applyHighlightToImpressionSection = (ed: Editor) => {
+    const content = ed.getHTML()
+    const impressaoMatch = content.match(/<h3[^>]*>IMPRESSÃO<\/h3>/i)
+    if (impressaoMatch) {
+      // Find position after IMPRESSÃO header and highlight content
+      const doc = ed.state.doc
+      let inImpressionSection = false
+      let startPos = 0
+      let endPos = doc.content.size
+      
+      doc.descendants((node, pos) => {
+        if (node.type.name === 'heading' && node.textContent.toUpperCase().includes('IMPRESSÃO')) {
+          inImpressionSection = true
+          startPos = pos + node.nodeSize
+        } else if (inImpressionSection && node.type.name === 'heading') {
+          endPos = pos
+          inImpressionSection = false
+          return false
+        }
+      })
+      
+      if (startPos > 0 && endPos > startPos) {
+        ed.chain()
+          .setTextSelection({ from: startPos, to: endPos })
+          .setDictationHighlight({ source: 'ai-suggestion', timestamp: Date.now() })
+          .setTextSelection(endPos)
+          .run()
+      }
+    }
   }
 
   // Determine badge color
