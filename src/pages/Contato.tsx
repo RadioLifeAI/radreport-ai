@@ -1,22 +1,27 @@
 import { useState } from 'react';
 import PageLayout from '@/components/layout/PageLayout';
-import { Mail, Clock, Phone, ShieldCheck, HelpCircle, DollarSign, Send } from 'lucide-react';
+import { Mail, Clock, Phone, ShieldCheck, HelpCircle, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { sanitizeInput, isValidEmail, validateLength } from '@/utils/validation';
 import { useRateLimit } from '@/hooks/useRateLimit';
+import TurnstileWidget from '@/components/TurnstileWidget';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function Contato() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { checkRateLimit, remainingTime } = useRateLimit({ maxAttempts: 3, windowMs: 60000 });
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileError, setTurnstileError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrors({});
+    setTurnstileError(null);
 
     // Rate limiting check
     if (!checkRateLimit()) {
@@ -25,6 +30,12 @@ export default function Contato() {
         description: `Aguarde ${remainingTime()} segundos antes de tentar novamente.`,
         variant: 'destructive',
       });
+      return;
+    }
+
+    // Turnstile validation
+    if (!turnstileToken) {
+      setTurnstileError('Complete a verificação de segurança');
       return;
     }
 
@@ -65,16 +76,38 @@ export default function Contato() {
 
     setIsSubmitting(true);
 
-    // Simular envio
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    try {
+      // Verify Turnstile token server-side
+      const { data: turnstileResult, error: turnstileErr } = await supabase.functions.invoke('verify-turnstile', {
+        body: { token: turnstileToken }
+      });
 
-    toast({
-      title: 'Mensagem enviada!',
-      description: 'Entraremos em contato em breve.',
-    });
+      if (turnstileErr || !turnstileResult?.success) {
+        setTurnstileError('Verificação de segurança falhou. Tente novamente.');
+        setTurnstileToken(null);
+        setIsSubmitting(false);
+        return;
+      }
 
-    setIsSubmitting(false);
-    (e.target as HTMLFormElement).reset();
+      // Simular envio (aqui você pode adicionar lógica real de envio)
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      toast({
+        title: 'Mensagem enviada!',
+        description: 'Entraremos em contato em breve.',
+      });
+
+      (e.target as HTMLFormElement).reset();
+      setTurnstileToken(null);
+    } catch (error) {
+      toast({
+        title: 'Erro ao enviar',
+        description: 'Tente novamente mais tarde.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -165,9 +198,22 @@ export default function Contato() {
                     <p className="text-destructive text-sm mt-1">{errors.message}</p>
                   )}
                 </div>
+
+                {/* Turnstile Widget */}
+                <div>
+                  <TurnstileWidget
+                    onSuccess={setTurnstileToken}
+                    onError={setTurnstileError}
+                    onExpire={() => setTurnstileToken(null)}
+                  />
+                  {turnstileError && (
+                    <p className="text-destructive text-sm text-center mt-1">{turnstileError}</p>
+                  )}
+                </div>
+
                 <Button
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !turnstileToken}
                   className="w-full bg-gradient-to-r from-primary to-secondary text-primary-foreground hover:brightness-110"
                 >
                   {isSubmitting ? (
