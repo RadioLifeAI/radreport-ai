@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { Editor } from '@tiptap/react'
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2, Calendar, AlertCircle } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -11,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Select,
   SelectContent,
@@ -19,7 +20,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import {
   BIRADSFindingData,
@@ -30,6 +30,8 @@ import {
   generateBIRADSImpression,
   createEmptyBIRADSFinding,
   formatMeasurement,
+  calcularTempoSeguimento,
+  formatarTempoSeguimento,
 } from '@/lib/radsClassifications'
 
 interface BIRADSModalProps {
@@ -66,7 +68,7 @@ export function BIRADSModal({ open, onOpenChange, editor }: BIRADSModalProps) {
     }
   }
 
-  const updateAchado = (index: number, field: keyof BIRADSFindingData, value: string | number) => {
+  const updateAchado = (index: number, field: keyof BIRADSFindingData, value: string | number | boolean | null) => {
     const newAchados = [...achados]
     ;(newAchados[index] as any)[field] = value
     setAchados(newAchados)
@@ -109,53 +111,66 @@ export function BIRADSModal({ open, onOpenChange, editor }: BIRADSModalProps) {
     setAchados([createEmptyBIRADSFinding()])
   }
 
+  // Calcular tempo de seguimento para exibição
+  const getTempoSeguimento = (achado: BIRADSFindingData) => {
+    if (!achado.temComparacao || !achado.dataExameAnterior) return null
+    const meses = calcularTempoSeguimento(achado.dataExameAnterior)
+    return {
+      meses,
+      texto: formatarTempoSeguimento(meses),
+      suficiente: meses >= 24
+    }
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
-        <DialogHeader>
+      <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <span>🎀</span>
             ACR BI-RADS® - Ultrassonografia Mamária
           </DialogTitle>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 pr-4">
-          <div className="space-y-6">
-            {/* Quantidade de achados */}
-            <div className="space-y-3">
-              <Label className="text-sm font-medium">Quantidade de nódulos</Label>
-              <div className="flex items-center gap-4">
-                <RadioGroup
-                  value={quantidade}
-                  onValueChange={(v) => handleQuantidadeChange(v as 'um' | 'multiplos')}
-                  className="flex gap-4"
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="um" id="um" />
-                    <Label htmlFor="um" className="cursor-pointer">Um nódulo</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="multiplos" id="multiplos" />
-                    <Label htmlFor="multiplos" className="cursor-pointer">Dois ou mais nódulos</Label>
-                  </div>
-                </RadioGroup>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleAddAchado}
-                  disabled={achados.length >= 6}
-                  className="ml-auto"
-                >
-                  <Plus size={14} className="mr-1" />
-                  Adicionar
-                </Button>
-              </div>
+        <div className="flex-1 overflow-y-auto pr-2 space-y-6">
+          {/* Quantidade de achados */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">Quantidade de nódulos</Label>
+            <div className="flex items-center gap-4">
+              <RadioGroup
+                value={quantidade}
+                onValueChange={(v) => handleQuantidadeChange(v as 'um' | 'multiplos')}
+                className="flex gap-4"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="um" id="um" />
+                  <Label htmlFor="um" className="cursor-pointer">Um nódulo</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="multiplos" id="multiplos" />
+                  <Label htmlFor="multiplos" className="cursor-pointer">Dois ou mais nódulos</Label>
+                </div>
+              </RadioGroup>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleAddAchado}
+                disabled={achados.length >= 6}
+                className="ml-auto"
+              >
+                <Plus size={14} className="mr-1" />
+                Adicionar
+              </Button>
             </div>
+          </div>
 
-            <Separator />
+          <Separator />
 
-            {/* Achados */}
-            {achados.map((achado, index) => (
+          {/* Achados */}
+          {achados.map((achado, index) => {
+            const tempoInfo = getTempoSeguimento(achado)
+            
+            return (
               <div key={index} className="space-y-4 p-4 border rounded-lg bg-muted/30">
                 <div className="flex items-center justify-between">
                   <h4 className="font-semibold text-sm">N{index + 1}</h4>
@@ -168,6 +183,75 @@ export function BIRADSModal({ open, onOpenChange, editor }: BIRADSModalProps) {
                     >
                       <Trash2 size={14} />
                     </Button>
+                  )}
+                </div>
+
+                {/* Seção de Comparação com Exame Anterior */}
+                <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Calendar size={16} className="text-blue-500" />
+                    <Label className="text-xs font-medium text-blue-600 dark:text-blue-400">
+                      Comparação com exame anterior
+                    </Label>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`comparacao-${index}`}
+                      checked={achado.temComparacao}
+                      onCheckedChange={(checked) => updateAchado(index, 'temComparacao', !!checked)}
+                    />
+                    <Label htmlFor={`comparacao-${index}`} className="text-sm cursor-pointer">
+                      Disponível comparação com exame anterior
+                    </Label>
+                  </div>
+
+                  {achado.temComparacao && (
+                    <div className="grid grid-cols-2 gap-3 mt-2">
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Data do exame anterior</Label>
+                        <Input
+                          type="date"
+                          value={achado.dataExameAnterior || ''}
+                          onChange={(e) => updateAchado(index, 'dataExameAnterior', e.target.value || null)}
+                          className="h-9"
+                          max={new Date().toISOString().split('T')[0]}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Estado do nódulo</Label>
+                        <Select
+                          value={achado.estadoNodulo}
+                          onValueChange={(v) => updateAchado(index, 'estadoNodulo', v)}
+                        >
+                          <SelectTrigger className="h-9">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="estavel">Estável</SelectItem>
+                            <SelectItem value="cresceu">Cresceu</SelectItem>
+                            <SelectItem value="diminuiu">Diminuiu</SelectItem>
+                            <SelectItem value="novo">Novo</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  )}
+
+                  {tempoInfo && (
+                    <div className={`flex items-center gap-2 text-xs mt-2 ${tempoInfo.suficiente ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                      {tempoInfo.suficiente ? (
+                        <>
+                          <span>✓</span>
+                          <span>Tempo de seguimento: {tempoInfo.texto} (≥ 2 anos - elegível para BI-RADS 2 se estável)</span>
+                        </>
+                      ) : (
+                        <>
+                          <AlertCircle size={12} />
+                          <span>Tempo de seguimento: {tempoInfo.texto} (&lt; 2 anos)</span>
+                        </>
+                      )}
+                    </div>
                   )}
                 </div>
 
@@ -349,45 +433,50 @@ export function BIRADSModal({ open, onOpenChange, editor }: BIRADSModalProps) {
                   </div>
                 </div>
               </div>
-            ))}
+            )
+          })}
 
-            <Separator />
+          <Separator />
 
-            {/* Classificação */}
-            <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium">Classificação Final</span>
-                <span className="text-lg font-bold text-primary">
-                  BI-RADS {biradsCategory}
-                </span>
-              </div>
-              {categoryInfo && (
-                <div className="text-sm text-muted-foreground">
-                  <p><strong>{categoryInfo.name}</strong></p>
-                  <p className="text-xs mt-1">{categoryInfo.recommendation}</p>
+          {/* Classificação */}
+          <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium">Classificação Final</span>
+              <span className="text-lg font-bold text-primary">
+                BI-RADS {biradsCategory}
+              </span>
+            </div>
+            {categoryInfo && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="font-medium">{categoryInfo.name}</span>
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                    Risco: {categoryInfo.risco}
+                  </span>
                 </div>
-              )}
-            </div>
-
-            {/* Preview Achados */}
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">📝 Descrição (Achados)</Label>
-              <div className="p-3 rounded-lg bg-muted/50 text-sm whitespace-pre-wrap font-mono">
-                {achadosTexto}
+                <p className="text-xs text-muted-foreground">{categoryInfo.recommendation}</p>
               </div>
-            </div>
+            )}
+          </div>
 
-            {/* Preview Impressão */}
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">📋 Impressão</Label>
-              <div className="p-3 rounded-lg bg-muted/50 text-sm whitespace-pre-wrap font-mono">
-                {impressaoTexto}
-              </div>
+          {/* Preview Achados */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">📝 Descrição (Achados)</Label>
+            <div className="p-3 rounded-lg bg-muted/50 text-sm whitespace-pre-wrap font-mono">
+              {achadosTexto}
             </div>
           </div>
-        </ScrollArea>
 
-        <DialogFooter className="flex-shrink-0 gap-2 sm:gap-0">
+          {/* Preview Impressão */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">📋 Impressão</Label>
+            <div className="p-3 rounded-lg bg-muted/50 text-sm whitespace-pre-wrap font-mono">
+              {impressaoTexto}
+            </div>
+          </div>
+        </div>
+
+        <DialogFooter className="flex-shrink-0 gap-2 sm:gap-0 pt-4 border-t">
           <Button variant="outline" onClick={handleReset}>
             Limpar
           </Button>

@@ -7,7 +7,7 @@ export interface TIRADSOption {
   texto: string
 }
 
-// BI-RADS USG Classification System (ACR BI-RADS 5th Edition)
+// BI-RADS USG Classification System (ACR BI-RADS 5th Edition v2025)
 
 export interface BIRADSOption {
   value: string
@@ -27,6 +27,10 @@ export interface BIRADSFindingData {
   medidas: [number, number, number]
   distPele: number
   distPapila: number
+  // Campos de comparação temporal
+  temComparacao: boolean
+  dataExameAnterior: string | null // formato YYYY-MM-DD
+  estadoNodulo: 'estavel' | 'cresceu' | 'diminuiu' | 'novo'
 }
 
 export const biradsUSGOptions = {
@@ -83,18 +87,89 @@ export const biradsUSGOptions = {
     { value: 'direita', label: 'Direita', texto: 'da mama direita' },
     { value: 'esquerda', label: 'Esquerda', texto: 'da mama esquerda' },
   ] as BIRADSOption[],
+
+  estadoNodulo: [
+    { value: 'estavel', label: 'Estável', texto: 'estável' },
+    { value: 'cresceu', label: 'Cresceu', texto: 'apresentou crescimento' },
+    { value: 'diminuiu', label: 'Diminuiu', texto: 'apresentou redução' },
+    { value: 'novo', label: 'Novo', texto: 'novo' },
+  ] as BIRADSOption[],
 }
 
 export const biradsCategories = [
-  { value: 0, name: 'Inconclusivo', recommendation: 'Avaliação adicional necessária' },
-  { value: 1, name: 'Negativo', recommendation: 'Rastreamento de rotina' },
-  { value: 2, name: 'Achado benigno', recommendation: 'Rastreamento de rotina' },
-  { value: 3, name: 'Provavelmente benigno', recommendation: 'Seguimento de curto prazo em 6 meses' },
-  { value: '4A', name: 'Baixa suspeita', recommendation: 'Biópsia deve ser considerada' },
-  { value: '4B', name: 'Suspeita intermediária', recommendation: 'Biópsia recomendada' },
-  { value: '4C', name: 'Alta suspeita moderada', recommendation: 'Biópsia fortemente recomendada' },
-  { value: 5, name: 'Altamente sugestivo de malignidade', recommendation: 'Biópsia obrigatória' },
+  { value: 0, name: 'Inconclusivo', risco: '-', recommendation: 'Avaliação adicional necessária' },
+  { value: 1, name: 'Negativo', risco: '< 0,05%', recommendation: 'Controle de rotina para faixa etária' },
+  { value: 2, name: 'Achado benigno', risco: '< 0,05%', recommendation: 'Controle de rotina para faixa etária' },
+  { value: 3, name: 'Provavelmente benigno', risco: '> 0% a ≤ 2%', recommendation: 'Controle em 6 meses' },
+  { value: '4A', name: 'Baixa suspeita', risco: '> 2% a ≤ 10%', recommendation: 'Estudo histopatológico deve ser considerado' },
+  { value: '4B', name: 'Suspeita intermediária', risco: '> 10% a ≤ 50%', recommendation: 'Estudo histopatológico recomendado' },
+  { value: '4C', name: 'Alta suspeita', risco: '> 50% a < 95%', recommendation: 'Estudo histopatológico fortemente recomendado' },
+  { value: 5, name: 'Altamente sugestivo', risco: '≥ 95%', recommendation: 'Prosseguir com estudo histopatológico' },
+  { value: 6, name: 'Malignidade conhecida', risco: '100%', recommendation: 'Tratamento oncológico adequado' },
 ]
+
+// Calcula tempo de seguimento em meses
+export const calcularTempoSeguimento = (dataAnterior: string | null): number => {
+  if (!dataAnterior) return 0
+  const anterior = new Date(dataAnterior)
+  const hoje = new Date()
+  const diffMs = hoje.getTime() - anterior.getTime()
+  const diffMeses = diffMs / (1000 * 60 * 60 * 24 * 30.44) // média de dias por mês
+  return Math.floor(diffMeses)
+}
+
+// Formata tempo de seguimento para exibição
+export const formatarTempoSeguimento = (meses: number): string => {
+  if (meses < 12) {
+    return `${meses} ${meses === 1 ? 'mês' : 'meses'}`
+  }
+  const anos = Math.floor(meses / 12)
+  const mesesRestantes = meses % 12
+  if (mesesRestantes === 0) {
+    return `${anos} ${anos === 1 ? 'ano' : 'anos'}`
+  }
+  return `${anos} ${anos === 1 ? 'ano' : 'anos'} e ${mesesRestantes} ${mesesRestantes === 1 ? 'mês' : 'meses'}`
+}
+
+// Verifica se tem características benignas típicas
+const isCaracteristicasBenignas = (finding: BIRADSFindingData): boolean => {
+  return (
+    (finding.forma === 'oval' || finding.forma === 'redondo') &&
+    finding.eixo === 'paralela' &&
+    finding.margens === 'circunscrito'
+  )
+}
+
+// Avalia características suspeitas e retorna categoria 4A/4B/4C/5
+const evaluateSuspiciousFeatures = (finding: BIRADSFindingData): number | string => {
+  const getOption = (category: keyof typeof biradsUSGOptions, value: string) => {
+    return biradsUSGOptions[category].find(o => o.value === value)
+  }
+
+  const forma = getOption('forma', finding.forma)
+  const margens = getOption('margens', finding.margens)
+  const eixo = getOption('eixo', finding.eixo)
+  const sombra = getOption('sombra', finding.sombra)
+
+  // Características altamente suspeitas = BI-RADS 5
+  if (margens?.suspeicao === 'alto' || 
+      (forma?.suspeicao === 'suspeito' && eixo?.suspeicao === 'suspeito')) {
+    return 5
+  }
+
+  // BI-RADS 4C - múltiplas características suspeitas
+  if ([forma?.suspeicao, margens?.suspeicao, eixo?.suspeicao].filter(s => s === 'suspeito').length >= 2) {
+    return '4C'
+  }
+
+  // BI-RADS 4B - algumas características suspeitas
+  if (margens?.suspeicao === 'suspeito' && (forma?.suspeicao === 'suspeito' || eixo?.suspeicao === 'suspeito')) {
+    return '4B'
+  }
+
+  // BI-RADS 4A - baixa suspeita
+  return '4A'
+}
 
 export const evaluateBIRADSFinding = (finding: BIRADSFindingData): number | string => {
   const getOption = (category: keyof typeof biradsUSGOptions, value: string) => {
@@ -104,8 +179,12 @@ export const evaluateBIRADSFinding = (finding: BIRADSFindingData): number | stri
   const forma = getOption('forma', finding.forma)
   const margens = getOption('margens', finding.margens)
   const eixo = getOption('eixo', finding.eixo)
-  const ecogenicidade = getOption('ecogenicidade', finding.ecogenicidade)
   const sombra = getOption('sombra', finding.sombra)
+
+  // Se CRESCEU → BI-RADS 4A (upgrade obrigatório)
+  if (finding.temComparacao && finding.estadoNodulo === 'cresceu') {
+    return '4A'
+  }
 
   // Cisto simples = BI-RADS 2
   if (finding.ecogenicidade === 'anecogenico' && 
@@ -136,10 +215,19 @@ export const evaluateBIRADSFinding = (finding: BIRADSFindingData): number | stri
     return '4A'
   }
 
-  // Nódulo sólido típico benigno (oval, paralelo, circunscrito) = BI-RADS 3
-  if (finding.forma === 'oval' && 
-      finding.eixo === 'paralela' && 
-      finding.margens === 'circunscrito') {
+  // Se características benignas
+  if (isCaracteristicasBenignas(finding)) {
+    // Calcular tempo de seguimento
+    const tempoSeguimento = calcularTempoSeguimento(finding.dataExameAnterior)
+    
+    // Estável por ≥ 24 meses (2 anos) → BI-RADS 2
+    if (finding.temComparacao && 
+        finding.estadoNodulo === 'estavel' && 
+        tempoSeguimento >= 24) {
+      return 2
+    }
+    
+    // Estável < 2 anos OU novo/sem comparação → BI-RADS 3
     return 3
   }
 
@@ -150,7 +238,7 @@ export const evaluateBIRADSFinding = (finding: BIRADSFindingData): number | stri
 export const calculateBIRADSCategory = (findings: BIRADSFindingData[]): number | string => {
   if (findings.length === 0) return 0
 
-  const categoryOrder = [0, 1, 2, 3, '4A', '4B', '4C', 5]
+  const categoryOrder = [0, 1, 2, 3, '4A', '4B', '4C', 5, 6]
   let worstIndex = 0
 
   for (const finding of findings) {
@@ -183,22 +271,111 @@ export const generateBIRADSFindingDescription = (finding: BIRADSFindingData, ind
   const distPeleFormatada = formatMeasurement(finding.distPele)
   const distPapilaFormatada = formatMeasurement(finding.distPapila)
 
-  return `N${index + 1}- Nódulo ${ecogenicidadeTexto}, ${formaTexto}, ${margensTexto}, ${eixoTexto}, ${sombraTexto}, medindo ${medidasFormatadas} cm, localizado ${localizacaoTexto} ${ladoTexto}, distando ${distPeleFormatada} cm da pele e ${distPapilaFormatada} cm do complexo areolopapilar.`
+  let descricao = `N${index + 1}- Nódulo ${ecogenicidadeTexto}, ${formaTexto}, ${margensTexto}, ${eixoTexto}, ${sombraTexto}, medindo ${medidasFormatadas} cm, localizado ${localizacaoTexto} ${ladoTexto}, distando ${distPeleFormatada} cm da pele e ${distPapilaFormatada} cm do complexo areolopapilar.`
+
+  // Adicionar informação de comparação se disponível
+  if (finding.temComparacao && finding.dataExameAnterior) {
+    const dataFormatada = new Date(finding.dataExameAnterior).toLocaleDateString('pt-BR')
+    const tempoMeses = calcularTempoSeguimento(finding.dataExameAnterior)
+    const tempoFormatado = formatarTempoSeguimento(tempoMeses)
+    
+    if (finding.estadoNodulo === 'estavel') {
+      descricao += ` Estável em relação ao exame de ${dataFormatada} (${tempoFormatado} de seguimento).`
+    } else if (finding.estadoNodulo === 'cresceu') {
+      descricao += ` Apresentou crescimento em relação ao exame de ${dataFormatada}.`
+    } else if (finding.estadoNodulo === 'diminuiu') {
+      descricao += ` Apresentou redução em relação ao exame de ${dataFormatada}.`
+    }
+  }
+
+  return descricao
 }
 
 export const generateBIRADSImpression = (findings: BIRADSFindingData[], biradsCategory: number | string): string => {
   const lados = [...new Set(findings.map(f => f.lado))]
+  const isMultiple = findings.length > 1
   
+  // Determinar texto do local (singular/plural)
   let localTexto: string
+  let ladoTexto: string
   if (findings.length === 1) {
-    localTexto = `Nódulo na mama ${findings[0].lado}.`
+    localTexto = 'Nódulo'
+    ladoTexto = findings[0].lado === 'direita' ? 'na mama direita' : 'na mama esquerda'
   } else if (lados.length === 1) {
-    localTexto = `Nódulos na mama ${lados[0]}.`
+    localTexto = 'Nódulos'
+    ladoTexto = lados[0] === 'direita' ? 'na mama direita' : 'na mama esquerda'
   } else {
-    localTexto = `Nódulos nas mamas direita e esquerda.`
+    localTexto = 'Nódulos'
+    ladoTexto = 'nas mamas direita e esquerda'
   }
 
-  return `${localTexto}\nCategoria ACR BI-RADS®: Categoria ${biradsCategory}.`
+  // Verificar se algum achado tem comparação estável ≥ 2 anos (para BI-RADS 2)
+  const temComparacaoEstavel = findings.some(f => {
+    if (!f.temComparacao || f.estadoNodulo !== 'estavel') return false
+    const tempoMeses = calcularTempoSeguimento(f.dataExameAnterior)
+    return tempoMeses >= 24
+  })
+
+  // Gerar texto de comparação para BI-RADS 2
+  let comparacaoTexto = ''
+  if (biradsCategory === 2 && temComparacaoEstavel) {
+    const achadoEstavel = findings.find(f => {
+      if (!f.temComparacao || f.estadoNodulo !== 'estavel') return false
+      const tempoMeses = calcularTempoSeguimento(f.dataExameAnterior)
+      return tempoMeses >= 24
+    })
+    if (achadoEstavel?.dataExameAnterior) {
+      const dataFormatada = new Date(achadoEstavel.dataExameAnterior).toLocaleDateString('pt-BR')
+      const tempoMeses = calcularTempoSeguimento(achadoEstavel.dataExameAnterior)
+      const tempoFormatado = formatarTempoSeguimento(tempoMeses)
+      comparacaoTexto = `, estável em relação ao exame de ${dataFormatada} (${tempoFormatado} de seguimento)`
+    }
+  }
+
+  // Gerar impressão baseada na categoria
+  const categoryNum = typeof biradsCategory === 'string' ? biradsCategory : biradsCategory.toString()
+  
+  let impressao: string
+
+  switch (categoryNum) {
+    case '1':
+      // BI-RADS 1 - Negativo (sem achados)
+      impressao = `Estudo ultrassonográfico mamário sem alterações.\nBI-RADS USG: categoria 1.\nNota: A critério clínico, sugere-se controle de rotina de acordo com o indicado para a faixa etária.`
+      break
+
+    case '2':
+      // BI-RADS 2 - Achado benigno (cisto simples ou estável ≥ 2 anos)
+      impressao = `${localTexto} ${ladoTexto}${comparacaoTexto}.\nBI-RADS USG: categoria 2.\nNota: A critério clínico, sugere-se controle de rotina de acordo com o indicado para a faixa etária.`
+      break
+
+    case '3':
+      // BI-RADS 3 - Provavelmente benigno
+      impressao = `${localTexto} ${ladoTexto} de aspecto provavelmente benigno.\nBI-RADS USG: categoria 3.\nRecomenda-se controle ultrassonográfico em 6 meses.`
+      break
+
+    case '4A':
+    case '4B':
+    case '4C':
+      // BI-RADS 4 - Suspeito
+      impressao = `${localTexto} mamário ${lados[0] === 'direita' ? 'direito' : (lados[0] === 'esquerda' ? 'esquerdo' : '')} suspeito.\nBI-RADS USG: categoria ${categoryNum}.\nEstudo histopatológico deve ser considerado.\nEm caso de realização de nova mamografia ou ultrassonografia mamária, é necessário trazer exames anteriores.`
+      break
+
+    case '5':
+      // BI-RADS 5 - Altamente suspeito
+      impressao = `${localTexto} mamário ${lados[0] === 'direita' ? 'direito' : (lados[0] === 'esquerda' ? 'esquerdo' : '')} altamente suspeito.\nBI-RADS USG: categoria 5.\nRecomendo prosseguir investigação com estudo histopatológico.\nEm caso de realização de nova mamografia ou ultrassonografia mamária, é necessário trazer exames anteriores.`
+      break
+
+    case '6':
+      // BI-RADS 6 - Malignidade conhecida
+      impressao = `${localTexto} ${ladoTexto} com malignidade conhecida.\nBI-RADS USG: categoria 6.\nTratamento oncológico adequado indicado.`
+      break
+
+    default:
+      // BI-RADS 0 ou outro
+      impressao = `${localTexto} ${ladoTexto}.\nBI-RADS USG: categoria ${biradsCategory}.\nAvaliação adicional necessária.`
+  }
+
+  return impressao
 }
 
 export const createEmptyBIRADSFinding = (): BIRADSFindingData => ({
@@ -212,6 +389,9 @@ export const createEmptyBIRADSFinding = (): BIRADSFindingData => ({
   medidas: [1.0, 1.0, 1.0],
   distPele: 1.0,
   distPapila: 1.0,
+  temComparacao: false,
+  dataExameAnterior: null,
+  estadoNodulo: 'novo',
 })
 
 export interface NoduleData {
