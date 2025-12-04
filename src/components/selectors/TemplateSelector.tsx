@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react'
-import { ChevronDown, Star } from 'lucide-react'
+import { ChevronDown, Star, FileText, Edit3 } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { Portal } from '@/components/ui/portal'
 
@@ -10,12 +10,15 @@ export interface Template {
   categoria?: string
   isDefault?: boolean
   conteudo?: any
+  variaveis?: any[]
 }
 
 export interface TemplateSelectorProps {
   selectedTemplate: string
   onTemplateSearch: (value: string) => void
   onTemplateSelect: (template: Template) => void
+  onTemplateSelectDirect?: (template: Template) => void
+  onTemplateSelectWithVariables?: (template: Template) => void
   onModalityClick: (modality: string) => void
   onCategoriaClick: (categoria: string | null) => void
   onFavoriteToggle: (templateId: string) => void
@@ -32,12 +35,15 @@ export interface TemplateSelectorProps {
   dropdownVisible: boolean
   setDropdownVisible: (visible: boolean) => void
   modalities: string[]
+  needsVariableInput?: (template: Template) => boolean
 }
 
 export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   selectedTemplate,
   onTemplateSearch,
   onTemplateSelect,
+  onTemplateSelectDirect,
+  onTemplateSelectWithVariables,
   onModalityClick,
   onCategoriaClick,
   onFavoriteToggle,
@@ -53,7 +59,8 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   isFavorite,
   dropdownVisible,
   setDropdownVisible,
-  modalities
+  modalities,
+  needsVariableInput
 }) => {
   const { theme } = useTheme()
   const inputRef = useRef<HTMLInputElement>(null)
@@ -74,27 +81,68 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
     template: Template
     isRecent?: boolean
     isFavoriteTemplate?: boolean
-  }) => (
-    <div 
-      className="template-item"
-      onClick={() => {
-        onTemplateSelect(template)
-        setDropdownVisible(false)
-      }}
-    >
-      <div className="template-modality-badge">{template.modalidade}</div>
-      <div className="template-title">{template.titulo}</div>
-      <button
-        onClick={(e) => {
-          e.stopPropagation()
-          onFavoriteToggle(template.id)
+  }) => {
+    const hasVariables = needsVariableInput?.(template) ?? false
+    
+    return (
+      <div 
+        className="template-item group"
+        onClick={() => {
+          // Default click: auto-detect (will open modal if has variables)
+          onTemplateSelect(template)
+          setDropdownVisible(false)
         }}
-        className={`template-star ${isFavorite(template.id) ? 'favorited' : ''}`}
       >
-        <Star size={14} />
-      </button>
-    </div>
-  )
+        <div className="template-modality-badge">{template.modalidade}</div>
+        <div className="template-title flex-1">{template.titulo}</div>
+        
+        {hasVariables ? (
+          <div className="flex items-center gap-1">
+            {/* Badge indicator */}
+            <span className="text-[9px] px-1.5 py-0.5 bg-cyan-500/20 text-cyan-400 rounded font-medium">
+              VAR
+            </span>
+            
+            {/* Completo button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                onTemplateSelectDirect?.(template)
+                setDropdownVisible(false)
+              }}
+              className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors opacity-0 group-hover:opacity-100"
+              title="Inserir completo (com placeholders)"
+            >
+              <FileText size={14} />
+            </button>
+            
+            {/* Variáveis button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                onTemplateSelectWithVariables?.(template)
+                setDropdownVisible(false)
+              }}
+              className="p-1.5 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/20 rounded transition-colors"
+              title="Preencher variáveis"
+            >
+              <Edit3 size={14} />
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              onFavoriteToggle(template.id)
+            }}
+            className={`template-star ${isFavorite(template.id) ? 'favorited' : ''}`}
+          >
+            <Star size={14} />
+          </button>
+        )}
+      </div>
+    )
+  }
 
   const TemplateSection = ({ title, templates, isRecent = false, isFavoriteTemplate = false }: {
     title: string
