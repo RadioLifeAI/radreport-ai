@@ -30,21 +30,101 @@ function levenshtein(a: string, b: string) {
   return dp[m][n]
 }
 
+// Extrair palavras únicas do dicionário
 const baseWords: Set<string> = (() => {
   const set = new Set<string>()
   Object.keys(dict).forEach((k) => {
     if (k === 'sinonimos') return
     const arr = (dict as any)[k] as string[]
-    if (Array.isArray(arr)) arr.forEach((w) => set.add(w.toLowerCase()))
+    if (Array.isArray(arr)) arr.forEach((w) => {
+      // Adicionar palavras individuais (sem espaço)
+      if (!w.includes(' ')) {
+        set.add(w.toLowerCase())
+      }
+    })
   })
   const syn = (dict as any).sinonimos || {}
   Object.keys(syn).forEach((k) => {
-    set.add(k.toLowerCase())
+    if (!k.includes(' ')) set.add(k.toLowerCase())
     const arr = syn[k]
-    if (Array.isArray(arr)) arr.forEach((w: string) => set.add(w.toLowerCase()))
+    if (Array.isArray(arr)) arr.forEach((w: string) => {
+      if (!w.includes(' ')) set.add(w.toLowerCase())
+    })
   })
   return set
 })()
+
+// Extrair termos compostos (multi-palavra) do dicionário
+const compoundTerms: Set<string> = (() => {
+  const set = new Set<string>()
+  Object.keys(dict).forEach((k) => {
+    if (k === 'sinonimos') return
+    const arr = (dict as any)[k] as string[]
+    if (Array.isArray(arr)) {
+      arr.forEach((term) => {
+        if (term.includes(' ')) {
+          set.add(term.toLowerCase())
+        }
+      })
+    }
+  })
+  const syn = (dict as any).sinonimos || {}
+  Object.keys(syn).forEach((k) => {
+    if (k.includes(' ')) set.add(k.toLowerCase())
+    const arr = syn[k]
+    if (Array.isArray(arr)) arr.forEach((w: string) => {
+      if (w.includes(' ')) set.add(w.toLowerCase())
+    })
+  })
+  return set
+})()
+
+// Índice otimizado: primeira palavra → lista de termos compostos
+const compoundIndex: Map<string, string[]> = (() => {
+  const index = new Map<string, string[]>()
+  compoundTerms.forEach(term => {
+    const firstWord = term.split(' ')[0]
+    if (!index.has(firstWord)) {
+      index.set(firstWord, [])
+    }
+    index.get(firstWord)!.push(term)
+  })
+  // Ordenar cada lista por tamanho decrescente (greedy match)
+  index.forEach((terms, key) => {
+    index.set(key, terms.sort((a, b) => b.length - a.length))
+  })
+  return index
+})()
+
+// Função para encontrar termo composto no texto a partir de uma posição
+function findCompoundTermMatch(
+  text: string, 
+  startIndex: number, 
+  firstWord: string
+): { term: string; endIndex: number } | null {
+  const candidates = compoundIndex.get(firstWord.toLowerCase())
+  if (!candidates || candidates.length === 0) return null
+  
+  const textFromStart = text.slice(startIndex).toLowerCase()
+  
+  for (const term of candidates) {
+    // Verificar se o texto começa com o termo composto
+    // Aceitar fim de string, espaço, pontuação ou quebra de linha após o termo
+    const termLen = term.length
+    if (textFromStart.length >= termLen) {
+      const match = textFromStart.slice(0, termLen)
+      if (match === term) {
+        // Verificar se o próximo caractere é válido (não é letra/número)
+        const nextChar = textFromStart[termLen]
+        if (!nextChar || /[^a-záàâãéèêíìîóòôõúùûç0-9]/i.test(nextChar)) {
+          return { term, endIndex: startIndex + termLen }
+        }
+      }
+    }
+  }
+  
+  return null
+}
 
 // Global user dictionary words - updated by UserDictionaryContext
 let userDictionaryWords: Set<string> = new Set()
@@ -62,8 +142,26 @@ export const proofreader: IProofreaderInterface = {
     const errors: ITextWithPosition[] = []
     const tokens = tokenizeIndices(sentence)
     
+    // PASSO 1: Identificar ranges cobertos por termos compostos válidos
+    const coveredRanges: Array<{ start: number; end: number }> = []
+    
     for (const { word, index } of tokens) {
+      const match = findCompoundTermMatch(sentence, index, word)
+      if (match) {
+        coveredRanges.push({ start: index, end: match.endIndex })
+      }
+    }
+    
+    // PASSO 2: Verificar palavras individuais, pulando as cobertas por termos compostos
+    for (const { word, index } of tokens) {
+      const wordEnd = index + word.length
       const lowerWord = word.toLowerCase()
+      
+      // Verificar se esta palavra está coberta por um termo composto
+      const isCovered = coveredRanges.some(
+        range => index >= range.start && wordEnd <= range.end
+      )
+      if (isCovered) continue // Faz parte de termo composto válido
       
       // Ignorar palavras muito curtas (artigos, preposições de 1-2 letras)
       if (word.length < 2) continue
