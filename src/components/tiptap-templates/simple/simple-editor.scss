@@ -260,47 +260,13 @@
 }
 
 // ============================================
-// Destaque visual para alterações recentes (Track Changes)
+// Cores de destaque para alterações recentes (Track Changes)
+// Usando cor do texto nativa do TipTap via setColor()
+// - #D97706 (âmbar) = WebSpeech dictation
+// - #EA580C (laranja) = Whisper AI
+// - #16A34A (verde) = Corretor AI
+// - #2563EB (azul) = Sugestões/Conclusão IA
 // ============================================
-.dictation-highlight {
-  transition: color 0.3s ease;
-  
-  // Texto ditado (WebSpeech) - Dourado
-  &-dictation {
-    color: hsl(45 93% 47%);
-    
-    :root.dark & {
-      color: hsl(45 93% 58%);
-    }
-  }
-  
-  // Whisper AI - Laranja
-  &-whisper {
-    color: hsl(24 95% 53%);
-    
-    :root.dark & {
-      color: hsl(24 95% 63%);
-    }
-  }
-  
-  // Correções da IA (Corretor AI) - Verde
-  &-ai-corrector {
-    color: hsl(142 71% 45%);
-    
-    :root.dark & {
-      color: hsl(142 71% 55%);
-    }
-  }
-  
-  // Sugestões/Conclusão IA - Azul
-  &-ai-suggestion {
-    color: hsl(217 91% 60%);
-    
-    :root.dark & {
-      color: hsl(217 91% 70%);
-    }
-  }
-}
 
 // Animação sutil ao inserir novo destaque
 @keyframes highlight-pulse {

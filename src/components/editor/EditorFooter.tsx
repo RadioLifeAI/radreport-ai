@@ -25,16 +25,21 @@ export function EditorFooter({ editor, onRestart, onCopy }: EditorFooterProps) {
   const handleAcceptChanges = () => {
     if (!editor) return
     
-    // Clear all dictation highlights from the document
-    editor.commands.clearAllDictationHighlights()
-    toast.success('Alterações aceitas', { description: 'Destaques removidos do documento' })
+    // Clear all text colors from the document
+    editor.chain().selectAll().unsetColor().setTextSelection(editor.state.doc.content.size).run()
+    toast.success('Alterações aceitas', { description: 'Cores removidas do documento' })
   }
 
-  // Check if there are any highlights in the document
+  // Check if there are any color marks in the document (highlight colors)
+  const HIGHLIGHT_COLORS = ['#D97706', '#EA580C', '#16A34A', '#2563EB']
   const hasHighlights = editor?.state.doc.textContent ? (() => {
     let found = false
     editor.state.doc.descendants((node) => {
-      if (node.marks?.some(mark => mark.type.name === 'dictationHighlight')) {
+      if (node.marks?.some(mark => 
+        mark.type.name === 'textStyle' && 
+        mark.attrs.color && 
+        HIGHLIGHT_COLORS.includes(mark.attrs.color)
+      )) {
         found = true
         return false // stop iteration
       }

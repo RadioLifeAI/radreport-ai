@@ -366,7 +366,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
                   .deleteRange({ from: startPos, to: endPos })
                   .insertContent(data.text)
                   .setTextSelection({ from: startPos, to: startPos + textLength })
-                  .setDictationHighlight({ source: 'whisper', timestamp: Date.now() })
+                  .setColor('#EA580C')
                   .setTextSelection(startPos + textLength)
                   .run()
                 
@@ -426,12 +426,12 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
             const htmlContent = convertNewlinesToHTML(data.corrected)
             const textLength = data.corrected.length
             
-            // Substituir texto pelo corrigido com HTML e aplicar highlight
+            // Substituir texto pelo corrigido com HTML e aplicar cor
             editorRef.current.chain()
               .deleteRange({ from: startPos, to: endPos })
               .insertContent(htmlContent)
               .setTextSelection({ from: startPos, to: startPos + textLength })
-              .setDictationHighlight({ source: 'ai-corrector', timestamp: Date.now() })
+              .setColor('#16A34A')
               .setTextSelection(startPos + textLength)
               .run()
             
