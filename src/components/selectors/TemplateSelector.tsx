@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from 'react'
 import { ChevronDown, Star, FileText, Edit3 } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { Portal } from '@/components/ui/portal'
+import type { VariableFilter } from '@/hooks/useTemplates'
 
 export interface Template {
   id: string
@@ -21,6 +22,7 @@ export interface TemplateSelectorProps {
   onTemplateSelectWithVariables?: (template: Template) => void
   onModalityClick: (modality: string) => void
   onCategoriaClick: (categoria: string | null) => void
+  onVariableFilterClick: (filter: VariableFilter) => void
   onFavoriteToggle: (templateId: string) => void
   templates: Template[]
   filteredTemplates: Template[]
@@ -31,6 +33,7 @@ export interface TemplateSelectorProps {
   searchTerm: string
   selectedModality: string | null
   selectedCategoria: string | null
+  selectedVariableFilter: VariableFilter
   isFavorite: (templateId: string) => boolean
   dropdownVisible: boolean
   setDropdownVisible: (visible: boolean) => void
@@ -46,6 +49,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   onTemplateSelectWithVariables,
   onModalityClick,
   onCategoriaClick,
+  onVariableFilterClick,
   onFavoriteToggle,
   templates,
   filteredTemplates,
@@ -56,6 +60,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   searchTerm,
   selectedModality,
   selectedCategoria,
+  selectedVariableFilter,
   isFavorite,
   dropdownVisible,
   setDropdownVisible,
@@ -195,12 +200,12 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
               minWidth: `${dropdownPosition.width}px`
             }}
           >
-            {/* Category Tabs - Filtro Geral (Hierárquico) */}
-            <div className="flex items-center gap-1 p-2 border-b border-border/40 bg-muted/50">
-              <span className="text-xs text-muted-foreground mr-2">Categoria:</span>
+            {/* Category + Variable Filter Row */}
+            <div className="flex flex-wrap items-center gap-1 p-2 border-b border-border/40 bg-muted/50">
+              <span className="text-xs text-muted-foreground mr-1">Categoria:</span>
               <button
                 onClick={() => onCategoriaClick(null)}
-                className={`px-3 py-1 text-xs font-medium rounded-lg transition-all ${
+                className={`px-2 py-1 text-xs font-medium rounded-lg transition-all ${
                   selectedCategoria === null 
                     ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40' 
                     : 'hover:bg-muted text-muted-foreground'
@@ -210,7 +215,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
               </button>
               <button
                 onClick={() => onCategoriaClick('normal')}
-                className={`px-3 py-1 text-xs font-medium rounded-lg transition-all ${
+                className={`px-2 py-1 text-xs font-medium rounded-lg transition-all ${
                   selectedCategoria === 'normal' 
                     ? 'bg-green-500/20 text-green-400 border border-green-500/40' 
                     : 'hover:bg-muted text-muted-foreground'
@@ -220,13 +225,47 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
               </button>
               <button
                 onClick={() => onCategoriaClick('alterado')}
-                className={`px-3 py-1 text-xs font-medium rounded-lg transition-all ${
+                className={`px-2 py-1 text-xs font-medium rounded-lg transition-all ${
                   selectedCategoria === 'alterado' 
                     ? 'bg-red-500/20 text-red-400 border border-red-500/40' 
                     : 'hover:bg-muted text-muted-foreground'
                 }`}
               >
                 📕 Alterado
+              </button>
+
+              <div className="w-px h-4 bg-border/60 mx-1" />
+
+              <span className="text-xs text-muted-foreground mr-1">Variáveis:</span>
+              <button
+                onClick={() => onVariableFilterClick('all')}
+                className={`px-2 py-1 text-xs font-medium rounded-lg transition-all ${
+                  selectedVariableFilter === 'all' 
+                    ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40' 
+                    : 'hover:bg-muted text-muted-foreground'
+                }`}
+              >
+                Todos
+              </button>
+              <button
+                onClick={() => onVariableFilterClick('with')}
+                className={`px-2 py-1 text-xs font-medium rounded-lg transition-all ${
+                  selectedVariableFilter === 'with' 
+                    ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40' 
+                    : 'hover:bg-muted text-muted-foreground'
+                }`}
+              >
+                🔧 Com VAR
+              </button>
+              <button
+                onClick={() => onVariableFilterClick('without')}
+                className={`px-2 py-1 text-xs font-medium rounded-lg transition-all ${
+                  selectedVariableFilter === 'without' 
+                    ? 'bg-purple-500/20 text-purple-400 border border-purple-500/40' 
+                    : 'hover:bg-muted text-muted-foreground'
+                }`}
+              >
+                📄 Sem VAR
               </button>
             </div>
 

@@ -10,6 +10,8 @@ import { useState } from 'react'
 import { useAdmin } from '@/hooks/useAdmin'
 import { useInternalCheckout } from '@/hooks/useInternalCheckout'
 
+import type { VariableFilter } from '@/hooks/useTemplates'
+
 interface EditorHeaderProps {
   selectedTemplate: string
   searchTerm: string
@@ -19,6 +21,7 @@ interface EditorHeaderProps {
   onTemplateSelectWithVariables?: (template: any) => void
   onModalityClick: (modality: string) => void
   onCategoriaClick: (categoria: string | null) => void
+  onVariableFilterClick: (filter: VariableFilter) => void
   onFavoriteToggle: (id: string) => void
   dropdownVisible: boolean
   setDropdownVisible: (visible: boolean) => void
@@ -30,6 +33,7 @@ interface EditorHeaderProps {
   error: string | null
   selectedModality: string | null
   selectedCategoria: string | null
+  selectedVariableFilter: VariableFilter
   isFavorite: (id: string) => boolean
   modalities: string[]
   
@@ -69,6 +73,7 @@ export function EditorHeader({
   onTemplateSelectWithVariables,
   onModalityClick,
   onCategoriaClick,
+  onVariableFilterClick,
   onFavoriteToggle,
   dropdownVisible,
   setDropdownVisible,
@@ -80,6 +85,7 @@ export function EditorHeader({
   error,
   selectedModality,
   selectedCategoria,
+  selectedVariableFilter,
   isFavorite,
   modalities,
   selectedMacro,
@@ -142,6 +148,7 @@ export function EditorHeader({
                 onTemplateSelectWithVariables={onTemplateSelectWithVariables}
                 onModalityClick={onModalityClick}
                 onCategoriaClick={onCategoriaClick}
+                onVariableFilterClick={onVariableFilterClick}
                 onFavoriteToggle={onFavoriteToggle}
                 dropdownVisible={dropdownVisible}
                 setDropdownVisible={setDropdownVisible}
@@ -153,6 +160,7 @@ export function EditorHeader({
                 error={error}
                 selectedModality={selectedModality}
                 selectedCategoria={selectedCategoria}
+                selectedVariableFilter={selectedVariableFilter}
                 isFavorite={isFavorite}
                 modalities={modalities}
                 needsVariableInput={needsVariableInput}
