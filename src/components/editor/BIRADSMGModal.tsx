@@ -802,29 +802,6 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-sm">Tipo</Label>
-                    <Select
-                      value={data.linfonodomegalias.tipo || ''}
-                      onValueChange={(v) => updateData('linfonodomegalias', { ...data.linfonodomegalias, tipo: v })}
-                    >
-                      <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                      <SelectContent>
-                        {getOpts('linfonodomegalias').map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-sm">Descrição adicional</Label>
-                  <Textarea
-                    value={data.linfonodomegalias.descricao || ''}
-                    onChange={(e) => updateData('linfonodomegalias', { ...data.linfonodomegalias, descricao: e.target.value })}
-                    placeholder="Características adicionais..."
-                    className="min-h-[60px]"
-                  />
                 </div>
               </div>
             )}
@@ -840,8 +817,8 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
             </h3>
             
             <RadioGroup
-              value={data.comparativo.tipo}
-              onValueChange={(v) => updateData('comparativo', { ...data.comparativo, tipo: v as any })}
+              value={data.estudoComparativo.tipo}
+              onValueChange={(v) => updateData('estudoComparativo', { ...data.estudoComparativo, tipo: v as any })}
               className="space-y-2"
             >
               {getOpts('comparativoTipoMG').map((opt) => (
@@ -854,30 +831,16 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
               ))}
             </RadioGroup>
 
-            {data.comparativo.tipo === 'disponivel' && (
+            {(data.estudoComparativo.tipo && data.estudoComparativo.tipo !== 'primeira' && data.estudoComparativo.tipo !== 'nao_disponivel') && (
               <div className="space-y-4 pl-4 border-l-2 border-primary/30">
                 <div className="space-y-2">
                   <Label className="text-sm">Data do exame anterior</Label>
                   <Input
                     type="date"
-                    value={data.comparativo.dataExame || ''}
-                    onChange={(e) => updateData('comparativo', { ...data.comparativo, dataExame: e.target.value })}
+                    value={data.estudoComparativo.dataExameAnterior || ''}
+                    onChange={(e) => updateData('estudoComparativo', { ...data.estudoComparativo, dataExameAnterior: e.target.value })}
                     max={new Date().toISOString().split('T')[0]}
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-sm">Evolução</Label>
-                  <Select
-                    value={data.comparativo.evolucao || ''}
-                    onValueChange={(v) => updateData('comparativo', { ...data.comparativo, evolucao: v })}
-                  >
-                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                    <SelectContent>
-                      {getOpts('comparativoEvolucaoMG').map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                 </div>
               </div>
             )}
@@ -895,8 +858,8 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
             <div className="space-y-2">
               <Label className="text-sm">Sobrescrever recomendação</Label>
               <Select
-                value={data.recomendacaoManual || ''}
-                onValueChange={(v) => updateData('recomendacaoManual', v || null)}
+                value={data.recomendacaoManual?.categoria || ''}
+                onValueChange={(v) => updateData('recomendacaoManual', v ? { ativo: true, categoria: v } : { ativo: false, categoria: '' })}
               >
                 <SelectTrigger><SelectValue placeholder="Automática (baseada no BI-RADS)" /></SelectTrigger>
                 <SelectContent>
@@ -925,12 +888,23 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
             
             <div className="flex items-center space-x-2">
               <Checkbox
-                id="nota-ultrassom"
-                checked={data.notas.incluirNotaUltrassom}
-                onCheckedChange={(checked) => updateData('notas', { ...data.notas, incluirNotaUltrassom: !!checked })}
+                id="nota-mamas-densas"
+                checked={data.notas.densaMamasUS}
+                onCheckedChange={(checked) => updateData('notas', { ...data.notas, densaMamasUS: !!checked })}
               />
-              <Label htmlFor="nota-ultrassom" className="cursor-pointer text-sm">
-                Incluir nota sobre complementação ultrassonográfica
+              <Label htmlFor="nota-mamas-densas" className="cursor-pointer text-sm">
+                Incluir nota sobre complementação ultrassonográfica (mamas densas)
+              </Label>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="nota-correlacao"
+                checked={data.notas.densaMamasCorrelacao}
+                onCheckedChange={(checked) => updateData('notas', { ...data.notas, densaMamasCorrelacao: !!checked })}
+              />
+              <Label htmlFor="nota-correlacao" className="cursor-pointer text-sm">
+                Incluir nota sobre correlação clínica
               </Label>
             </div>
 
