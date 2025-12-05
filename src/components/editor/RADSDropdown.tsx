@@ -27,6 +27,7 @@ import { BIRADSMGModal } from './BIRADSMGModal'
 import { BIRADSRMModal } from './BIRADSRMModal'
 import { USTireoideModal } from './USTireoideModal'
 import { PIRADSModal } from './PIRADSModal'
+import { ORADSModal } from './ORADSModal'
 
 interface RADSDropdownProps {
   editor: Editor | null
@@ -39,6 +40,7 @@ export function RADSDropdown({ editor }: RADSDropdownProps) {
   const [biradsRMOpen, setBiradsRMOpen] = useState(false)
   const [usTireoideOpen, setUsTireoideOpen] = useState(false)
   const [piradsOpen, setPiradsOpen] = useState(false)
+  const [oradsOpen, setOradsOpen] = useState(false)
 
   return (
     <>
@@ -77,6 +79,10 @@ export function RADSDropdown({ editor }: RADSDropdownProps) {
             <CircleDot className="mr-2 h-4 w-4 text-indigo-500" />
             ACR PI-RADS (Próstata)
           </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setOradsOpen(true)} className="cursor-pointer">
+            <Circle className="mr-2 h-4 w-4 text-pink-500" />
+            ACR O-RADS US (Ginecologia)
+          </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem disabled className="opacity-50">
             <Wind className="mr-2 h-4 w-4 text-blue-400" />
@@ -89,10 +95,6 @@ export function RADSDropdown({ editor }: RADSDropdownProps) {
           <DropdownMenuItem disabled className="opacity-50">
             <Database className="mr-2 h-4 w-4 text-amber-600" />
             LI-RADS (Fígado) - Em breve
-          </DropdownMenuItem>
-          <DropdownMenuItem disabled className="opacity-50">
-            <Circle className="mr-2 h-4 w-4 text-purple-500" />
-            O-RADS (Ovário) - Em breve
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -130,6 +132,12 @@ export function RADSDropdown({ editor }: RADSDropdownProps) {
       <PIRADSModal
         open={piradsOpen}
         onOpenChange={setPiradsOpen}
+        editor={editor}
+      />
+
+      <ORADSModal
+        open={oradsOpen}
+        onOpenChange={setOradsOpen}
         editor={editor}
       />
     </>
