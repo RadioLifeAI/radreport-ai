@@ -800,14 +800,15 @@ export function LungRADSModal({ open, onOpenChange, editor }: LungRADSModalProps
               <Wind className="w-5 h-5 text-blue-500" />
               ACR Lung-RADS v2022
             </DialogTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowPreview(!showPreview)}
-              className="md:hidden"
-            >
-              {showPreview ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowPreview(!showPreview)}
+                className="gap-1"
+              >
+                {showPreview ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {showPreview ? 'Ocultar' : 'Mostrar'} Preview
+              </Button>
           </div>
         </DialogHeader>
         
