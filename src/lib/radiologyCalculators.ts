@@ -1077,15 +1077,16 @@ export const radiologyCalculators: RadiologyCalculator[] = [
     }
   },
 
-  // 20. Estenose Carotídea (NASCET)
+  // 20. Estenose Carotídea (NASCET - Anatômico)
   {
     id: 'carotid-stenosis-nascet',
-    name: 'Estenose Carotídea (NASCET)',
+    name: 'Estenose Carotídea NASCET (Anatômico)',
     category: 'vascular',
-    description: 'Grau de estenose carotídea pelo método NASCET',
+    subcategory: 'Carótidas',
+    description: 'Grau de estenose carotídea pelo método NASCET (diâmetros)',
     inputs: [
       { name: 'residual', label: 'Diâmetro residual (estenose)', unit: 'mm', type: 'number', min: 0, max: 10, step: 0.1, defaultValue: 2.0 },
-      { name: 'normal', label: 'Diâmetro distal normal', unit: 'mm', type: 'number', min: 3, max: 10, step: 0.1, defaultValue: 6.0 }
+      { name: 'normal', label: 'Diâmetro ACI distal normal', unit: 'mm', type: 'number', min: 3, max: 10, step: 0.1, defaultValue: 6.0 }
     ],
     calculate: (values) => {
       const residual = values.residual as number
@@ -1095,19 +1096,24 @@ export const radiologyCalculators: RadiologyCalculator[] = [
       
       let interpretation = ''
       let color: 'success' | 'warning' | 'danger' = 'success'
+      let formattedText = ''
       
       if (stenosis < 50) {
         interpretation = 'Estenose leve (<50%)'
         color = 'success'
+        formattedText = `Artéria carótida interna: placa ateromatosa determinando estenose luminal leve (<50%) pelo método NASCET (diâmetro residual ${formatBR(residual)} mm, diâmetro de referência distal ${formatBR(normal)} mm), sem repercussão hemodinâmica significativa.`
       } else if (stenosis < 70) {
         interpretation = 'Estenose moderada (50-69%)'
         color = 'warning'
+        formattedText = `Artéria carótida interna: estenose ateromatosa moderada (${formatBR(stenosis, 0)}%) pelo método NASCET, com diâmetro residual de ${formatBR(residual)} mm e referência distal de ${formatBR(normal)} mm. Correlação com parâmetros velocimétricos Doppler recomendada.`
       } else if (stenosis < 99) {
-        interpretation = 'Estenose severa (70-99%)'
+        interpretation = 'Estenose severa (≥70%)'
         color = 'danger'
+        formattedText = `Artéria carótida interna: estenose ateromatosa severa (${formatBR(stenosis, 0)}%) pelo método NASCET, hemodinamicamente significativa. Diâmetro luminal residual de ${formatBR(residual)} mm com referência distal normal de ${formatBR(normal)} mm. Paciente pode ser elegível para revascularização conforme guidelines AHA/ASA 2021.`
       } else {
-        interpretation = 'Oclusão completa'
+        interpretation = 'Oclusão ou near-occlusion'
         color = 'danger'
+        formattedText = `Artéria carótida interna: oclusão ou near-occlusion (estenose ≥99%) pelo método NASCET. Lúmen residual mínimo (${formatBR(residual)} mm). Correlação com estudo Doppler e/ou AngioTC/AngioRM mandatória para confirmação e avaliação de fluxo residual.`
       }
       
       return {
@@ -1115,25 +1121,215 @@ export const radiologyCalculators: RadiologyCalculator[] = [
         unit: '%',
         interpretation,
         color,
-        formattedText: `Estenose carotídea (NASCET): ${formatBR(stenosis, 0)}%, ${interpretation.toLowerCase()}.`
+        formattedText
       }
     },
     reference: {
-      text: 'NASCET Collaborators. N Engl J Med 1991',
+      text: 'NASCET Collaborators. N Engl J Med 1991;325:445-453',
       url: 'https://pubmed.ncbi.nlm.nih.gov/1852179/'
     },
     info: {
-      purpose: 'Calcular o grau de estenose carotídea pelo método NASCET, padrão para indicação de endarterectomia ou stent.',
+      purpose: 'Calcular o grau de estenose carotídea pelo método NASCET baseado em diâmetros anatômicos. Padrão-ouro para indicação de endarterectomia ou stent carotídeo.',
       usage: [
-        'Meça o menor diâmetro luminal no ponto de máxima estenose',
-        'Meça o diâmetro da ACI distal normal (sem placa)',
-        'Estenose ≥70% sintomática = indicação cirúrgica classe I'
+        'Meça o menor diâmetro luminal residual no ponto de máxima estenose',
+        'Meça o diâmetro da ACI distal normal (segmento sem placa)',
+        'Método aplicável à AngioTC, AngioRM e angiografia convencional',
+        'Para Doppler US, use os critérios velocimétricos (calculadora específica)'
       ],
       grading: [
-        '<50%: Estenose leve',
-        '50-69%: Estenose moderada',
-        '70-99%: Estenose severa',
-        '100%: Oclusão completa'
+        '<50%: Estenose leve - tratamento clínico',
+        '50-69%: Estenose moderada - avaliar sintomas',
+        '≥70%: Estenose severa - candidato a revascularização',
+        '≥99%: Near-occlusion/Oclusão - avaliar colaterais'
+      ]
+    }
+  },
+
+  // 20b. Estenose Carotídea por Doppler (Velocimetria IAC 2021)
+  {
+    id: 'carotid-stenosis-doppler',
+    name: 'Estenose Carotídea Doppler (IAC 2021)',
+    category: 'vascular',
+    subcategory: 'Carótidas',
+    description: 'Classificação de estenose carotídea por critérios velocimétricos Doppler',
+    inputs: [
+      { name: 'vpsAci', label: 'VPS ACI (Velocidade Pico Sistólico)', unit: 'cm/s', type: 'number', min: 0, max: 600, step: 1, defaultValue: 150 },
+      { name: 'vpsAcc', label: 'VPS ACC (Velocidade Pico Sistólico)', unit: 'cm/s', type: 'number', min: 20, max: 200, step: 1, defaultValue: 80 },
+      { name: 'vdfAci', label: 'VDF ACI (Velocidade Diastólica Final)', unit: 'cm/s', type: 'number', min: 0, max: 300, step: 1, defaultValue: 50 }
+    ],
+    calculate: (values) => {
+      const vpsAci = values.vpsAci as number
+      const vpsAcc = values.vpsAcc as number
+      const vdfAci = values.vdfAci as number
+      
+      const razao = vpsAci / vpsAcc
+      
+      let grau = ''
+      let interpretation = ''
+      let color: 'success' | 'warning' | 'danger' = 'success'
+      let formattedText = ''
+      
+      // Critérios IAC/AIUM/SRU/SVS 2021
+      if (vpsAci === 0) {
+        grau = 'Oclusão'
+        interpretation = 'Oclusão completa da ACI'
+        color = 'danger'
+        formattedText = `Artéria carótida interna: oclusão completa. Ausência de fluxo intraluminal ao color Doppler e Doppler espectral. ACC com fluxo de alta resistência (stump sign). Correlação com AngioTC/AngioRM para confirmação e avaliação de circulação colateral intracraniana.`
+      } else if (vpsAci < 50 && razao < 1.5) {
+        // Velocidades paradoxalmente baixas podem indicar near-occlusion
+        grau = 'Near-occlusion (suspeita)'
+        interpretation = 'Velocidades paradoxalmente baixas - avaliar near-occlusion'
+        color = 'danger'
+        formattedText = `Artéria carótida interna: velocidades paradoxalmente reduzidas (VPS ${formatBR(vpsAci, 0)} cm/s) com razão ACI/ACC de ${formatBR(razao, 1)}. Padrão sugestivo de near-occlusion (string sign). Lúmen residual filiforme deve ser pesquisado com color Doppler de alta sensibilidade. AngioTC/AngioRM mandatória para diferenciação de oclusão completa.`
+      } else if (vpsAci >= 230 || (razao > 4.0 && vdfAci > 100)) {
+        grau = '≥70%'
+        interpretation = 'Estenose severa (≥70%)'
+        color = 'danger'
+        formattedText = `Artéria carótida interna: estenose ateromatosa severa (≥70%) pelos critérios velocimétricos IAC/AIUM/SRU/SVS 2021, hemodinamicamente significativa. Parâmetros: VPS ${formatBR(vpsAci, 0)} cm/s, VDF ${formatBR(vdfAci, 0)} cm/s, razão VPS ACI/ACC ${formatBR(razao, 1)}. Preenche critérios para avaliação de revascularização conforme guidelines AHA/ASA para pacientes sintomáticos e selecionados assintomáticos.`
+      } else if (vpsAci >= 125 || (razao >= 2.0 && vdfAci >= 40)) {
+        grau = '50-69%'
+        interpretation = 'Estenose moderada (50-69%)'
+        color = 'warning'
+        formattedText = `Artéria carótida interna: estenose ateromatosa moderada (50-69%) pelos critérios velocimétricos IAC 2021, hemodinamicamente significativa. Parâmetros: VPS ${formatBR(vpsAci, 0)} cm/s, VDF ${formatBR(vdfAci, 0)} cm/s, razão VPS ACI/ACC ${formatBR(razao, 1)}. Indicação de revascularização depende de sintomatologia e contexto clínico. Seguimento ultrassonográfico em 6-12 meses recomendado.`
+      } else if (vpsAci < 125 && razao < 2.0) {
+        grau = '<50%'
+        interpretation = 'Normal ou estenose leve (<50%)'
+        color = 'success'
+        formattedText = `Artéria carótida interna: sem estenose hemodinamicamente significativa. Parâmetros velocimétricos dentro da normalidade: VPS ${formatBR(vpsAci, 0)} cm/s, VDF ${formatBR(vdfAci, 0)} cm/s, razão VPS ACI/ACC ${formatBR(razao, 1)}. ${vpsAci > 80 ? 'Placa ateromatosa presente sem repercussão hemodinâmica.' : 'Fluxo laminar preservado.'}`
+      } else {
+        grau = 'Indeterminado'
+        interpretation = 'Padrão velocimétrico atípico - correlação clínica'
+        color = 'warning'
+        formattedText = `Artéria carótida interna: padrão velocimétrico atípico. VPS ${formatBR(vpsAci, 0)} cm/s, VDF ${formatBR(vdfAci, 0)} cm/s, razão ACI/ACC ${formatBR(razao, 1)}. Critérios não conclusivos - considerar fatores confundidores (estenose contralateral, insuficiência cardíaca, estenose em tandem). AngioTC/AngioRM recomendada para quantificação anatômica.`
+      }
+      
+      return {
+        value: `${grau} (VPS ${formatBR(vpsAci, 0)}, Razão ${formatBR(razao, 1)})`,
+        unit: '',
+        interpretation,
+        color,
+        formattedText
+      }
+    },
+    reference: {
+      text: 'Gornik HL et al. IAC/AIUM/SRU/SVS Consensus 2021. Vascular Medicine 2021;26(5):515-525',
+      url: 'https://journals.sagepub.com/doi/10.1177/1358863X211035657'
+    },
+    info: {
+      purpose: 'Classificar estenose carotídea por critérios velocimétricos Doppler conforme consenso IAC/AIUM/SRU/SVS 2021. Método não-invasivo de primeira linha para rastreamento e seguimento.',
+      usage: [
+        'VPS ACI: velocidade de pico sistólico na ACI no ponto de máxima aceleração',
+        'VPS ACC: velocidade de pico sistólico na ACC proximal (2-3 cm da bifurcação)',
+        'VDF ACI: velocidade diastólica final na ACI no mesmo ponto de VPS máxima',
+        'Manter ângulo Doppler ≤60° para acurácia das medidas'
+      ],
+      grading: [
+        'Normal: VPS <125, Razão <2,0, VDF <40',
+        '<50%: VPS <125 com placa visível',
+        '50-69%: VPS 125-230, Razão 2,0-4,0, VDF 40-100',
+        '≥70%: VPS >230, Razão >4,0, VDF >100',
+        'Near-occlusion: velocidades paradoxalmente baixas, string sign'
+      ]
+    }
+  },
+
+  // 20c. Estenose de Artéria Renal por Doppler
+  {
+    id: 'renal-artery-stenosis-doppler',
+    name: 'Estenose Artéria Renal Doppler',
+    category: 'vascular',
+    subcategory: 'Artérias Renais',
+    description: 'Avaliação de estenose de artéria renal por critérios Doppler diretos e indiretos',
+    inputs: [
+      { name: 'vpsRenal', label: 'VPS Artéria Renal', unit: 'cm/s', type: 'number', min: 0, max: 500, step: 1, defaultValue: 150 },
+      { name: 'vpsAorta', label: 'VPS Aorta Abdominal', unit: 'cm/s', type: 'number', min: 30, max: 200, step: 1, defaultValue: 80 },
+      { name: 'ta', label: 'Tempo de Aceleração (TA)', unit: 'ms', type: 'number', min: 0, max: 200, step: 1, defaultValue: 50 },
+      { name: 'ir', label: 'Índice de Resistência (IR)', unit: '', type: 'number', min: 0.3, max: 1.0, step: 0.01, defaultValue: 0.65 }
+    ],
+    calculate: (values) => {
+      const vpsRenal = values.vpsRenal as number
+      const vpsAorta = values.vpsAorta as number
+      const ta = values.ta as number
+      const ir = values.ir as number
+      
+      const rar = vpsRenal / vpsAorta
+      
+      // Critérios para estenose significativa (≥60%)
+      const criterioVps = vpsRenal >= 180
+      const criterioRar = rar >= 3.5
+      const criterioTa = ta > 70
+      const criterioIrBaixo = ir < 0.55
+      const criterioIrAlto = ir > 0.80
+      
+      const criteriosDiretos = criterioVps || criterioRar
+      const criteriosIndiretos = criterioTa || criterioIrBaixo
+      
+      let grau = ''
+      let interpretation = ''
+      let color: 'success' | 'warning' | 'danger' = 'success'
+      let formattedText = ''
+      
+      // Análise integrada
+      const achadosDiretos: string[] = []
+      const achadosIndiretos: string[] = []
+      
+      if (criterioVps) achadosDiretos.push(`VPS elevada (${formatBR(vpsRenal, 0)} cm/s)`)
+      if (criterioRar) achadosDiretos.push(`RAR aumentada (${formatBR(rar, 1)}:1)`)
+      if (criterioTa) achadosIndiretos.push(`tempo de aceleração prolongado (${formatBR(ta, 0)} ms)`)
+      if (criterioIrBaixo) achadosIndiretos.push(`IR reduzido (${formatBR(ir, 2)}) com padrão tardus-parvus`)
+      
+      if (criteriosDiretos && criteriosIndiretos) {
+        grau = '≥60% (provável)'
+        interpretation = 'Estenose significativa com critérios diretos e indiretos'
+        color = 'danger'
+        formattedText = `Artéria renal: padrão velocimétrico compatível com estenose hemodinamicamente significativa (≥60%). Critérios diretos: ${achadosDiretos.join(', ')}. Achados indiretos no parênquima renal ipsilateral: ${achadosIndiretos.join(', ')}. A concordância entre critérios diretos e indiretos aumenta a especificidade diagnóstica. Correlação com AngioTC/AngioRM recomendada para planejamento de intervenção.`
+      } else if (criteriosDiretos) {
+        grau = '≥60% (possível)'
+        interpretation = 'Estenose significativa por critérios diretos'
+        color = 'danger'
+        formattedText = `Artéria renal: ${achadosDiretos.join(' e ')}, preenchendo critérios diretos para estenose ≥60%. Parâmetros: VPS ${formatBR(vpsRenal, 0)} cm/s, RAR ${formatBR(rar, 1)}:1. Achados indiretos no parênquima renal não detectados (TA ${formatBR(ta, 0)} ms, IR ${formatBR(ir, 2)}). Considerar correlação com método de imagem seccional para quantificação anatômica.`
+      } else if (criteriosIndiretos) {
+        grau = 'Indiretos positivos'
+        interpretation = 'Achados indiretos sugestivos - estenose proximal possível'
+        color = 'warning'
+        formattedText = `Parênquima renal: ${achadosIndiretos.join(' e ')}, sugestivos de estenose proximal hemodinamicamente significativa. Padrão tardus-parvus intrarrenal indica redução de fluxo por obstrução a montante. Estudo direto da artéria renal pode estar limitado tecnicamente. AngioTC/AngioRM mandatória para confirmação e quantificação.`
+      } else if (criterioIrAlto) {
+        grau = 'IR elevado'
+        interpretation = 'IR elevado - sugere nefropatia parenquimatosa'
+        color = 'warning'
+        formattedText = `Parênquima renal: índice de resistência elevado (IR ${formatBR(ir, 2)}), indicando aumento da impedância vascular intrarrenal. Este padrão é mais sugestivo de nefropatia parenquimatosa crônica do que estenose arterial. Na presença de estenose bilateral, os IRs podem paradoxalmente normalizar-se. Parâmetros diretos normais: VPS ${formatBR(vpsRenal, 0)} cm/s, RAR ${formatBR(rar, 1)}:1.`
+      } else {
+        grau = 'Normal'
+        interpretation = 'Sem evidência de estenose significativa'
+        color = 'success'
+        formattedText = `Artéria renal: parâmetros velocimétricos dentro da normalidade. VPS ${formatBR(vpsRenal, 0)} cm/s, RAR ${formatBR(rar, 1)}:1. Curva de fluxo intrarrenal com morfologia preservada (TA ${formatBR(ta, 0)} ms, IR ${formatBR(ir, 2)}). Sem evidência de estenose hemodinamicamente significativa.`
+      }
+      
+      return {
+        value: `${grau} (RAR ${formatBR(rar, 1)}:1)`,
+        unit: '',
+        interpretation,
+        color,
+        formattedText
+      }
+    },
+    reference: {
+      text: 'Williams GJ et al. Cochrane Database 2007 | Radclife KA et al. AJR 2001',
+      url: 'https://www.cochranelibrary.com/cdsr/doi/10.1002/14651858.CD003191.pub2/full'
+    },
+    info: {
+      purpose: 'Avaliar estenose de artéria renal combinando critérios Doppler diretos (artéria principal) e indiretos (parênquima renal). Método de primeira linha para rastreamento de hipertensão renovascular.',
+      usage: [
+        'VPS Artéria Renal: medida na artéria renal principal, idealmente no terço proximal',
+        'VPS Aorta: medida na aorta abdominal ao nível das renais',
+        'TA: tempo do início da sístole ao pico sistólico na curva intrarrenal',
+        'IR: (VPS - VDF) / VPS nas artérias interlobares'
+      ],
+      grading: [
+        'Normal: VPS <180, RAR <3,5:1, TA <70ms, IR 0,55-0,70',
+        '≥60%: VPS ≥180 OU RAR ≥3,5:1',
+        'Indiretos: TA >70ms E/OU IR <0,55 (tardus-parvus)',
+        'Nefropatia: IR >0,80 (doença parenquimatosa)'
       ]
     }
   },
