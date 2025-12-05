@@ -4,7 +4,7 @@ import { biradsCategories, formatMeasurement, calcularTempoSeguimento, formatarT
 
 export { formatMeasurement }
 
-export const ACR_BIRADS_RM_REFERENCE = "D'Orsi CJ, et al. ACR BI-RADS® Atlas - Breast MRI. 5th ed. Reston, VA: ACR; 2013."
+export const ACR_BIRADS_RM_REFERENCE = "ACR BI-RADS® Atlas - Breast MRI. v2025 ed. Reston, VA: American College of Radiology; 2025."
 
 // ==========================================
 // BI-RADS RM INTERFACES
@@ -89,7 +89,7 @@ export const createEmptyBIRADSRMMassa = (): BIRADSRMMassa => ({
   forma: 'oval',
   margens: 'circunscrito',
   realceInterno: 'homogeneo',
-  localizacao: 'qsl',
+  localizacao: 'qse_10h',
   lado: 'direita',
   medidas: [1.0, 1.0, 1.0],
   cineticaInicial: 'medio',
@@ -103,7 +103,7 @@ export const createEmptyBIRADSRMNME = (): BIRADSRMNME => ({
   presente: false,
   distribuicao: 'focal',
   padraoInterno: 'homogeneo',
-  localizacao: 'qsl',
+  localizacao: 'qse_10h',
   lado: 'direita',
   extensao: 1.0,
   cineticaInicial: 'medio',
