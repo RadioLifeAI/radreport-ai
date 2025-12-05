@@ -326,9 +326,21 @@ export function getColorScoreDescriptionFromDB(cs: ColorScore, options?: ORADSOp
 
 /**
  * Helper para buscar texto de lesão típica benigna do banco de dados com fallback
+ * Mapeia valores do código para valores do banco de dados
  */
 export function getLesaoTipicaTextoFromDB(tipo: LesaoTipicaBenigna, options?: ORADSOptions): string {
-  const opt = options?.lesao_tipica_benigna?.find(o => o.value === tipo)
+  // Mapa de conversão entre valores do código e valores do banco
+  const valorMap: Record<LesaoTipicaBenigna, string> = {
+    'cisto_hemorragico': 'hemorragico',
+    'cisto_dermoide': 'dermoide',
+    'endometrioma': 'endometrioma',
+    'cisto_paraovarian': 'cisto_paratubal',
+    'cisto_inclusao_peritoneal': 'cisto_peritoneal',
+    'hidrossalpinge': 'hidrossalpinge'
+  }
+  
+  const valorBanco = valorMap[tipo] || tipo
+  const opt = options?.lesao_tipica?.find(o => o.value === valorBanco)
   if (opt?.texto) {
     return opt.texto
   }
