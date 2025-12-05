@@ -1,5 +1,18 @@
 import { useState } from 'react'
-import { Activity, ChevronDown } from 'lucide-react'
+import { 
+  Activity, 
+  ChevronDown, 
+  Scan, 
+  BarChart3, 
+  Radio, 
+  Camera, 
+  Zap, 
+  Wind, 
+  Heart, 
+  CircleDot, 
+  Database, 
+  Circle 
+} from 'lucide-react'
 import { Editor } from '@tiptap/react'
 import {
   DropdownMenu,
@@ -37,45 +50,45 @@ export function RADSDropdown({ editor }: RADSDropdownProps) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-64">
           <DropdownMenuItem onClick={() => setUsTireoideOpen(true)} className="cursor-pointer">
-            <span className="mr-2">🦋</span>
+            <Scan className="mr-2 h-4 w-4 text-cyan-500" />
             US Tireoide (Completo)
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setTiradsOpen(true)} className="cursor-pointer">
-            <span className="mr-2">📊</span>
+            <BarChart3 className="mr-2 h-4 w-4 text-cyan-500" />
             ACR TI-RADS (Nódulos)
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => setBiradsUSGOpen(true)} className="cursor-pointer">
-            <span className="mr-2">🎀</span>
+            <Radio className="mr-2 h-4 w-4 text-pink-500" />
             ACR BI-RADS (Mama - USG)
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setBiradsMGOpen(true)} className="cursor-pointer">
-            <span className="mr-2">📷</span>
+            <Camera className="mr-2 h-4 w-4 text-pink-500" />
             ACR BI-RADS (Mama - Mamografia)
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setBiradsRMOpen(true)} className="cursor-pointer">
-            <span className="mr-2">🧲</span>
+            <Zap className="mr-2 h-4 w-4 text-pink-500" />
             ACR BI-RADS (Mama - RM)
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem disabled className="opacity-50">
-            <span className="mr-2">🫁</span>
+            <Wind className="mr-2 h-4 w-4 text-blue-400" />
             Lung-RADS (Pulmão) - Em breve
           </DropdownMenuItem>
           <DropdownMenuItem disabled className="opacity-50">
-            <span className="mr-2">🫀</span>
+            <Heart className="mr-2 h-4 w-4 text-red-500" />
             CAD-RADS (Coronárias) - Em breve
           </DropdownMenuItem>
           <DropdownMenuItem disabled className="opacity-50">
-            <span className="mr-2">🔵</span>
+            <CircleDot className="mr-2 h-4 w-4 text-indigo-500" />
             PI-RADS (Próstata) - Em breve
           </DropdownMenuItem>
           <DropdownMenuItem disabled className="opacity-50">
-            <span className="mr-2">🟤</span>
+            <Database className="mr-2 h-4 w-4 text-amber-600" />
             LI-RADS (Fígado) - Em breve
           </DropdownMenuItem>
           <DropdownMenuItem disabled className="opacity-50">
-            <span className="mr-2">🥚</span>
+            <Circle className="mr-2 h-4 w-4 text-purple-500" />
             O-RADS (Ovário) - Em breve
           </DropdownMenuItem>
         </DropdownMenuContent>
