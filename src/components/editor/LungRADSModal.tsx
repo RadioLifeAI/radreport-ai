@@ -141,8 +141,8 @@ export function LungRADSModal({ open, onOpenChange, editor }: LungRADSModalProps
       parts.push('<p>- Ausência de nódulos pulmonares significativos.</p>')
     }
     
-    // Parênquima
-    const parenquima = generateParenquimaTexto(data)
+    // Parênquima - passar dbOptions
+    const parenquima = generateParenquimaTexto(data, dbOptions || undefined)
     parts.push(`<p>- ${parenquima}</p>`)
     
     // Linfonodos - passar dbOptions
