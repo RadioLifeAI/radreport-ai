@@ -23,6 +23,7 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Separator } from '@/components/ui/separator'
 import { Progress } from '@/components/ui/progress'
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable'
 import { useRADSOptions, RADSOption } from '@/hooks/useRADSOptions'
 import { getRADSOptionsWithFallback } from '@/lib/radsOptionsProvider'
 import { 
@@ -568,8 +569,15 @@ export function USTireoideModal({ open, onOpenChange, editor }: USTireoideModalP
             })}
           </div>
           
-          {/* Main content */}
-          <div className="flex-1 overflow-y-auto p-6">
+          {/* Resizable Main Content + Preview */}
+          <ResizablePanelGroup 
+            direction="horizontal" 
+            autoSaveId="us-tireoide-layout"
+            className="flex-1"
+          >
+            {/* Main content */}
+            <ResizablePanel defaultSize={showPreview ? 65 : 100} minSize={40} maxSize={80}>
+              <div className="overflow-y-auto p-6 h-full">
             {/* INDICAÇÃO */}
             {activeTab === 'indicacao' && (
               <div className="space-y-4">
@@ -1127,75 +1135,82 @@ export function USTireoideModal({ open, onOpenChange, editor }: USTireoideModalP
                 </div>
               </div>
             )}
-          </div>
+              </div>
+            </ResizablePanel>
           
           {/* Preview panel */}
           {showPreview && (
-            <div className="w-80 border-l bg-muted/20 overflow-y-auto p-4 shrink-0">
-              <div className="mb-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-semibold uppercase text-muted-foreground">Preview</span>
-                  <span className="text-xs text-muted-foreground">{filledSections}/4 seções</span>
+            <>
+              <ResizableHandle withHandle />
+              <ResizablePanel defaultSize={35} minSize={20} maxSize={60}>
+                <div className="bg-muted/20 overflow-y-auto p-4 h-full">
+                  <div className="mb-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-semibold uppercase text-muted-foreground">Preview</span>
+                      <span className="text-xs text-muted-foreground">{filledSections}/4 seções</span>
+                    </div>
+                    <Progress value={progress} className="h-1.5" />
+                  </div>
+                  
+                  {/* TI-RADS Classification Card */}
+                  {highestTIRADS && (
+                    <div className={`p-4 rounded-lg mb-4 text-center ${
+                      highestTIRADS.level <= 2 ? 'bg-green-500/20 border border-green-500/30' :
+                      highestTIRADS.level === 3 ? 'bg-yellow-500/20 border border-yellow-500/30' :
+                      highestTIRADS.level === 4 ? 'bg-orange-500/20 border border-orange-500/30' :
+                      'bg-red-500/20 border border-red-500/30'
+                    }`}>
+                      <p className={`text-2xl font-bold ${
+                        highestTIRADS.level <= 2 ? 'text-green-700 dark:text-green-300' :
+                        highestTIRADS.level === 3 ? 'text-yellow-700 dark:text-yellow-300' :
+                        highestTIRADS.level === 4 ? 'text-orange-700 dark:text-orange-300' :
+                        'text-red-700 dark:text-red-300'
+                      }`}>
+                        TI-RADS {highestTIRADS.level}
+                      </p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {highestTIRADS.category}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        {data.nodulos.length} {data.nodulos.length === 1 ? 'nódulo' : 'nódulos'}
+                      </p>
+                    </div>
+                  )}
+                  
+                  <SectionPreview
+                    title="Indicação" 
+                    content={indicacaoPreview} 
+                    hasContent={!!indicacaoPreview}
+                  />
+                  <SectionPreview 
+                    title="Técnica" 
+                    content={tecnicaPreview} 
+                    hasContent={true}
+                  />
+                  <SectionPreview 
+                    title="Análise" 
+                    content={achadosPreview} 
+                    hasContent={!!achadosPreview}
+                    isRequired
+                  />
+                  <SectionPreview 
+                    title="Opinião" 
+                    content={impressaoPreview} 
+                    hasContent={!!impressaoPreview}
+                    isRequired
+                  />
+                  {data.notas && (
+                    <SectionPreview 
+                      title="Notas" 
+                      content={data.notas} 
+                      hasContent={true}
+                    />
+                  )}
                 </div>
-                <Progress value={progress} className="h-1.5" />
-              </div>
-              
-              {/* TI-RADS Classification Card */}
-              {highestTIRADS && (
-                <div className={`p-4 rounded-lg mb-4 text-center ${
-                  highestTIRADS.level <= 2 ? 'bg-green-500/20 border border-green-500/30' :
-                  highestTIRADS.level === 3 ? 'bg-yellow-500/20 border border-yellow-500/30' :
-                  highestTIRADS.level === 4 ? 'bg-orange-500/20 border border-orange-500/30' :
-                  'bg-red-500/20 border border-red-500/30'
-                }`}>
-                  <p className={`text-2xl font-bold ${
-                    highestTIRADS.level <= 2 ? 'text-green-700 dark:text-green-300' :
-                    highestTIRADS.level === 3 ? 'text-yellow-700 dark:text-yellow-300' :
-                    highestTIRADS.level === 4 ? 'text-orange-700 dark:text-orange-300' :
-                    'text-red-700 dark:text-red-300'
-                  }`}>
-                    TI-RADS {highestTIRADS.level}
-                  </p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {highestTIRADS.category}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    {data.nodulos.length} {data.nodulos.length === 1 ? 'nódulo' : 'nódulos'}
-                  </p>
-                </div>
-              )}
-              
-              <SectionPreview
-                title="Indicação" 
-                content={indicacaoPreview} 
-                hasContent={!!indicacaoPreview}
-              />
-              <SectionPreview 
-                title="Técnica" 
-                content={tecnicaPreview} 
-                hasContent={true}
-              />
-              <SectionPreview 
-                title="Análise" 
-                content={achadosPreview} 
-                hasContent={!!achadosPreview}
-                isRequired
-              />
-              <SectionPreview 
-                title="Opinião" 
-                content={impressaoPreview} 
-                hasContent={!!impressaoPreview}
-                isRequired
-              />
-              {data.notas && (
-                <SectionPreview 
-                  title="Notas" 
-                  content={data.notas} 
-                  hasContent={true}
-                />
-              )}
-            </div>
+              </ResizablePanel>
+            </>
           )}
+        </ResizablePanelGroup>
         </div>
         
         <DialogFooter className="px-6 py-4 border-t">

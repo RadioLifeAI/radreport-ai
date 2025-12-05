@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/select'
 import { Progress } from '@/components/ui/progress'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable'
 import {
   NoduleData,
   createEmptyNodule,
@@ -278,12 +279,17 @@ export function TIRADSModal({ open, onOpenChange, editor }: TIRADSModalProps) {
             </div>
           </DialogHeader>
 
-          {/* Content - 2 columns */}
-          <div className="flex flex-1 min-h-0 overflow-hidden">
+          {/* Content - Resizable 2 columns */}
+          <ResizablePanelGroup 
+            direction="horizontal" 
+            autoSaveId="tirads-layout"
+            className="flex-1 min-h-0"
+          >
             {/* Form Column */}
-            <ScrollArea className={`flex-1 ${showPreview ? 'w-2/3' : 'w-full'}`}>
-              <div className="p-6 space-y-6">
-                {/* Quantidade de nódulos */}
+            <ResizablePanel defaultSize={showPreview ? 65 : 100} minSize={40} maxSize={80}>
+              <ScrollArea className="h-full">
+                <div className="p-6 space-y-6">
+                  {/* Quantidade de nódulos */}
                 <div className="space-y-3">
                   <RadioGroup
                     value={quantidade}
@@ -506,80 +512,86 @@ export function TIRADSModal({ open, onOpenChange, editor }: TIRADSModalProps) {
                 </div>
               </div>
             </ScrollArea>
+          </ResizablePanel>
 
-            {/* Preview Column */}
-            {showPreview && (
-              <div className="w-1/3 border-l border-border bg-muted/20 flex flex-col">
-                <ScrollArea className="flex-1">
-                  <div className="p-4 space-y-4">
-                    {/* TI-RADS Classification Card - HIGHLIGHTED */}
-                    <div className={`p-4 rounded-lg border-2 text-center ${getTIRADSColorClasses(highestTIRADS.level)}`}>
-                      <p className="text-3xl font-bold">TI-RADS {highestTIRADS.level}</p>
-                      <p className="text-sm mt-1 font-medium">{highestTIRADS.category}</p>
-                      <p className="text-xs mt-1 opacity-80">Risco de malignidade: {highestTIRADS.risk}</p>
-                    </div>
-
-                    {/* Progress Bar */}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-muted-foreground">Completude</span>
-                        <span className="font-medium">{completeness.filled}/{completeness.total}</span>
+          {/* Preview Column */}
+          {showPreview && (
+            <>
+              <ResizableHandle withHandle />
+              <ResizablePanel defaultSize={35} minSize={20} maxSize={60}>
+                <div className="bg-muted/20 flex flex-col h-full">
+                  <ScrollArea className="flex-1">
+                    <div className="p-4 space-y-4">
+                      {/* TI-RADS Classification Card - HIGHLIGHTED */}
+                      <div className={`p-4 rounded-lg border-2 text-center ${getTIRADSColorClasses(highestTIRADS.level)}`}>
+                        <p className="text-3xl font-bold">TI-RADS {highestTIRADS.level}</p>
+                        <p className="text-sm mt-1 font-medium">{highestTIRADS.category}</p>
+                        <p className="text-xs mt-1 opacity-80">Risco de malignidade: {highestTIRADS.risk}</p>
                       </div>
-                      <Progress value={completeness.percentage} className="h-2" />
-                    </div>
 
-                    {/* Section Previews */}
-                    <div className="space-y-4 pt-2">
-                      <SectionPreview
-                        title="Indicação"
-                        content={previewTexts.indicacao}
-                        status="filled"
-                      />
-                      <SectionPreview
-                        title="Técnica"
-                        content={previewTexts.tecnica}
-                        status="filled"
-                      />
-                      <SectionPreview
-                        title="Análise"
-                        content={previewTexts.analise}
-                        status={previewTexts.analise ? 'filled' : 'required'}
-                      />
-                      <SectionPreview
-                        title="Opinião"
-                        content={previewTexts.opiniao}
-                        status={previewTexts.opiniao ? 'filled' : 'optional'}
-                      />
-                    </div>
-                  </div>
-                </ScrollArea>
-              </div>
-            )}
-          </div>
+                      {/* Progress Bar */}
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">Completude</span>
+                          <span className="font-medium">{completeness.filled}/{completeness.total}</span>
+                        </div>
+                        <Progress value={completeness.percentage} className="h-2" />
+                      </div>
 
-          {/* Footer */}
-          <DialogFooter className="px-6 py-4 border-t border-border shrink-0">
-            <div className="flex flex-col sm:flex-row gap-2 w-full">
-              <Button variant="ghost" onClick={handleReset}>
-                Limpar
-              </Button>
-              <div className="flex gap-2 ml-auto">
-                <Button variant="outline" onClick={() => onOpenChange(false)}>
-                  Cancelar
-                </Button>
-                <Button variant="secondary" onClick={handleInsertImpressao}>
-                  Inserir Opinião
-                </Button>
-                <Button variant="secondary" onClick={handleInsertAchados}>
-                  Inserir Análise
-                </Button>
-                <Button onClick={handleInsertLaudoCompleto}>
-                  Inserir Laudo Completo
-                </Button>
-              </div>
-            </div>
-          </DialogFooter>
+                      {/* Section Previews */}
+                      <div className="space-y-4 pt-2">
+                        <SectionPreview
+                          title="Indicação"
+                          content={previewTexts.indicacao}
+                          status="filled"
+                        />
+                        <SectionPreview
+                          title="Técnica"
+                          content={previewTexts.tecnica}
+                          status="filled"
+                        />
+                        <SectionPreview
+                          title="Análise"
+                          content={previewTexts.analise}
+                          status={previewTexts.analise ? 'filled' : 'required'}
+                        />
+                        <SectionPreview
+                          title="Opinião"
+                          content={previewTexts.opiniao}
+                          status={previewTexts.opiniao ? 'filled' : 'optional'}
+                        />
+                      </div>
+                    </div>
+                  </ScrollArea>
+                </div>
+              </ResizablePanel>
+            </>
+          )}
+        </ResizablePanelGroup>
         </div>
+
+        {/* Footer */}
+        <DialogFooter className="px-6 py-4 border-t border-border shrink-0">
+          <div className="flex flex-col sm:flex-row gap-2 w-full">
+            <Button variant="ghost" onClick={handleReset}>
+              Limpar
+            </Button>
+            <div className="flex gap-2 ml-auto">
+              <Button variant="outline" onClick={() => onOpenChange(false)}>
+                Cancelar
+              </Button>
+              <Button variant="secondary" onClick={handleInsertImpressao}>
+                Inserir Opinião
+              </Button>
+              <Button variant="secondary" onClick={handleInsertAchados}>
+                Inserir Análise
+              </Button>
+              <Button onClick={handleInsertLaudoCompleto}>
+                Inserir Laudo Completo
+              </Button>
+            </div>
+          </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   )
