@@ -280,7 +280,7 @@ export const lesoesTipicasBenignas: Record<LesaoTipicaBenigna, {
 
 // ============= DATABASE HELPERS =============
 
-type ORADSOptions = Record<string, Array<{ value: string; label: string; texto: string }>>
+export type ORADSOptions = Record<string, Array<{ value: string; label: string; texto: string }>>
 
 /**
  * Helper para buscar categoria O-RADS do banco de dados com fallback
@@ -290,11 +290,13 @@ export function getORADSCategoryFromDB(score: number, options?: ORADSOptions): O
   if (catOpt?.texto) {
     // Parse texto do banco: "Risco - Descrição (percentual)"
     const parts = catOpt.texto.split(' - ')
+    // Regex melhorado para capturar padrões como "<1%", "1-10%", "≥50%", etc.
+    const riscoMatch = catOpt.texto.match(/[<>≥≤]?\d+(?:[,-]\d+)?%/)
     return {
       score,
       name: catOpt.label || `O-RADS ${score}`,
       risco: parts[0] || oradsCategories[score]?.risco || '',
-      riscoNumerico: catOpt.texto.match(/\(([^)]+)\)/)?.[1] || oradsCategories[score]?.riscoNumerico || '',
+      riscoNumerico: riscoMatch?.[0] || oradsCategories[score]?.riscoNumerico || '',
       cor: score === 0 ? 'gray' : score <= 2 ? 'green' : score === 3 ? 'yellow' : score === 4 ? 'orange' : 'red',
       recomendacao: '' // Será preenchido por getORADSRecommendationFromDB
     }
@@ -365,7 +367,7 @@ export function getTecnicaFromDB(options?: ORADSOptions): string {
  * Avalia uma lesão ovariana e retorna o score O-RADS
  * Baseado no algoritmo ACR O-RADS US v2022
  */
-export function evaluateORADS(lesao: ORADSLesao, statusMenopausal: StatusMenopausal): ORADSResult {
+export function evaluateORADS(lesao: ORADSLesao, statusMenopausal: StatusMenopausal, options?: ORADSOptions): ORADSResult {
   const { tipo, tamanho, componenteSolido, colorScore, paredeInterna, septacao, numeroPapilas, sombra, contornoExterno, lesaoTipica } = lesao
   
   // O-RADS 5: Alto risco (≥50%)
@@ -373,120 +375,122 @@ export function evaluateORADS(lesao: ORADSLesao, statusMenopausal: StatusMenopau
   
   // Lesão sólida com contorno irregular - O-RADS 5
   if (tipo === 'solido' && contornoExterno === 'irregular') {
-    return createResult(5, lesao)
+    return createResult(5, lesao, options)
   }
   
   // Lesão sólida com contorno liso e CS4 - O-RADS 5
   if (tipo === 'solido' && contornoExterno === 'liso' && colorScore === 4) {
-    return createResult(5, lesao)
+    return createResult(5, lesao, options)
   }
   
   // Cisto uni/bilocular com componente sólido e ≥4 projeções papilares - O-RADS 5
   if ((tipo === 'cisto_unilocular_nao_simples' || tipo === 'cisto_bilocular') && componenteSolido && (numeroPapilas ?? 0) >= 4) {
-    return createResult(5, lesao)
+    return createResult(5, lesao, options)
   }
   
   // Cisto bi/multilocular com componente sólido e CS 3-4 - O-RADS 5
   if ((tipo === 'cisto_bilocular' || tipo === 'cisto_multilocular') && componenteSolido && colorScore >= 3) {
-    return createResult(5, lesao)
+    return createResult(5, lesao, options)
   }
   
   // O-RADS 4: Risco intermediário (10-50%)
   
   // Cisto unilocular com componente sólido, 1-3 projeções papilares - O-RADS 4
   if (tipo === 'cisto_unilocular_nao_simples' && componenteSolido && (numeroPapilas ?? 0) >= 1 && (numeroPapilas ?? 0) <= 3) {
-    return createResult(4, lesao)
+    return createResult(4, lesao, options)
   }
   
   // Cisto multilocular com componente sólido e CS 1-2 - O-RADS 4
   if (tipo === 'cisto_multilocular' && componenteSolido && colorScore <= 2) {
-    return createResult(4, lesao)
+    return createResult(4, lesao, options)
   }
   
   // Cisto multilocular sem componente sólido, >10cm, parede lisa, CS 1-3 - O-RADS 4
   if (tipo === 'cisto_multilocular' && !componenteSolido && tamanho > 10 && paredeInterna === 'lisa' && colorScore <= 3) {
-    return createResult(4, lesao)
+    return createResult(4, lesao, options)
   }
   
   // Cisto multilocular sem componente sólido, parede lisa, CS 4 - O-RADS 4
   if (tipo === 'cisto_multilocular' && !componenteSolido && paredeInterna === 'lisa' && colorScore === 4) {
-    return createResult(4, lesao)
+    return createResult(4, lesao, options)
   }
   
   // Cisto multilocular sem componente sólido, parede/septação irregular - O-RADS 4
   if (tipo === 'cisto_multilocular' && !componenteSolido && (paredeInterna === 'irregular' || septacao === 'irregular')) {
-    return createResult(4, lesao)
+    return createResult(4, lesao, options)
   }
   
   // Lesão sólida sem sombra, contorno liso, CS 2-3 - O-RADS 4
   if (tipo === 'solido' && !sombra && contornoExterno === 'liso' && colorScore >= 2 && colorScore <= 3) {
-    return createResult(4, lesao)
+    return createResult(4, lesao, options)
   }
   
   // Cisto bilocular irregular sem componente sólido - O-RADS 4
   if (tipo === 'cisto_bilocular_irregular' && !componenteSolido) {
-    return createResult(4, lesao)
+    return createResult(4, lesao, options)
   }
   
   // O-RADS 3: Baixo risco (1-10%)
   
   // Lesão típica benigna ≥10cm - O-RADS 3
   if (tipo === 'lesao_tipica_benigna' && tamanho >= 10) {
-    return createResult(3, lesao)
+    return createResult(3, lesao, options)
   }
   
   // Cisto unilocular ou bilocular >10cm (simples ou não) - O-RADS 3
   if ((tipo === 'cisto_simples' || tipo === 'cisto_unilocular_nao_simples' || tipo === 'cisto_bilocular') && tamanho > 10) {
-    return createResult(3, lesao)
+    return createResult(3, lesao, options)
   }
   
   // Cisto multilocular <10cm, parede lisa, CS 1-3 - O-RADS 3
   if (tipo === 'cisto_multilocular' && tamanho < 10 && paredeInterna === 'lisa' && colorScore <= 3) {
-    return createResult(3, lesao)
+    return createResult(3, lesao, options)
   }
   
   // Lesão sólida com sombra, contorno liso, CS 1 - O-RADS 3
   if (tipo === 'solido' && sombra && contornoExterno === 'liso' && colorScore === 1) {
-    return createResult(3, lesao)
+    return createResult(3, lesao, options)
   }
   
-  // Lesão sólida sem sombra, contorno liso, CS 2-3 com sombra - O-RADS 3
-  if (tipo === 'solido' && !sombra && contornoExterno === 'liso' && colorScore >= 2 && colorScore <= 3 && sombra) {
-    return createResult(3, lesao)
+  // Lesão sólida sem sombra, contorno liso, CS 1 - O-RADS 3 (CORREÇÃO: lógica impossível removida)
+  if (tipo === 'solido' && !sombra && contornoExterno === 'liso' && colorScore === 1) {
+    return createResult(3, lesao, options)
   }
   
   // Cisto unilocular irregular - O-RADS 3
   if (tipo === 'cisto_unilocular_irregular') {
-    return createResult(3, lesao)
+    return createResult(3, lesao, options)
   }
   
   // O-RADS 2: Quase certamente benigno (<1%)
   
   // Cisto simples ≤10cm - O-RADS 2
   if (tipo === 'cisto_simples' && tamanho <= 10) {
-    return createResult(2, lesao)
+    return createResult(2, lesao, options)
   }
   
   // Cisto não-simples unilocular liso ou cisto bilocular liso ≤10cm - O-RADS 2
   if ((tipo === 'cisto_unilocular_nao_simples' || tipo === 'cisto_bilocular') && paredeInterna === 'lisa' && tamanho <= 10) {
-    return createResult(2, lesao)
+    return createResult(2, lesao, options)
   }
   
   // Lesão típica benigna <10cm - O-RADS 2
   if (tipo === 'lesao_tipica_benigna' && tamanho < 10) {
-    return createResult(2, lesao)
+    return createResult(2, lesao, options)
   }
   
   // Fallback - se não se encaixa em nenhuma categoria
-  return createResult(2, lesao)
+  return createResult(2, lesao, options)
 }
 
-function createResult(score: number, lesao: ORADSLesao): ORADSResult {
+function createResult(score: number, lesao: ORADSLesao, options?: ORADSOptions): ORADSResult {
+  const category = getORADSCategoryFromDB(score, options)
+  const recomendacao = getORADSRecommendationFromDB(score, options)
   return {
     score,
-    category: oradsCategories[score],
+    category,
     lesao,
-    recomendacao: oradsCategories[score].recomendacao
+    recomendacao
   }
 }
 
@@ -807,7 +811,7 @@ export function generateORADSImpressao(data: ORADSUSData, options?: ORADSOptions
   
   // Lesões ovarianas com classificação O-RADS - descrição profissional
   todasLesoes.forEach((lesao) => {
-    const result = evaluateORADS(lesao, data.statusMenopausal)
+    const result = evaluateORADS(lesao, data.statusMenopausal, options)
     const category = getORADSCategoryFromDB(result.score, options)
     const recomendacao = getORADSRecommendationFromDB(result.score, options)
     const ladoTexto = lesao.lado === 'direito' ? 'direita' : 'esquerda'
@@ -835,7 +839,7 @@ export function generateORADSImpressao(data: ORADSUSData, options?: ORADSOptions
   })
   
   // Adicionar recomendação baseada no maior O-RADS
-  const maxScore = Math.max(...todasLesoes.map(l => evaluateORADS(l, data.statusMenopausal).score))
+  const maxScore = Math.max(...todasLesoes.map(l => evaluateORADS(l, data.statusMenopausal, options).score))
   if (maxScore >= 3) {
     const recomendacao = getORADSRecommendationFromDB(data.ascite || data.nodulosPeritoneais ? 5 : maxScore, options)
     impressoes.push('')
@@ -849,6 +853,38 @@ export function generateORADSImpressao(data: ORADSUSData, options?: ORADSOptions
   }
   
   return impressoes.join('\n')
+}
+
+export function generateORADSComparativoTexto(data: ORADSUSData, options?: ORADSOptions): string {
+  if (!data.comparativo?.temEstudoAnterior) {
+    return ''
+  }
+  
+  const { dataAnterior, evolucao, conclusaoAnterior } = data.comparativo
+  
+  let texto = 'Em comparação com estudo ultrassonográfico'
+  if (dataAnterior) {
+    const dataFormatada = new Date(dataAnterior).toLocaleDateString('pt-BR')
+    texto += ` de ${dataFormatada}`
+  } else {
+    texto += ' anterior'
+  }
+  
+  const evolucaoMap: Record<string, string> = {
+    'estavel': ', observa-se estabilidade dos achados',
+    'aumento': ', observa-se aumento dimensional das lesões previamente descritas',
+    'reducao': ', observa-se redução dimensional das lesões previamente descritas',
+    'novo': ', identificam-se novos achados não presentes no estudo anterior'
+  }
+  
+  texto += evolucaoMap[evolucao || 'estavel'] || ''
+  texto += '.'
+  
+  if (conclusaoAnterior) {
+    texto += ` Conclusão prévia: "${conclusaoAnterior}".`
+  }
+  
+  return texto
 }
 
 export function generateORADSLaudoCompletoHTML(data: ORADSUSData, options?: ORADSOptions): string {
@@ -891,6 +927,13 @@ export function generateORADSLaudoCompletoHTML(data: ORADSUSData, options?: ORAD
   // Líquido livre
   html += `<p>${generateORADSLiquidoLivreTexto(data, options)}</p>`
   html += '<p></p>'
+  
+  // Comparativo (se houver)
+  if (data.comparativo?.temEstudoAnterior) {
+    html += '<p><strong>ESTUDO COMPARATIVO:</strong></p>'
+    html += `<p>${generateORADSComparativoTexto(data, options)}</p>`
+    html += '<p></p>'
+  }
   
   // Impressão
   html += '<p><strong>IMPRESSÃO DIAGNÓSTICA:</strong></p>'

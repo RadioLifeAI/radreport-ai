@@ -69,13 +69,15 @@ import {
   generateORADSLiquidoLivreTexto,
   generateORADSRegiaoAnexialTexto,
   generateORADSImpressao,
+  generateORADSComparativoTexto,
   calcularVolumeOvariano,
   calcularVolumeUterino,
   interpretarVolumeOvariano,
   interpretarEspessuraEndometrial,
   getORADSCategoryFromDB,
   getORADSRecommendationFromDB,
-  getColorScoreDescriptionFromDB
+  getColorScoreDescriptionFromDB,
+  ORADSOptions
 } from '@/lib/oradsClassifications'
 
 interface ORADSModalProps {
@@ -148,10 +150,10 @@ export function ORADSModal({ open, onOpenChange, editor }: ORADSModalProps) {
     ]
     
     return allLesions.map(({ lesao, lado }) => ({
-      ...evaluateORADS(lesao, data.statusMenopausal),
+      ...evaluateORADS(lesao, data.statusMenopausal, oradsOptions as ORADSOptions),
       lado
     }))
-  }, [data.ovarioDireito.lesoes, data.ovarioEsquerdo.lesoes, data.statusMenopausal])
+  }, [data.ovarioDireito.lesoes, data.ovarioEsquerdo.lesoes, data.statusMenopausal, oradsOptions])
 
   // Highest O-RADS score
   const maxORADS = useMemo(() => {
@@ -650,8 +652,34 @@ export function ORADSModal({ open, onOpenChange, editor }: ORADSModalProps) {
                   </div>
 
                   {ovario.lesoes.map((lesao, i) => {
-                    const result = evaluateORADS(lesao, data.statusMenopausal)
-                    const cat = oradsCategories[result.score]
+                    const result = evaluateORADS(lesao, data.statusMenopausal, oradsOptions as ORADSOptions)
+                    const cat = getORADSCategoryFromDB(result.score, oradsOptions as ORADSOptions)
+                    
+                    // Dynamic lesao_tipica options from database
+                    const lesaoTipicaOptions = oradsOptions?.lesao_tipica || Object.entries(lesoesTipicasBenignas).map(([k, v]) => ({
+                      value: k,
+                      label: v.nome,
+                      texto: v.descricaoCompleta
+                    }))
+                    
+                    // Mapa de conversão para valores do banco
+                    const valorToBancoMap: Record<string, string> = {
+                      'cisto_hemorragico': 'hemorragico',
+                      'cisto_dermoide': 'dermoide',
+                      'endometrioma': 'endometrioma',
+                      'cisto_paraovarian': 'cisto_paratubal',
+                      'cisto_inclusao_peritoneal': 'cisto_peritoneal',
+                      'hidrossalpinge': 'hidrossalpinge'
+                    }
+                    
+                    const bancoToValorMap: Record<string, string> = {
+                      'hemorragico': 'cisto_hemorragico',
+                      'dermoide': 'cisto_dermoide',
+                      'endometrioma': 'endometrioma',
+                      'cisto_paratubal': 'cisto_paraovarian',
+                      'cisto_peritoneal': 'cisto_inclusao_peritoneal',
+                      'hidrossalpinge': 'hidrossalpinge'
+                    }
                     
                     return (
                       <div key={i} className="border rounded-lg p-3 mb-3 space-y-3">
@@ -704,11 +732,14 @@ export function ORADSModal({ open, onOpenChange, editor }: ORADSModalProps) {
                         {lesao.tipo === 'lesao_tipica_benigna' && (
                           <div>
                             <Label className="text-xs">Tipo Específico</Label>
-                            <Select value={lesao.lesaoTipica || ''} onValueChange={(v) => updateLesao(lado, i, { lesaoTipica: v as LesaoTipicaBenigna })}>
+                            <Select 
+                              value={lesao.lesaoTipica ? valorToBancoMap[lesao.lesaoTipica] || lesao.lesaoTipica : ''} 
+                              onValueChange={(v) => updateLesao(lado, i, { lesaoTipica: (bancoToValorMap[v] || v) as LesaoTipicaBenigna })}
+                            >
                               <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                               <SelectContent>
-                                {Object.entries(lesoesTipicasBenignas).map(([key, val]) => (
-                                  <SelectItem key={key} value={key}>{val.nome}</SelectItem>
+                                {lesaoTipicaOptions.map((opt) => (
+                                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                                 ))}
                               </SelectContent>
                             </Select>
@@ -994,17 +1025,18 @@ export function ORADSModal({ open, onOpenChange, editor }: ORADSModalProps) {
   }
 
   // Preview content - passar oradsOptions para usar textos dinâmicos
-  const previewUtero = generateORADSUteroTexto(data, oradsOptions)
-  const previewEndometrio = generateORADSEndometrioTexto(data, oradsOptions)
-  const previewOvarioD = generateORADSOvarioTexto(data.ovarioDireito, 'direito', oradsOptions)
-  const previewOvarioE = generateORADSOvarioTexto(data.ovarioEsquerdo, 'esquerdo', oradsOptions)
-  const previewLiquido = generateORADSLiquidoLivreTexto(data, oradsOptions)
-  const previewAnexial = generateORADSRegiaoAnexialTexto(data, oradsOptions)
-  const previewImpressao = generateORADSImpressao(data, oradsOptions)
+  const previewUtero = generateORADSUteroTexto(data, oradsOptions as ORADSOptions)
+  const previewEndometrio = generateORADSEndometrioTexto(data, oradsOptions as ORADSOptions)
+  const previewOvarioD = generateORADSOvarioTexto(data.ovarioDireito, 'direito', oradsOptions as ORADSOptions)
+  const previewOvarioE = generateORADSOvarioTexto(data.ovarioEsquerdo, 'esquerdo', oradsOptions as ORADSOptions)
+  const previewLiquido = generateORADSLiquidoLivreTexto(data, oradsOptions as ORADSOptions)
+  const previewAnexial = generateORADSRegiaoAnexialTexto(data, oradsOptions as ORADSOptions)
+  const previewImpressao = generateORADSImpressao(data, oradsOptions as ORADSOptions)
+  const previewComparativo = data.comparativo?.temEstudoAnterior ? generateORADSComparativoTexto(data, oradsOptions as ORADSOptions) : ''
 
   // Usar categoria do banco com fallback
-  const maxCat = getORADSCategoryFromDB(maxORADS, oradsOptions)
-  const maxRecomendacao = getORADSRecommendationFromDB(maxORADS, oradsOptions)
+  const maxCat = getORADSCategoryFromDB(maxORADS, oradsOptions as ORADSOptions)
+  const maxRecomendacao = getORADSRecommendationFromDB(maxORADS, oradsOptions as ORADSOptions)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -1127,6 +1159,13 @@ export function ORADSModal({ open, onOpenChange, editor }: ORADSModalProps) {
                       content={previewLiquido}
                       status="optional"
                     />
+                    {previewComparativo && (
+                      <SectionPreview
+                        title="Comparativo"
+                        content={previewComparativo}
+                        status="filled"
+                      />
+                    )}
                     <SectionPreview
                       title="Impressão"
                       content={previewImpressao}
