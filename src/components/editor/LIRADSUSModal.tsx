@@ -98,8 +98,8 @@ export function LIRADSUSModal({ open, onOpenChange, editor }: LIRADSUSModalProps
 
   const result = useMemo(() => evaluateLIRADSUS(data), [data])
   const recommendation = useMemo(() => 
-    getLIRADSUSRecommendation(result.categoria, data.visScore, data.afpStatus, data),
-    [result.categoria, data.visScore, data.afpStatus, data]
+    getLIRADSUSRecommendation(result.categoria, data.visScore, data.afpStatus, data, options),
+    [result.categoria, data.visScore, data.afpStatus, data, options]
   )
   
   // Verificar se há observação próxima do limiar 10mm (tiebreaker)
