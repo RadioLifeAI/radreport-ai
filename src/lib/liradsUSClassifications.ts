@@ -75,34 +75,49 @@ export interface LIRADSUSResult {
   recomendacao: string
 }
 
-// ============= CONSTANTS =============
+// ============= CONSTANTS (Fallback Hardcoded) =============
 
 export const liradsUSCategories: Record<string, LIRADSUSCategory> = {
   'US-1': {
     categoria: 'US-1',
     nome: 'Negativo',
-    descricao: 'Sem observação ou observação definitivamente benigna',
+    descricao: 'Exame ultrassonográfico de vigilância sem identificação de observações focais suspeitas ou com observações definitivamente benignas (cisto simples, hemangioma típico, esteatose focal).',
     risco: 'Normal',
     cor: 'green',
-    recomendacao: 'Repetir ultrassonografia de vigilância em 6 meses.'
+    recomendacao: 'Manter vigilância ultrassonográfica conforme protocolo institucional, com intervalo de 6 meses.'
   },
   'US-2': {
     categoria: 'US-2',
     nome: 'Sublimiar',
-    descricao: 'Observação < 10 mm não definitivamente benigna',
+    descricao: 'Observação focal inferior a 10 mm, não caracterizada como definitivamente benigna. Achado requer seguimento ultrassonográfico de curto prazo para avaliar estabilidade.',
     risco: 'Baixo',
     cor: 'yellow',
-    recomendacao: 'Repetir ultrassonografia em 3-6 meses, até 2 vezes. Se permanecer < 10 mm ou não visualizada em 2 seguimentos, pode ser recategorizada como US-1.'
+    recomendacao: 'Repetir ultrassonografia de vigilância em intervalo de 3 a 6 meses, podendo ser realizada até 2 vezes consecutivas. Caso a observação permaneça inferior a 10 mm ou não seja mais identificada em 2 exames consecutivos de seguimento, pode ser recategorizada como US-1 (Negativo).'
   },
   'US-3': {
     categoria: 'US-3',
     nome: 'Positivo',
-    descricao: 'Observação ≥ 10 mm não definitivamente benigna, distorção parenquimatosa, ou trombo novo',
+    descricao: 'Observação focal igual ou superior a 10 mm não definitivamente benigna, distorção arquitetural parenquimatosa focal, ou trombo vascular novo identificado.',
     risco: 'Elevado',
     cor: 'red',
-    recomendacao: 'Avaliação com TC, RM ou CEUS multifásico para caracterização diagnóstica.'
+    recomendacao: 'Avaliação diagnóstica complementar com tomografia computadorizada multifásica, ressonância magnética hepatobiliar ou ultrassonografia com contraste (CEUS) para caracterização da lesão segundo critérios LI-RADS CT/MRI diagnóstico.'
   }
 }
+
+// Fallback para técnica (hardcoded)
+const TECNICA_FALLBACK = 'Exame realizado com transdutor convexo multifrequencial (2-5 MHz), utilizando técnica padrão para avaliação hepática de vigilância conforme protocolo ACR LI-RADS US Surveillance v2024.'
+
+// Fallbacks para VIS-C (hardcoded)
+const VIS_C_FALLBACKS = {
+  semFatoresRisco: 'Limitações moderadas a severas na avaliação ultrassonográfica hepática (categoria de visualização C - VIS-C). Recomenda-se repetição do exame ultrassonográfico em prazo máximo de 3 meses. Caso persista classificação VIS-C no exame subsequente, considerar modalidade alternativa de vigilância, como tomografia computadorizada de baixa dose ou ressonância magnética abreviada do fígado.',
+  comFatoresRisco: 'Limitações moderadas a severas na avaliação ultrassonográfica hepática (categoria de visualização C - VIS-C), associadas à presença de fatores de risco para recorrência de limitação técnica (cirrose por esteatohepatite metabólica/alcoólica, classificação Child-Pugh B ou C, ou índice de massa corporal igual ou superior a 35 kg/m²). Considerando alta probabilidade de limitação técnica persistente em exame ultrassonográfico subsequente, recomenda-se avaliar indicação de modalidade alternativa de vigilância (tomografia computadorizada de baixa dose ou ressonância magnética abreviada) sem necessidade de aguardar repetição do exame ultrassonográfico.'
+}
+
+// Fallback para AFP positivo (hardcoded)
+const AFP_POSITIVO_FALLBACK = 'Considerando nível sérico de alfa-fetoproteína elevado (≥ 20 ng/mL) ou com curva ascendente, na ausência de observação focal categorizável como US-3, a ultrassonografia com contraste (CEUS) apresenta utilidade limitada sem correlato morfológico identificável. Recomenda-se avaliação diagnóstica complementar com tomografia computadorizada multifásica ou ressonância magnética hepatobiliar para investigação de carcinoma hepatocelular.'
+
+// Fallback para veias pérvias (hardcoded)
+const VEIA_PERVIA_FALLBACK = 'Sistema venoso hepático (veias hepáticas e veia porta principal com suas ramificações) exibindo fluxo presente e patência preservada ao estudo Doppler colorido.'
 
 // ============= EVALUATION ALGORITHM =============
 
@@ -152,12 +167,39 @@ export function evaluateLIRADSUS(data: LIRADSUSData): LIRADSUSResult {
   return createResult('US-1')
 }
 
-function createResult(categoria: string): LIRADSUSResult {
+function createResult(categoria: string, options?: RADSOptionsMap): LIRADSUSResult {
+  const categoryInfo = getLIRADSUSCategoryFromDB(categoria, options)
   return {
     categoria,
-    categoryInfo: liradsUSCategories[categoria],
-    recomendacao: liradsUSCategories[categoria].recomendacao
+    categoryInfo,
+    recomendacao: categoryInfo.recomendacao
   }
+}
+
+/**
+ * Busca categoria do banco de dados com fallback para hardcoded
+ */
+export function getLIRADSUSCategoryFromDB(categoria: string, options?: RADSOptionsMap): LIRADSUSCategory {
+  const catOpt = options?.lirads_categoria?.find(o => o.value === categoria)
+  if (catOpt) {
+    // Extrair risco e cor baseado na categoria
+    const riscoMap: Record<string, string> = { 'US-1': 'Normal', 'US-2': 'Baixo', 'US-3': 'Elevado' }
+    const corMap: Record<string, string> = { 'US-1': 'green', 'US-2': 'yellow', 'US-3': 'red' }
+    
+    // Buscar recomendação do banco
+    const recOpt = options?.lirads_recomendacao?.find(o => o.value === categoria)
+    
+    return {
+      categoria,
+      nome: catOpt.label.includes(' - ') ? catOpt.label.split(' - ')[1] : catOpt.label,
+      descricao: catOpt.texto,
+      risco: riscoMap[categoria] || 'Indeterminado',
+      cor: corMap[categoria] || 'gray',
+      recomendacao: recOpt?.texto || liradsUSCategories[categoria]?.recomendacao || ''
+    }
+  }
+  // Fallback hardcoded
+  return liradsUSCategories[categoria] || liradsUSCategories['US-1']
 }
 
 /**
@@ -184,18 +226,25 @@ export function getLIRADSUSRecommendation(
   categoria: string,
   visScore: 'A' | 'B' | 'C',
   afpStatus: string,
-  data?: Partial<LIRADSUSData>
+  data?: Partial<LIRADSUSData>,
+  options?: RADSOptionsMap
 ): string {
-  let recomendacao = liradsUSCategories[categoria]?.recomendacao || ''
+  // Buscar recomendação da categoria do banco primeiro
+  const recOpt = options?.lirads_recomendacao?.find(o => o.value === categoria)
+  let recomendacao = recOpt?.texto || liradsUSCategories[categoria]?.recomendacao || ''
   
   // VIS-C: Diferenciar baseado em fatores de risco (ACR v2024)
   if (visScore === 'C' && categoria !== 'US-3') {
     const temFatoresRisco = data ? hasVISCRiskFactors(data as LIRADSUSData) : false
     
     if (temFatoresRisco) {
-      recomendacao = 'Limitações severas na visualização (VIS-C) com fatores de risco para VIS-C repetido (cirrose MASH/alcoólica, Child-Pugh B/C, ou IMC ≥ 35). Considerar modalidade alternativa de vigilância (TC ou RM abreviada) sem aguardar repetição do US.'
+      // Buscar texto do banco para VIS-C com fatores de risco
+      const visCComRiscoOpt = options?.vis_c_recomendacao?.find(o => o.value === 'com_fatores_risco')
+      recomendacao = visCComRiscoOpt?.texto || VIS_C_FALLBACKS.comFatoresRisco
     } else {
-      recomendacao = 'Limitações severas na visualização (VIS-C). Repetir ultrassonografia em até 3 meses. Se permanecer VIS-C, considerar modalidade alternativa de vigilância (TC ou RM abreviada).'
+      // Buscar texto do banco para VIS-C sem fatores de risco
+      const visCsemRiscoOpt = options?.vis_c_recomendacao?.find(o => o.value === 'sem_fatores_risco')
+      recomendacao = visCsemRiscoOpt?.texto || VIS_C_FALLBACKS.semFatoresRisco
     }
   }
   
@@ -204,7 +253,9 @@ export function getLIRADSUSRecommendation(
   const afpPositivo = (afpValor && afpValor >= 20) || afpStatus === 'elevada' || afpStatus === 'crescente'
   
   if (afpPositivo && categoria !== 'US-3') {
-    recomendacao += ' AFP positivo sem observação US-3: CEUS é improvável de ser útil na ausência de correlato ultrassonográfico. Avaliação com TC ou RM multifásico diagnóstico recomendada.'
+    // Buscar texto do banco para AFP positivo
+    const afpOpt = options?.afp_positivo_texto?.find(o => o.value === 'afp_elevada_sem_us3')
+    recomendacao += ' ' + (afpOpt?.texto || AFP_POSITIVO_FALLBACK)
   }
   
   return recomendacao
@@ -219,8 +270,10 @@ const formatBR = (num: number, decimals: number = 1): string => {
   })
 }
 
-export function generateLIRADSUSTecnica(): string {
-  return 'Exame realizado com transdutor convexo multifrequencial.'
+export function generateLIRADSUSTecnica(options?: RADSOptionsMap): string {
+  // Buscar técnica do banco
+  const tecnicaOpt = options?.tecnica?.find(o => o.value === 'padrao')
+  return tecnicaOpt?.texto || TECNICA_FALLBACK
 }
 
 export function generateLIRADSUSIndicacao(data: LIRADSUSData, options?: RADSOptionsMap): string {
@@ -310,11 +363,13 @@ export function generateLIRADSUSAchados(data: LIRADSUSData, options?: RADSOption
       tromboTexto += `, ${tromboLocOpt.texto}`
     }
     if (data.tromboNovo) {
-      tromboTexto += ' (novo achado)'
+      tromboTexto += ' (novo achado, não identificado em exame anterior)'
     }
-    partes.push(tromboTexto + '.')
+    partes.push(tromboTexto.charAt(0).toUpperCase() + tromboTexto.slice(1) + '.')
   } else {
-    partes.push('Veias hepáticas e veia porta pérvias.')
+    // Buscar texto de veias pérvias do banco
+    const veiaOpt = options?.veia_pervia?.find(o => o.value === 'normal')
+    partes.push(veiaOpt?.texto || VEIA_PERVIA_FALLBACK)
   }
   
   // Extra-hepático: Esplenomegalia
@@ -354,29 +409,58 @@ export function generateLIRADSUSImpressao(
   categoria: string,
   options?: RADSOptionsMap
 ): string {
-  const categoryInfo = liradsUSCategories[categoria]
+  // Buscar categoria do banco ou usar fallback
+  const categoryInfo = getLIRADSUSCategoryFromDB(categoria, options)
   const partes: string[] = []
   
-  partes.push(`- LI-RADS US ${categoria} (${categoryInfo.nome})`)
+  // Linha principal com classificação
+  partes.push(`Ultrassonografia hepática de vigilância classificada como LI-RADS ${categoria} (${categoryInfo.nome}): ${categoryInfo.descricao}`)
   
   // Detalhes das observações positivas
   const observacoesPositivas = data.observacoes.filter(o => !isDefinitivelyBenign(o.tipo))
   if (observacoesPositivas.length > 0) {
-    observacoesPositivas.forEach(obs => {
+    partes.push('')
+    partes.push('Achados relevantes:')
+    observacoesPositivas.forEach((obs, idx) => {
       const tipoOpt = options?.tipo_observacao?.find(o => o.value === obs.tipo)
       const locOpt = options?.localizacao_observacao?.find(o => o.value === obs.localizacao)
-      partes.push(`- ${tipoOpt?.label || obs.tipo}${locOpt ? ` ${locOpt.texto}` : ''}`)
+      const ecoOpt = options?.ecogenicidade_observacao?.find(o => o.value === obs.ecogenicidade)
+      
+      let obsTexto = `- ${tipoOpt?.texto || tipoOpt?.label || obs.tipo}`
+      if (obs.tamanho > 0) {
+        obsTexto += `, medindo ${formatBR(obs.tamanho)} mm`
+      }
+      if (locOpt) {
+        obsTexto += `, localizada ${locOpt.texto}`
+      }
+      if (ecoOpt) {
+        obsTexto += `, ${ecoOpt.texto}`
+      }
+      if (obs.novo) {
+        obsTexto += ' (achado novo, não identificado em exame anterior)'
+      } else if (obs.cresceu) {
+        obsTexto += ' (apresentando aumento dimensional em relação ao exame anterior)'
+      }
+      partes.push(obsTexto)
     })
   }
   
   // Trombose
   if (data.tromboTipo !== 'nenhum' && data.tromboNovo) {
-    partes.push('- Trombose vascular nova')
+    const tromboTipoOpt = options?.trombo_tipo?.find(o => o.value === data.tromboTipo)
+    const tromboLocOpt = options?.trombo_localizacao?.find(o => o.value === data.tromboLocalizacao)
+    let tromboDesc = tromboTipoOpt?.texto || 'trombose vascular'
+    if (tromboLocOpt) {
+      tromboDesc += ` ${tromboLocOpt.texto}`
+    }
+    partes.push(`- ${tromboDesc.charAt(0).toUpperCase() + tromboDesc.slice(1)} (achado novo)`)
   }
   
   // AFP
   if (data.afpStatus === 'elevada' || data.afpStatus === 'crescente') {
-    partes.push('- AFP elevada/crescente - considerar TC/RM multifásico')
+    const afpValorTexto = data.afpValor ? ` (${formatBR(data.afpValor, 1)} ng/mL)` : ''
+    partes.push('')
+    partes.push(`Nota: Nível sérico de alfa-fetoproteína ${data.afpStatus === 'crescente' ? 'em curva ascendente' : 'elevado'}${afpValorTexto}. Avaliação diagnóstica complementar recomendada independente da categoria LI-RADS US.`)
   }
   
   return partes.join('\n')
@@ -388,28 +472,29 @@ export function generateLIRADSUSLaudoCompletoHTML(
   options?: RADSOptionsMap
 ): string {
   const indicacao = generateLIRADSUSIndicacao(data, options)
-  const tecnica = generateLIRADSUSTecnica()
+  const tecnica = generateLIRADSUSTecnica(options)
   const achados = generateLIRADSUSAchados(data, options)
   const visualizacao = generateLIRADSUSVisualizacao(data, options)
-  const recomendacao = getLIRADSUSRecommendation(categoria, data.visScore, data.afpStatus, data)
+  const recomendacao = getLIRADSUSRecommendation(categoria, data.visScore, data.afpStatus, data, options)
   const impressao = generateLIRADSUSImpressao(data, categoria, options)
   
   const partes = [
-    '<p><strong>ULTRASSONOGRAFIA HEPÁTICA - VIGILÂNCIA CHC (LI-RADS US)</strong></p>',
+    '<p><strong>ULTRASSONOGRAFIA HEPÁTICA - VIGILÂNCIA DE CARCINOMA HEPATOCELULAR</strong></p>',
+    '<p><strong>ACR LI-RADS US Surveillance v2024</strong></p>',
     '<p></p>',
-    '<p><strong>INDICAÇÃO:</strong></p>',
+    '<p><strong>INDICAÇÃO CLÍNICA:</strong></p>',
     `<p>${indicacao}</p>`,
     '<p></p>',
     '<p><strong>TÉCNICA:</strong></p>',
     `<p>${tecnica}</p>`,
     '<p></p>',
-    '<p><strong>ANÁLISE:</strong></p>',
+    '<p><strong>ANÁLISE DESCRITIVA:</strong></p>',
     `<p>${achados}</p>`,
     '<p></p>',
-    '<p><strong>QUALIDADE TÉCNICA:</strong></p>',
+    '<p><strong>QUALIDADE TÉCNICA / VISUALIZAÇÃO:</strong></p>',
     `<p>${visualizacao}</p>`,
     '<p></p>',
-    '<p><strong>IMPRESSÃO:</strong></p>',
+    '<p><strong>IMPRESSÃO DIAGNÓSTICA:</strong></p>',
     `<p>${impressao.split('\n').join('</p><p>')}</p>`,
     '<p></p>',
     '<p><strong>RECOMENDAÇÃO:</strong></p>',
@@ -418,7 +503,7 @@ export function generateLIRADSUSLaudoCompletoHTML(
   
   if (data.notas) {
     partes.push('<p></p>')
-    partes.push('<p><strong>NOTAS:</strong></p>')
+    partes.push('<p><strong>OBSERVAÇÕES ADICIONAIS:</strong></p>')
     partes.push(`<p>${data.notas}</p>`)
   }
   
