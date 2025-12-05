@@ -72,7 +72,8 @@ import {
   calcularVolumeOvariano,
   calcularVolumeUterino,
   interpretarVolumeOvariano,
-  interpretarEspessuraEndometrial
+  interpretarEspessuraEndometrial,
+  getORADSCategoryFromDB
 } from '@/lib/oradsClassifications'
 
 interface ORADSModalProps {
@@ -245,7 +246,7 @@ export function ORADSModal({ open, onOpenChange, editor }: ORADSModalProps) {
 
   const handleInsert = () => {
     if (!editor) return
-    const html = generateORADSLaudoCompletoHTML(data)
+    const html = generateORADSLaudoCompletoHTML(data, oradsOptions)
     editor.chain().focus().setContent(html).run()
     onOpenChange(false)
   }
@@ -990,16 +991,17 @@ export function ORADSModal({ open, onOpenChange, editor }: ORADSModalProps) {
     }
   }
 
-  // Preview content
-  const previewUtero = generateORADSUteroTexto(data)
-  const previewEndometrio = generateORADSEndometrioTexto(data)
-  const previewOvarioD = generateORADSOvarioTexto(data.ovarioDireito, 'direito')
-  const previewOvarioE = generateORADSOvarioTexto(data.ovarioEsquerdo, 'esquerdo')
-  const previewLiquido = generateORADSLiquidoLivreTexto(data)
-  const previewAnexial = generateORADSRegiaoAnexialTexto(data)
-  const previewImpressao = generateORADSImpressao(data)
+  // Preview content - passar oradsOptions para usar textos dinâmicos
+  const previewUtero = generateORADSUteroTexto(data, oradsOptions)
+  const previewEndometrio = generateORADSEndometrioTexto(data, oradsOptions)
+  const previewOvarioD = generateORADSOvarioTexto(data.ovarioDireito, 'direito', oradsOptions)
+  const previewOvarioE = generateORADSOvarioTexto(data.ovarioEsquerdo, 'esquerdo', oradsOptions)
+  const previewLiquido = generateORADSLiquidoLivreTexto(data, oradsOptions)
+  const previewAnexial = generateORADSRegiaoAnexialTexto(data, oradsOptions)
+  const previewImpressao = generateORADSImpressao(data, oradsOptions)
 
-  const maxCat = oradsCategories[maxORADS]
+  // Usar categoria do banco com fallback
+  const maxCat = getORADSCategoryFromDB(maxORADS, oradsOptions)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
