@@ -11,6 +11,7 @@ import {
 import { TIRADSModal } from './TIRADSModal'
 import { BIRADSModal } from './BIRADSModal'
 import { BIRADSMGModal } from './BIRADSMGModal'
+import { BIRADSRMModal } from './BIRADSRMModal'
 import { USTireoideModal } from './USTireoideModal'
 
 interface RADSDropdownProps {
@@ -21,6 +22,7 @@ export function RADSDropdown({ editor }: RADSDropdownProps) {
   const [tiradsOpen, setTiradsOpen] = useState(false)
   const [biradsUSGOpen, setBiradsUSGOpen] = useState(false)
   const [biradsMGOpen, setBiradsMGOpen] = useState(false)
+  const [biradsRMOpen, setBiradsRMOpen] = useState(false)
   const [usTireoideOpen, setUsTireoideOpen] = useState(false)
 
   return (
@@ -50,6 +52,10 @@ export function RADSDropdown({ editor }: RADSDropdownProps) {
           <DropdownMenuItem onClick={() => setBiradsMGOpen(true)} className="cursor-pointer">
             <span className="mr-2">📷</span>
             ACR BI-RADS (Mama - Mamografia)
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setBiradsRMOpen(true)} className="cursor-pointer">
+            <span className="mr-2">🧲</span>
+            ACR BI-RADS (Mama - RM)
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem disabled className="opacity-50">
@@ -90,6 +96,12 @@ export function RADSDropdown({ editor }: RADSDropdownProps) {
       <BIRADSMGModal
         open={biradsMGOpen}
         onOpenChange={setBiradsMGOpen}
+        editor={editor}
+      />
+
+      <BIRADSRMModal
+        open={biradsRMOpen}
+        onOpenChange={setBiradsRMOpen}
         editor={editor}
       />
 
