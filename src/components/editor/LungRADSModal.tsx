@@ -299,11 +299,11 @@ export function LungRADSModal({ open, onOpenChange, editor }: LungRADSModalProps
             </div>
             
             <div className="space-y-2">
-              <Label>Localização</Label>
+              <Label>Segmento Pulmonar</Label>
               <Select value={nodulo.localizacao} onValueChange={(v) => updateNodulo(idx, 'localizacao', v)}>
-                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Selecione o segmento..." /></SelectTrigger>
                 <SelectContent>
-                  {getOptions('localizacao_nodulo').map(opt => (
+                  {getOptions('segmento_nodulo').map(opt => (
                     <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                   ))}
                 </SelectContent>
@@ -530,12 +530,15 @@ export function LungRADSModal({ open, onOpenChange, editor }: LungRADSModalProps
           </div>
           
           <div className="space-y-2">
-            <Label>Localização</Label>
-            <Input
-              value={data.localizacaoLinfonodo || ''}
-              onChange={(e) => updateData('localizacaoLinfonodo', e.target.value)}
-              placeholder="Ex: subcarinal, hilar direito..."
-            />
+            <Label>Estação Linfonodal</Label>
+            <Select value={data.localizacaoLinfonodo || ''} onValueChange={(v) => updateData('localizacaoLinfonodo', v)}>
+              <SelectTrigger><SelectValue placeholder="Selecione a estação..." /></SelectTrigger>
+              <SelectContent>
+                {getOptions('localizacao_linfonodo').map(opt => (
+                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </>
       )}
