@@ -375,7 +375,7 @@ export function TIRADSModal({ open, onOpenChange, editor }: TIRADSModalProps) {
             <div className="space-y-2">
               <Label className="text-sm font-medium">📝 Descrição (Achados):</Label>
               <div className="bg-muted/50 rounded-lg p-3 text-sm whitespace-pre-wrap font-mono">
-                {nodulos.map((n, i) => generateNoduleDescription(n, i)).join('\n\n')}
+                {nodulos.map((n, i) => generateNoduleDescription(n, i, dbOptions)).join('\n\n')}
               </div>
             </div>
 
