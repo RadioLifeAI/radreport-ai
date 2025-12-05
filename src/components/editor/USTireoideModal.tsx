@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { Editor } from '@tiptap/react'
-import { Plus, Trash2, ClipboardList, Activity, Droplet, Circle, Target, StickyNote, Eye, EyeOff, Check, Minus, AlertCircle, Loader2, LucideIcon } from 'lucide-react'
+import { Plus, Trash2, ClipboardList, Activity, Droplet, Circle, Target, StickyNote, Eye, EyeOff, Check, Minus, AlertCircle, Loader2, LucideIcon, Scan } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -529,7 +529,8 @@ export function USTireoideModal({ open, onOpenChange, editor }: USTireoideModalP
         <DialogHeader className="px-6 py-4 border-b">
           <div className="flex items-center justify-between">
             <DialogTitle className="flex items-center gap-2 text-lg">
-              🦋 Ultrassonografia da Tireoide
+              <Scan className="h-5 w-5 text-cyan-500" />
+              Ultrassonografia da Tireoide
               {isLoading && <Loader2 size={16} className="animate-spin text-muted-foreground" />}
             </DialogTitle>
             <Button

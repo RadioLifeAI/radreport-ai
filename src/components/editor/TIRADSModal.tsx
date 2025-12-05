@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { Plus, Trash2, Info, Loader2, Eye, EyeOff, CheckCircle2, AlertCircle, MinusCircle } from 'lucide-react'
+import { Plus, Trash2, Info, Loader2, Eye, EyeOff, CheckCircle2, AlertCircle, MinusCircle, Scan } from 'lucide-react'
 import { Editor } from '@tiptap/react'
 import {
   Dialog,
@@ -260,7 +260,8 @@ export function TIRADSModal({ open, onOpenChange, editor }: TIRADSModalProps) {
             <div className="flex items-center justify-between">
               <div>
                 <DialogTitle className="flex items-center gap-2 text-lg">
-                  🦋 ACR TI-RADS - Classificação de Nódulos Tireoidianos
+                  <Scan className="h-5 w-5 text-cyan-500" />
+                  ACR TI-RADS - Classificação de Nódulos Tireoidianos
                   {isLoading && <Loader2 size={16} className="animate-spin text-muted-foreground" />}
                 </DialogTitle>
                 <p className="text-xs text-muted-foreground mt-1">{ACR_TIRADS_REFERENCE}</p>
