@@ -4,7 +4,7 @@ import {
   Plus, Trash2, Calendar, AlertCircle, FileText, ClipboardList, FileCheck, 
   Stethoscope, StickyNote, History, Eye, EyeOff, Check, Minus, Activity, 
   Circle, Target, Loader2, Magnet, Info, CircleDot, Boxes, Bone, Droplet,
-  TrendingUp, LucideIcon
+  TrendingUp, LucideIcon, BookOpen, ImageIcon, LayoutGrid
 } from 'lucide-react'
 import {
   Dialog,
@@ -56,6 +56,12 @@ import {
 } from '@/lib/piradsClassifications'
 import { useRADSOptions, RADSOption } from '@/hooks/useRADSOptions'
 import { getRADSOptionsWithFallback } from '@/lib/radsOptionsProvider'
+import { PIRADSImageSelector, PIRADSAtlasViewer } from './PIRADSImageSelector'
+import { 
+  t2wPZAtlas, t2wTZAtlas, dwiAtlas, dceAtlas, 
+  piradsInterpretation, scoringAlgorithm 
+} from '@/lib/piradsAtlasData'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 interface PIRADSModalProps {
   open: boolean
@@ -63,7 +69,7 @@ interface PIRADSModalProps {
   editor: Editor | null
 }
 
-type TabType = 'indicacao' | 'tecnica' | 'prostata' | 'lesoes' | 'epe' | 'linfonodos' | 'osso' | 'bexiga' | 'comparativo' | 'recomendacao' | 'notas'
+type TabType = 'indicacao' | 'tecnica' | 'prostata' | 'lesoes' | 'epe' | 'linfonodos' | 'osso' | 'bexiga' | 'comparativo' | 'recomendacao' | 'notas' | 'atlas'
 
 const tabs: { id: TabType; label: string; icon: LucideIcon }[] = [
   { id: 'indicacao', label: 'Indicação', icon: ClipboardList },
@@ -77,6 +83,7 @@ const tabs: { id: TabType; label: string; icon: LucideIcon }[] = [
   { id: 'comparativo', label: 'Comparativo', icon: Calendar },
   { id: 'recomendacao', label: 'Recomendação', icon: FileCheck },
   { id: 'notas', label: 'Notas', icon: FileText },
+  { id: 'atlas', label: 'Atlas', icon: BookOpen },
 ]
 
 interface SectionPreviewProps {
@@ -108,6 +115,7 @@ export function PIRADSModal({ open, onOpenChange, editor }: PIRADSModalProps) {
   const [activeTab, setActiveTab] = useState<TabType>('indicacao')
   const [data, setData] = useState<PIRADSData>(createEmptyPIRADSData())
   const [showPreview, setShowPreview] = useState(true)
+  const [visualMode, setVisualMode] = useState(false)
 
   const { data: dbOptions, isLoading, isError } = useRADSOptions('PIRADS')
   
@@ -500,14 +508,25 @@ export function PIRADSModal({ open, onOpenChange, editor }: PIRADSModalProps) {
       case 'lesoes':
         return (
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-2">
               <h3 className="font-semibold text-sm flex items-center gap-2">
                 <AlertCircle size={16} className="text-red-500" />
                 Lesões Suspeitas
               </h3>
-              <Button variant="outline" size="sm" onClick={handleAddLesao} disabled={data.lesoes.length >= 6}>
-                <Plus size={14} className="mr-1" /> Adicionar
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant={visualMode ? 'secondary' : 'ghost'}
+                  size="sm"
+                  onClick={() => setVisualMode(!visualMode)}
+                  className="h-8 text-xs"
+                >
+                  {visualMode ? <LayoutGrid size={14} className="mr-1" /> : <ImageIcon size={14} className="mr-1" />}
+                  {visualMode ? 'Modo Compacto' : 'Modo Visual'}
+                </Button>
+                <Button variant="outline" size="sm" onClick={handleAddLesao} disabled={data.lesoes.length >= 6}>
+                  <Plus size={14} className="mr-1" /> Adicionar
+                </Button>
+              </div>
             </div>
 
             {data.lesoes.length === 0 ? (
@@ -603,54 +622,90 @@ export function PIRADSModal({ open, onOpenChange, editor }: PIRADSModalProps) {
 
                   <Separator />
 
-                  <div className="grid grid-cols-3 gap-3">
-                    <div className="space-y-1">
-                      <Label className="text-xs">T2W Score</Label>
-                      <Select 
-                        value={lesao.t2wScore.toString()} 
-                        onValueChange={(v) => updateLesao(idx, 't2wScore', parseInt(v) as 1|2|3|4|5)}
-                      >
-                        <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {(lesao.zona === 'pz' ? t2wScoresPZ : t2wScoresTZ).map((s) => (
-                            <SelectItem key={s.value} value={s.value.toString()}>
-                              <span className="font-medium">{s.value}</span>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                  {/* Visual Mode - Image Selectors */}
+                  {visualMode ? (
+                    <div className="space-y-4">
+                      <PIRADSImageSelector
+                        title={`T2W Score (${lesao.zona === 'pz' ? 'Zona Periférica' : 'Zona de Transição'})`}
+                        subtitle={lesao.zona === 'pz' ? 'Na PZ, DWI é dominante - T2W é secundário' : 'Na TZ, T2W é dominante'}
+                        options={lesao.zona === 'pz' ? t2wPZAtlas : t2wTZAtlas}
+                        value={lesao.t2wScore}
+                        onChange={(v) => updateLesao(idx, 't2wScore', v as 1|2|3|4|5)}
+                        columns={5}
+                        showDetailedDescription
+                      />
+                      
+                      <PIRADSImageSelector
+                        title="DWI/ADC Score"
+                        subtitle={lesao.zona === 'pz' ? 'Sequência DOMINANTE na zona periférica' : 'Pode modificar o score na TZ'}
+                        options={dwiAtlas}
+                        value={lesao.dwiScore}
+                        onChange={(v) => updateLesao(idx, 'dwiScore', v as 1|2|3|4|5)}
+                        columns={5}
+                        showDetailedDescription
+                      />
+                      
+                      <PIRADSImageSelector
+                        title="DCE (Realce Dinâmico)"
+                        subtitle="Pode fazer upgrade de PI-RADS 3 → 4 na zona periférica"
+                        options={dceAtlas}
+                        value={lesao.dcePositivo === true ? 1 : 0}
+                        onChange={(v) => updateLesao(idx, 'dcePositivo', v === 1 ? true : false)}
+                        columns={3}
+                        showDetailedDescription
+                      />
                     </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">DWI Score</Label>
-                      <Select 
-                        value={lesao.dwiScore.toString()} 
-                        onValueChange={(v) => updateLesao(idx, 'dwiScore', parseInt(v) as 1|2|3|4|5)}
-                      >
-                        <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {dwiScores.map((s) => (
-                            <SelectItem key={s.value} value={s.value.toString()}>
-                              <span className="font-medium">{s.value}</span>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                  ) : (
+                    /* Compact Mode - Original Selects */
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-xs">T2W Score</Label>
+                        <Select 
+                          value={lesao.t2wScore.toString()} 
+                          onValueChange={(v) => updateLesao(idx, 't2wScore', parseInt(v) as 1|2|3|4|5)}
+                        >
+                          <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {(lesao.zona === 'pz' ? t2wScoresPZ : t2wScoresTZ).map((s) => (
+                              <SelectItem key={s.value} value={s.value.toString()}>
+                                <span className="font-medium">{s.value}</span>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">DWI Score</Label>
+                        <Select 
+                          value={lesao.dwiScore.toString()} 
+                          onValueChange={(v) => updateLesao(idx, 'dwiScore', parseInt(v) as 1|2|3|4|5)}
+                        >
+                          <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {dwiScores.map((s) => (
+                              <SelectItem key={s.value} value={s.value.toString()}>
+                                <span className="font-medium">{s.value}</span>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">DCE</Label>
+                        <Select 
+                          value={lesao.dcePositivo === true ? 'positivo' : lesao.dcePositivo === false ? 'negativo' : 'nao_avaliado'} 
+                          onValueChange={(v) => updateLesao(idx, 'dcePositivo', v === 'positivo' ? true : v === 'negativo' ? false : null)}
+                        >
+                          <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {dceAssessment.map((s) => (
+                              <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">DCE</Label>
-                      <Select 
-                        value={lesao.dcePositivo === true ? 'positivo' : lesao.dcePositivo === false ? 'negativo' : 'nao_avaliado'} 
-                        onValueChange={(v) => updateLesao(idx, 'dcePositivo', v === 'positivo' ? true : v === 'negativo' ? false : null)}
-                      >
-                        <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {dceAssessment.map((s) => (
-                            <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
+                  )}
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
@@ -937,6 +992,106 @@ export function PIRADSModal({ open, onOpenChange, editor }: PIRADSModalProps) {
               onChange={(e) => updateData('notas', e.target.value)}
               rows={6}
             />
+          </div>
+        )
+
+      case 'atlas':
+        return (
+          <div className="space-y-4">
+            <h3 className="font-semibold text-sm flex items-center gap-2">
+              <BookOpen size={16} className="text-indigo-500" />
+              Atlas PI-RADS v2.1 - Referência Visual
+            </h3>
+            
+            <p className="text-xs text-muted-foreground">
+              Consulte as características de imagem para cada score de acordo com o ACR PI-RADS v2.1.
+            </p>
+
+            <Tabs defaultValue="t2w-pz" className="w-full">
+              <TabsList className="grid w-full grid-cols-4 h-auto">
+                <TabsTrigger value="t2w-pz" className="text-xs py-2">T2W (PZ)</TabsTrigger>
+                <TabsTrigger value="t2w-tz" className="text-xs py-2">T2W (TZ)</TabsTrigger>
+                <TabsTrigger value="dwi" className="text-xs py-2">DWI/ADC</TabsTrigger>
+                <TabsTrigger value="dce" className="text-xs py-2">DCE</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="t2w-pz" className="mt-4">
+                <PIRADSAtlasViewer
+                  title="Scoring T2W - Zona Periférica"
+                  description={scoringAlgorithm.pz.description}
+                  options={t2wPZAtlas}
+                />
+                <div className="mt-4 p-3 rounded-lg bg-muted/30 border">
+                  <p className="text-xs font-semibold mb-2">Regras de avaliação (PZ):</p>
+                  <ul className="text-[11px] space-y-1 text-muted-foreground">
+                    {scoringAlgorithm.pz.rules.map((rule, i) => (
+                      <li key={i}>• {rule}</li>
+                    ))}
+                  </ul>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="t2w-tz" className="mt-4">
+                <PIRADSAtlasViewer
+                  title="Scoring T2W - Zona de Transição"
+                  description={scoringAlgorithm.tz.description}
+                  options={t2wTZAtlas}
+                />
+                <div className="mt-4 p-3 rounded-lg bg-muted/30 border">
+                  <p className="text-xs font-semibold mb-2">Regras de avaliação (TZ):</p>
+                  <ul className="text-[11px] space-y-1 text-muted-foreground">
+                    {scoringAlgorithm.tz.rules.map((rule, i) => (
+                      <li key={i}>• {rule}</li>
+                    ))}
+                  </ul>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="dwi" className="mt-4">
+                <PIRADSAtlasViewer
+                  title="Scoring DWI/ADC (Universal)"
+                  description="O scoring DWI é baseado na intensidade do sinal no mapa ADC e nas imagens de alto valor b. É a sequência DOMINANTE na zona periférica."
+                  options={dwiAtlas}
+                />
+              </TabsContent>
+              
+              <TabsContent value="dce" className="mt-4">
+                <PIRADSAtlasViewer
+                  title="Avaliação DCE (Realce Dinâmico)"
+                  description="O DCE atua como modificador: pode fazer upgrade de PI-RADS 3 → 4 na zona periférica quando positivo."
+                  options={dceAtlas}
+                />
+              </TabsContent>
+            </Tabs>
+
+            <Separator />
+
+            {/* PI-RADS Categories */}
+            <div className="space-y-3">
+              <h4 className="text-sm font-semibold">Categorias PI-RADS e Probabilidade de Malignidade</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {piradsInterpretation.map((cat) => (
+                  <div key={cat.score} className={`p-3 rounded-lg border-2 ${cat.color}`}>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-lg font-bold">{cat.score}</span>
+                      <span className="text-xs font-semibold">{cat.shortLabel}</span>
+                    </div>
+                    <p className="text-[10px]">{cat.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* AFMS Info */}
+            <div className="p-3 rounded-lg bg-muted/30 border">
+              <h4 className="text-xs font-semibold mb-2">{scoringAlgorithm.afms.title}</h4>
+              <p className="text-[11px] text-muted-foreground mb-2">{scoringAlgorithm.afms.description}</p>
+              <ul className="text-[10px] space-y-1 text-muted-foreground">
+                {scoringAlgorithm.afms.rules.map((rule, i) => (
+                  <li key={i}>• {rule}</li>
+                ))}
+              </ul>
+            </div>
           </div>
         )
 
