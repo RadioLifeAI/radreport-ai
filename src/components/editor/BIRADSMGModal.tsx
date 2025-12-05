@@ -26,7 +26,6 @@ import { Progress } from '@/components/ui/progress'
 import {
   BIRADSMGData,
   BIRADSMGNodulo,
-  biradsMGOptions,
   biradsCategories,
   evaluateBIRADSMG,
   generateBIRADSMGAchados,
@@ -42,7 +41,8 @@ import {
   calcularTempoSeguimento,
   formatarTempoSeguimento,
 } from '@/lib/radsClassifications'
-import { useRADSOptions } from '@/hooks/useRADSOptions'
+import { useRADSOptions, RADSOption } from '@/hooks/useRADSOptions'
+import { getRADSOptionsWithFallback } from '@/lib/radsOptionsProvider'
 
 interface BIRADSMGModalProps {
   open: boolean
@@ -96,11 +96,17 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
   const [data, setData] = useState<BIRADSMGData>(createEmptyBIRADSMGData())
   const [showPreview, setShowPreview] = useState(true)
 
-  // Fetch dynamic options from database (for future use)
-  const { data: dbOptions, isLoading } = useRADSOptions('BIRADS_MG')
+  // Fetch dynamic options from database with fallback
+  const { data: dbOptions, isLoading, isError } = useRADSOptions('BIRADS_MG')
   
-  // Note: Currently using hardcoded options for compatibility
-  // Database options available via dbOptions for gradual migration
+  // Get options with fallback to hardcoded if database unavailable
+  const options = useMemo(() => 
+    getRADSOptionsWithFallback('BIRADS_MG', dbOptions, isLoading, isError),
+    [dbOptions, isLoading, isError]
+  )
+
+  // Helper to get options for a category
+  const getOpts = (categoria: string): RADSOption[] => options[categoria] || []
 
   const updateData = <K extends keyof BIRADSMGData>(field: K, value: BIRADSMGData[K]) => {
     setData(prev => ({ ...prev, [field]: value }))
@@ -356,7 +362,7 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
               onValueChange={(v) => updateData('parenquima', v)}
               className="space-y-3"
             >
-              {biradsMGOptions.parenquima.map((opt) => (
+              {getOpts('parenquima').map((opt) => (
                 <div key={opt.value} className="flex items-start space-x-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors">
                   <RadioGroupItem value={opt.value} id={`par-${opt.value}`} className="mt-0.5" />
                   <Label htmlFor={`par-${opt.value}`} className="cursor-pointer flex-1">
@@ -418,7 +424,7 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
                   >
                     <SelectTrigger><SelectValue placeholder="Selecione o tipo" /></SelectTrigger>
                     <SelectContent>
-                      {biradsMGOptions.distorcaoArquitetural.map((opt) => (
+                      {getOpts('distorcaoArquitetural').map((opt) => (
                         <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                       ))}
                     </SelectContent>
@@ -433,7 +439,7 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
                     >
                       <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                       <SelectContent>
-                        {biradsMGOptions.ladoMG.map((opt) => (
+                        {getOpts('ladoMG').map((opt) => (
                           <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                         ))}
                       </SelectContent>
@@ -447,7 +453,7 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
                     >
                       <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                       <SelectContent>
-                        {biradsMGOptions.localizacaoMG.map((opt) => (
+                        {getOpts('localizacaoMG').map((opt) => (
                           <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                         ))}
                       </SelectContent>
@@ -481,7 +487,7 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
                   >
                     <SelectTrigger><SelectValue placeholder="Selecione o tipo" /></SelectTrigger>
                     <SelectContent>
-                      {biradsMGOptions.assimetria.map((opt) => (
+                      {getOpts('assimetria').map((opt) => (
                         <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                       ))}
                     </SelectContent>
@@ -496,7 +502,7 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
                     >
                       <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                       <SelectContent>
-                        {biradsMGOptions.ladoMG.filter(o => o.value !== 'bilateral').map((opt) => (
+                        {getOpts('ladoMG').filter(o => o.value !== 'bilateral').map((opt) => (
                           <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                         ))}
                       </SelectContent>
@@ -510,7 +516,7 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
                     >
                       <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                       <SelectContent>
-                        {biradsMGOptions.localizacaoMG.map((opt) => (
+                        {getOpts('localizacaoMG').map((opt) => (
                           <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                         ))}
                       </SelectContent>
@@ -594,7 +600,7 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
                       <Select value={nodulo.densidade} onValueChange={(v) => updateNodulo(index, 'densidade', v)}>
                         <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                         <SelectContent>
-                          {biradsMGOptions.densidade.map((opt) => (
+                          {getOpts('densidade').map((opt) => (
                             <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                           ))}
                         </SelectContent>
@@ -605,7 +611,7 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
                       <Select value={nodulo.forma} onValueChange={(v) => updateNodulo(index, 'forma', v)}>
                         <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                         <SelectContent>
-                          {biradsMGOptions.formaMG.map((opt) => (
+                          {getOpts('formaMG').map((opt) => (
                             <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                           ))}
                         </SelectContent>
@@ -616,7 +622,7 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
                       <Select value={nodulo.margens} onValueChange={(v) => updateNodulo(index, 'margens', v)}>
                         <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                         <SelectContent>
-                          {biradsMGOptions.margensMG.map((opt) => (
+                          {getOpts('margensMG').map((opt) => (
                             <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                           ))}
                         </SelectContent>
@@ -646,7 +652,7 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
                       <Select value={nodulo.lado} onValueChange={(v) => updateNodulo(index, 'lado', v)}>
                         <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                         <SelectContent>
-                          {biradsMGOptions.ladoMG.filter(o => o.value !== 'bilateral').map((opt) => (
+                          {getOpts('ladoMG').filter(o => o.value !== 'bilateral').map((opt) => (
                             <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                           ))}
                         </SelectContent>
@@ -657,7 +663,7 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
                       <Select value={nodulo.localizacao} onValueChange={(v) => updateNodulo(index, 'localizacao', v)}>
                         <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                         <SelectContent>
-                          {biradsMGOptions.localizacaoMG.map((opt) => (
+                          {getOpts('localizacaoMG').map((opt) => (
                             <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                           ))}
                         </SelectContent>
@@ -692,7 +698,7 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
                   >
                     <SelectTrigger><SelectValue placeholder="Selecione o tipo" /></SelectTrigger>
                     <SelectContent>
-                      {biradsMGOptions.calcificacoes.map((opt) => (
+                      {getOpts('calcificacoes').map((opt) => (
                         <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                       ))}
                     </SelectContent>
@@ -707,7 +713,7 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
                   >
                     <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                     <SelectContent>
-                      {biradsMGOptions.ladoMG.map((opt) => (
+                      {getOpts('ladoMG').map((opt) => (
                         <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                       ))}
                     </SelectContent>
@@ -724,7 +730,7 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
                       >
                         <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                         <SelectContent>
-                          {biradsMGOptions.morfologiaCalcificacoes.map((opt) => (
+                          {getOpts('morfologiaCalcificacoes').map((opt) => (
                             <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                           ))}
                         </SelectContent>
@@ -739,7 +745,7 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
                       >
                         <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                         <SelectContent>
-                          {biradsMGOptions.distribuicaoCalcificacoes.map((opt) => (
+                          {getOpts('distribuicaoCalcificacoes').map((opt) => (
                             <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                           ))}
                         </SelectContent>
@@ -754,7 +760,7 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
                       >
                         <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                         <SelectContent>
-                          {biradsMGOptions.localizacaoMG.map((opt) => (
+                          {getOpts('localizacaoMG').map((opt) => (
                             <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                           ))}
                         </SelectContent>
@@ -790,56 +796,35 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
                     >
                       <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                       <SelectContent>
-                        {biradsMGOptions.ladoMG.map((opt) => (
+                        {getOpts('ladoMG').map((opt) => (
                           <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-sm">Localização</Label>
+                    <Label className="text-sm">Tipo</Label>
                     <Select
-                      value={data.linfonodomegalias.localizacao || ''}
-                      onValueChange={(v) => updateData('linfonodomegalias', { ...data.linfonodomegalias, localizacao: v })}
+                      value={data.linfonodomegalias.tipo || ''}
+                      onValueChange={(v) => updateData('linfonodomegalias', { ...data.linfonodomegalias, tipo: v })}
                     >
                       <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                       <SelectContent>
-                        {biradsMGOptions.linfonodomegalias.map((opt) => (
+                        {getOpts('linfonodomegalias').map((opt) => (
                           <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
-              </div>
-            )}
-
-            <Separator />
-
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="linfono-intram"
-                checked={data.linfonodoIntramamario.presente}
-                onCheckedChange={(checked) => updateData('linfonodoIntramamario', { ...data.linfonodoIntramamario, presente: !!checked })}
-              />
-              <Label htmlFor="linfono-intram" className="font-semibold cursor-pointer">Linfonodo intramamário</Label>
-            </div>
-
-            {data.linfonodoIntramamario.presente && (
-              <div className="space-y-4 pl-6 border-l-2 border-primary/30">
                 <div className="space-y-2">
-                  <Label className="text-sm">Lado</Label>
-                  <Select
-                    value={data.linfonodoIntramamario.lado || ''}
-                    onValueChange={(v) => updateData('linfonodoIntramamario', { ...data.linfonodoIntramamario, lado: v })}
-                  >
-                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                    <SelectContent>
-                      {biradsMGOptions.ladoMG.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label className="text-sm">Descrição adicional</Label>
+                  <Textarea
+                    value={data.linfonodomegalias.descricao || ''}
+                    onChange={(e) => updateData('linfonodomegalias', { ...data.linfonodomegalias, descricao: e.target.value })}
+                    placeholder="Características adicionais..."
+                    className="min-h-[60px]"
+                  />
                 </div>
               </div>
             )}
@@ -855,136 +840,77 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
             </h3>
             
             <RadioGroup
-              value={data.estudoComparativo.tipo}
-              onValueChange={(v) => updateData('estudoComparativo', { ...data.estudoComparativo, tipo: v as any })}
+              value={data.comparativo.tipo}
+              onValueChange={(v) => updateData('comparativo', { ...data.comparativo, tipo: v as any })}
               className="space-y-2"
             >
-              {biradsMGOptions.estudoComparativo.map((opt) => (
-                <div key={opt.value} className="flex items-start space-x-3 p-3 rounded-lg border hover:bg-muted/50">
-                  <RadioGroupItem value={opt.value} id={`comp-${opt.value}`} className="mt-0.5" />
-                  <div className="flex-1 space-y-2">
-                    <Label htmlFor={`comp-${opt.value}`} className="cursor-pointer">
-                      {opt.label}
-                    </Label>
-                    {opt.value === 'sem_alteracoes' && data.estudoComparativo.tipo === 'sem_alteracoes' && (
-                      <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">Data do exame anterior</Label>
-                        <Input
-                          type="date"
-                          value={data.estudoComparativo.dataExameAnterior || ''}
-                          onChange={(e) => updateData('estudoComparativo', { ...data.estudoComparativo, dataExameAnterior: e.target.value })}
-                          className="h-9"
-                          max={new Date().toISOString().split('T')[0]}
-                        />
-                      </div>
-                    )}
-                  </div>
+              {getOpts('comparativoTipoMG').map((opt) => (
+                <div key={opt.value} className="flex items-center space-x-3 p-3 rounded-lg border hover:bg-muted/50">
+                  <RadioGroupItem value={opt.value} id={`comp-${opt.value}`} />
+                  <Label htmlFor={`comp-${opt.value}`} className="cursor-pointer flex-1">
+                    {opt.label}
+                  </Label>
                 </div>
               ))}
             </RadioGroup>
+
+            {data.comparativo.tipo === 'disponivel' && (
+              <div className="space-y-4 pl-4 border-l-2 border-primary/30">
+                <div className="space-y-2">
+                  <Label className="text-sm">Data do exame anterior</Label>
+                  <Input
+                    type="date"
+                    value={data.comparativo.dataExame || ''}
+                    onChange={(e) => updateData('comparativo', { ...data.comparativo, dataExame: e.target.value })}
+                    max={new Date().toISOString().split('T')[0]}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm">Evolução</Label>
+                  <Select
+                    value={data.comparativo.evolucao || ''}
+                    onValueChange={(v) => updateData('comparativo', { ...data.comparativo, evolucao: v })}
+                  >
+                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      {getOpts('comparativoEvolucaoMG').map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
           </div>
         )
 
       case 'recomendacao':
-        const selectedRecOpt = biradsMGOptions.recomendacaoManual.find(o => o.value === data.recomendacaoManual?.categoria)
         return (
           <div className="space-y-4">
-            <h3 className="font-semibold text-sm flex items-center gap-2">
-              <FileCheck size={16} className="text-blue-500" />
-              Recomendação
-            </h3>
+            <h3 className="font-semibold text-sm">Recomendação Manual</h3>
+            <p className="text-xs text-muted-foreground">
+              Deixe em branco para gerar automaticamente com base na categoria BI-RADS.
+            </p>
             
-            <div className="flex items-start space-x-2 p-3 rounded-lg border bg-blue-500/10 border-blue-500/30">
-              <Checkbox
-                id="rec-manual-ativo"
-                checked={data.recomendacaoManual?.ativo || false}
-                onCheckedChange={(checked) => updateData('recomendacaoManual', { 
-                  ...data.recomendacaoManual!, 
-                  ativo: !!checked 
-                })}
-              />
-              <div className="flex-1">
-                <Label htmlFor="rec-manual-ativo" className="cursor-pointer font-medium">
-                  Usar recomendação manual
-                </Label>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Override do cálculo automático baseado na classificação
-                </p>
-              </div>
+            <div className="space-y-2">
+              <Label className="text-sm">Sobrescrever recomendação</Label>
+              <Select
+                value={data.recomendacaoManual || ''}
+                onValueChange={(v) => updateData('recomendacaoManual', v || null)}
+              >
+                <SelectTrigger><SelectValue placeholder="Automática (baseada no BI-RADS)" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Automática (baseada no BI-RADS)</SelectItem>
+                  {getOpts('recomendacao').map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
-            {data.recomendacaoManual?.ativo && (
-              <>
-                <RadioGroup
-                  value={data.recomendacaoManual?.categoria || '2'}
-                  onValueChange={(v) => updateData('recomendacaoManual', { ...data.recomendacaoManual!, categoria: v })}
-                  className="space-y-2"
-                >
-                  {biradsMGOptions.recomendacaoManual.map((opt) => (
-                    <div key={opt.value} className={`flex items-center space-x-3 p-3 rounded-lg border hover:bg-muted/50 ${
-                      data.recomendacaoManual?.categoria === opt.value ? 'bg-primary/10 border-primary/50' : ''
-                    }`}>
-                      <RadioGroupItem value={opt.value} id={`rec-${opt.value}`} />
-                      <Label htmlFor={`rec-${opt.value}`} className="cursor-pointer flex-1 text-sm">
-                        {opt.label}
-                      </Label>
-                    </div>
-                  ))}
-                </RadioGroup>
-
-                {/* Select de lado - para BI-RADS 0 */}
-                {selectedRecOpt?.usaLado && (
-                  <div className="space-y-2 p-3 rounded-lg border bg-muted/30">
-                    <Label className="text-sm font-medium">Mama</Label>
-                    <Select
-                      value={data.recomendacaoManual?.lado || 'direita'}
-                      onValueChange={(v) => updateData('recomendacaoManual', { 
-                        ...data.recomendacaoManual!, 
-                        lado: v as 'direita' | 'esquerda' | 'bilateral' 
-                      })}
-                    >
-                      <SelectTrigger className="h-9">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="direita">Direita</SelectItem>
-                        <SelectItem value="esquerda">Esquerda</SelectItem>
-                        <SelectItem value="bilateral">Bilateral</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-
-                {/* Select de meses - para BI-RADS 3 */}
-                {selectedRecOpt?.usaMeses && (
-                  <div className="space-y-2 p-3 rounded-lg border bg-muted/30">
-                    <Label className="text-sm font-medium">Controle em</Label>
-                    <Select
-                      value={data.recomendacaoManual?.mesesControle?.toString() || '6'}
-                      onValueChange={(v) => updateData('recomendacaoManual', { 
-                        ...data.recomendacaoManual!, 
-                        mesesControle: parseInt(v) as 6 | 12 
-                      })}
-                    >
-                      <SelectTrigger className="h-9">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="6">6 meses</SelectItem>
-                        <SelectItem value="12">12 meses</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-              </>
-            )}
-
-            {/* Preview da recomendação */}
             <div className="p-3 rounded-lg bg-muted/50 border">
-              <Label className="text-xs text-muted-foreground mb-2 block">
-                {data.recomendacaoManual?.ativo ? 'Recomendação manual:' : 'Recomendação automática (BI-RADS ' + biradsCategory + '):'}
-              </Label>
-              <p className="text-sm whitespace-pre-wrap">{recomendacaoTexto}</p>
+              <div className="text-xs text-muted-foreground mb-1">Recomendação atual:</div>
+              <p className="text-sm">{recomendacaoTexto || 'Não definida'}</p>
             </div>
           </div>
         )
@@ -993,42 +919,29 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
         return (
           <div className="space-y-4">
             <h3 className="font-semibold text-sm flex items-center gap-2">
-              <StickyNote size={16} className="text-amber-500" />
-              Observações
+              <StickyNote size={16} className="text-yellow-500" />
+              Notas e Observações
             </h3>
             
-            <div className="space-y-3">
-              <div className="flex items-start space-x-2 p-3 rounded-lg border hover:bg-muted/50">
-                <Checkbox
-                  id="nota-us-densas"
-                  checked={data.notas.densaMamasUS}
-                  onCheckedChange={(checked) => updateData('notas', { ...data.notas, densaMamasUS: !!checked })}
-                />
-                <Label htmlFor="nota-us-densas" className="cursor-pointer text-sm leading-relaxed">
-                  A ultrassonografia pode ser útil em mamas densas se houver alterações palpáveis ou se a paciente apresentar risco elevado para câncer de mama.
-                </Label>
-              </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="nota-ultrassom"
+                checked={data.notas.incluirNotaUltrassom}
+                onCheckedChange={(checked) => updateData('notas', { ...data.notas, incluirNotaUltrassom: !!checked })}
+              />
+              <Label htmlFor="nota-ultrassom" className="cursor-pointer text-sm">
+                Incluir nota sobre complementação ultrassonográfica
+              </Label>
+            </div>
 
-              <div className="flex items-start space-x-2 p-3 rounded-lg border hover:bg-muted/50">
-                <Checkbox
-                  id="nota-correlacao"
-                  checked={data.notas.densaMamasCorrelacao}
-                  onCheckedChange={(checked) => updateData('notas', { ...data.notas, densaMamasCorrelacao: !!checked })}
-                />
-                <Label htmlFor="nota-correlacao" className="cursor-pointer text-sm leading-relaxed">
-                  A mamografia possui baixa sensibilidade em mamas densas. Recomenda-se correlação ultrassonográfica.
-                </Label>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-sm">Outra observação</Label>
-                <Textarea
-                  placeholder="Digite uma observação adicional..."
-                  value={data.notas.outraObservacao || ''}
-                  onChange={(e) => updateData('notas', { ...data.notas, outraObservacao: e.target.value })}
-                  className="min-h-[80px]"
-                />
-              </div>
+            <div className="space-y-2">
+              <Label className="text-sm">Outra observação</Label>
+              <Textarea
+                value={data.notas.outraObservacao || ''}
+                onChange={(e) => updateData('notas', { ...data.notas, outraObservacao: e.target.value })}
+                placeholder="Digite uma observação adicional..."
+                className="min-h-[100px]"
+              />
             </div>
           </div>
         )
@@ -1040,161 +953,121 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl max-h-[90vh] p-0 overflow-hidden" onPointerDownOutside={(e) => e.preventDefault()} onInteractOutside={(e) => e.preventDefault()}>
-        <DialogHeader className="p-4 pb-2 border-b">
+      <DialogContent 
+        className="max-w-6xl h-[90vh] flex flex-col p-0 gap-0"
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onInteractOutside={(e) => e.preventDefault()}
+      >
+        <DialogHeader className="px-6 py-4 border-b shrink-0">
           <div className="flex items-center justify-between">
             <DialogTitle className="flex items-center gap-2">
-              <span className="text-xl">📷</span>
-              ACR BI-RADS® - Mamografia
+              <span className="text-pink-500">BI-RADS® MG</span>
+              <span className="text-muted-foreground font-normal">Mamografia - ACR</span>
+              {isLoading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
             </DialogTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowPreview(!showPreview)}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              {showPreview ? <EyeOff size={16} /> : <Eye size={16} />}
-              <span className="ml-1.5 text-xs">{showPreview ? 'Ocultar' : 'Preview'}</span>
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowPreview(!showPreview)}
+                className="text-xs"
+              >
+                {showPreview ? <EyeOff size={14} className="mr-1" /> : <Eye size={14} className="mr-1" />}
+                {showPreview ? 'Ocultar Preview' : 'Mostrar Preview'}
+              </Button>
+            </div>
           </div>
         </DialogHeader>
 
-        <div className="flex flex-1 min-h-0">
-          {/* Sidebar de navegação */}
-          <div className="w-44 border-r bg-muted/30 p-2 space-y-1 overflow-y-auto shrink-0">
-            {tabs.map((tab) => {
-              const IconComponent = tab.icon
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left text-sm transition-colors ${
-                    activeTab === tab.id
-                      ? 'bg-primary text-primary-foreground'
-                      : 'hover:bg-muted'
-                  }`}
-                >
-                  <IconComponent size={14} className="opacity-70 shrink-0" />
-                  <span className="truncate">{tab.label}</span>
-                </button>
-              )
-            })}
-          </div>
-
-          {/* Conteúdo principal */}
-          <div className="flex-1 flex flex-col min-h-0 min-w-0">
-            <div className="flex-1 overflow-y-auto p-4" style={{ maxHeight: 'calc(90vh - 280px)' }}>
-              {renderTabContent()}
-            </div>
-
-            {/* Classificação */}
-            <div className="border-t p-3 bg-muted/30">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="text-sm font-medium">Classificação:</span>
-                  <span className={`px-3 py-1 rounded-full text-sm font-bold ${
-                    typeof biradsCategory === 'number' && biradsCategory <= 2 ? 'bg-green-500/20 text-green-700 dark:text-green-400' :
-                    biradsCategory === 3 ? 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-400' :
-                    biradsCategory === 0 ? 'bg-gray-500/20 text-gray-700 dark:text-gray-400' :
-                    'bg-red-500/20 text-red-700 dark:text-red-400'
-                  }`}>
-                    ACR BI-RADS {biradsCategory}
-                  </span>
-                </div>
-                {categoryInfo && (
-                  <span className="text-xs text-muted-foreground">
-                    {categoryInfo.name}
-                  </span>
-                )}
-              </div>
+        <div className="flex flex-1 overflow-hidden">
+          {/* Sidebar Tabs */}
+          <div className="w-48 border-r bg-muted/30 overflow-y-auto shrink-0">
+            <div className="p-2 space-y-1">
+              {tabs.map((tab) => {
+                const Icon = tab.icon
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors text-left ${
+                      activeTab === tab.id
+                        ? 'bg-primary text-primary-foreground'
+                        : 'hover:bg-muted'
+                    }`}
+                  >
+                    <Icon size={14} />
+                    {tab.label}
+                  </button>
+                )
+              })}
             </div>
           </div>
 
-          {/* Painel de Preview */}
+          {/* Main Content */}
+          <div className="flex-1 overflow-y-auto p-6">
+            {renderTabContent()}
+          </div>
+
+          {/* Preview Panel */}
           {showPreview && (
-            <div className="w-72 border-l bg-background flex flex-col shrink-0">
-              {/* Header do Preview */}
-              <div className="px-3 py-2 border-b bg-muted/50 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Eye size={14} className="text-pink-500" />
-                  <span className="text-xs font-medium">Preview do Laudo</span>
+            <div className="w-80 border-l bg-muted/20 overflow-y-auto shrink-0">
+              <div className="p-4 space-y-4">
+                {/* BI-RADS Category */}
+                <div className="p-3 rounded-lg bg-gradient-to-r from-pink-500/10 to-purple-500/10 border border-pink-500/20">
+                  <div className="text-xs text-muted-foreground mb-1">Categoria</div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl font-bold text-pink-500">BI-RADS {biradsCategory}</span>
+                  </div>
+                  {categoryInfo && (
+                    <div className="text-xs text-muted-foreground mt-1">
+                      {categoryInfo.name} • Risco: {categoryInfo.risco}
+                    </div>
+                  )}
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <Progress value={completeness.percentage} className="w-12 h-1.5" />
-                  <span className="text-[10px] text-muted-foreground">
-                    {completeness.filled}/{completeness.total}
-                  </span>
+
+                {/* Progress */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">Preenchimento</span>
+                    <span className="font-medium">{completeness.filled}/{completeness.total}</span>
+                  </div>
+                  <Progress value={completeness.percentage} className="h-1.5" />
                 </div>
-              </div>
 
-              {/* Conteúdo do Preview */}
-              <div className="flex-1 overflow-y-auto p-3" style={{ maxHeight: 'calc(90vh - 280px)' }}>
-                {/* Título */}
-                <h3 className="text-center font-bold text-xs mb-4 uppercase tracking-wide text-foreground">
-                  MAMOGRAFIA DIGITAL
-                </h3>
+                <Separator />
 
-                <SectionPreview
-                  title="Indicação Clínica"
-                  content={indicacaoTexto}
-                  hasContent={!!indicacaoTexto && indicacaoTexto.length > 0}
-                  isRequired
-                />
-
-                <SectionPreview
-                  title="Análise"
-                  content={achadosTexto}
-                  hasContent={!!achadosTexto && achadosTexto.length > 0}
-                  isRequired
-                />
-
-                {comparativoTexto && (
-                  <SectionPreview
-                    title="Estudo Comparativo"
-                    content={comparativoTexto}
-                    hasContent={!!comparativoTexto}
-                  />
-                )}
-
-                <SectionPreview
-                  title="Impressão Diagnóstica"
-                  content={impressaoTexto}
-                  hasContent={!!impressaoTexto && impressaoTexto.length > 0}
-                  isRequired
-                />
-
-                <SectionPreview
-                  title="Recomendação"
-                  content={recomendacaoTexto}
-                  hasContent={!!recomendacaoTexto && recomendacaoTexto.length > 0}
-                />
-
-                {notasTexto && (
-                  <SectionPreview
-                    title="Notas"
-                    content={notasTexto}
-                    hasContent={!!notasTexto}
-                  />
-                )}
+                {/* Sections Preview */}
+                <div className="space-y-1">
+                  <SectionPreview title="Indicação" content={indicacaoTexto} hasContent={!!indicacaoTexto} isRequired />
+                  <SectionPreview title="Achados" content={achadosTexto} hasContent={!!achadosTexto} isRequired />
+                  <SectionPreview title="Comparativo" content={comparativoTexto} hasContent={!!comparativoTexto} />
+                  <SectionPreview title="Impressão" content={impressaoTexto} hasContent={!!impressaoTexto} isRequired />
+                  <SectionPreview title="Recomendação" content={recomendacaoTexto} hasContent={!!recomendacaoTexto} isRequired />
+                  <SectionPreview title="Notas" content={notasTexto} hasContent={!!notasTexto} />
+                </div>
               </div>
             </div>
           )}
         </div>
 
-        <DialogFooter className="p-4 pt-2 border-t gap-2 flex-wrap">
-          <Button variant="ghost" size="sm" onClick={handleReset}>
-            Limpar
-          </Button>
-          <div className="flex-1" />
-          <Button variant="outline" size="sm" onClick={handleInsertAchados}>
-            <FileText size={14} className="mr-1" /> Achados
-          </Button>
-          <Button variant="outline" size="sm" onClick={handleInsertImpressao}>
-            <ClipboardList size={14} className="mr-1" /> Impressão
-          </Button>
-          <Button size="sm" onClick={handleInsertLaudoCompleto} className="bg-pink-600 hover:bg-pink-700">
-            <FileCheck size={14} className="mr-1" /> Laudo Completo
-          </Button>
+        <DialogFooter className="px-6 py-4 border-t shrink-0">
+          <div className="flex items-center justify-between w-full">
+            <Button variant="outline" size="sm" onClick={handleReset}>
+              Limpar
+            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={handleInsertAchados}>
+                Inserir Achados
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleInsertImpressao}>
+                Inserir Impressão
+              </Button>
+              <Button onClick={handleInsertLaudoCompleto} className="bg-pink-600 hover:bg-pink-700">
+                <FileCheck size={14} className="mr-1" />
+                Inserir Laudo Completo
+              </Button>
+            </div>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

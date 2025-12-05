@@ -27,8 +27,6 @@ import {
   BIRADSFindingData,
   BIRADSUSGData,
   BIRADSUSGCisto,
-  biradsUSGOptions,
-  biradsUSGExpandedOptions,
   biradsCategories,
   evaluateBIRADSUSGExpanded,
   generateBIRADSUSGIndicacao,
@@ -45,7 +43,8 @@ import {
   calcularTempoSeguimento,
   formatarTempoSeguimento,
 } from '@/lib/radsClassifications'
-import { useRADSOptions } from '@/hooks/useRADSOptions'
+import { useRADSOptions, RADSOption } from '@/hooks/useRADSOptions'
+import { getRADSOptionsWithFallback } from '@/lib/radsOptionsProvider'
 
 interface BIRADSModalProps {
   open: boolean
@@ -100,11 +99,17 @@ export function BIRADSModal({ open, onOpenChange, editor }: BIRADSModalProps) {
   const [data, setData] = useState<BIRADSUSGData>(createEmptyBIRADSUSGData())
   const [showPreview, setShowPreview] = useState(true)
 
-  // Fetch dynamic options from database (for future use)
-  const { data: dbOptions, isLoading } = useRADSOptions('BIRADS_USG')
+  // Fetch dynamic options from database with fallback
+  const { data: dbOptions, isLoading, isError } = useRADSOptions('BIRADS_USG')
   
-  // Note: Currently using hardcoded options for compatibility
-  // Database options available via dbOptions for gradual migration
+  // Get options with fallback to hardcoded if database unavailable
+  const options = useMemo(() => 
+    getRADSOptionsWithFallback('BIRADS_USG', dbOptions, isLoading, isError),
+    [dbOptions, isLoading, isError]
+  )
+
+  // Helper to get options for a category
+  const getOpts = (categoria: string): RADSOption[] => options[categoria] || []
 
   const updateData = <K extends keyof BIRADSUSGData>(field: K, value: BIRADSUSGData[K]) => {
     setData(prev => ({ ...prev, [field]: value }))
@@ -249,7 +254,7 @@ export function BIRADSModal({ open, onOpenChange, editor }: BIRADSModalProps) {
               onValueChange={(v) => updateData('indicacao', { tipo: v as any })}
               className="space-y-2"
             >
-              {biradsUSGExpandedOptions.tipoIndicacao.map((opt) => (
+              {getOpts('tipoIndicacao').map((opt) => (
                 <div key={opt.value} className="flex items-center space-x-3 p-3 rounded-lg border hover:bg-muted/50">
                   <RadioGroupItem value={opt.value} id={`ind-${opt.value}`} />
                   <Label htmlFor={`ind-${opt.value}`} className="cursor-pointer flex-1">
@@ -271,7 +276,7 @@ export function BIRADSModal({ open, onOpenChange, editor }: BIRADSModalProps) {
               onValueChange={(v) => updateData('cirurgia', { ...data.cirurgia, tipo: v as any })}
               className="space-y-2"
             >
-              {biradsUSGExpandedOptions.tipoCirurgia.map((opt) => (
+              {getOpts('tipoCirurgia').map((opt) => (
                 <div key={opt.value} className="flex items-center space-x-3 p-3 rounded-lg border hover:bg-muted/50">
                   <RadioGroupItem value={opt.value} id={`cir-${opt.value}`} />
                   <Label htmlFor={`cir-${opt.value}`} className="cursor-pointer flex-1">
@@ -307,7 +312,7 @@ export function BIRADSModal({ open, onOpenChange, editor }: BIRADSModalProps) {
                     >
                       <SelectTrigger><SelectValue placeholder="Sem reconstrução" /></SelectTrigger>
                       <SelectContent>
-                        {biradsUSGExpandedOptions.tipoReconstrucao.map((opt) => (
+                        {getOpts('tipoReconstrucao').map((opt) => (
                           <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                         ))}
                       </SelectContent>
@@ -329,7 +334,7 @@ export function BIRADSModal({ open, onOpenChange, editor }: BIRADSModalProps) {
               onValueChange={(v) => updateData('parenquima', { ...data.parenquima, tipo: v as any })}
               className="space-y-2"
             >
-              {biradsUSGExpandedOptions.parenquima.map((opt) => (
+              {getOpts('parenquima').map((opt) => (
                 <div key={opt.value} className="flex items-center space-x-3 p-3 rounded-lg border hover:bg-muted/50">
                   <RadioGroupItem value={opt.value} id={`par-${opt.value}`} />
                   <Label htmlFor={`par-${opt.value}`} className="cursor-pointer flex-1">
@@ -401,7 +406,7 @@ export function BIRADSModal({ open, onOpenChange, editor }: BIRADSModalProps) {
                       <Select value={cisto.tipo} onValueChange={(v) => updateCisto(index, 'tipo', v)}>
                         <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
                         <SelectContent>
-                          {biradsUSGExpandedOptions.tipoCisto.map((opt) => (
+                          {getOpts('tipoCisto').map((opt) => (
                             <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                           ))}
                         </SelectContent>
@@ -425,7 +430,7 @@ export function BIRADSModal({ open, onOpenChange, editor }: BIRADSModalProps) {
                       <Select value={cisto.lado} onValueChange={(v) => updateCisto(index, 'lado', v)}>
                         <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
                         <SelectContent>
-                          {biradsUSGOptions.lado.map((opt) => (
+                          {getOpts('lado').map((opt) => (
                             <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                           ))}
                         </SelectContent>
@@ -436,7 +441,7 @@ export function BIRADSModal({ open, onOpenChange, editor }: BIRADSModalProps) {
                       <Select value={cisto.localizacao} onValueChange={(v) => updateCisto(index, 'localizacao', v)}>
                         <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
                         <SelectContent>
-                          {biradsUSGOptions.localizacao.map((opt) => (
+                          {getOpts('localizacao').map((opt) => (
                             <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                           ))}
                         </SelectContent>
@@ -555,10 +560,9 @@ export function BIRADSModal({ open, onOpenChange, editor }: BIRADSModalProps) {
                             <Select value={nodulo.estadoNodulo} onValueChange={(v) => updateNodulo(index, 'estadoNodulo', v)}>
                               <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="estavel">Estável</SelectItem>
-                                <SelectItem value="cresceu">Cresceu</SelectItem>
-                                <SelectItem value="diminuiu">Diminuiu</SelectItem>
-                                <SelectItem value="novo">Novo</SelectItem>
+                                {getOpts('estadoNodulo').map((opt) => (
+                                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                ))}
                               </SelectContent>
                             </Select>
                           </div>
@@ -579,7 +583,7 @@ export function BIRADSModal({ open, onOpenChange, editor }: BIRADSModalProps) {
                         <Select value={nodulo.ecogenicidade} onValueChange={(v) => updateNodulo(index, 'ecogenicidade', v)}>
                           <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
                           <SelectContent>
-                            {biradsUSGOptions.ecogenicidade.map((opt) => (
+                            {getOpts('ecogenicidade').map((opt) => (
                               <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                             ))}
                           </SelectContent>
@@ -590,7 +594,7 @@ export function BIRADSModal({ open, onOpenChange, editor }: BIRADSModalProps) {
                         <Select value={nodulo.forma} onValueChange={(v) => updateNodulo(index, 'forma', v)}>
                           <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
                           <SelectContent>
-                            {biradsUSGOptions.forma.map((opt) => (
+                            {getOpts('forma').map((opt) => (
                               <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                             ))}
                           </SelectContent>
@@ -601,7 +605,7 @@ export function BIRADSModal({ open, onOpenChange, editor }: BIRADSModalProps) {
                         <Select value={nodulo.margens} onValueChange={(v) => updateNodulo(index, 'margens', v)}>
                           <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
                           <SelectContent>
-                            {biradsUSGOptions.margens.map((opt) => (
+                            {getOpts('margens').map((opt) => (
                               <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                             ))}
                           </SelectContent>
@@ -615,7 +619,7 @@ export function BIRADSModal({ open, onOpenChange, editor }: BIRADSModalProps) {
                         <Select value={nodulo.eixo} onValueChange={(v) => updateNodulo(index, 'eixo', v)}>
                           <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
                           <SelectContent>
-                            {biradsUSGOptions.eixo.map((opt) => (
+                            {getOpts('eixo').map((opt) => (
                               <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                             ))}
                           </SelectContent>
@@ -626,7 +630,7 @@ export function BIRADSModal({ open, onOpenChange, editor }: BIRADSModalProps) {
                         <Select value={nodulo.sombra} onValueChange={(v) => updateNodulo(index, 'sombra', v)}>
                           <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
                           <SelectContent>
-                            {biradsUSGOptions.sombra.map((opt) => (
+                            {getOpts('sombra').map((opt) => (
                               <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                             ))}
                           </SelectContent>
@@ -640,7 +644,7 @@ export function BIRADSModal({ open, onOpenChange, editor }: BIRADSModalProps) {
                         <Select value={nodulo.localizacao} onValueChange={(v) => updateNodulo(index, 'localizacao', v)}>
                           <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
                           <SelectContent>
-                            {biradsUSGOptions.localizacao.map((opt) => (
+                            {getOpts('localizacao').map((opt) => (
                               <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                             ))}
                           </SelectContent>
@@ -651,7 +655,7 @@ export function BIRADSModal({ open, onOpenChange, editor }: BIRADSModalProps) {
                         <Select value={nodulo.lado} onValueChange={(v) => updateNodulo(index, 'lado', v)}>
                           <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
                           <SelectContent>
-                            {biradsUSGOptions.lado.map((opt) => (
+                            {getOpts('lado').map((opt) => (
                               <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                             ))}
                           </SelectContent>
@@ -708,7 +712,7 @@ export function BIRADSModal({ open, onOpenChange, editor }: BIRADSModalProps) {
                     <Select value={data.ectasiaDuctal.lado} onValueChange={(v) => updateData('ectasiaDuctal', { ...data.ectasiaDuctal, lado: v })}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        {biradsUSGOptions.lado.map((opt) => (
+                        {getOpts('lado').map((opt) => (
                           <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                         ))}
                       </SelectContent>
@@ -719,7 +723,7 @@ export function BIRADSModal({ open, onOpenChange, editor }: BIRADSModalProps) {
                     <Select value={data.ectasiaDuctal.localizacao} onValueChange={(v) => updateData('ectasiaDuctal', { ...data.ectasiaDuctal, localizacao: v })}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        {biradsUSGOptions.localizacao.map((opt) => (
+                        {getOpts('localizacao').map((opt) => (
                           <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                         ))}
                       </SelectContent>
@@ -746,7 +750,7 @@ export function BIRADSModal({ open, onOpenChange, editor }: BIRADSModalProps) {
                     onValueChange={(v) => updateData('ectasiaDuctal', { ...data.ectasiaDuctal, conteudo: v as any })}
                     className="flex gap-4"
                   >
-                    {biradsUSGExpandedOptions.ectasiaConteudo.map((opt) => (
+                    {getOpts('ectasiaConteudo').map((opt) => (
                       <div key={opt.value} className="flex items-center space-x-2">
                         <RadioGroupItem value={opt.value} id={`ect-${opt.value}`} />
                         <Label htmlFor={`ect-${opt.value}`} className="cursor-pointer">{opt.label}</Label>
@@ -780,13 +784,13 @@ export function BIRADSModal({ open, onOpenChange, editor }: BIRADSModalProps) {
                     onValueChange={(v) => updateData('distorcaoArquitetural', { ...data.distorcaoArquitetural, tipo: v as any })}
                     className="space-y-2"
                   >
-                    <div className="flex items-center space-x-2 p-3 rounded-lg border hover:bg-muted/50">
+                    <div className="flex items-center space-x-2">
                       <RadioGroupItem value="sitio_cirurgico" id="dist-sitio" />
                       <Label htmlFor="dist-sitio" className="cursor-pointer">Em sítio cirúrgico</Label>
                     </div>
-                    <div className="flex items-center space-x-2 p-3 rounded-lg border hover:bg-muted/50 border-amber-500/30 bg-amber-500/5">
+                    <div className="flex items-center space-x-2">
                       <RadioGroupItem value="fora_sitio" id="dist-fora" />
-                      <Label htmlFor="dist-fora" className="cursor-pointer">Fora de sítio cirúrgico (suspeito)</Label>
+                      <Label htmlFor="dist-fora" className="cursor-pointer">Fora de sítio cirúrgico</Label>
                     </div>
                   </RadioGroup>
                 </div>
@@ -794,22 +798,31 @@ export function BIRADSModal({ open, onOpenChange, editor }: BIRADSModalProps) {
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
                     <Label className="text-sm">Lado</Label>
-                    <Select value={data.distorcaoArquitetural.lado} onValueChange={(v) => updateData('distorcaoArquitetural', { ...data.distorcaoArquitetural, lado: v })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
+                    <Select
+                      value={data.distorcaoArquitetural.lado || ''}
+                      onValueChange={(v) => updateData('distorcaoArquitetural', { ...data.distorcaoArquitetural, lado: v })}
+                    >
+                      <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="direita">Direita</SelectItem>
-                        <SelectItem value="esquerda">Esquerda</SelectItem>
+                        {getOpts('lado').map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-sm">Região (opcional)</Label>
-                    <Input
-                      value={data.distorcaoArquitetural.localizacao}
-                      onChange={(e) => updateData('distorcaoArquitetural', { ...data.distorcaoArquitetural, localizacao: e.target.value })}
-                      placeholder="Ex: quadrante súpero-lateral"
-                      className="h-9"
-                    />
+                    <Label className="text-sm">Localização</Label>
+                    <Select
+                      value={data.distorcaoArquitetural.localizacao || ''}
+                      onValueChange={(v) => updateData('distorcaoArquitetural', { ...data.distorcaoArquitetural, localizacao: v })}
+                    >
+                      <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                      <SelectContent>
+                        {getOpts('localizacao').map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               </div>
@@ -826,25 +839,41 @@ export function BIRADSModal({ open, onOpenChange, editor }: BIRADSModalProps) {
                 checked={data.implanteMamario.presente}
                 onCheckedChange={(checked) => updateData('implanteMamario', { ...data.implanteMamario, presente: !!checked })}
               />
-              <Label htmlFor="implante-presente" className="font-semibold cursor-pointer">Implantes mamários presentes</Label>
+              <Label htmlFor="implante-presente" className="font-semibold cursor-pointer">Implante mamário presente</Label>
             </div>
 
             {data.implanteMamario.presente && (
               <div className="space-y-4 pl-6 border-l-2 border-primary/30">
-                <div className="space-y-2">
-                  <Label className="text-sm">Posição</Label>
-                  <RadioGroup
-                    value={data.implanteMamario.posicao}
-                    onValueChange={(v) => updateData('implanteMamario', { ...data.implanteMamario, posicao: v as any })}
-                    className="flex gap-4"
-                  >
-                    {biradsUSGExpandedOptions.implantePosicao.map((opt) => (
-                      <div key={opt.value} className="flex items-center space-x-2">
-                        <RadioGroupItem value={opt.value} id={`imp-${opt.value}`} />
-                        <Label htmlFor={`imp-${opt.value}`} className="cursor-pointer">{opt.label}</Label>
-                      </div>
-                    ))}
-                  </RadioGroup>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label className="text-sm">Posição</Label>
+                    <Select
+                      value={data.implanteMamario.posicao}
+                      onValueChange={(v) => updateData('implanteMamario', { ...data.implanteMamario, posicao: v as any })}
+                    >
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {getOpts('implantePosicao').map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm">Lado</Label>
+                    <Select
+                      value={data.implanteMamario.lado || ''}
+                      onValueChange={(v) => updateData('implanteMamario', { ...data.implanteMamario, lado: v })}
+                    >
+                      <SelectTrigger><SelectValue placeholder="Bilateral" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Bilateral</SelectItem>
+                        {getOpts('lado').map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -854,8 +883,8 @@ export function BIRADSModal({ open, onOpenChange, editor }: BIRADSModalProps) {
                     onValueChange={(v) => updateData('implanteMamario', { ...data.implanteMamario, integridade: v as any })}
                     className="space-y-2"
                   >
-                    {biradsUSGExpandedOptions.implanteIntegridade.map((opt) => (
-                      <div key={opt.value} className={`flex items-center space-x-2 p-3 rounded-lg border hover:bg-muted/50 ${opt.value !== 'integros' ? 'border-amber-500/30 bg-amber-500/5' : ''}`}>
+                    {getOpts('implanteIntegridade').map((opt) => (
+                      <div key={opt.value} className="flex items-center space-x-2">
                         <RadioGroupItem value={opt.value} id={`int-${opt.value}`} />
                         <Label htmlFor={`int-${opt.value}`} className="cursor-pointer">{opt.label}</Label>
                       </div>
@@ -863,29 +892,17 @@ export function BIRADSModal({ open, onOpenChange, editor }: BIRADSModalProps) {
                   </RadioGroup>
                 </div>
 
-                {data.implanteMamario.integridade !== 'integros' && (
+                {(data.implanteMamario.integridade === 'rotura_intracapsular' || data.implanteMamario.integridade === 'rotura_extracapsular') && (
                   <div className="space-y-2">
-                    <Label className="text-sm">Lado afetado</Label>
-                    <Select value={data.implanteMamario.lado || ''} onValueChange={(v) => updateData('implanteMamario', { ...data.implanteMamario, lado: v })}>
-                      <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="direita">Direita</SelectItem>
-                        <SelectItem value="esquerda">Esquerda</SelectItem>
-                        <SelectItem value="bilateral">Bilateral</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Label className="text-sm">Descrição do silicone livre</Label>
+                    <Textarea
+                      value={data.implanteMamario.siliconeDesc || ''}
+                      onChange={(e) => updateData('implanteMamario', { ...data.implanteMamario, siliconeDesc: e.target.value })}
+                      placeholder="Descreva localização e extensão do silicone livre"
+                      className="min-h-[80px]"
+                    />
                   </div>
                 )}
-
-                <div className="space-y-2">
-                  <Label className="text-sm">Observações sobre silicone (opcional)</Label>
-                  <Input
-                    value={data.implanteMamario.siliconeDesc}
-                    onChange={(e) => updateData('implanteMamario', { ...data.implanteMamario, siliconeDesc: e.target.value })}
-                    placeholder="Ex: sinais de siliconoma"
-                    className="h-9"
-                  />
-                </div>
               </div>
             )}
           </div>
@@ -894,15 +911,15 @@ export function BIRADSModal({ open, onOpenChange, editor }: BIRADSModalProps) {
       case 'linfonodo':
         return (
           <div className="space-y-4">
-            <h3 className="font-semibold text-sm">Linfonodos Axilares</h3>
+            <h3 className="font-semibold text-sm">Linfonodomegalia Axilar</h3>
             
             <RadioGroup
               value={data.linfonodomegalia.tipo}
               onValueChange={(v) => updateData('linfonodomegalia', { ...data.linfonodomegalia, tipo: v as any })}
               className="space-y-2"
             >
-              {biradsUSGExpandedOptions.linfonodomegalia.map((opt) => (
-                <div key={opt.value} className={`flex items-center space-x-3 p-3 rounded-lg border hover:bg-muted/50 ${opt.value === 'perda_padrao' ? 'border-amber-500/30 bg-amber-500/5' : ''}`}>
+              {getOpts('linfonodomegalia').map((opt) => (
+                <div key={opt.value} className="flex items-center space-x-3 p-3 rounded-lg border hover:bg-muted/50">
                   <RadioGroupItem value={opt.value} id={`linf-${opt.value}`} />
                   <Label htmlFor={`linf-${opt.value}`} className="cursor-pointer flex-1">
                     {opt.label}
@@ -911,26 +928,31 @@ export function BIRADSModal({ open, onOpenChange, editor }: BIRADSModalProps) {
               ))}
             </RadioGroup>
 
-            {data.linfonodomegalia.tipo === 'perda_padrao' && (
-              <div className="space-y-4 pl-6 border-l-2 border-primary/30">
+            {data.linfonodomegalia.tipo !== 'ausente' && (
+              <div className="space-y-3 pl-4 border-l-2 border-primary/30">
                 <div className="space-y-2">
                   <Label className="text-sm">Lado</Label>
-                  <Select value={data.linfonodomegalia.lado} onValueChange={(v) => updateData('linfonodomegalia', { ...data.linfonodomegalia, lado: v })}>
+                  <Select
+                    value={data.linfonodomegalia.lado || ''}
+                    onValueChange={(v) => updateData('linfonodomegalia', { ...data.linfonodomegalia, lado: v })}
+                  >
                     <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="direita">Direita</SelectItem>
-                      <SelectItem value="esquerda">Esquerda</SelectItem>
+                      {getOpts('lado').map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                      ))}
                       <SelectItem value="bilateral">Bilateral</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
+
                 <div className="space-y-2">
-                  <Label className="text-sm">Descrição (opcional)</Label>
-                  <Input
-                    value={data.linfonodomegalia.descricao}
+                  <Label className="text-sm">Descrição adicional</Label>
+                  <Textarea
+                    value={data.linfonodomegalia.descricao || ''}
                     onChange={(e) => updateData('linfonodomegalia', { ...data.linfonodomegalia, descricao: e.target.value })}
-                    placeholder="Ex: espessamento cortical excêntrico"
-                    className="h-9"
+                    placeholder="Medidas, características específicas..."
+                    className="min-h-[60px]"
                   />
                 </div>
               </div>
@@ -941,14 +963,17 @@ export function BIRADSModal({ open, onOpenChange, editor }: BIRADSModalProps) {
       case 'comparativo':
         return (
           <div className="space-y-4">
-            <h3 className="font-semibold text-sm">Estudo Comparativo</h3>
+            <h3 className="font-semibold text-sm flex items-center gap-2">
+              <Calendar size={16} className="text-blue-500" />
+              Estudo Comparativo
+            </h3>
             
             <RadioGroup
               value={data.comparativo.tipo}
               onValueChange={(v) => updateData('comparativo', { ...data.comparativo, tipo: v as any })}
               className="space-y-2"
             >
-              {biradsUSGExpandedOptions.comparativoTipo.map((opt) => (
+              {getOpts('comparativoTipo').map((opt) => (
                 <div key={opt.value} className="flex items-center space-x-3 p-3 rounded-lg border hover:bg-muted/50">
                   <RadioGroupItem value={opt.value} id={`comp-${opt.value}`} />
                   <Label htmlFor={`comp-${opt.value}`} className="cursor-pointer flex-1">
@@ -959,27 +984,31 @@ export function BIRADSModal({ open, onOpenChange, editor }: BIRADSModalProps) {
             </RadioGroup>
 
             {data.comparativo.tipo === 'disponivel' && (
-              <div className="space-y-4 pl-6 border-l-2 border-primary/30">
+              <div className="space-y-4 pl-4 border-l-2 border-primary/30">
                 <div className="space-y-2">
                   <Label className="text-sm">Data do exame anterior</Label>
                   <Input
                     type="date"
                     value={data.comparativo.dataExame || ''}
-                    onChange={(e) => updateData('comparativo', { ...data.comparativo, dataExame: e.target.value || null })}
-                    className="h-9 w-48"
+                    onChange={(e) => updateData('comparativo', { ...data.comparativo, dataExame: e.target.value })}
                     max={new Date().toISOString().split('T')[0]}
                   />
                 </div>
+
                 <div className="space-y-2">
                   <Label className="text-sm">Evolução</Label>
-                  <Select value={data.comparativo.evolucao} onValueChange={(v) => updateData('comparativo', { ...data.comparativo, evolucao: v as any })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {biradsUSGExpandedOptions.comparativoEvolucao.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <RadioGroup
+                    value={data.comparativo.evolucao || ''}
+                    onValueChange={(v) => updateData('comparativo', { ...data.comparativo, evolucao: v as any })}
+                    className="space-y-2"
+                  >
+                    {getOpts('comparativoEvolucao').map((opt) => (
+                      <div key={opt.value} className="flex items-center space-x-2">
+                        <RadioGroupItem value={opt.value} id={`evol-${opt.value}`} />
+                        <Label htmlFor={`evol-${opt.value}`} className="cursor-pointer">{opt.label}</Label>
+                      </div>
+                    ))}
+                  </RadioGroup>
                 </div>
               </div>
             )}
@@ -990,31 +1019,39 @@ export function BIRADSModal({ open, onOpenChange, editor }: BIRADSModalProps) {
         return (
           <div className="space-y-4">
             <h3 className="font-semibold text-sm flex items-center gap-2">
-              <StickyNote size={16} className="text-amber-500" />
-              Observações
+              <StickyNote size={16} className="text-yellow-500" />
+              Notas e Observações
             </h3>
-            
-            <div className="space-y-3">
-              <div className="flex items-start space-x-2 p-3 rounded-lg border hover:bg-muted/50">
-                <Checkbox
-                  id="nota-mamografia"
-                  checked={data.notas.correlacaoMamografia}
-                  onCheckedChange={(checked) => updateData('notas', { ...data.notas, correlacaoMamografia: !!checked })}
-                />
-                <Label htmlFor="nota-mamografia" className="cursor-pointer text-sm leading-relaxed">
-                  A ultrassonografia mamária não substitui a mamografia. Recomenda-se correlação mamográfica conforme indicação clínica.
-                </Label>
-              </div>
 
-              <div className="space-y-2">
-                <Label className="text-sm">Outra observação</Label>
-                <Textarea
-                  placeholder="Digite uma observação adicional..."
-                  value={data.notas.outraObservacao}
-                  onChange={(e) => updateData('notas', { ...data.notas, outraObservacao: e.target.value })}
-                  className="min-h-[80px]"
-                />
-              </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="correlacao-mamografia"
+                checked={data.notas.correlacaoMamografia}
+                onCheckedChange={(checked) => updateData('notas', { ...data.notas, correlacaoMamografia: !!checked })}
+              />
+              <Label htmlFor="correlacao-mamografia" className="cursor-pointer text-sm">
+                Incluir nota sobre correlação mamográfica
+              </Label>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm">Outra observação</Label>
+              <Textarea
+                value={data.notas.outraObservacao || ''}
+                onChange={(e) => updateData('notas', { ...data.notas, outraObservacao: e.target.value })}
+                placeholder="Digite uma observação adicional..."
+                className="min-h-[100px]"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm">Achados adicionais (seção Achados)</Label>
+              <Textarea
+                value={data.achadosAdicionais || ''}
+                onChange={(e) => updateData('achadosAdicionais', e.target.value)}
+                placeholder="Achados não contemplados nas seções anteriores..."
+                className="min-h-[100px]"
+              />
             </div>
           </div>
         )
@@ -1026,161 +1063,121 @@ export function BIRADSModal({ open, onOpenChange, editor }: BIRADSModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl max-h-[90vh] p-0 overflow-hidden" onPointerDownOutside={(e) => e.preventDefault()} onInteractOutside={(e) => e.preventDefault()}>
-        <DialogHeader className="p-4 pb-2 border-b">
+      <DialogContent 
+        className="max-w-6xl h-[90vh] flex flex-col p-0 gap-0"
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onInteractOutside={(e) => e.preventDefault()}
+      >
+        <DialogHeader className="px-6 py-4 border-b shrink-0">
           <div className="flex items-center justify-between">
             <DialogTitle className="flex items-center gap-2">
-              <span className="text-xl">🎀</span>
-              ACR BI-RADS® - Ultrassonografia Mamária
+              <span className="text-pink-500">BI-RADS® USG</span>
+              <span className="text-muted-foreground font-normal">Classificação ACR</span>
+              {isLoading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
             </DialogTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowPreview(!showPreview)}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              {showPreview ? <EyeOff size={16} /> : <Eye size={16} />}
-              <span className="ml-1.5 text-xs">{showPreview ? 'Ocultar' : 'Preview'}</span>
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowPreview(!showPreview)}
+                className="text-xs"
+              >
+                {showPreview ? <EyeOff size={14} className="mr-1" /> : <Eye size={14} className="mr-1" />}
+                {showPreview ? 'Ocultar Preview' : 'Mostrar Preview'}
+              </Button>
+            </div>
           </div>
         </DialogHeader>
 
-        <div className="flex flex-1 min-h-0">
-          {/* Sidebar de navegação */}
-          <div className="w-40 border-r bg-muted/30 p-2 space-y-1 overflow-y-auto shrink-0">
-            {tabs.map((tab) => {
-              const IconComponent = tab.icon
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left text-sm transition-colors ${
-                    activeTab === tab.id
-                      ? 'bg-primary text-primary-foreground'
-                      : 'hover:bg-muted'
-                  }`}
-                >
-                  <IconComponent size={14} className="opacity-70 shrink-0" />
-                  <span className="truncate text-xs">{tab.label}</span>
-                </button>
-              )
-            })}
-          </div>
-
-          {/* Conteúdo principal */}
-          <div className="flex-1 flex flex-col min-h-0 min-w-0">
-            <div className="flex-1 overflow-y-auto p-4" style={{ maxHeight: 'calc(90vh - 280px)' }}>
-              {renderTabContent()}
-            </div>
-
-            {/* Classificação */}
-            <div className="border-t p-3 bg-muted/30">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="text-sm font-medium">Classificação:</span>
-                  <span className={`px-3 py-1 rounded-full text-sm font-bold ${
-                    typeof biradsCategory === 'number' && biradsCategory <= 2 ? 'bg-green-500/20 text-green-700 dark:text-green-400' :
-                    biradsCategory === 3 ? 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-400' :
-                    biradsCategory === 0 ? 'bg-gray-500/20 text-gray-700 dark:text-gray-400' :
-                    'bg-red-500/20 text-red-700 dark:text-red-400'
-                  }`}>
-                    ACR BI-RADS {biradsCategory}
-                  </span>
-                </div>
-                {categoryInfo && (
-                  <span className="text-xs text-muted-foreground">
-                    {categoryInfo.name}
-                  </span>
-                )}
-              </div>
+        <div className="flex flex-1 overflow-hidden">
+          {/* Sidebar Tabs */}
+          <div className="w-48 border-r bg-muted/30 overflow-y-auto shrink-0">
+            <div className="p-2 space-y-1">
+              {tabs.map((tab) => {
+                const Icon = tab.icon
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors text-left ${
+                      activeTab === tab.id
+                        ? 'bg-primary text-primary-foreground'
+                        : 'hover:bg-muted'
+                    }`}
+                  >
+                    <Icon size={14} />
+                    {tab.label}
+                  </button>
+                )
+              })}
             </div>
           </div>
 
-          {/* Painel de Preview */}
+          {/* Main Content */}
+          <div className="flex-1 overflow-y-auto p-6">
+            {renderTabContent()}
+          </div>
+
+          {/* Preview Panel */}
           {showPreview && (
-            <div className="w-72 border-l bg-background flex flex-col shrink-0">
-              {/* Header do Preview */}
-              <div className="px-3 py-2 border-b bg-muted/50 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Eye size={14} className="text-pink-500" />
-                  <span className="text-xs font-medium">Preview do Laudo</span>
+            <div className="w-80 border-l bg-muted/20 overflow-y-auto shrink-0">
+              <div className="p-4 space-y-4">
+                {/* BI-RADS Category */}
+                <div className="p-3 rounded-lg bg-gradient-to-r from-pink-500/10 to-purple-500/10 border border-pink-500/20">
+                  <div className="text-xs text-muted-foreground mb-1">Categoria</div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl font-bold text-pink-500">BI-RADS {biradsCategory}</span>
+                  </div>
+                  {categoryInfo && (
+                    <div className="text-xs text-muted-foreground mt-1">
+                      {categoryInfo.name} • Risco: {categoryInfo.risco}
+                    </div>
+                  )}
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <Progress value={completeness.percentage} className="w-12 h-1.5" />
-                  <span className="text-[10px] text-muted-foreground">
-                    {completeness.filled}/{completeness.total}
-                  </span>
+
+                {/* Progress */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">Preenchimento</span>
+                    <span className="font-medium">{completeness.filled}/{completeness.total}</span>
+                  </div>
+                  <Progress value={completeness.percentage} className="h-1.5" />
                 </div>
-              </div>
 
-              {/* Conteúdo do Preview */}
-              <div className="flex-1 overflow-y-auto p-3" style={{ maxHeight: 'calc(90vh - 280px)' }}>
-                {/* Título */}
-                <h3 className="text-center font-bold text-xs mb-4 uppercase tracking-wide text-foreground">
-                  ULTRASSONOGRAFIA DAS MAMAS
-                </h3>
+                <Separator />
 
-                <SectionPreview
-                  title="Indicação Clínica"
-                  content={indicacaoTexto}
-                  hasContent={!!indicacaoTexto && indicacaoTexto.length > 0}
-                  isRequired
-                />
-
-                <SectionPreview
-                  title="Técnica"
-                  content={tecnicaTexto}
-                  hasContent
-                />
-
-                <SectionPreview
-                  title="Achados"
-                  content={achadosTexto}
-                  hasContent={!!achadosTexto && achadosTexto.length > 0}
-                  isRequired
-                />
-
-                {comparativoTexto && (
-                  <SectionPreview
-                    title="Estudo Comparativo"
-                    content={comparativoTexto}
-                    hasContent={!!comparativoTexto}
-                  />
-                )}
-
-                <SectionPreview
-                  title="Impressão Diagnóstica"
-                  content={impressaoTexto}
-                  hasContent={!!impressaoTexto && impressaoTexto.length > 0}
-                  isRequired
-                />
-
-                {notasTexto && (
-                  <SectionPreview
-                    title="Notas"
-                    content={notasTexto}
-                    hasContent={!!notasTexto}
-                  />
-                )}
+                {/* Sections Preview */}
+                <div className="space-y-1">
+                  <SectionPreview title="Indicação" content={indicacaoTexto} hasContent={!!indicacaoTexto} isRequired />
+                  <SectionPreview title="Técnica" content={tecnicaTexto} hasContent={true} />
+                  <SectionPreview title="Achados" content={achadosTexto} hasContent={!!achadosTexto} isRequired />
+                  <SectionPreview title="Comparativo" content={comparativoTexto} hasContent={!!comparativoTexto} />
+                  <SectionPreview title="Impressão" content={impressaoTexto} hasContent={!!impressaoTexto} isRequired />
+                  <SectionPreview title="Notas" content={notasTexto} hasContent={!!notasTexto} />
+                </div>
               </div>
             </div>
           )}
         </div>
 
-        <DialogFooter className="p-4 pt-2 border-t gap-2 flex-wrap">
-          <Button variant="ghost" size="sm" onClick={handleReset}>
-            Limpar
-          </Button>
-          <div className="flex-1" />
-          <Button variant="outline" size="sm" onClick={handleInsertAchados}>
-            <FileText size={14} className="mr-1" /> Achados
-          </Button>
-          <Button variant="outline" size="sm" onClick={handleInsertImpressao}>
-            <ClipboardList size={14} className="mr-1" /> Impressão
-          </Button>
-          <Button size="sm" onClick={handleInsertLaudoCompleto} className="bg-pink-600 hover:bg-pink-700">
-            <FileCheck size={14} className="mr-1" /> Laudo Completo
-          </Button>
+        <DialogFooter className="px-6 py-4 border-t shrink-0">
+          <div className="flex items-center justify-between w-full">
+            <Button variant="outline" size="sm" onClick={handleReset}>
+              Limpar
+            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={handleInsertAchados}>
+                Inserir Achados
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleInsertImpressao}>
+                Inserir Impressão
+              </Button>
+              <Button onClick={handleInsertLaudoCompleto} className="bg-pink-600 hover:bg-pink-700">
+                <FileCheck size={14} className="mr-1" />
+                Inserir Laudo Completo
+              </Button>
+            </div>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
