@@ -82,13 +82,14 @@ const hardcodedMaps: Record<string, RADSOptionsMap> = {
   BIRADS_RM: {}, // Data comes from database
   TIRADS: convertTIRADSToMap(),
   US_TIREOIDE: {}, // Data comes from database, no hardcoded fallback
+  PIRADS: {}, // Data comes from database, no hardcoded fallback
 }
 
 /**
  * Get RADS options with fallback to hardcoded values
  */
 export function getRADSOptionsWithFallback(
-  sistemaCodigo: 'BIRADS_USG' | 'BIRADS_MG' | 'BIRADS_RM' | 'TIRADS' | 'US_TIREOIDE',
+  sistemaCodigo: 'BIRADS_USG' | 'BIRADS_MG' | 'BIRADS_RM' | 'TIRADS' | 'US_TIREOIDE' | 'PIRADS',
   dbOptions: RADSOptionsMap | undefined,
   isLoading: boolean,
   isError: boolean
@@ -106,7 +107,7 @@ export function getRADSOptionsWithFallback(
  * Get options for a specific category with fallback
  */
 export function getCategoryOptions(
-  sistemaCodigo: 'BIRADS_USG' | 'BIRADS_MG' | 'BIRADS_RM' | 'TIRADS' | 'US_TIREOIDE',
+  sistemaCodigo: 'BIRADS_USG' | 'BIRADS_MG' | 'BIRADS_RM' | 'TIRADS' | 'US_TIREOIDE' | 'PIRADS',
   categoria: string,
   dbOptions: RADSOptionsMap | undefined,
   isLoading: boolean,
@@ -120,7 +121,7 @@ export function getCategoryOptions(
  * Get a single option by value from a category
  */
 export function getOptionByValue(
-  sistemaCodigo: 'BIRADS_USG' | 'BIRADS_MG' | 'BIRADS_RM' | 'TIRADS' | 'US_TIREOIDE',
+  sistemaCodigo: 'BIRADS_USG' | 'BIRADS_MG' | 'BIRADS_RM' | 'TIRADS' | 'US_TIREOIDE' | 'PIRADS',
   categoria: string,
   value: string,
   dbOptions?: RADSOptionsMap
@@ -134,7 +135,7 @@ export function getOptionByValue(
  * Get texto for a specific value in a category
  */
 export function getOptionTexto(
-  sistemaCodigo: 'BIRADS_USG' | 'BIRADS_MG' | 'BIRADS_RM' | 'TIRADS' | 'US_TIREOIDE',
+  sistemaCodigo: 'BIRADS_USG' | 'BIRADS_MG' | 'BIRADS_RM' | 'TIRADS' | 'US_TIREOIDE' | 'PIRADS',
   categoria: string,
   value: string,
   dbOptions?: RADSOptionsMap
