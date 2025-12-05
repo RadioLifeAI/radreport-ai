@@ -87,7 +87,7 @@ interface USTireoideData {
   cistos: USTireoideCisto[]
   temNodulos: boolean
   nodulos: NoduleData[]
-  linfonodoStatus: 'normais' | 'linfonodomegalia' | 'proeminentes'
+  linfonodoStatus: 'normal' | 'linfonodomegalia' | 'proeminentes'
   linfonodos: USTireoideLinfonodo[]
   achadosAdicionais: string
   notas: string
@@ -125,7 +125,7 @@ const createEmptyData = (): USTireoideData => ({
   indicacaoOutras: '',
   statusTireoide: 'normal',
   dimensoes: 'normais',
-  contornos: 'regulares',
+  contornos: 'preservados',
   ecotextura: 'homogenea',
   vascularizacao: 'normal',
   medidas: {
@@ -137,7 +137,7 @@ const createEmptyData = (): USTireoideData => ({
   cistos: [],
   temNodulos: false,
   nodulos: [],
-  linfonodoStatus: 'normais',
+  linfonodoStatus: 'normal',
   linfonodos: [],
   achadosAdicionais: '',
   notas: '',
@@ -145,7 +145,7 @@ const createEmptyData = (): USTireoideData => ({
 
 const createEmptyCisto = (): USTireoideCisto => ({
   tipo: 'simples',
-  localizacao: 'ld',
+  localizacao: 'lobo_direito',
   terco: 'medio',
   medida: 0.5,
 })
@@ -236,7 +236,7 @@ const generateAchados = (data: USTireoideData, options: Record<string, RADSOptio
   
   // Linfonodos
   lines.push('')
-  if (data.linfonodoStatus === 'normais') {
+  if (data.linfonodoStatus === 'normal') {
     lines.push('Cadeias linfonodais cervicais sem linfonodomegalias.')
   } else if (data.linfonodoStatus === 'proeminentes') {
     lines.push('Linfonodos cervicais de aspecto proeminente, porém sem características suspeitas.')
@@ -288,11 +288,11 @@ const generateImpressao = (data: USTireoideData, tiradOptions: Record<string, RA
   // Nódulos com TI-RADS
   if (data.temNodulos && data.nodulos.length > 0) {
     const nodulosComTIRADS = data.nodulos.map((n, i) => {
-      const points = getTIRADSPoints('composicao', n.composicao, tiradOptions) +
-                     getTIRADSPoints('ecogenicidade', n.ecogenicidade, tiradOptions) +
-                     getTIRADSPoints('formato', n.formato, tiradOptions) +
-                     getTIRADSPoints('margens', n.margens, tiradOptions) +
-                     getTIRADSPoints('focos', n.focos, tiradOptions)
+      const points = getTIRADSPoints('composicao', n.composicao, tiradOptions || {}) +
+                     getTIRADSPoints('ecogenicidade', n.ecogenicidade, tiradOptions || {}) +
+                     getTIRADSPoints('formato', n.formato, tiradOptions || {}) +
+                     getTIRADSPoints('margens', n.margens, tiradOptions || {}) +
+                     getTIRADSPoints('focos', n.focos, tiradOptions || {})
       const tirads = getTIRADSLevel(points)
       const maxDim = Math.max(...n.medidas)
       const rec = getTIRADSRecommendation(tirads.level, maxDim)
@@ -457,7 +457,7 @@ export function USTireoideModal({ open, onOpenChange, editor }: USTireoideModalP
   const handleRemoveLinfonodo = (index: number) => {
     setData(prev => {
       const newLinf = prev.linfonodos.filter((_, i) => i !== index)
-      return { ...prev, linfonodos: newLinf, linfonodoStatus: newLinf.length > 0 ? 'linfonodomegalia' : 'normais' }
+      return { ...prev, linfonodos: newLinf, linfonodoStatus: newLinf.length > 0 ? 'linfonodomegalia' : 'normal' }
     })
   }
   
@@ -844,11 +844,11 @@ export function USTireoideModal({ open, onOpenChange, editor }: USTireoideModalP
                 {data.temNodulos && (
                   <>
                     {data.nodulos.map((nodulo, index) => {
-                      const points = getTIRADSPoints('composicao', nodulo.composicao, tiradDbOptions) +
-                                     getTIRADSPoints('ecogenicidade', nodulo.ecogenicidade, tiradDbOptions) +
-                                     getTIRADSPoints('formato', nodulo.formato, tiradDbOptions) +
-                                     getTIRADSPoints('margens', nodulo.margens, tiradDbOptions) +
-                                     getTIRADSPoints('focos', nodulo.focos, tiradDbOptions)
+                      const points = getTIRADSPoints('composicao', nodulo.composicao, tiradOptions || {}) +
+                                     getTIRADSPoints('ecogenicidade', nodulo.ecogenicidade, tiradOptions || {}) +
+                                     getTIRADSPoints('formato', nodulo.formato, tiradOptions || {}) +
+                                     getTIRADSPoints('margens', nodulo.margens, tiradOptions || {}) +
+                                     getTIRADSPoints('focos', nodulo.focos, tiradOptions || {})
                       const tirads = getTIRADSLevel(points)
                       
                       return (
