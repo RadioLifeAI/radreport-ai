@@ -15,7 +15,7 @@ export interface RADSOption {
 
 export type RADSOptionsMap = Record<string, RADSOption[]>
 
-export type RADSSistemaCodigo = 'BIRADS_USG' | 'BIRADS_MG' | 'BIRADS_RM' | 'TIRADS' | 'US_TIREOIDE' | 'PIRADS'
+export type RADSSistemaCodigo = 'BIRADS_USG' | 'BIRADS_MG' | 'BIRADS_RM' | 'TIRADS' | 'US_TIREOIDE' | 'PIRADS' | 'ORADS_US'
 
 interface RADSTextOptionRow {
   id: string
