@@ -79,6 +79,7 @@ function convertTIRADSToMap(): RADSOptionsMap {
 const hardcodedMaps: Record<string, RADSOptionsMap> = {
   BIRADS_USG: convertBIRADSUSGToMap(),
   BIRADS_MG: convertBIRADSMGToMap(),
+  BIRADS_RM: {}, // Data comes from database
   TIRADS: convertTIRADSToMap(),
   US_TIREOIDE: {}, // Data comes from database, no hardcoded fallback
 }
@@ -87,7 +88,7 @@ const hardcodedMaps: Record<string, RADSOptionsMap> = {
  * Get RADS options with fallback to hardcoded values
  */
 export function getRADSOptionsWithFallback(
-  sistemaCodigo: 'BIRADS_USG' | 'BIRADS_MG' | 'TIRADS' | 'US_TIREOIDE',
+  sistemaCodigo: 'BIRADS_USG' | 'BIRADS_MG' | 'BIRADS_RM' | 'TIRADS' | 'US_TIREOIDE',
   dbOptions: RADSOptionsMap | undefined,
   isLoading: boolean,
   isError: boolean
@@ -98,14 +99,14 @@ export function getRADSOptionsWithFallback(
   }
   
   // Fallback to hardcoded
-  return hardcodedMaps[sistemaCodigo]
+  return hardcodedMaps[sistemaCodigo] || {}
 }
 
 /**
  * Get options for a specific category with fallback
  */
 export function getCategoryOptions(
-  sistemaCodigo: 'BIRADS_USG' | 'BIRADS_MG' | 'TIRADS' | 'US_TIREOIDE',
+  sistemaCodigo: 'BIRADS_USG' | 'BIRADS_MG' | 'BIRADS_RM' | 'TIRADS' | 'US_TIREOIDE',
   categoria: string,
   dbOptions: RADSOptionsMap | undefined,
   isLoading: boolean,
@@ -119,7 +120,7 @@ export function getCategoryOptions(
  * Get a single option by value from a category
  */
 export function getOptionByValue(
-  sistemaCodigo: 'BIRADS_USG' | 'BIRADS_MG' | 'TIRADS' | 'US_TIREOIDE',
+  sistemaCodigo: 'BIRADS_USG' | 'BIRADS_MG' | 'BIRADS_RM' | 'TIRADS' | 'US_TIREOIDE',
   categoria: string,
   value: string,
   dbOptions?: RADSOptionsMap
@@ -133,7 +134,7 @@ export function getOptionByValue(
  * Get texto for a specific value in a category
  */
 export function getOptionTexto(
-  sistemaCodigo: 'BIRADS_USG' | 'BIRADS_MG' | 'TIRADS' | 'US_TIREOIDE',
+  sistemaCodigo: 'BIRADS_USG' | 'BIRADS_MG' | 'BIRADS_RM' | 'TIRADS' | 'US_TIREOIDE',
   categoria: string,
   value: string,
   dbOptions?: RADSOptionsMap
@@ -146,7 +147,7 @@ export function getOptionTexto(
  * Get suspeicao level for BI-RADS options
  */
 export function getSuspeicao(
-  sistemaCodigo: 'BIRADS_USG' | 'BIRADS_MG',
+  sistemaCodigo: 'BIRADS_USG' | 'BIRADS_MG' | 'BIRADS_RM',
   categoria: string,
   value: string,
   dbOptions?: RADSOptionsMap
@@ -186,7 +187,7 @@ export function getTIRADSPoints(
  * Helper to check if option has suspicious characteristics
  */
 export function isSuspicious(
-  sistemaCodigo: 'BIRADS_USG' | 'BIRADS_MG',
+  sistemaCodigo: 'BIRADS_USG' | 'BIRADS_MG' | 'BIRADS_RM',
   categoria: string,
   value: string,
   dbOptions?: RADSOptionsMap
@@ -199,7 +200,7 @@ export function isSuspicious(
  * Helper to check if option is high suspicion (alto)
  */
 export function isHighSuspicion(
-  sistemaCodigo: 'BIRADS_USG' | 'BIRADS_MG',
+  sistemaCodigo: 'BIRADS_USG' | 'BIRADS_MG' | 'BIRADS_RM',
   categoria: string,
   value: string,
   dbOptions?: RADSOptionsMap
@@ -212,7 +213,7 @@ export function isHighSuspicion(
  * Helper to check if option is benign
  */
 export function isBenign(
-  sistemaCodigo: 'BIRADS_USG' | 'BIRADS_MG',
+  sistemaCodigo: 'BIRADS_USG' | 'BIRADS_MG' | 'BIRADS_RM',
   categoria: string,
   value: string,
   dbOptions?: RADSOptionsMap
