@@ -168,14 +168,14 @@ export function BIRADSModal({ open, onOpenChange, editor }: BIRADSModalProps) {
     })
   }
 
-  const biradsCategory = useMemo(() => evaluateBIRADSUSGExpanded(data), [data])
+  const biradsCategory = useMemo(() => evaluateBIRADSUSGExpanded(data, options), [data, options])
   const categoryInfo = biradsCategories.find(c => c.value === biradsCategory || c.value.toString() === biradsCategory.toString())
 
-  const indicacaoTexto = useMemo(() => generateBIRADSUSGIndicacao(data), [data])
+  const indicacaoTexto = useMemo(() => generateBIRADSUSGIndicacao(data, options), [data, options])
   const tecnicaTexto = useMemo(() => generateBIRADSUSGTecnica(), [])
-  const achadosTexto = useMemo(() => generateBIRADSUSGAchados(data), [data])
-  const comparativoTexto = useMemo(() => generateBIRADSUSGComparativo(data), [data])
-  const impressaoTexto = useMemo(() => generateBIRADSUSGImpression(data, biradsCategory), [data, biradsCategory])
+  const achadosTexto = useMemo(() => generateBIRADSUSGAchados(data, options), [data, options])
+  const comparativoTexto = useMemo(() => generateBIRADSUSGComparativo(data, options), [data, options])
+  const impressaoTexto = useMemo(() => generateBIRADSUSGImpression(data, biradsCategory, options), [data, biradsCategory, options])
   const notasTexto = useMemo(() => generateBIRADSUSGNotas(data), [data])
 
   // Cálculo de completude
@@ -218,7 +218,7 @@ export function BIRADSModal({ open, onOpenChange, editor }: BIRADSModalProps) {
         .focus()
         .selectAll()
         .deleteSelection()
-        .insertContent(generateBIRADSUSGLaudoCompletoHTML(data, biradsCategory))
+        .insertContent(generateBIRADSUSGLaudoCompletoHTML(data, biradsCategory, options))
         .run()
       onOpenChange(false)
     }

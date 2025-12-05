@@ -97,7 +97,7 @@ export function TIRADSModal({ open, onOpenChange, editor }: TIRADSModalProps) {
   const handleInsertAchados = () => {
     if (!editor) return
     
-    const descriptions = nodulos.map((n, i) => generateNoduleDescription(n, i)).join('\n\n')
+    const descriptions = nodulos.map((n, i) => generateNoduleDescription(n, i, dbOptions)).join('\n\n')
     
     editor.chain()
       .focus()

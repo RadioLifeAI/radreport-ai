@@ -1463,7 +1463,7 @@ export const evaluateBIRADSMG = (data: BIRADSMGData, options?: RADSOptionsMap): 
 }
 
 // Gerar texto de achados MG
-export const generateBIRADSMGAchados = (data: BIRADSMGData): string => {
+export const generateBIRADSMGAchados = (data: BIRADSMGData, options?: RADSOptionsMap): string => {
   const sections: string[] = []
 
   // Pele
@@ -1474,22 +1474,22 @@ export const generateBIRADSMGAchados = (data: BIRADSMGData): string => {
   }
 
   // Parênquima
-  const parenquimaOpt = biradsMGOptions.parenquima.find(o => o.value === data.parenquima)
+  const parenquimaOpt = getMGOption('parenquima', data.parenquima, options)
   sections.push(parenquimaOpt?.texto || 'Mamas com densidades fibroglandulares esparsas.')
 
   // Calcificações (logo após parênquima, antes de outros achados)
   if (data.calcificacoes.presente) {
-    const tipoOpt = biradsMGOptions.calcificacoes.find(o => o.value === data.calcificacoes.tipo)
+    const tipoOpt = getMGOption('calcificacoes', data.calcificacoes.tipo || '', options)
     let calcTexto = tipoOpt?.texto || ''
     
     if (data.calcificacoes.tipo === 'suspeitas' && data.calcificacoes.morfologia) {
-      const morfOpt = biradsMGOptions.morfologiaCalcificacoes.find(o => o.value === data.calcificacoes.morfologia)
-      const distOpt = biradsMGOptions.distribuicaoCalcificacoes.find(o => o.value === data.calcificacoes.distribuicao)
-      const locOpt = biradsMGOptions.localizacaoMG.find(o => o.value === data.calcificacoes.localizacao)
-      const ladoOpt = biradsMGOptions.ladoMG.find(o => o.value === data.calcificacoes.lado)
+      const morfOpt = getMGOption('morfologiaCalcificacoes', data.calcificacoes.morfologia || '', options)
+      const distOpt = getMGOption('distribuicaoCalcificacoes', data.calcificacoes.distribuicao || '', options)
+      const locOpt = getMGOption('localizacaoMG', data.calcificacoes.localizacao || '', options)
+      const ladoOpt = getMGOption('ladoMG', data.calcificacoes.lado || '', options)
       calcTexto = `Calcificações ${morfOpt?.texto || ''}, ${distOpt?.texto || ''}, localizadas ${locOpt?.texto || ''} ${ladoOpt?.texto || ''}.`
     } else {
-      const ladoOpt = biradsMGOptions.ladoMG.find(o => o.value === data.calcificacoes.lado)
+      const ladoOpt = getMGOption('ladoMG', data.calcificacoes.lado || '', options)
       calcTexto = `${tipoOpt?.texto || ''} ${ladoOpt?.texto || ''}.`
     }
     sections.push(calcTexto)
@@ -1497,7 +1497,7 @@ export const generateBIRADSMGAchados = (data: BIRADSMGData): string => {
 
   // Linfonodo intramamário
   if (data.linfonodoIntramamario.presente) {
-    const ladoOpt = biradsMGOptions.ladoMG.find(o => o.value === data.linfonodoIntramamario.lado)
+    const ladoOpt = getMGOption('ladoMG', data.linfonodoIntramamario.lado || '', options)
     if (data.linfonodoIntramamario.lado === 'bilateral') {
       sections.push('Linfonodos intramamários bilaterais de aspecto habitual.')
     } else {
@@ -1517,28 +1517,28 @@ export const generateBIRADSMGAchados = (data: BIRADSMGData): string => {
   } else {
     // Distorção arquitetural
     if (data.distorcaoArquitetural.presente) {
-      const tipoOpt = biradsMGOptions.distorcaoArquitetural.find(o => o.value === data.distorcaoArquitetural.tipo)
-      const locOpt = biradsMGOptions.localizacaoMG.find(o => o.value === data.distorcaoArquitetural.localizacao)
-      const ladoOpt = biradsMGOptions.ladoMG.find(o => o.value === data.distorcaoArquitetural.lado)
+      const tipoOpt = getMGOption('distorcaoArquitetural', data.distorcaoArquitetural.tipo || '', options)
+      const locOpt = getMGOption('localizacaoMG', data.distorcaoArquitetural.localizacao || '', options)
+      const ladoOpt = getMGOption('ladoMG', data.distorcaoArquitetural.lado || '', options)
       sections.push(`Observa-se ${tipoOpt?.texto || ''} ${locOpt?.texto || ''} ${ladoOpt?.texto || ''}.`)
     }
 
     // Assimetria
     if (data.assimetria.presente) {
-      const tipoOpt = biradsMGOptions.assimetria.find(o => o.value === data.assimetria.tipo)
-      const locOpt = biradsMGOptions.localizacaoMG.find(o => o.value === data.assimetria.localizacao)
-      const ladoOpt = biradsMGOptions.ladoMG.find(o => o.value === data.assimetria.lado)
+      const tipoOpt = getMGOption('assimetria', data.assimetria.tipo || '', options)
+      const locOpt = getMGOption('localizacaoMG', data.assimetria.localizacao || '', options)
+      const ladoOpt = getMGOption('ladoMG', data.assimetria.lado || '', options)
       sections.push(`Observa-se ${tipoOpt?.texto || ''} ${locOpt?.texto || ''} ${ladoOpt?.texto || ''}.`)
     }
 
     // Nódulos
     if (data.nodulos.length > 0) {
       const nodulosTexto = data.nodulos.map((n, i) => {
-        const densOpt = biradsMGOptions.densidade.find(o => o.value === n.densidade)
-        const formaOpt = biradsMGOptions.formaMG.find(o => o.value === n.forma)
-        const margensOpt = biradsMGOptions.margensMG.find(o => o.value === n.margens)
-        const locOpt = biradsMGOptions.localizacaoMG.find(o => o.value === n.localizacao)
-        const ladoOpt = biradsMGOptions.ladoMG.find(o => o.value === n.lado)
+        const densOpt = getMGOption('densidade', n.densidade, options)
+        const formaOpt = getMGOption('formaMG', n.forma, options)
+        const margensOpt = getMGOption('margensMG', n.margens, options)
+        const locOpt = getMGOption('localizacaoMG', n.localizacao, options)
+        const ladoOpt = getMGOption('ladoMG', n.lado, options)
         const medidas = n.medidas.map(m => formatMeasurement(m)).join(' x ')
         
         let texto = `N${i + 1} - Nódulo ${densOpt?.texto || ''}, ${formaOpt?.texto || ''}, ${margensOpt?.texto || ''}, medindo ${medidas} cm, localizado ${locOpt?.texto || ''} ${ladoOpt?.texto || ''}.`
@@ -1564,8 +1564,8 @@ export const generateBIRADSMGAchados = (data: BIRADSMGData): string => {
 
     // Linfonodomegalias
     if (data.linfonodomegalias.presente) {
-      const ladoOpt = biradsMGOptions.ladoMG.find(o => o.value === data.linfonodomegalias.lado)
-      const locOpt = biradsMGOptions.linfonodomegalias.find(o => o.value === data.linfonodomegalias.localizacao)
+      const ladoOpt = getMGOption('ladoMG', data.linfonodomegalias.lado || '', options)
+      const locOpt = getMGOption('linfonodomegalias', data.linfonodomegalias.localizacao || '', options)
       sections.push(`Linfonodomegalias: Presente ${locOpt?.texto || ''} ${ladoOpt?.texto || ''}.`)
     }
   }
@@ -1581,12 +1581,12 @@ export const generateBIRADSMGAchados = (data: BIRADSMGData): string => {
 }
 
 // Gerar impressão MG
-export const generateBIRADSMGImpression = (data: BIRADSMGData, biradsCategory: number | string): string => {
+export const generateBIRADSMGImpression = (data: BIRADSMGData, biradsCategory: number | string, options?: RADSOptionsMap): string => {
   const categoryNum = typeof biradsCategory === 'string' ? biradsCategory : biradsCategory.toString()
   
   // BI-RADS 0 com recomendação manual
   if (categoryNum === '0' && data.recomendacaoManual?.ativo) {
-    const recOpt = biradsMGOptions.recomendacoesBirads0.find(o => o.value === data.recomendacaoManual?.categoria)
+    const recOpt = getMGOption('recomendacoesBirads0', data.recomendacaoManual?.categoria || '', options)
     return `Estudo mamográfico inconclusivo.\nClassificação: ACR BI-RADS 0.\n${recOpt?.texto || 'Avaliação adicional necessária.'}`
   }
 
@@ -1665,7 +1665,7 @@ export const generateBIRADSMGImpression = (data: BIRADSMGData, biradsCategory: n
 }
 
 // Gerar indicação clínica
-export const generateBIRADSMGIndicacao = (data: BIRADSMGData): string => {
+export const generateBIRADSMGIndicacao = (data: BIRADSMGData, options?: RADSOptionsMap): string => {
   const lines: string[] = []
   
   // Tipo de indicação
@@ -1697,8 +1697,8 @@ export const generateBIRADSMGIndicacao = (data: BIRADSMGData): string => {
 }
 
 // Gerar estudo comparativo
-export const generateBIRADSMGComparativo = (data: BIRADSMGData): string => {
-  const opt = biradsMGOptions.estudoComparativo.find(o => o.value === data.estudoComparativo.tipo)
+export const generateBIRADSMGComparativo = (data: BIRADSMGData, options?: RADSOptionsMap): string => {
+  const opt = getMGOption('estudoComparativo', data.estudoComparativo.tipo, options)
   if (!opt) return ''
   
   if (data.estudoComparativo.tipo === 'sem_alteracoes' && data.estudoComparativo.dataExameAnterior) {
@@ -1710,14 +1710,16 @@ export const generateBIRADSMGComparativo = (data: BIRADSMGData): string => {
 }
 
 // Gerar notas
-export const generateBIRADSMGNotas = (data: BIRADSMGData): string => {
+export const generateBIRADSMGNotas = (data: BIRADSMGData, options?: RADSOptionsMap): string => {
   const lines: string[] = []
   
   if (data.notas.densaMamasUS) {
-    lines.push('Obs.: A ultrassonografia pode ser útil em mamas densas se houver alterações palpáveis ou se a paciente apresentar risco elevado para câncer de mama.')
+    const opt = getMGOption('notas', 'us_densas_palpavel', options)
+    lines.push(opt?.texto || 'Obs.: A ultrassonografia pode ser útil em mamas densas se houver alterações palpáveis ou se a paciente apresentar risco elevado para câncer de mama.')
   }
   if (data.notas.densaMamasCorrelacao) {
-    lines.push('Obs.: A mamografia possui baixa sensibilidade em mamas densas. Recomenda-se correlação ultrassonográfica.')
+    const opt = getMGOption('notas', 'us_densas_correlacao', options)
+    lines.push(opt?.texto || 'Obs.: A mamografia possui baixa sensibilidade em mamas densas. Recomenda-se correlação ultrassonográfica.')
   }
   if (data.notas.outraObservacao) {
     lines.push(`Obs.: ${data.notas.outraObservacao}`)
@@ -1727,17 +1729,17 @@ export const generateBIRADSMGNotas = (data: BIRADSMGData): string => {
 }
 
 // Gerar recomendação
-export const generateBIRADSMGRecomendacao = (data: BIRADSMGData, biradsCategory: number | string): string => {
+export const generateBIRADSMGRecomendacao = (data: BIRADSMGData, biradsCategory: number | string, options?: RADSOptionsMap): string => {
   // Se recomendação manual ativa
   if (data.recomendacaoManual?.ativo && data.recomendacaoManual.categoria) {
-    const opt = biradsMGOptions.recomendacaoManual.find(o => o.value === data.recomendacaoManual!.categoria)
+    const opt = getMGOption('recomendacaoManual', data.recomendacaoManual.categoria, options)
     if (opt) {
       let texto = opt.texto
-      if (opt.usaLado && data.recomendacaoManual.lado) {
+      if (opt.usa_lado && data.recomendacaoManual.lado) {
         const ladoTexto = data.recomendacaoManual.lado === 'bilateral' ? 'bilateralmente' : data.recomendacaoManual.lado
         texto = texto.replace('{lado}', ladoTexto)
       }
-      if (opt.usaMeses && data.recomendacaoManual.mesesControle) {
+      if (opt.usa_meses && data.recomendacaoManual.mesesControle) {
         texto = texto.replace('{meses}', data.recomendacaoManual.mesesControle.toString())
       }
       return texto
@@ -1756,23 +1758,23 @@ export const generateBIRADSMGRecomendacao = (data: BIRADSMGData, biradsCategory:
 }
 
 // Gerar laudo completo MG (texto simples)
-export const generateBIRADSMGLaudoCompleto = (data: BIRADSMGData, biradsCategory: number | string): string => {
+export const generateBIRADSMGLaudoCompleto = (data: BIRADSMGData, biradsCategory: number | string, options?: RADSOptionsMap): string => {
   const sections: string[] = []
   sections.push('MAMOGRAFIA DIGITAL')
-  sections.push(`Indicação clínica:\n${generateBIRADSMGIndicacao(data)}`)
-  sections.push(`Análise:\n${generateBIRADSMGAchados(data)}`)
-  const comparativo = generateBIRADSMGComparativo(data)
+  sections.push(`Indicação clínica:\n${generateBIRADSMGIndicacao(data, options)}`)
+  sections.push(`Análise:\n${generateBIRADSMGAchados(data, options)}`)
+  const comparativo = generateBIRADSMGComparativo(data, options)
   if (comparativo) sections.push(`Estudo Comparativo:\n${comparativo}`)
-  sections.push(`Impressão diagnóstica:\n${generateBIRADSMGImpression(data, biradsCategory)}`)
-  const recomendacao = generateBIRADSMGRecomendacao(data, biradsCategory)
+  sections.push(`Impressão diagnóstica:\n${generateBIRADSMGImpression(data, biradsCategory, options)}`)
+  const recomendacao = generateBIRADSMGRecomendacao(data, biradsCategory, options)
   if (recomendacao) sections.push(`Recomendação:\n${recomendacao}`)
-  const notas = generateBIRADSMGNotas(data)
+  const notas = generateBIRADSMGNotas(data, options)
   if (notas) sections.push(notas)
   return sections.join('\n\n')
 }
 
 // Gerar laudo completo MG com HTML formatado
-export const generateBIRADSMGLaudoCompletoHTML = (data: BIRADSMGData, biradsCategory: number | string): string => {
+export const generateBIRADSMGLaudoCompletoHTML = (data: BIRADSMGData, biradsCategory: number | string, options?: RADSOptionsMap): string => {
   const sections: string[] = []
   
   // Título principal
@@ -1780,14 +1782,14 @@ export const generateBIRADSMGLaudoCompletoHTML = (data: BIRADSMGData, biradsCate
   
   // Indicação clínica
   sections.push('<h3 style="text-transform: uppercase; margin-top: 18px; margin-bottom: 8px;">Indicação Clínica:</h3>')
-  sections.push(`<p style="text-align: justify;">${generateBIRADSMGIndicacao(data).replace(/\n/g, '<br>')}</p>`)
+  sections.push(`<p style="text-align: justify;">${generateBIRADSMGIndicacao(data, options).replace(/\n/g, '<br>')}</p>`)
   
   // Análise
   sections.push('<h3 style="text-transform: uppercase; margin-top: 18px; margin-bottom: 8px;">Análise:</h3>')
-  sections.push(`<p style="text-align: justify;">${generateBIRADSMGAchados(data).replace(/\n/g, '<br>')}</p>`)
+  sections.push(`<p style="text-align: justify;">${generateBIRADSMGAchados(data, options).replace(/\n/g, '<br>')}</p>`)
   
   // Estudo comparativo
-  const comparativo = generateBIRADSMGComparativo(data)
+  const comparativo = generateBIRADSMGComparativo(data, options)
   if (comparativo) {
     sections.push('<h3 style="text-transform: uppercase; margin-top: 18px; margin-bottom: 8px;">Estudo Comparativo:</h3>')
     sections.push(`<p style="text-align: justify;">${comparativo}</p>`)
@@ -1795,17 +1797,17 @@ export const generateBIRADSMGLaudoCompletoHTML = (data: BIRADSMGData, biradsCate
   
   // Impressão diagnóstica
   sections.push('<h3 style="text-transform: uppercase; margin-top: 18px; margin-bottom: 8px;">Impressão Diagnóstica:</h3>')
-  sections.push(`<p style="text-align: justify;">${generateBIRADSMGImpression(data, biradsCategory).replace(/\n/g, '<br>')}</p>`)
+  sections.push(`<p style="text-align: justify;">${generateBIRADSMGImpression(data, biradsCategory, options).replace(/\n/g, '<br>')}</p>`)
   
   // Recomendação
-  const recomendacao = generateBIRADSMGRecomendacao(data, biradsCategory)
+  const recomendacao = generateBIRADSMGRecomendacao(data, biradsCategory, options)
   if (recomendacao) {
     sections.push('<h3 style="text-transform: uppercase; margin-top: 18px; margin-bottom: 8px;">Recomendação:</h3>')
     sections.push(`<p style="text-align: justify;">${recomendacao.replace(/\n/g, '<br>')}</p>`)
   }
   
   // Notas
-  const notas = generateBIRADSMGNotas(data)
+  const notas = generateBIRADSMGNotas(data, options)
   if (notas) {
     sections.push(`<p style="margin-top: 18px; text-align: justify; font-style: italic;">${notas.replace(/\n/g, '<br>')}</p>`)
   }
