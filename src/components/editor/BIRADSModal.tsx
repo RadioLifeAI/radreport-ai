@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { Editor } from '@tiptap/react'
-import { Plus, Trash2, Calendar, AlertCircle, FileText, ClipboardList, FileCheck, Stethoscope, StickyNote, Eye, EyeOff, Check, Minus, Scissors, Activity, Droplet, Circle, RefreshCw, Shuffle, Gem, Target, LucideIcon } from 'lucide-react'
+import { Plus, Trash2, Calendar, AlertCircle, FileText, ClipboardList, FileCheck, Stethoscope, StickyNote, Eye, EyeOff, Check, Minus, Scissors, Activity, Droplet, Circle, RefreshCw, Shuffle, Gem, Target, LucideIcon, Loader2 } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -45,6 +45,7 @@ import {
   calcularTempoSeguimento,
   formatarTempoSeguimento,
 } from '@/lib/radsClassifications'
+import { useRADSOptions } from '@/hooks/useRADSOptions'
 
 interface BIRADSModalProps {
   open: boolean
@@ -98,6 +99,12 @@ export function BIRADSModal({ open, onOpenChange, editor }: BIRADSModalProps) {
   const [activeTab, setActiveTab] = useState<TabType>('indicacao')
   const [data, setData] = useState<BIRADSUSGData>(createEmptyBIRADSUSGData())
   const [showPreview, setShowPreview] = useState(true)
+
+  // Fetch dynamic options from database (for future use)
+  const { data: dbOptions, isLoading } = useRADSOptions('BIRADS_USG')
+  
+  // Note: Currently using hardcoded options for compatibility
+  // Database options available via dbOptions for gradual migration
 
   const updateData = <K extends keyof BIRADSUSGData>(field: K, value: BIRADSUSGData[K]) => {
     setData(prev => ({ ...prev, [field]: value }))
