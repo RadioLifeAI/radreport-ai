@@ -15,7 +15,7 @@ export interface RADSOption {
 
 export type RADSOptionsMap = Record<string, RADSOption[]>
 
-export type RADSSistemaCodigo = 'BIRADS_USG' | 'BIRADS_MG' | 'BIRADS_RM' | 'TIRADS' | 'US_TIREOIDE' | 'PIRADS' | 'ORADS_US'
+export type RADSSistemaCodigo = 'BIRADS_USG' | 'BIRADS_MG' | 'BIRADS_RM' | 'TIRADS' | 'US_TIREOIDE' | 'PIRADS' | 'ORADS_US' | 'LIRADS_US'
 
 interface RADSTextOptionRow {
   id: string
@@ -90,6 +90,7 @@ export function useAllRADSOptions() {
   const tirads = useRADSOptions('TIRADS')
   const usTireoide = useRADSOptions('US_TIREOIDE')
   const oradsUS = useRADSOptions('ORADS_US')
+  const liradsUS = useRADSOptions('LIRADS_US')
 
   return {
     biradsUSG,
@@ -98,7 +99,8 @@ export function useAllRADSOptions() {
     tirads,
     usTireoide,
     oradsUS,
-    isLoading: biradsUSG.isLoading || biradsMG.isLoading || biradsRM.isLoading || tirads.isLoading || usTireoide.isLoading || oradsUS.isLoading,
-    isError: biradsUSG.isError || biradsMG.isError || biradsRM.isError || tirads.isError || usTireoide.isError || oradsUS.isError,
+    liradsUS,
+    isLoading: biradsUSG.isLoading || biradsMG.isLoading || biradsRM.isLoading || tirads.isLoading || usTireoide.isLoading || oradsUS.isLoading || liradsUS.isLoading,
+    isError: biradsUSG.isError || biradsMG.isError || biradsRM.isError || tirads.isError || usTireoide.isError || oradsUS.isError || liradsUS.isError,
   }
 }

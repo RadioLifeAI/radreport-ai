@@ -28,6 +28,7 @@ import { BIRADSRMModal } from './BIRADSRMModal'
 import { USTireoideModal } from './USTireoideModal'
 import { PIRADSModal } from './PIRADSModal'
 import { ORADSModal } from './ORADSModal'
+import { LIRADSUSModal } from './LIRADSUSModal'
 
 interface RADSDropdownProps {
   editor: Editor | null
@@ -41,6 +42,7 @@ export function RADSDropdown({ editor }: RADSDropdownProps) {
   const [usTireoideOpen, setUsTireoideOpen] = useState(false)
   const [piradsOpen, setPiradsOpen] = useState(false)
   const [oradsOpen, setOradsOpen] = useState(false)
+  const [liradsUSOpen, setLiradsUSOpen] = useState(false)
 
   return (
     <>
@@ -84,6 +86,11 @@ export function RADSDropdown({ editor }: RADSDropdownProps) {
             ACR O-RADS US (Ginecologia)
           </DropdownMenuItem>
           <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => setLiradsUSOpen(true)} className="cursor-pointer">
+            <Database className="mr-2 h-4 w-4 text-amber-500" />
+            ACR LI-RADS US (Fígado)
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
           <DropdownMenuItem disabled className="opacity-50">
             <Wind className="mr-2 h-4 w-4 text-blue-400" />
             Lung-RADS (Pulmão) - Em breve
@@ -91,10 +98,6 @@ export function RADSDropdown({ editor }: RADSDropdownProps) {
           <DropdownMenuItem disabled className="opacity-50">
             <Heart className="mr-2 h-4 w-4 text-red-500" />
             CAD-RADS (Coronárias) - Em breve
-          </DropdownMenuItem>
-          <DropdownMenuItem disabled className="opacity-50">
-            <Database className="mr-2 h-4 w-4 text-amber-600" />
-            LI-RADS (Fígado) - Em breve
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -138,6 +141,12 @@ export function RADSDropdown({ editor }: RADSDropdownProps) {
       <ORADSModal
         open={oradsOpen}
         onOpenChange={setOradsOpen}
+        editor={editor}
+      />
+
+      <LIRADSUSModal
+        open={liradsUSOpen}
+        onOpenChange={setLiradsUSOpen}
         editor={editor}
       />
     </>
