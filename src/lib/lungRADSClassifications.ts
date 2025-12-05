@@ -82,8 +82,8 @@ export const lungRADSCategories: Record<string, LungRADSCategory> = {
     codigo: '0',
     nome: 'Lung-RADS 0',
     descricao: 'Exame incompleto ou tecnicamente inadequado. Achados inflamatórios ou infecciosos ativos que impedem a avaliação adequada, ou ausência de exame anterior necessário para comparação.',
-    cor: 'text-gray-600',
-    corBg: 'bg-gray-100',
+    cor: 'text-gray-700 dark:text-gray-300',
+    corBg: 'bg-gray-50 dark:bg-gray-900 border-2 border-gray-400',
     recomendacao: 'Repetir o exame após resolução do processo inflamatório/infeccioso ou obter exames anteriores para comparação. Considerar TCBD em 1-3 meses para reavaliação.',
     probabilidadeMalignidade: 'N/A'
   },
@@ -91,8 +91,8 @@ export const lungRADSCategories: Record<string, LungRADSCategory> = {
     codigo: '1',
     nome: 'Lung-RADS 1',
     descricao: 'Exame negativo. Sem nódulos pulmonares identificados ou presença apenas de nódulos com características definitivamente benignas (calcificações benignas padrão central, difusa, lamelar ou em pipoca, ou conteúdo adiposo).',
-    cor: 'text-green-600',
-    corBg: 'bg-green-100',
+    cor: 'text-green-700 dark:text-green-300',
+    corBg: 'bg-green-50 dark:bg-green-950 border-2 border-green-500',
     recomendacao: 'Manter rastreamento anual com tomografia computadorizada de baixa dose (TCBD) conforme protocolo institucional.',
     probabilidadeMalignidade: '<1%'
   },
@@ -100,8 +100,8 @@ export const lungRADSCategories: Record<string, LungRADSCategory> = {
     codigo: '2',
     nome: 'Lung-RADS 2',
     descricao: 'Achados benignos ou provavelmente benignos. Inclui: nódulos sólidos <6 mm (baseline ou estáveis), nódulos juxtapleurais <10 mm de margens lisas, nódulos em vidro fosco <30 mm, nódulos peribronquiais <10 mm de margens lisas, ou nódulos com características benignas estáveis por ≥3 meses.',
-    cor: 'text-green-600',
-    corBg: 'bg-green-100',
+    cor: 'text-green-700 dark:text-green-300',
+    corBg: 'bg-green-50 dark:bg-green-950 border-2 border-green-500',
     recomendacao: 'Manter rastreamento anual com tomografia computadorizada de baixa dose (TCBD). Não há necessidade de seguimento adicional a curto prazo.',
     probabilidadeMalignidade: '<1%'
   },
@@ -109,8 +109,8 @@ export const lungRADSCategories: Record<string, LungRADSCategory> = {
     codigo: '3',
     nome: 'Lung-RADS 3',
     descricao: 'Achados provavelmente benignos. Inclui: nódulos sólidos ≥6 mm e <8 mm (baseline), nódulos parcialmente sólidos novos <6 mm de componente sólido, nódulos em vidro fosco ≥30 mm, ou nódulos persistentes em seguimento.',
-    cor: 'text-yellow-600',
-    corBg: 'bg-yellow-100',
+    cor: 'text-yellow-700 dark:text-yellow-300',
+    corBg: 'bg-yellow-50 dark:bg-yellow-950 border-2 border-yellow-500',
     recomendacao: 'TCBD de controle em 6 meses para avaliar estabilidade. Se estável após 6 meses, continuar rastreamento anual.',
     probabilidadeMalignidade: '1-2%'
   },
@@ -118,8 +118,8 @@ export const lungRADSCategories: Record<string, LungRADSCategory> = {
     codigo: '4A',
     nome: 'Lung-RADS 4A',
     descricao: 'Achados suspeitos. Inclui: nódulos sólidos ≥8 mm e <15 mm (baseline), nódulos sólidos novos ≥4 mm e <6 mm, nódulos parcialmente sólidos com componente sólido ≥6 mm e <8 mm, ou nódulos estáveis com crescimento recente.',
-    cor: 'text-orange-600',
-    corBg: 'bg-orange-100',
+    cor: 'text-orange-700 dark:text-orange-300',
+    corBg: 'bg-orange-50 dark:bg-orange-950 border-2 border-orange-500',
     recomendacao: 'TCBD de controle em 3 meses. PET-CT pode ser considerado se componente sólido ≥8 mm. Discussão multidisciplinar recomendada.',
     probabilidadeMalignidade: '5-15%'
   },
@@ -127,8 +127,8 @@ export const lungRADSCategories: Record<string, LungRADSCategory> = {
     codigo: '4B',
     nome: 'Lung-RADS 4B',
     descricao: 'Achados muito suspeitos para malignidade. Inclui: nódulos sólidos ≥15 mm, nódulos sólidos novos ≥6 mm, nódulos parcialmente sólidos com componente sólido ≥8 mm, ou nódulos endobronquiais novos.',
-    cor: 'text-red-600',
-    corBg: 'bg-red-100',
+    cor: 'text-red-700 dark:text-red-300',
+    corBg: 'bg-red-50 dark:bg-red-950 border-2 border-red-500',
     recomendacao: 'TC de tórax com contraste endovenoso e PET-CT recomendados. Considerar biópsia por amostragem tecidual. Discussão em equipe multidisciplinar oncológica.',
     probabilidadeMalignidade: '>15%'
   },
@@ -136,8 +136,8 @@ export const lungRADSCategories: Record<string, LungRADSCategory> = {
     codigo: '4X',
     nome: 'Lung-RADS 4X',
     descricao: 'Achados altamente suspeitos com características adicionais de alto risco. Inclui nódulos categoria 4A ou 4B associados a: margens espiculadas, linfadenopatia mediastinal/hilar suspeita (≥15 mm), nódulos satélites, ou invasão de estruturas adjacentes.',
-    cor: 'text-red-700',
-    corBg: 'bg-red-200',
+    cor: 'text-red-800 dark:text-red-200',
+    corBg: 'bg-red-100 dark:bg-red-900 border-2 border-red-600',
     recomendacao: 'TC de tórax com contraste endovenoso, PET-CT e biópsia por amostragem tecidual indicados. Correlação clínica obrigatória. Encaminhamento para equipe de oncologia torácica.',
     probabilidadeMalignidade: '>15%'
   }
