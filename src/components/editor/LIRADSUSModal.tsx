@@ -58,6 +58,11 @@ const initialData: LIRADSUSData = {
   afpValor: undefined,
   aspectoParenquima: 'homogeneo',
   tamanhoFigado: 'normal',
+  contornosFigado: '',
+  esteatose: '',
+  esplenomegalia: '',
+  tamanhoBaco: undefined,
+  ascite: '',
   observacoes: [{ ...initialObservacao }],
   tromboTipo: 'nenhum',
   tromboLocalizacao: '',
@@ -67,6 +72,7 @@ const initialData: LIRADSUSData = {
   temComparativo: false,
   dataExameAnterior: '',
   comparativoResultado: '',
+  resultadoAnterior: '',
   notas: '',
 }
 
@@ -307,6 +313,68 @@ export function LIRADSUSModal({ open, onOpenChange, editor }: LIRADSUSModalProps
                         </SelectContent>
                       </Select>
                     </div>
+
+                    <div>
+                      <Label>Contornos Hepáticos</Label>
+                      <Select value={data.contornosFigado || ''} onValueChange={v => updateField('contornosFigado', v)}>
+                        <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
+                        <SelectContent>
+                          {getOptions('contornos_figado').map(opt => (
+                            <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label>Esteatose Hepática</Label>
+                      <Select value={data.esteatose || ''} onValueChange={v => updateField('esteatose', v)}>
+                        <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
+                        <SelectContent>
+                          {getOptions('esteatose').map(opt => (
+                            <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <Separator />
+
+                    <div>
+                      <Label>Esplenomegalia</Label>
+                      <Select value={data.esplenomegalia || ''} onValueChange={v => updateField('esplenomegalia', v)}>
+                        <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
+                        <SelectContent>
+                          {getOptions('esplenomegalia').map(opt => (
+                            <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {data.esplenomegalia === 'presente' && (
+                      <div>
+                        <Label>Tamanho do Baço (cm)</Label>
+                        <Input
+                          type="number"
+                          value={data.tamanhoBaco || ''}
+                          onChange={e => updateField('tamanhoBaco', e.target.value ? parseFloat(e.target.value) : undefined)}
+                          placeholder="Opcional"
+                        />
+                      </div>
+                    )}
+
+                    <div>
+                      <Label>Ascite</Label>
+                      <Select value={data.ascite || ''} onValueChange={v => updateField('ascite', v)}>
+                        <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
+                        <SelectContent>
+                          {getOptions('ascite').map(opt => (
+                            <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 )}
 
@@ -512,7 +580,19 @@ export function LIRADSUSModal({ open, onOpenChange, editor }: LIRADSUSModalProps
                         </div>
 
                         <div>
-                          <Label>Resultado Comparativo</Label>
+                          <Label>Resultado do Exame Anterior</Label>
+                          <Select value={data.resultadoAnterior || ''} onValueChange={v => updateField('resultadoAnterior', v)}>
+                            <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
+                            <SelectContent>
+                              {getOptions('resultado_anterior').map(opt => (
+                                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div>
+                          <Label>Evolução Comparativa</Label>
                           <Select value={data.comparativoResultado || ''} onValueChange={v => updateField('comparativoResultado', v)}>
                             <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
                             <SelectContent>

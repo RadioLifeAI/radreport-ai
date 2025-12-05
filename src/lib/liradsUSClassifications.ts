@@ -29,6 +29,13 @@ export interface LIRADSUSData {
   // Parênquima Hepático
   aspectoParenquima: string
   tamanhoFigado: string
+  contornosFigado?: string
+  esteatose?: string
+  
+  // Extra-hepático
+  esplenomegalia?: string
+  tamanhoBaco?: number
+  ascite?: string
   
   // Observações (até 3)
   observacoes: LIRADSUSObservacao[]
@@ -46,6 +53,7 @@ export interface LIRADSUSData {
   temComparativo: boolean
   dataExameAnterior?: string
   comparativoResultado?: string
+  resultadoAnterior?: string
   
   // Notas
   notas?: string
@@ -215,12 +223,22 @@ export function generateLIRADSUSAchados(data: LIRADSUSData, options?: RADSOption
   // Parênquima
   const aspectoOpt = options?.aspecto_parenquima?.find(o => o.value === data.aspectoParenquima)
   const tamanhoOpt = options?.tamanho_figado?.find(o => o.value === data.tamanhoFigado)
+  const contornosOpt = options?.contornos_figado?.find(o => o.value === data.contornosFigado)
+  const esteatoseOpt = options?.esteatose?.find(o => o.value === data.esteatose)
   
   let parenquima = aspectoOpt?.texto || 'parênquima hepático de ecotextura habitual'
   if (tamanhoOpt) {
     parenquima += `, de ${tamanhoOpt.texto}`
   }
+  if (contornosOpt) {
+    parenquima += `, ${contornosOpt.texto}`
+  }
   partes.push(parenquima + '.')
+  
+  // Esteatose
+  if (data.esteatose && data.esteatose !== 'ausente' && esteatoseOpt) {
+    partes.push(esteatoseOpt.texto.charAt(0).toUpperCase() + esteatoseOpt.texto.slice(1) + '.')
+  }
   
   // Observações
   if (data.observacoes.length === 0 || data.observacoes.every(o => o.tipo === 'nenhuma')) {
@@ -269,6 +287,21 @@ export function generateLIRADSUSAchados(data: LIRADSUSData, options?: RADSOption
     partes.push(tromboTexto + '.')
   } else {
     partes.push('Veias hepáticas e veia porta pérvias.')
+  }
+  
+  // Extra-hepático: Esplenomegalia
+  if (data.esplenomegalia === 'presente') {
+    let esplenoTexto = 'Esplenomegalia'
+    if (data.tamanhoBaco) {
+      esplenoTexto += ` (${formatBR(data.tamanhoBaco)} cm)`
+    }
+    partes.push(esplenoTexto + '.')
+  }
+  
+  // Extra-hepático: Ascite
+  const asciteOpt = options?.ascite?.find(o => o.value === data.ascite)
+  if (data.ascite && data.ascite !== 'ausente' && asciteOpt) {
+    partes.push(asciteOpt.texto.charAt(0).toUpperCase() + asciteOpt.texto.slice(1) + '.')
   }
   
   return partes.join(' ')
