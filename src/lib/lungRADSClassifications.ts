@@ -492,60 +492,94 @@ export function initialLungRADSData(): LungRADSData {
 
 // ============= FUNÇÕES DE GERAÇÃO DE TEXTO =============
 
-export function generateIndicacaoTexto(data: LungRADSData): string {
+export function generateIndicacaoTexto(data: LungRADSData, options?: Record<string, any>): string {
   const parts: string[] = []
   
+  // Indicação - buscar do banco primeiro
   if (data.indicacao) {
-    const indicacaoMap: Record<string, string> = {
-      'rastreamento': 'Rastreamento de câncer de pulmão',
-      'seguimento_nodulo': 'Seguimento de nódulo pulmonar',
-      'pos_tratamento': 'Acompanhamento pós-tratamento oncológico',
-      'sintomatico': 'Avaliação de paciente sintomático',
-      'incidental': 'Achado incidental em exame prévio'
+    const indicacaoOption = options?.indicacao_exame?.find(
+      (opt: { value: string; texto: string }) => opt.value === data.indicacao
+    )
+    if (indicacaoOption?.texto) {
+      parts.push(indicacaoOption.texto)
+    } else {
+      // Fallback hardcoded
+      const indicacaoMap: Record<string, string> = {
+        'rastreamento': 'Rastreamento de câncer de pulmão',
+        'seguimento_nodulo': 'Seguimento de nódulo pulmonar',
+        'pos_tratamento': 'Acompanhamento pós-tratamento oncológico',
+        'sintomatico': 'Avaliação de paciente sintomático',
+        'incidental': 'Achado incidental em exame prévio'
+      }
+      parts.push(indicacaoMap[data.indicacao] || data.indicacao)
     }
-    parts.push(indicacaoMap[data.indicacao] || data.indicacao)
   }
   
+  // Histórico de tabagismo - buscar do banco
   if (data.historicoTabagismo) {
-    const tabagismoMap: Record<string, string> = {
-      'ativo': 'Tabagista ativo',
-      'ex_menos_15': 'Ex-tabagista há menos de 15 anos',
-      'ex_mais_15': 'Ex-tabagista há mais de 15 anos',
-      'nunca': 'Não tabagista',
-      'passivo': 'Exposição passiva ao tabaco'
+    const tabagismoOption = options?.historico_tabagismo?.find(
+      (opt: { value: string; texto: string }) => opt.value === data.historicoTabagismo
+    )
+    if (tabagismoOption?.texto) {
+      parts.push(tabagismoOption.texto)
+    } else {
+      // Fallback hardcoded
+      const tabagismoMap: Record<string, string> = {
+        'ativo': 'Tabagista ativo',
+        'ex_menos_15': 'Ex-tabagista há menos de 15 anos',
+        'ex_mais_15': 'Ex-tabagista há mais de 15 anos',
+        'nunca': 'Não tabagista',
+        'passivo': 'Exposição passiva ao tabaco'
+      }
+      parts.push(tabagismoMap[data.historicoTabagismo] || data.historicoTabagismo)
     }
-    parts.push(tabagismoMap[data.historicoTabagismo] || data.historicoTabagismo)
   }
   
+  // Carga tabágica - buscar do banco
   if (data.cargaTabagica) {
-    const cargaMap: Record<string, string> = {
-      'menos_20': 'carga tabágica < 20 anos/maço',
-      '20_30': 'carga tabágica 20-30 anos/maço',
-      '30_mais': 'carga tabágica ≥ 30 anos/maço'
-    }
-    if (cargaMap[data.cargaTabagica]) {
-      parts.push(cargaMap[data.cargaTabagica])
+    const cargaOption = options?.carga_tabagica?.find(
+      (opt: { value: string; texto: string }) => opt.value === data.cargaTabagica
+    )
+    if (cargaOption?.texto) {
+      parts.push(cargaOption.texto)
+    } else {
+      // Fallback hardcoded
+      const cargaMap: Record<string, string> = {
+        'menos_20': 'Carga tabágica inferior a 20 anos-maço',
+        '20_30': 'Carga tabágica de 20 a 30 anos-maço',
+        '30_mais': 'Carga tabágica superior a 30 anos-maço'
+      }
+      if (cargaMap[data.cargaTabagica]) {
+        parts.push(cargaMap[data.cargaTabagica])
+      }
     }
   }
   
-  return parts.join('. ') + '.'
+  return parts.join('. ') + (parts.length > 0 ? '.' : '')
 }
 
 export function generateNoduloTexto(nodulo: LungRADSNodulo, options?: Record<string, any>): string {
   if (!nodulo.tipo || nodulo.diametroLongo === 0) return ''
   
   const parts: string[] = []
-  const diametroMedio = calcularDiametroMedio(nodulo.diametroLongo, nodulo.diametroCurto)
   
-  // Tipo
-  const tipoMap: Record<string, string> = {
-    'solido': 'Nódulo sólido',
-    'part_solid': 'Nódulo parcialmente sólido',
-    'ggn': 'Opacidade em vidro fosco (GGN)',
-    'cisto': 'Cisto pulmonar',
-    'via_aerea': 'Nódulo relacionado à via aérea'
+  // Tipo - buscar do banco primeiro
+  const tipoOption = options?.tipo_nodulo?.find(
+    (opt: { value: string; texto: string }) => opt.value === nodulo.tipo
+  )
+  if (tipoOption?.texto) {
+    parts.push(tipoOption.texto)
+  } else {
+    // Fallback hardcoded
+    const tipoMap: Record<string, string> = {
+      'solido': 'Nódulo sólido',
+      'part_solid': 'Nódulo parcialmente sólido',
+      'ggn': 'Opacidade em vidro fosco (GGN)',
+      'cisto': 'Cisto pulmonar',
+      'via_aerea': 'Nódulo relacionado à via aérea'
+    }
+    parts.push(tipoMap[nodulo.tipo] || 'Nódulo')
   }
-  parts.push(tipoMap[nodulo.tipo] || 'Nódulo')
   
   // Localização - buscar texto descritivo do banco
   if (nodulo.localizacao) {
@@ -585,29 +619,45 @@ export function generateNoduloTexto(nodulo: LungRADSNodulo, options?: Record<str
     parts.push(`com componente sólido de ${nodulo.componenteSolido.toFixed(1).replace('.', ',')} mm`)
   }
   
-  // Margem
+  // Margem - buscar do banco
   if (nodulo.margem) {
-    const margemMap: Record<string, string> = {
-      'lisa': 'de margens lisas',
-      'bem_definida': 'de margens bem definidas',
-      'lobulada': 'de margens lobuladas',
-      'irregular': 'de margens irregulares',
-      'espiculada': 'de margens espiculadas'
+    const margemOption = options?.margem_nodulo?.find(
+      (opt: { value: string; texto: string }) => opt.value === nodulo.margem
+    )
+    if (margemOption?.texto) {
+      parts.push(margemOption.texto)
+    } else {
+      // Fallback hardcoded
+      const margemMap: Record<string, string> = {
+        'lisa': 'de margens lisas',
+        'bem_definida': 'de margens bem definidas',
+        'lobulada': 'de margens lobuladas',
+        'irregular': 'de margens irregulares',
+        'espiculada': 'de margens espiculadas'
+      }
+      parts.push(margemMap[nodulo.margem] || `margem ${nodulo.margem}`)
     }
-    parts.push(margemMap[nodulo.margem] || `margem ${nodulo.margem}`)
   }
   
-  // Calcificação
+  // Calcificação - buscar do banco
   if (nodulo.calcificacao && nodulo.calcificacao !== 'ausente') {
-    const calcMap: Record<string, string> = {
-      'central': 'com calcificação central',
-      'difusa': 'com calcificação difusa',
-      'lamelar': 'com calcificação lamelar',
-      'popcorn': 'com calcificação em pipoca',
-      'excentrica': 'com calcificação excêntrica',
-      'puntiforme': 'com calcificações puntiformes'
+    const calcOption = options?.calcificacao?.find(
+      (opt: { value: string; texto: string }) => opt.value === nodulo.calcificacao
+    )
+    if (calcOption?.texto) {
+      parts.push(`com ${calcOption.texto}`)
+    } else {
+      // Fallback hardcoded
+      const calcMap: Record<string, string> = {
+        'central': 'calcificação central',
+        'difusa': 'calcificação difusa',
+        'lamelar': 'calcificação lamelar',
+        'popcorn': 'calcificação em pipoca',
+        'excentrica': 'calcificação excêntrica',
+        'puntiforme': 'calcificações puntiformes'
+      }
+      parts.push(`com ${calcMap[nodulo.calcificacao] || `calcificação ${nodulo.calcificacao}`}`)
     }
-    parts.push(calcMap[nodulo.calcificacao] || `calcificação ${nodulo.calcificacao}`)
   }
   
   // Status (novo/crescimento)
@@ -640,14 +690,24 @@ export function generateLinfonodosTexto(data: LungRADSData, options?: Record<str
     return 'Linfonodos mediastinais e hilares de dimensões normais.'
   }
   
-  const linfMap: Record<string, string> = {
-    'reacional': 'Linfonodos mediastinais/hilares de aspecto reacional',
-    'aumentados': 'Linfonodos mediastinais/hilares aumentados',
-    'suspeita': 'Linfadenopatia mediastinal suspeita',
-    'patologica': 'Linfadenopatia mediastinal de aspecto patológico'
-  }
+  // Buscar texto do banco primeiro
+  const linfOption = options?.linfadenopatia?.find(
+    (opt: { value: string; texto: string }) => opt.value === data.linfadenopatia
+  )
   
-  let texto = linfMap[data.linfadenopatia] || 'Linfonodos identificados'
+  let texto: string
+  if (linfOption?.texto) {
+    texto = linfOption.texto
+  } else {
+    // Fallback hardcoded
+    const linfMap: Record<string, string> = {
+      'reacional': 'Linfonodos mediastinais/hilares de aspecto reacional',
+      'aumentados': 'Linfonodos mediastinais/hilares aumentados',
+      'suspeita': 'Linfadenopatia mediastinal suspeita',
+      'patologica': 'Linfadenopatia mediastinal de aspecto patológico'
+    }
+    texto = linfMap[data.linfadenopatia] || 'Linfonodos identificados'
+  }
   
   if (data.tamanhoLinfonodo) {
     texto += `, o maior medindo ${data.tamanhoLinfonodo.toFixed(1).replace('.', ',')} mm`
@@ -659,7 +719,7 @@ export function generateLinfonodosTexto(data: LungRADSData, options?: Record<str
       (opt: { value: string; texto: string }) => opt.value === data.localizacaoLinfonodo
     )
     if (linfonodoOption?.texto) {
-      texto += `, localizado ${linfonodoOption.texto}`
+      texto += `, ${linfonodoOption.texto}`
     } else {
       // Fallback formatando o valor técnico
       texto += `, localizado na ${data.localizacaoLinfonodo.replace('estacao_', 'Estação ').toUpperCase()}`
@@ -782,11 +842,19 @@ export function generateComparativoTexto(data: LungRADSData, options?: Record<st
   return texto
 }
 
-export function generateImpressaoTexto(result: LungRADSResult, data: LungRADSData): string {
+export function generateImpressaoTexto(result: LungRADSResult, data: LungRADSData, options?: Record<string, any>): string {
   const parts: string[] = []
   
-  // Categoria principal
-  parts.push(`${result.categoria.nome}: ${result.categoria.descricao}.`)
+  // Categoria principal - buscar do banco primeiro
+  const categoriaOption = options?.categoria?.find(
+    (opt: { value: string; texto: string }) => opt.value === result.categoria.codigo
+  )
+  if (categoriaOption?.texto) {
+    parts.push(categoriaOption.texto)
+  } else {
+    // Fallback usando dados do objeto categoria
+    parts.push(`${result.categoria.nome}: ${result.categoria.descricao}.`)
+  }
   
   // Justificativa
   if (result.justificativa) {
@@ -806,6 +874,15 @@ export function generateImpressaoTexto(result: LungRADSResult, data: LungRADSDat
   return parts.join(' ')
 }
 
-export function generateRecomendacaoTexto(result: LungRADSResult): string {
+export function generateRecomendacaoTexto(result: LungRADSResult, options?: Record<string, any>): string {
+  // Buscar do banco primeiro
+  const recomendacaoOption = options?.recomendacao?.find(
+    (opt: { value: string; texto: string }) => opt.value === result.categoria.codigo
+  )
+  if (recomendacaoOption?.texto) {
+    return recomendacaoOption.texto
+  }
+  
+  // Fallback usando dados do objeto categoria
   return result.categoria.recomendacao + '.'
 }

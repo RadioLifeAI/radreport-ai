@@ -116,8 +116,8 @@ export function LungRADSModal({ open, onOpenChange, editor }: LungRADSModalProps
     parts.push('<p><strong>Lung-RADS v2022</strong></p>')
     parts.push('<br/>')
     
-    // Indicação
-    const indicacao = generateIndicacaoTexto(data)
+    // Indicação - passar dbOptions
+    const indicacao = generateIndicacaoTexto(data, dbOptions || undefined)
     if (indicacao) {
       parts.push(`<p><strong>INDICAÇÃO:</strong> ${indicacao}</p>`)
     }
@@ -145,11 +145,11 @@ export function LungRADSModal({ open, onOpenChange, editor }: LungRADSModalProps
     const parenquima = generateParenquimaTexto(data)
     parts.push(`<p>- ${parenquima}</p>`)
     
-    // Linfonodos
+    // Linfonodos - passar dbOptions
     const linfonodos = generateLinfonodosTexto(data, dbOptions || undefined)
     parts.push(`<p>- ${linfonodos}</p>`)
     
-    // Comparativo
+    // Comparativo - passar dbOptions
     const comparativo = generateComparativoTexto(data, dbOptions || undefined)
     parts.push(`<p>- ${comparativo}</p>`)
     
@@ -165,16 +165,16 @@ export function LungRADSModal({ open, onOpenChange, editor }: LungRADSModalProps
     
     parts.push('<br/>')
     
-    // Impressão
+    // Impressão - passar dbOptions
     parts.push('<p><strong>IMPRESSÃO:</strong></p>')
-    const impressao = generateImpressaoTexto(evaluation, data)
+    const impressao = generateImpressaoTexto(evaluation, data, dbOptions || undefined)
     parts.push(`<p>${impressao}</p>`)
     
     parts.push('<br/>')
     
-    // Recomendação
+    // Recomendação - passar dbOptions
     parts.push('<p><strong>RECOMENDAÇÃO:</strong></p>')
-    const recomendacao = generateRecomendacaoTexto(evaluation)
+    const recomendacao = generateRecomendacaoTexto(evaluation, dbOptions || undefined)
     parts.push(`<p>${recomendacao}</p>`)
     
     // Notas
@@ -713,7 +713,7 @@ export function LungRADSModal({ open, onOpenChange, editor }: LungRADSModalProps
             <div>
               <strong>Indicação:</strong>
               <p className="text-muted-foreground">
-                {generateIndicacaoTexto(data) || 'Não preenchido'}
+                {generateIndicacaoTexto(data, dbOptions || undefined) || 'Não preenchido'}
               </p>
             </div>
           </div>
@@ -764,7 +764,7 @@ export function LungRADSModal({ open, onOpenChange, editor }: LungRADSModalProps
             <Check className="w-4 h-4 text-green-500" />
             <div>
               <strong>Recomendação:</strong>
-              <p className="text-muted-foreground">{evaluation.categoria.recomendacao}</p>
+              <p className="text-muted-foreground">{generateRecomendacaoTexto(evaluation, dbOptions || undefined)}</p>
             </div>
           </div>
         </div>
