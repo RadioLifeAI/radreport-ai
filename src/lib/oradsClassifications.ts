@@ -144,7 +144,7 @@ export interface ORADSResult {
   recomendacao: string
 }
 
-// ============= CONSTANTS =============
+// ============= CONSTANTS (FALLBACK) =============
 
 export const oradsCategories: Record<number, ORADSCategory> = {
   0: {
@@ -153,7 +153,7 @@ export const oradsCategories: Record<number, ORADSCategory> = {
     risco: 'Avaliação Incompleta',
     riscoNumerico: 'N/A',
     cor: 'gray',
-    recomendacao: 'Completar avaliação com exame adicional ou técnica alternativa.'
+    recomendacao: 'Avaliação incompleta devido a limitações técnicas. Recomenda-se complementação com ultrassonografia transvaginal dedicada, ressonância magnética pélvica ou avaliação por especialista em ultrassonografia ginecológica para adequada caracterização da lesão anexial.'
   },
   1: {
     score: 1,
@@ -161,7 +161,7 @@ export const oradsCategories: Record<number, ORADSCategory> = {
     risco: 'Normal',
     riscoNumerico: '0%',
     cor: 'green',
-    recomendacao: 'Ovário normal, sem lesão identificada. Nenhum seguimento necessário.'
+    recomendacao: 'Ovários de aspecto normal, sem lesões focais identificadas. Risco de malignidade virtualmente nulo. Não há necessidade de seguimento específico por imagem.'
   },
   2: {
     score: 2,
@@ -169,7 +169,7 @@ export const oradsCategories: Record<number, ORADSCategory> = {
     risco: 'Quase Certamente Benigno',
     riscoNumerico: '<1%',
     cor: 'green',
-    recomendacao: 'Risco de malignidade muito baixo. Seguimento conforme características e status menopausal.'
+    recomendacao: 'Lesão com características quase certamente benignas, com risco de malignidade inferior a 1%. Seguimento ultrassonográfico conforme tamanho da lesão e status menopausal: cistos simples ≤3cm em pré-menopausa não requerem seguimento; cistos simples >3cm e ≤5cm em pós-menopausa e lesões típicas benignas podem ser acompanhados em 12 meses.'
   },
   3: {
     score: 3,
@@ -177,7 +177,7 @@ export const oradsCategories: Record<number, ORADSCategory> = {
     risco: 'Baixo Risco de Malignidade',
     riscoNumerico: '1-10%',
     cor: 'yellow',
-    recomendacao: 'Se não excisado cirurgicamente, seguimento ultrassonográfico em 6 meses. Se lesão sólida, considerar avaliação por especialista ou RM.'
+    recomendacao: 'Lesão com baixo risco de malignidade (1-10%). Se manejo conservador for escolhido, recomenda-se seguimento ultrassonográfico em 6 meses para avaliar estabilidade ou resolução. Para lesões sólidas, considerar avaliação por especialista em ultrassonografia ginecológica ou ressonância magnética pélvica para melhor caracterização.'
   },
   4: {
     score: 4,
@@ -185,7 +185,7 @@ export const oradsCategories: Record<number, ORADSCategory> = {
     risco: 'Risco Intermediário de Malignidade',
     riscoNumerico: '10-50%',
     cor: 'orange',
-    recomendacao: 'Revisão por especialista em ultrassom ou RM. Manejo por ginecologista com suporte de oncologia ginecológica ou exclusivamente por oncologista ginecológico.'
+    recomendacao: 'Lesão com risco intermediário de malignidade (10-50%). Recomenda-se avaliação complementar por especialista em ultrassonografia ginecológica ou ressonância magnética pélvica para melhor caracterização. O manejo deve ser conduzido por ginecologista com suporte de oncologia ginecológica ou exclusivamente por oncologista ginecológico, considerando-se o contexto clínico e fatores de risco individuais.'
   },
   5: {
     score: 5,
@@ -193,82 +193,158 @@ export const oradsCategories: Record<number, ORADSCategory> = {
     risco: 'Alto Risco de Malignidade',
     riscoNumerico: '≥50%',
     cor: 'red',
-    recomendacao: 'Encaminhamento para oncologista ginecológico.'
+    recomendacao: 'Lesão com alto risco de malignidade (≥50%). Encaminhamento mandatório para oncologista ginecológico para planejamento terapêutico. Avaliação complementar por ressonância magnética pélvica e/ou tomografia computadorizada de abdome e pelve para estadiamento pode ser considerada conforme indicação do especialista.'
   }
 }
 
 export const colorScoreDescriptions: Record<ColorScore, string> = {
-  1: 'CS 1 - Sem fluxo detectável',
-  2: 'CS 2 - Fluxo mínimo',
-  3: 'CS 3 - Fluxo moderado',
-  4: 'CS 4 - Fluxo intenso'
+  1: 'Color Score 1 - Sem fluxo vascular detectável ao estudo Doppler colorido',
+  2: 'Color Score 2 - Fluxo vascular mínimo detectável, com escassos spots de cor',
+  3: 'Color Score 3 - Fluxo vascular moderado, com múltiplos vasos identificáveis',
+  4: 'Color Score 4 - Fluxo vascular intenso, com vascularização proeminente'
 }
 
 export const lesoesTipicasBenignas: Record<LesaoTipicaBenigna, {
   nome: string
   caracteristicas: string[]
   limiteSize: number
+  descricaoCompleta: string
 }> = {
   cisto_hemorragico: {
     nome: 'Cisto Hemorrágico',
     caracteristicas: [
-      'Padrão rendilhado/reticular fino',
-      'Ecos internos móveis',
-      'Sem vascularização interna',
-      'Parede fina regular'
+      'Padrão rendilhado/reticular fino característico',
+      'Ecos internos móveis (coágulo retraído)',
+      'Ausência de vascularização interna ao Doppler',
+      'Parede fina regular sem componente sólido'
     ],
-    limiteSize: 10
+    limiteSize: 10,
+    descricaoCompleta: 'Formação cística com padrão de ecos internos rendilhado/reticular fino, característico de conteúdo hemorrágico em organização, com parede fina regular e ausência de vascularização interna ao estudo Doppler colorido, compatível com cisto hemorrágico.'
   },
   cisto_dermoide: {
     nome: 'Cisto Dermoide (Teratoma Maduro)',
     caracteristicas: [
-      'Linhas/pontos ecogênicos (cabelo)',
-      'Nódulo de Rokitansky',
-      'Sombra acústica',
-      'Interface gordura-líquido'
+      'Linhas/pontos ecogênicos (artefato em cauda de cometa)',
+      'Nódulo de Rokitansky (proeminência ecogênica mural)',
+      'Sombra acústica posterior',
+      'Interface gordura-líquido (nível)'
     ],
-    limiteSize: 10
+    limiteSize: 10,
+    descricaoCompleta: 'Formação cística com componente ecogênico apresentando sombra acústica posterior, associado a linhas/pontos ecogênicos internos e/ou nódulo mural de Rokitansky, características típicas de teratoma cístico maduro (cisto dermoide).'
   },
   endometrioma: {
     nome: 'Endometrioma',
     caracteristicas: [
-      'Aspecto de "vidro fosco" homogêneo',
-      'Ecos internos de baixa amplitude',
-      'Sem vascularização interna',
-      'Parede fina regular'
+      'Aspecto homogêneo em "vidro fosco" (ground glass)',
+      'Ecos internos de baixa amplitude uniformemente distribuídos',
+      'Ausência de vascularização interna ao Doppler',
+      'Parede fina regular, podendo haver focos ecogênicos murais'
     ],
-    limiteSize: 10
+    limiteSize: 10,
+    descricaoCompleta: 'Formação cística com conteúdo homogêneo de ecos de baixa amplitude uniformemente distribuídos, conferindo aspecto característico em "vidro fosco", com parede fina regular e ausência de vascularização interna, compatível com endometrioma.'
   },
   cisto_paraovarian: {
     nome: 'Cisto Paraovariano',
     caracteristicas: [
-      'Separado do ovário',
-      'Cisto simples unilocular',
+      'Localização extraovariana (entre ovário e tuba)',
+      'Cisto simples unilocular anecóico',
       'Parede fina imperceptível',
-      'Adjacente ao ovário ipsilateral'
+      'Ovário ipsilateral visualizado separadamente'
     ],
-    limiteSize: 10
+    limiteSize: 10,
+    descricaoCompleta: 'Formação cística simples, anecóica, de parede fina imperceptível, localizada em topografia extraovariana, com ovário ipsilateral identificado separadamente, compatível com cisto paraovariano.'
   },
   cisto_inclusao_peritoneal: {
     nome: 'Cisto de Inclusão Peritoneal',
     caracteristicas: [
-      'Formato irregular/moldado',
-      'Contém ovário',
-      'Paredes finas',
-      'História de cirurgia/inflamação'
+      'Formato irregular/moldado às estruturas adjacentes',
+      'Pode envolver o ovário',
+      'Paredes finas sem componente sólido',
+      'Geralmente associado a história cirúrgica ou inflamatória pélvica'
     ],
-    limiteSize: 10
+    limiteSize: 10,
+    descricaoCompleta: 'Coleção líquida de formato irregular, moldando-se às estruturas pélvicas adjacentes, com paredes finas e sem componente sólido, em contexto de história cirúrgica ou inflamatória pélvica prévia, compatível com cisto de inclusão peritoneal.'
   },
   hidrossalpinge: {
     nome: 'Hidrossalpinge',
     caracteristicas: [
-      'Estrutura tubular alongada',
-      'Pregas mucosas incompletas',
-      'Sinal da roda dentada',
-      'Separada do ovário'
+      'Estrutura tubular alongada e tortuosa',
+      'Pregas mucosas incompletas (sinal da roda dentada)',
+      'Conteúdo anecóico',
+      'Estrutura separada do ovário'
     ],
-    limiteSize: 10
+    limiteSize: 10,
+    descricaoCompleta: 'Estrutura tubular alongada e tortuosa, de conteúdo anecóico, apresentando projeções murais correspondentes a pregas mucosas incompletas (sinal da roda dentada), separada do ovário ipsilateral, compatível com hidrossalpinge.'
   }
+}
+
+// ============= DATABASE HELPERS =============
+
+type ORADSOptions = Record<string, Array<{ value: string; label: string; texto: string }>>
+
+/**
+ * Helper para buscar categoria O-RADS do banco de dados com fallback
+ */
+export function getORADSCategoryFromDB(score: number, options?: ORADSOptions): ORADSCategory {
+  const catOpt = options?.orads_categoria?.find(o => o.value === String(score))
+  if (catOpt?.texto) {
+    // Parse texto do banco: "Risco - Descrição (percentual)"
+    const parts = catOpt.texto.split(' - ')
+    return {
+      score,
+      name: catOpt.label || `O-RADS ${score}`,
+      risco: parts[0] || oradsCategories[score]?.risco || '',
+      riscoNumerico: catOpt.texto.match(/\(([^)]+)\)/)?.[1] || oradsCategories[score]?.riscoNumerico || '',
+      cor: score === 0 ? 'gray' : score <= 2 ? 'green' : score === 3 ? 'yellow' : score === 4 ? 'orange' : 'red',
+      recomendacao: '' // Será preenchido por getORADSRecommendationFromDB
+    }
+  }
+  return oradsCategories[score]
+}
+
+/**
+ * Helper para buscar recomendação O-RADS do banco de dados com fallback
+ */
+export function getORADSRecommendationFromDB(score: number, options?: ORADSOptions): string {
+  const recOpt = options?.recomendacao?.find(o => o.value === `orads_${score}`)
+  if (recOpt?.texto) {
+    return recOpt.texto
+  }
+  return oradsCategories[score]?.recomendacao || ''
+}
+
+/**
+ * Helper para buscar descrição de Color Score do banco de dados com fallback
+ */
+export function getColorScoreDescriptionFromDB(cs: ColorScore, options?: ORADSOptions): string {
+  const csOpt = options?.color_score?.find(o => o.value === String(cs))
+  if (csOpt?.texto) {
+    return csOpt.texto
+  }
+  return colorScoreDescriptions[cs]
+}
+
+/**
+ * Helper para buscar texto de lesão típica benigna do banco de dados com fallback
+ */
+export function getLesaoTipicaTextoFromDB(tipo: LesaoTipicaBenigna, options?: ORADSOptions): string {
+  const opt = options?.lesao_tipica_benigna?.find(o => o.value === tipo)
+  if (opt?.texto) {
+    return opt.texto
+  }
+  return lesoesTipicasBenignas[tipo]?.descricaoCompleta || lesoesTipicasBenignas[tipo]?.nome || ''
+}
+
+/**
+ * Helper para buscar texto de técnica do banco de dados com fallback
+ */
+export function getTecnicaFromDB(options?: ORADSOptions): string {
+  const tecOpt = options?.tecnica?.find(o => o.value === 'padrao')
+  if (tecOpt?.texto) {
+    return tecOpt.texto
+  }
+  // Fallback profissional
+  return 'Exame de ultrassonografia transvaginal realizado com transdutor endocavitário multifrequencial de alta resolução (5-9 MHz), com avaliação pélvica completa em modos bidimensional e Doppler colorido/espectral, seguindo protocolo ACR O-RADS US v2022 (Ovarian-Adnexal Reporting and Data System).'
 }
 
 // ============= EVALUATION ALGORITHM =============
@@ -482,11 +558,11 @@ const formatBR = (num: number, decimals: number = 1): string => {
   })
 }
 
-export function generateORADSTecnica(): string {
-  return 'Exame realizado com transdutor endocavitário multifrequencial.'
+export function generateORADSTecnica(options?: ORADSOptions): string {
+  return getTecnicaFromDB(options)
 }
 
-export function generateORADSUteroTexto(data: ORADSUSData): string {
+export function generateORADSUteroTexto(data: ORADSUSData, options?: ORADSOptions): string {
   const { utero } = data
   
   const posicaoMap: Record<string, string> = {
@@ -517,7 +593,7 @@ export function generateORADSUteroTexto(data: ORADSUSData): string {
   return texto
 }
 
-export function generateORADSEndometrioTexto(data: ORADSUSData): string {
+export function generateORADSEndometrioTexto(data: ORADSUSData, options?: ORADSOptions): string {
   const { endometrio, statusMenopausal } = data
   
   let texto = `O eco endometrial é ${endometrio.aspecto}`
@@ -527,37 +603,37 @@ export function generateORADSEndometrioTexto(data: ORADSUSData): string {
   
   // Interpretação da espessura
   if (statusMenopausal === 'pos' && endometrio.espessura > 5) {
-    texto += ' Espessura endometrial acima do esperado para status pós-menopausal.'
+    texto += ' Espessura endometrial acima do esperado para status pós-menopausal, recomendando-se correlação clínica.'
   }
   
   if (endometrio.polipoEndometrial) {
-    texto += ' Observa-se imagem sugestiva de pólipo endometrial.'
+    texto += ' Observa-se imagem intracavitária ecogênica sugestiva de pólipo endometrial.'
   }
   
   if (endometrio.liquidoIntrauterino) {
-    texto += ' Presença de líquido na cavidade uterina.'
+    texto += ' Nota-se pequena quantidade de líquido na cavidade uterina.'
   }
   
   return texto
 }
 
-export function generateORADSOvarioTexto(ovario: OvarianData, lado: 'direito' | 'esquerdo'): string {
+export function generateORADSOvarioTexto(ovario: OvarianData, lado: 'direito' | 'esquerdo', options?: ORADSOptions): string {
   if (!ovario.presente) {
-    return `Ovário ${lado} não visualizado / ausente.`
+    return `Ovário ${lado} não visualizado no estudo atual / ausente cirurgicamente.`
   }
   
   const volume = ovario.volume || (ovario.mx * ovario.my * ovario.mz * 0.52)
   
-  let texto = `Ovário ${lado} localizado em ${ovario.localizacao || 'situação parauterina'}`
+  let texto = `Ovário ${lado} localizado em ${ovario.localizacao || 'topografia parauterina habitual'}`
   texto += `, com ecogenicidade parenquimatosa ${ovario.ecogenicidade || 'habitual'}`
   texto += `, medindo ${formatBR(ovario.mx)} x ${formatBR(ovario.my)} x ${formatBR(ovario.mz)} cm`
-  texto += ` e apresentando volume estimado de ${formatBR(volume)} cm³.`
+  texto += ` (volume estimado de ${formatBR(volume)} cm³).`
   
   // Lesões
   if (ovario.lesoes && ovario.lesoes.length > 0) {
     texto += '\n\n'
     ovario.lesoes.forEach((lesao, i) => {
-      texto += generateLesaoTexto(lesao, i + 1)
+      texto += generateLesaoTexto(lesao, i + 1, options)
       if (i < ovario.lesoes.length - 1) texto += '\n'
     })
   }
@@ -565,38 +641,52 @@ export function generateORADSOvarioTexto(ovario: OvarianData, lado: 'direito' | 
   return texto
 }
 
-function generateLesaoTexto(lesao: ORADSLesao, numero: number): string {
-  const tipoMap: Record<TipoLesaoORADS, string> = {
-    'cisto_simples': 'Cisto simples',
-    'cisto_unilocular_nao_simples': 'Cisto unilocular não-simples',
-    'cisto_bilocular': 'Cisto bilocular',
-    'cisto_multilocular': 'Cisto multilocular',
-    'cisto_unilocular_irregular': 'Cisto unilocular com parede irregular',
-    'cisto_bilocular_irregular': 'Cisto bilocular irregular',
-    'solido': 'Lesão sólida',
-    'lesao_tipica_benigna': lesoesTipicasBenignas[lesao.lesaoTipica!]?.nome || 'Lesão típica benigna',
+function generateLesaoTexto(lesao: ORADSLesao, numero: number, options?: ORADSOptions): string {
+  // Tentar buscar do banco primeiro
+  if (lesao.tipo === 'lesao_tipica_benigna' && lesao.lesaoTipica) {
+    const textoCompleto = getLesaoTipicaTextoFromDB(lesao.lesaoTipica, options)
+    if (textoCompleto && textoCompleto !== lesoesTipicasBenignas[lesao.lesaoTipica]?.nome) {
+      return `Lesão ${numero}: ${textoCompleto} Medindo ${formatBR(lesao.tamanho)} cm no maior diâmetro.`
+    }
+  }
+
+  const tipoMapFallback: Record<TipoLesaoORADS, string> = {
+    'cisto_simples': 'Formação cística de conteúdo anecóico, paredes finas e imperceptíveis, sem septações ou componentes sólidos (cisto simples)',
+    'cisto_unilocular_nao_simples': 'Formação cística unilocular não-simples, com conteúdo parcialmente ecogênico ou paredes discretamente espessadas',
+    'cisto_bilocular': 'Formação cística bilocular, com septação única completa dividindo a lesão em dois compartimentos',
+    'cisto_multilocular': 'Formação cística multilocular, com múltiplas septações internas dividindo a lesão em três ou mais compartimentos',
+    'cisto_unilocular_irregular': 'Formação cística unilocular com irregularidade da parede interna',
+    'cisto_bilocular_irregular': 'Formação cística bilocular com irregularidade de parede interna ou septação',
+    'solido': 'Lesão predominantemente sólida',
+    'lesao_tipica_benigna': lesao.lesaoTipica ? lesoesTipicasBenignas[lesao.lesaoTipica]?.nome : 'Lesão com características típicas de benignidade',
     'nenhuma': ''
   }
   
-  let texto = `Lesão ${numero}: ${tipoMap[lesao.tipo]}`
+  let texto = `Lesão ${numero}: ${tipoMapFallback[lesao.tipo]}`
   texto += `, medindo ${formatBR(lesao.tamanho)} cm no maior diâmetro`
   
   if (lesao.paredeInterna) {
-    texto += `, parede interna ${lesao.paredeInterna}`
+    texto += `, com parede interna ${lesao.paredeInterna === 'lisa' ? 'lisa e regular' : 'irregular'}`
+  }
+  
+  if (lesao.septacao && lesao.septacao !== 'ausente') {
+    texto += `, septações ${lesao.septacao === 'lisa' ? 'finas e regulares' : 'irregulares ou espessadas'}`
   }
   
   if (lesao.componenteSolido) {
-    texto += `, com componente sólido`
+    texto += `, apresentando componente sólido interno`
     if (lesao.numeroPapilas) {
-      texto += ` (${lesao.numeroPapilas} ${lesao.numeroPapilas === 1 ? 'projeção papilar' : 'projeções papilares'})`
+      texto += ` com ${lesao.numeroPapilas} ${lesao.numeroPapilas === 1 ? 'projeção papilar' : 'projeções papilares'}`
     }
   }
   
-  texto += `, ${colorScoreDescriptions[lesao.colorScore]}`
+  // Color Score com descrição completa
+  const csDesc = getColorScoreDescriptionFromDB(lesao.colorScore, options)
+  texto += `. Ao estudo Doppler colorido: ${csDesc}`
   
   if (lesao.tipo === 'solido') {
-    texto += lesao.sombra ? ', com sombra acústica' : ', sem sombra acústica'
-    texto += `, contorno externo ${lesao.contornoExterno}`
+    texto += lesao.sombra ? '. Observa-se sombra acústica posterior' : '. Sem sombra acústica posterior'
+    texto += `, com contorno externo ${lesao.contornoExterno === 'liso' ? 'liso e regular' : 'irregular'}`
   }
   
   texto += '.'
@@ -604,38 +694,46 @@ function generateLesaoTexto(lesao: ORADSLesao, numero: number): string {
   return texto
 }
 
-export function generateORADSLiquidoLivreTexto(data: ORADSUSData): string {
+export function generateORADSLiquidoLivreTexto(data: ORADSUSData, options?: ORADSOptions): string {
   const { liquidoLivre } = data
   
   if (!liquidoLivre.presente) {
-    return 'Ausência de líquido livre na cavidade pélvica.'
+    return 'Não se observa líquido livre na cavidade pélvica.'
   }
   
-  let texto = `Presença de ${liquidoLivre.quantidade || ''} quantidade de líquido livre`
+  const quantidadeMap: Record<string, string> = {
+    'pequena': 'pequena',
+    'moderada': 'moderada',
+    'grande': 'grande'
+  }
+  
+  let texto = `Identifica-se ${quantidadeMap[liquidoLivre.quantidade || 'pequena'] || ''} quantidade de líquido livre`
   if (liquidoLivre.localizacao) {
     texto += ` ${liquidoLivre.localizacao}`
+  } else {
+    texto += ' no fundo de saco posterior'
   }
   if (liquidoLivre.aspecto) {
     const aspectoMap: Record<string, string> = {
-      'anecoico': 'de aspecto anecóico (simples)',
-      'ecos_finos': 'com ecos finos de permeio',
-      'heterogeneo': 'de aspecto heterogêneo'
+      'anecoico': ', de aspecto anecóico compatível com líquido simples',
+      'ecos_finos': ', com ecos finos de permeio sugestivos de conteúdo proteináceo ou hemorrágico',
+      'heterogeneo': ', de aspecto heterogêneo'
     }
-    texto += `, ${aspectoMap[liquidoLivre.aspecto] || liquidoLivre.aspecto}`
+    texto += aspectoMap[liquidoLivre.aspecto] || ''
   }
   texto += '.'
   
   return texto
 }
 
-export function generateORADSRegiaoAnexialTexto(data: ORADSUSData): string {
+export function generateORADSRegiaoAnexialTexto(data: ORADSUSData, options?: ORADSOptions): string {
   const { regiaoAnexial, ovarioDireito, ovarioEsquerdo } = data
   
   const direitaSemLesao = !ovarioDireito.lesoes || ovarioDireito.lesoes.length === 0
   const esquerdaSemLesao = !ovarioEsquerdo.lesoes || ovarioEsquerdo.lesoes.length === 0
   
   if (direitaSemLesao && esquerdaSemLesao && !regiaoAnexial.direita && !regiaoAnexial.esquerda) {
-    return 'Não se observam massas císticas ou sólidas na topografia anexial.'
+    return 'Não se identificam massas sólidas ou císticas em topografia anexial, além das estruturas ovarianas descritas.'
   }
   
   let texto = ''
@@ -647,36 +745,40 @@ export function generateORADSRegiaoAnexialTexto(data: ORADSUSData): string {
     texto += `Região anexial esquerda: ${regiaoAnexial.esquerda}`
   }
   
-  return texto || 'Regiões anexiais sem alterações adicionais.'
+  return texto || 'Regiões anexiais sem alterações adicionais às estruturas ovarianas descritas.'
 }
 
-export function generateORADSImpressao(data: ORADSUSData): string {
+export function generateORADSImpressao(data: ORADSUSData, options?: ORADSOptions): string {
   const impressoes: string[] = []
   
   // Avaliar todas as lesões
   const todasLesoes = [
-    ...data.ovarioDireito.lesoes.map(l => ({ ...l, lado: 'direito' })),
-    ...data.ovarioEsquerdo.lesoes.map(l => ({ ...l, lado: 'esquerdo' }))
+    ...data.ovarioDireito.lesoes.map(l => ({ ...l, lado: 'direito' as const })),
+    ...data.ovarioEsquerdo.lesoes.map(l => ({ ...l, lado: 'esquerdo' as const }))
   ]
   
   if (todasLesoes.length === 0 && !data.ascite && !data.nodulosPeritoneais) {
     // Verificar útero
     if (data.utero.nodulos && data.utero.nodulos.length > 0) {
       const numNodulos = data.utero.nodulos.length
-      impressoes.push(`- Útero miomatoso (${numNodulos} ${numNodulos === 1 ? 'nódulo' : 'nódulos'}).`)
+      if (numNodulos === 1) {
+        impressoes.push('- Útero miomatoso (leiomioma uterino único).')
+      } else {
+        impressoes.push(`- Útero miomatoso (${numNodulos} leiomiomas uterinos).`)
+      }
     }
     
     // Verificar endométrio
     if (data.statusMenopausal === 'pos' && data.endometrio.espessura > 5) {
-      impressoes.push('- Espessamento endometrial para avaliação clínica.')
+      impressoes.push('- Espessamento endometrial em paciente pós-menopausa, recomendando-se correlação clínica e, se indicado, avaliação histológica.')
     }
     
     if (data.endometrio.polipoEndometrial) {
-      impressoes.push('- Imagem sugestiva de pólipo endometrial.')
+      impressoes.push('- Imagem intracavitária sugestiva de pólipo endometrial, recomendando-se correlação histeroscópica.')
     }
     
     if (impressoes.length === 0) {
-      return 'Estudo sem alterações significativas.'
+      return 'Estudo ultrassonográfico transvaginal dentro dos limites da normalidade. Ovários e anexos sem lesões focais.'
     }
     
     return impressoes.join('\n')
@@ -684,69 +786,108 @@ export function generateORADSImpressao(data: ORADSUSData): string {
   
   // Achados de alto risco
   if (data.ascite || data.nodulosPeritoneais) {
-    impressoes.push('- Achados associados de alto risco (O-RADS 5): ' + 
-      [data.ascite ? 'ascite' : '', data.nodulosPeritoneais ? 'nodularidade peritoneal' : ''].filter(Boolean).join(', ') + '.')
+    const achados = [
+      data.ascite ? 'ascite' : '', 
+      data.nodulosPeritoneais ? 'nodularidade peritoneal' : ''
+    ].filter(Boolean).join(' e ')
+    impressoes.push(`- Achados associados de alto risco identificados (${achados}), elevando a classificação para O-RADS 5 independentemente das características da lesão ovariana.`)
   }
   
-  // Lesões ovarianas com classificação O-RADS
-  todasLesoes.forEach((lesao, i) => {
+  // Lesões ovarianas com classificação O-RADS - descrição profissional
+  todasLesoes.forEach((lesao) => {
     const result = evaluateORADS(lesao, data.statusMenopausal)
-    const tipoDesc = lesao.tipo === 'lesao_tipica_benigna' && lesao.lesaoTipica 
-      ? lesoesTipicasBenignas[lesao.lesaoTipica].nome 
-      : lesao.tipo.replace(/_/g, ' ')
-    impressoes.push(`- Lesão anexial ${lesao.localizacao === 'ovario_direito' ? 'direita' : 'esquerda'} (${tipoDesc}): ${result.category.name} - ${result.category.risco}.`)
+    const category = getORADSCategoryFromDB(result.score, options)
+    const recomendacao = getORADSRecommendationFromDB(result.score, options)
+    const ladoTexto = lesao.lado === 'direito' ? 'direita' : 'esquerda'
+    
+    // Descrição profissional da lesão
+    let descLesao = ''
+    if (lesao.tipo === 'lesao_tipica_benigna' && lesao.lesaoTipica) {
+      descLesao = lesoesTipicasBenignas[lesao.lesaoTipica]?.nome || 'lesão com características típicas benignas'
+    } else {
+      const tipoMap: Record<TipoLesaoORADS, string> = {
+        'cisto_simples': 'cisto simples',
+        'cisto_unilocular_nao_simples': 'cisto unilocular não-simples',
+        'cisto_bilocular': 'cisto bilocular',
+        'cisto_multilocular': 'cisto multilocular',
+        'cisto_unilocular_irregular': 'cisto unilocular com irregularidade parietal',
+        'cisto_bilocular_irregular': 'cisto bilocular irregular',
+        'solido': 'lesão sólida',
+        'lesao_tipica_benigna': 'lesão típica benigna',
+        'nenhuma': ''
+      }
+      descLesao = tipoMap[lesao.tipo]
+    }
+    
+    impressoes.push(`- Lesão anexial ${ladoTexto} (${descLesao}, ${formatBR(lesao.tamanho)} cm): ${category.name} - ${category.risco} (${category.riscoNumerico}).`)
   })
+  
+  // Adicionar recomendação baseada no maior O-RADS
+  const maxScore = Math.max(...todasLesoes.map(l => evaluateORADS(l, data.statusMenopausal).score))
+  if (maxScore >= 3) {
+    const recomendacao = getORADSRecommendationFromDB(data.ascite || data.nodulosPeritoneais ? 5 : maxScore, options)
+    impressoes.push('')
+    impressoes.push(`RECOMENDAÇÃO: ${recomendacao}`)
+  }
   
   // Útero
   if (data.utero.nodulos && data.utero.nodulos.length > 0) {
-    impressoes.push(`- Útero miomatoso.`)
+    const numNodulos = data.utero.nodulos.length
+    impressoes.push(`- Adicionalmente: útero miomatoso (${numNodulos} ${numNodulos === 1 ? 'nódulo' : 'nódulos'}).`)
   }
   
   return impressoes.join('\n')
 }
 
-export function generateORADSLaudoCompletoHTML(data: ORADSUSData): string {
-  let html = '<p><strong>ULTRASSONOGRAFIA TRANSVAGINAL</strong></p>'
+export function generateORADSLaudoCompletoHTML(data: ORADSUSData, options?: ORADSOptions): string {
+  let html = '<p><strong>ULTRASSONOGRAFIA TRANSVAGINAL - PROTOCOLO O-RADS US v2022</strong></p>'
   html += '<p></p>'
+  
+  // Indicação (se preenchida)
+  if (data.indicacao) {
+    html += '<p><strong>INDICAÇÃO CLÍNICA:</strong></p>'
+    html += `<p>${data.indicacao}</p>`
+    html += '<p></p>'
+  }
   
   // Técnica
   html += '<p><strong>TÉCNICA:</strong></p>'
-  html += `<p>${generateORADSTecnica()}</p>`
+  html += `<p>${generateORADSTecnica(options)}</p>`
   html += '<p></p>'
   
   // Análise
   html += '<p><strong>ANÁLISE:</strong></p>'
   
   // Útero
-  html += `<p>${generateORADSUteroTexto(data)}</p>`
+  html += `<p>${generateORADSUteroTexto(data, options)}</p>`
   html += '<p></p>'
   
   // Endométrio
-  html += `<p>${generateORADSEndometrioTexto(data)}</p>`
+  html += `<p>${generateORADSEndometrioTexto(data, options)}</p>`
   html += '<p></p>'
   
   // Ovários
-  html += `<p>${generateORADSOvarioTexto(data.ovarioDireito, 'direito')}</p>`
+  html += `<p>${generateORADSOvarioTexto(data.ovarioDireito, 'direito', options)}</p>`
   html += '<p></p>'
-  html += `<p>${generateORADSOvarioTexto(data.ovarioEsquerdo, 'esquerdo')}</p>`
+  html += `<p>${generateORADSOvarioTexto(data.ovarioEsquerdo, 'esquerdo', options)}</p>`
   html += '<p></p>'
   
   // Região anexial
-  html += `<p>${generateORADSRegiaoAnexialTexto(data)}</p>`
+  html += `<p>${generateORADSRegiaoAnexialTexto(data, options)}</p>`
   html += '<p></p>'
   
   // Líquido livre
-  html += `<p>${generateORADSLiquidoLivreTexto(data)}</p>`
+  html += `<p>${generateORADSLiquidoLivreTexto(data, options)}</p>`
   html += '<p></p>'
   
   // Impressão
   html += '<p><strong>IMPRESSÃO DIAGNÓSTICA:</strong></p>'
-  html += `<p>${generateORADSImpressao(data).replace(/\n/g, '</p><p>')}</p>`
+  html += `<p>${generateORADSImpressao(data, options).replace(/\n/g, '</p><p>')}</p>`
   
   // Notas
   if (data.notas) {
     html += '<p></p>'
-    html += '<p><strong>NOTAS:</strong></p>'
+    html += '<p><strong>OBSERVAÇÕES:</strong></p>'
     html += `<p>${data.notas}</p>`
   }
   
