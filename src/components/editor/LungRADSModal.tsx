@@ -700,7 +700,7 @@ export function LungRADSModal({ open, onOpenChange, editor }: LungRADSModalProps
             </span>
             <Badge variant="secondary">{evaluation.categoria.probabilidadeMalignidade}</Badge>
           </div>
-          <p className="text-sm">{evaluation.categoria.descricao}</p>
+          <p className="text-sm text-foreground/80">{evaluation.categoria.descricao}</p>
           {data.modificadorS && (
             <Badge variant="outline" className="mt-2">Modificador S</Badge>
           )}
