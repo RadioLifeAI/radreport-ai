@@ -89,6 +89,7 @@ export function useAllRADSOptions() {
   const biradsRM = useRADSOptions('BIRADS_RM')
   const tirads = useRADSOptions('TIRADS')
   const usTireoide = useRADSOptions('US_TIREOIDE')
+  const oradsUS = useRADSOptions('ORADS_US')
 
   return {
     biradsUSG,
@@ -96,7 +97,8 @@ export function useAllRADSOptions() {
     biradsRM,
     tirads,
     usTireoide,
-    isLoading: biradsUSG.isLoading || biradsMG.isLoading || biradsRM.isLoading || tirads.isLoading || usTireoide.isLoading,
-    isError: biradsUSG.isError || biradsMG.isError || biradsRM.isError || tirads.isError || usTireoide.isError,
+    oradsUS,
+    isLoading: biradsUSG.isLoading || biradsMG.isLoading || biradsRM.isLoading || tirads.isLoading || usTireoide.isLoading || oradsUS.isLoading,
+    isError: biradsUSG.isError || biradsMG.isError || biradsRM.isError || tirads.isError || usTireoide.isError || oradsUS.isError,
   }
 }
