@@ -29,6 +29,7 @@ import { USTireoideModal } from './USTireoideModal'
 import { PIRADSModal } from './PIRADSModal'
 import { ORADSModal } from './ORADSModal'
 import { LIRADSUSModal } from './LIRADSUSModal'
+import { LungRADSModal } from './LungRADSModal'
 
 interface RADSDropdownProps {
   editor: Editor | null
@@ -43,6 +44,7 @@ export function RADSDropdown({ editor }: RADSDropdownProps) {
   const [piradsOpen, setPiradsOpen] = useState(false)
   const [oradsOpen, setOradsOpen] = useState(false)
   const [liradsUSOpen, setLiradsUSOpen] = useState(false)
+  const [lungRADSOpen, setLungRADSOpen] = useState(false)
 
   return (
     <>
@@ -91,9 +93,9 @@ export function RADSDropdown({ editor }: RADSDropdownProps) {
             ACR LI-RADS US (Fígado)
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem disabled className="opacity-50">
-            <Wind className="mr-2 h-4 w-4 text-blue-400" />
-            Lung-RADS (Pulmão) - Em breve
+          <DropdownMenuItem onClick={() => setLungRADSOpen(true)} className="cursor-pointer">
+            <Wind className="mr-2 h-4 w-4 text-blue-500" />
+            ACR Lung-RADS (Pulmão)
           </DropdownMenuItem>
           <DropdownMenuItem disabled className="opacity-50">
             <Heart className="mr-2 h-4 w-4 text-red-500" />
@@ -147,6 +149,12 @@ export function RADSDropdown({ editor }: RADSDropdownProps) {
       <LIRADSUSModal
         open={liradsUSOpen}
         onOpenChange={setLiradsUSOpen}
+        editor={editor}
+      />
+
+      <LungRADSModal
+        open={lungRADSOpen}
+        onOpenChange={setLungRADSOpen}
         editor={editor}
       />
     </>
