@@ -1,4 +1,5 @@
 // TI-RADS Classification System (ACR TI-RADS 2017)
+import { RADSOptionsMap } from '@/hooks/useRADSOptions'
 
 export interface TIRADSOption {
   value: string
@@ -140,16 +141,19 @@ const isCaracteristicasBenignas = (finding: BIRADSFindingData): boolean => {
   )
 }
 
-// Avalia características suspeitas e retorna categoria 4A/4B/4C/5
-const evaluateSuspiciousFeatures = (finding: BIRADSFindingData): number | string => {
-  const getOption = (category: keyof typeof biradsUSGOptions, value: string) => {
-    return biradsUSGOptions[category].find(o => o.value === value)
+// Helper to get option from dynamic or hardcoded source
+const getUSGOption = (category: keyof typeof biradsUSGOptions, value: string, options?: RADSOptionsMap) => {
+  if (options && options[category]) {
+    return options[category].find(o => o.value === value)
   }
+  return biradsUSGOptions[category]?.find(o => o.value === value)
+}
 
-  const forma = getOption('forma', finding.forma)
-  const margens = getOption('margens', finding.margens)
-  const eixo = getOption('eixo', finding.eixo)
-  const sombra = getOption('sombra', finding.sombra)
+// Avalia características suspeitas e retorna categoria 4A/4B/4C/5
+const evaluateSuspiciousFeatures = (finding: BIRADSFindingData, options?: RADSOptionsMap): number | string => {
+  const forma = getUSGOption('forma', finding.forma, options)
+  const margens = getUSGOption('margens', finding.margens, options)
+  const eixo = getUSGOption('eixo', finding.eixo, options)
 
   // Características altamente suspeitas = BI-RADS 5
   if (margens?.suspeicao === 'alto' || 
@@ -171,15 +175,11 @@ const evaluateSuspiciousFeatures = (finding: BIRADSFindingData): number | string
   return '4A'
 }
 
-export const evaluateBIRADSFinding = (finding: BIRADSFindingData): number | string => {
-  const getOption = (category: keyof typeof biradsUSGOptions, value: string) => {
-    return biradsUSGOptions[category].find(o => o.value === value)
-  }
-
-  const forma = getOption('forma', finding.forma)
-  const margens = getOption('margens', finding.margens)
-  const eixo = getOption('eixo', finding.eixo)
-  const sombra = getOption('sombra', finding.sombra)
+export const evaluateBIRADSFinding = (finding: BIRADSFindingData, options?: RADSOptionsMap): number | string => {
+  const forma = getUSGOption('forma', finding.forma, options)
+  const margens = getUSGOption('margens', finding.margens, options)
+  const eixo = getUSGOption('eixo', finding.eixo, options)
+  const sombra = getUSGOption('sombra', finding.sombra, options)
 
   // Se CRESCEU → BI-RADS 4A (upgrade obrigatório)
   if (finding.temComparacao && finding.estadoNodulo === 'cresceu') {
@@ -235,14 +235,14 @@ export const evaluateBIRADSFinding = (finding: BIRADSFindingData): number | stri
   return 3
 }
 
-export const calculateBIRADSCategory = (findings: BIRADSFindingData[]): number | string => {
+export const calculateBIRADSCategory = (findings: BIRADSFindingData[], options?: RADSOptionsMap): number | string => {
   if (findings.length === 0) return 0
 
   const categoryOrder = [0, 1, 2, 3, '4A', '4B', '4C', 5, 6]
   let worstIndex = 0
 
   for (const finding of findings) {
-    const category = evaluateBIRADSFinding(finding)
+    const category = evaluateBIRADSFinding(finding, options)
     const categoryIndex = categoryOrder.indexOf(category)
     if (categoryIndex > worstIndex) {
       worstIndex = categoryIndex
@@ -252,20 +252,19 @@ export const calculateBIRADSCategory = (findings: BIRADSFindingData[]): number |
   return categoryOrder[worstIndex]
 }
 
-export const getBIRADSOptionTexto = (category: keyof typeof biradsUSGOptions, value: string): string => {
-  const options = biradsUSGOptions[category]
-  const option = options.find(o => o.value === value)
-  return option?.texto ?? ''
+export const getBIRADSOptionTexto = (category: keyof typeof biradsUSGOptions, value: string, options?: RADSOptionsMap): string => {
+  const opt = getUSGOption(category, value, options)
+  return opt?.texto ?? ''
 }
 
-export const generateBIRADSFindingDescription = (finding: BIRADSFindingData, index: number): string => {
-  const ecogenicidadeTexto = getBIRADSOptionTexto('ecogenicidade', finding.ecogenicidade)
-  const formaTexto = getBIRADSOptionTexto('forma', finding.forma)
-  const margensTexto = getBIRADSOptionTexto('margens', finding.margens)
-  const eixoTexto = getBIRADSOptionTexto('eixo', finding.eixo)
-  const sombraTexto = getBIRADSOptionTexto('sombra', finding.sombra)
-  const localizacaoTexto = getBIRADSOptionTexto('localizacao', finding.localizacao)
-  const ladoTexto = getBIRADSOptionTexto('lado', finding.lado)
+export const generateBIRADSFindingDescription = (finding: BIRADSFindingData, index: number, options?: RADSOptionsMap): string => {
+  const ecogenicidadeTexto = getBIRADSOptionTexto('ecogenicidade', finding.ecogenicidade, options)
+  const formaTexto = getBIRADSOptionTexto('forma', finding.forma, options)
+  const margensTexto = getBIRADSOptionTexto('margens', finding.margens, options)
+  const eixoTexto = getBIRADSOptionTexto('eixo', finding.eixo, options)
+  const sombraTexto = getBIRADSOptionTexto('sombra', finding.sombra, options)
+  const localizacaoTexto = getBIRADSOptionTexto('localizacao', finding.localizacao, options)
+  const ladoTexto = getBIRADSOptionTexto('lado', finding.lado, options)
 
   const medidasFormatadas = finding.medidas.map(m => formatMeasurement(m)).join(' x ')
   const distPeleFormatada = formatMeasurement(finding.distPele)
@@ -291,7 +290,7 @@ export const generateBIRADSFindingDescription = (finding: BIRADSFindingData, ind
   return descricao
 }
 
-export const generateBIRADSImpression = (findings: BIRADSFindingData[], biradsCategory: number | string): string => {
+export const generateBIRADSImpression = (findings: BIRADSFindingData[], biradsCategory: number | string, options?: RADSOptionsMap): string => {
   const lados = [...new Set(findings.map(f => f.lado))]
   const isMultiple = findings.length > 1
   
@@ -583,8 +582,16 @@ export const createEmptyBIRADSUSGData = (): BIRADSUSGData => ({
   notas: { correlacaoMamografia: false, outraObservacao: '' },
 })
 
+// Helper to get expanded USG option
+const getExpandedUSGOption = (category: keyof typeof biradsUSGExpandedOptions, value: string, options?: RADSOptionsMap) => {
+  if (options && options[category]) {
+    return options[category].find(o => o.value === value)
+  }
+  return (biradsUSGExpandedOptions as any)[category]?.find((o: any) => o.value === value)
+}
+
 // Evaluate BI-RADS USG expanded
-export const evaluateBIRADSUSGExpanded = (data: BIRADSUSGData): number | string => {
+export const evaluateBIRADSUSGExpanded = (data: BIRADSUSGData, options?: RADSOptionsMap): number | string => {
   let worstCategory: number | string = 1 // Default negativo
   
   const categoryOrder = [0, 1, 2, 3, '4A', '4B', '4C', 5, 6]
@@ -598,14 +605,15 @@ export const evaluateBIRADSUSGExpanded = (data: BIRADSUSGData): number | string 
   // Avaliar cistos
   if (data.cistos.length > 0) {
     for (const cisto of data.cistos) {
-      const tipoOpt = biradsUSGExpandedOptions.tipoCisto.find(o => o.value === cisto.tipo)
-      if (tipoOpt?.birads) updateWorst(tipoOpt.birads)
+      const tipoOpt = getExpandedUSGOption('tipoCisto', cisto.tipo, options) as any
+      const birads = tipoOpt?.birads_associado || tipoOpt?.birads
+      if (birads) updateWorst(typeof birads === 'string' ? (isNaN(parseInt(birads)) ? birads : parseInt(birads)) : birads)
     }
   }
   
   // Avaliar nódulos (usando lógica existente)
   if (data.nodulos.length > 0) {
-    const noduloCat = calculateBIRADSCategory(data.nodulos)
+    const noduloCat = calculateBIRADSCategory(data.nodulos, options)
     updateWorst(noduloCat)
   }
   
@@ -650,9 +658,9 @@ export const evaluateBIRADSUSGExpanded = (data: BIRADSUSGData): number | string 
 }
 
 // Generate USG Indicação text
-export const generateBIRADSUSGIndicacao = (data: BIRADSUSGData): string => {
+export const generateBIRADSUSGIndicacao = (data: BIRADSUSGData, options?: RADSOptionsMap): string => {
   if (!data.indicacao.tipo) return ''
-  const opt = biradsUSGExpandedOptions.tipoIndicacao.find(o => o.value === data.indicacao.tipo)
+  const opt = getExpandedUSGOption('tipoIndicacao', data.indicacao.tipo, options)
   return opt?.texto || ''
 }
 
@@ -662,19 +670,19 @@ export const generateBIRADSUSGTecnica = (): string => {
 }
 
 // Generate USG Achados text
-export const generateBIRADSUSGAchados = (data: BIRADSUSGData): string => {
+export const generateBIRADSUSGAchados = (data: BIRADSUSGData, options?: RADSOptionsMap): string => {
   const achados: string[] = []
   
   // Cirurgia
   if (data.cirurgia.tipo !== 'sem_cirurgias') {
-    const cirOpt = biradsUSGExpandedOptions.tipoCirurgia.find(o => o.value === data.cirurgia.tipo)
+    const cirOpt = getExpandedUSGOption('tipoCirurgia', data.cirurgia.tipo, options)
     if (cirOpt?.texto) {
       let cirTexto = cirOpt.texto
       if (data.cirurgia.lado) {
         cirTexto += ` à ${data.cirurgia.lado}`
       }
       if (data.cirurgia.reconstrucao) {
-        const recOpt = biradsUSGExpandedOptions.tipoReconstrucao.find(o => o.value === data.cirurgia.reconstrucao)
+        const recOpt = getExpandedUSGOption('tipoReconstrucao', data.cirurgia.reconstrucao, options)
         if (recOpt) cirTexto += ` ${recOpt.texto}`
       }
       achados.push(cirTexto + '.')
@@ -682,7 +690,7 @@ export const generateBIRADSUSGAchados = (data: BIRADSUSGData): string => {
   }
   
   // Parênquima
-  const parOpt = biradsUSGExpandedOptions.parenquima.find(o => o.value === data.parenquima.tipo)
+  const parOpt = getExpandedUSGOption('parenquima', data.parenquima.tipo, options)
   if (parOpt) achados.push(parOpt.texto)
   
   if (data.parenquima.ecotextura === 'alterada' && data.parenquima.ecotexturaDesc) {
@@ -692,9 +700,9 @@ export const generateBIRADSUSGAchados = (data: BIRADSUSGData): string => {
   // Cistos
   if (data.cistos.length > 0) {
     for (const cisto of data.cistos) {
-      const tipoOpt = biradsUSGExpandedOptions.tipoCisto.find(o => o.value === cisto.tipo)
-      const locOpt = biradsUSGOptions.localizacao.find(o => o.value === cisto.localizacao)
-      const ladoOpt = biradsUSGOptions.lado.find(o => o.value === cisto.lado)
+      const tipoOpt = getExpandedUSGOption('tipoCisto', cisto.tipo, options)
+      const locOpt = getUSGOption('localizacao', cisto.localizacao, options)
+      const ladoOpt = getUSGOption('lado', cisto.lado, options)
       const medidasStr = cisto.medidas.map(m => formatMeasurement(m)).join(' x ')
       
       let cistoTexto = `${tipoOpt?.texto || 'Cisto'}`
@@ -710,15 +718,15 @@ export const generateBIRADSUSGAchados = (data: BIRADSUSGData): string => {
   // Nódulos
   if (data.nodulos.length > 0) {
     data.nodulos.forEach((nodulo, idx) => {
-      achados.push(generateBIRADSFindingDescription(nodulo, idx))
+      achados.push(generateBIRADSFindingDescription(nodulo, idx, options))
     })
   }
   
   // Ectasia Ductal
   if (data.ectasiaDuctal.presente) {
-    const contOpt = biradsUSGExpandedOptions.ectasiaConteudo.find(o => o.value === data.ectasiaDuctal.conteudo)
-    const ladoOpt = biradsUSGOptions.lado.find(o => o.value === data.ectasiaDuctal.lado)
-    const locOpt = biradsUSGOptions.localizacao.find(o => o.value === data.ectasiaDuctal.localizacao)
+    const contOpt = getExpandedUSGOption('ectasiaConteudo', data.ectasiaDuctal.conteudo, options)
+    const ladoOpt = getUSGOption('lado', data.ectasiaDuctal.lado, options)
+    const locOpt = getUSGOption('localizacao', data.ectasiaDuctal.localizacao, options)
     let ectTexto = `Ectasia ductal ${locOpt?.texto || ''} ${ladoOpt?.texto || ''}`
     if (data.ectasiaDuctal.calibre > 0) {
       ectTexto += `, com calibre de ${formatMeasurement(data.ectasiaDuctal.calibre)} mm`
@@ -737,8 +745,8 @@ export const generateBIRADSUSGAchados = (data: BIRADSUSGData): string => {
   
   // Implante Mamário
   if (data.implanteMamario.presente) {
-    const posOpt = biradsUSGExpandedOptions.implantePosicao.find(o => o.value === data.implanteMamario.posicao)
-    const intOpt = biradsUSGExpandedOptions.implanteIntegridade.find(o => o.value === data.implanteMamario.integridade)
+    const posOpt = getExpandedUSGOption('implantePosicao', data.implanteMamario.posicao, options)
+    const intOpt = getExpandedUSGOption('implanteIntegridade', data.implanteMamario.integridade, options)
     let impTexto = `Implantes mamários ${posOpt?.texto || ''}`
     if (data.implanteMamario.lado) {
       impTexto = `Implante mamário ${posOpt?.texto || ''} à ${data.implanteMamario.lado}`
@@ -751,7 +759,7 @@ export const generateBIRADSUSGAchados = (data: BIRADSUSGData): string => {
   }
   
   // Linfonodomegalia
-  const linfOpt = biradsUSGExpandedOptions.linfonodomegalia.find(o => o.value === data.linfonodomegalia.tipo)
+  const linfOpt = getExpandedUSGOption('linfonodomegalia', data.linfonodomegalia.tipo, options)
   if (linfOpt?.texto) {
     let linfTexto = linfOpt.texto
     if (data.linfonodomegalia.tipo === 'perda_padrao' && data.linfonodomegalia.lado) {
@@ -772,13 +780,13 @@ export const generateBIRADSUSGAchados = (data: BIRADSUSGData): string => {
 }
 
 // Generate USG Comparativo text
-export const generateBIRADSUSGComparativo = (data: BIRADSUSGData): string => {
+export const generateBIRADSUSGComparativo = (data: BIRADSUSGData, options?: RADSOptionsMap): string => {
   if (data.comparativo.tipo === 'nao_citar') return ''
   if (data.comparativo.tipo === 'nao_disponivel') {
     return 'Exames anteriores não disponíveis para comparação.'
   }
   if (data.comparativo.tipo === 'disponivel') {
-    const evolOpt = biradsUSGExpandedOptions.comparativoEvolucao.find(o => o.value === data.comparativo.evolucao)
+    const evolOpt = getExpandedUSGOption('comparativoEvolucao', data.comparativo.evolucao, options)
     let texto = evolOpt?.texto || ''
     if (data.comparativo.dataExame) {
       const dataFormatada = new Date(data.comparativo.dataExame).toLocaleDateString('pt-BR')
@@ -790,7 +798,7 @@ export const generateBIRADSUSGComparativo = (data: BIRADSUSGData): string => {
 }
 
 // Generate USG Impression text
-export const generateBIRADSUSGImpression = (data: BIRADSUSGData, biradsCategory: number | string): string => {
+export const generateBIRADSUSGImpression = (data: BIRADSUSGData, biradsCategory: number | string, options?: RADSOptionsMap): string => {
   const achados: string[] = []
   
   // Cistos
@@ -798,7 +806,7 @@ export const generateBIRADSUSGImpression = (data: BIRADSUSGData, biradsCategory:
     const tiposUnicos = [...new Set(data.cistos.map(c => c.tipo))]
     const ladosUnicos = [...new Set(data.cistos.map(c => c.lado))]
     for (const tipo of tiposUnicos) {
-      const tipoOpt = biradsUSGExpandedOptions.tipoCisto.find(o => o.value === tipo)
+      const tipoOpt = getExpandedUSGOption('tipoCisto', tipo, options)
       const quantTipo = data.cistos.filter(c => c.tipo === tipo).length
       let texto = quantTipo > 1 ? `${tipoOpt?.texto}s` : tipoOpt?.texto || ''
       texto = texto.charAt(0).toUpperCase() + texto.slice(1)
@@ -813,7 +821,7 @@ export const generateBIRADSUSGImpression = (data: BIRADSUSGData, biradsCategory:
   
   // Nódulos - usar generateBIRADSImpression existente se houver
   if (data.nodulos.length > 0) {
-    const noduloImpressao = generateBIRADSImpression(data.nodulos, calculateBIRADSCategory(data.nodulos))
+    const noduloImpressao = generateBIRADSImpression(data.nodulos, calculateBIRADSCategory(data.nodulos, options), options)
     // Extrair apenas a primeira linha (sem BI-RADS e nota)
     const primeiraLinha = noduloImpressao.split('\n')[0]
     achados.push(primeiraLinha)
@@ -880,12 +888,12 @@ export const generateBIRADSUSGNotas = (data: BIRADSUSGData): string => {
 }
 
 // Generate USG Laudo Completo HTML
-export const generateBIRADSUSGLaudoCompletoHTML = (data: BIRADSUSGData, biradsCategory: number | string): string => {
-  const indicacao = generateBIRADSUSGIndicacao(data)
+export const generateBIRADSUSGLaudoCompletoHTML = (data: BIRADSUSGData, biradsCategory: number | string, options?: RADSOptionsMap): string => {
+  const indicacao = generateBIRADSUSGIndicacao(data, options)
   const tecnica = generateBIRADSUSGTecnica()
-  const achados = generateBIRADSUSGAchados(data)
-  const comparativo = generateBIRADSUSGComparativo(data)
-  const impressao = generateBIRADSUSGImpression(data, biradsCategory)
+  const achados = generateBIRADSUSGAchados(data, options)
+  const comparativo = generateBIRADSUSGComparativo(data, options)
+  const impressao = generateBIRADSUSGImpression(data, biradsCategory, options)
   const notas = generateBIRADSUSGNotas(data)
   
   let html = `<h2 style="text-align: center; text-transform: uppercase; margin-bottom: 24pt;">ULTRASSONOGRAFIA DAS MAMAS</h2>`
@@ -1004,11 +1012,19 @@ export const getTIRADSRecommendation = (level: number, maxDimension: number): st
   }
 }
 
-export const calculateTIRADSPoints = (nodule: NoduleData): number => {
+// Helper to get TI-RADS option from dynamic or hardcoded source
+const getTIRADOption = (category: keyof typeof tiradOptions, value: string, options?: RADSOptionsMap) => {
+  if (options && options[category]) {
+    return options[category].find(o => o.value === value)
+  }
+  return tiradOptions[category]?.find(o => o.value === value)
+}
+
+export const calculateTIRADSPoints = (nodule: NoduleData, options?: RADSOptionsMap): number => {
   const getPoints = (category: keyof typeof tiradOptions, value: string): number => {
-    const options = tiradOptions[category]
-    const option = options.find(o => o.value === value)
-    return option?.points ?? 0
+    const opt = getTIRADOption(category, value, options) as any
+    // Handle both 'pontos' (from DB) and 'points' (from hardcoded)
+    return opt?.pontos ?? opt?.points ?? 0
   }
   
   return (
@@ -1020,27 +1036,26 @@ export const calculateTIRADSPoints = (nodule: NoduleData): number => {
   )
 }
 
-export const getOptionTexto = (category: keyof typeof tiradOptions, value: string): string => {
-  const options = tiradOptions[category]
-  const option = options.find(o => o.value === value)
-  return option?.texto ?? ''
+export const getOptionTexto = (category: keyof typeof tiradOptions, value: string, options?: RADSOptionsMap): string => {
+  const opt = getTIRADOption(category, value, options)
+  return opt?.texto ?? ''
 }
 
 export const formatMeasurement = (value: number): string => {
   return value.toFixed(1).replace('.', ',')
 }
 
-export const generateNoduleDescription = (nodule: NoduleData, index: number): string => {
-  const composicaoTexto = getOptionTexto('composicao', nodule.composicao)
-  const ecogenicidadeTexto = getOptionTexto('ecogenicidade', nodule.ecogenicidade)
-  const formatoTexto = getOptionTexto('formato', nodule.formato)
-  const margensTexto = getOptionTexto('margens', nodule.margens)
-  const focosTexto = getOptionTexto('focos', nodule.focos)
-  const localizacaoTexto = getOptionTexto('localizacao', nodule.localizacao)
+export const generateNoduleDescription = (nodule: NoduleData, index: number, options?: RADSOptionsMap): string => {
+  const composicaoTexto = getOptionTexto('composicao', nodule.composicao, options)
+  const ecogenicidadeTexto = getOptionTexto('ecogenicidade', nodule.ecogenicidade, options)
+  const formatoTexto = getOptionTexto('formato', nodule.formato, options)
+  const margensTexto = getOptionTexto('margens', nodule.margens, options)
+  const focosTexto = getOptionTexto('focos', nodule.focos, options)
+  const localizacaoTexto = getOptionTexto('localizacao', nodule.localizacao, options)
   
   const medidasFormatadas = nodule.medidas.map(m => formatMeasurement(m)).join(' x ')
   
-  const points = calculateTIRADSPoints(nodule)
+  const points = calculateTIRADSPoints(nodule, options)
   const tirads = getTIRADSLevel(points)
   
   return `N${index + 1} - Nódulo ${composicaoTexto}, ${ecogenicidadeTexto}, ${formatoTexto}, ${margensTexto} e ${focosTexto}, medindo cerca de ${medidasFormatadas} cm, ${localizacaoTexto}. ACR TI-RADS: ${tirads.level}.`
@@ -1309,10 +1324,18 @@ export const biradsMGOptions = {
   ] as BIRADSOption[],
 }
 
+// Helper to get MG option from dynamic or hardcoded source
+const getMGOption = (category: keyof typeof biradsMGOptions, value: string, options?: RADSOptionsMap) => {
+  if (options && options[category]) {
+    return options[category].find(o => o.value === value)
+  }
+  return (biradsMGOptions as any)[category]?.find((o: any) => o.value === value)
+}
+
 // Avaliar nódulo de mamografia
-const evaluateMGNodulo = (nodulo: BIRADSMGNodulo): number | string => {
-  const getFormaOpt = biradsMGOptions.formaMG.find(o => o.value === nodulo.forma)
-  const getMargensOpt = biradsMGOptions.margensMG.find(o => o.value === nodulo.margens)
+const evaluateMGNodulo = (nodulo: BIRADSMGNodulo, options?: RADSOptionsMap): number | string => {
+  const getFormaOpt = getMGOption('formaMG', nodulo.forma, options)
+  const getMargensOpt = getMGOption('margensMG', nodulo.margens, options)
 
   // Se cresceu → 4A
   if (nodulo.temComparacao && nodulo.estadoNodulo === 'cresceu') {
@@ -1363,7 +1386,7 @@ const evaluateMGNodulo = (nodulo: BIRADSMGNodulo): number | string => {
 }
 
 // Avaliar categoria final BI-RADS MG
-export const evaluateBIRADSMG = (data: BIRADSMGData): number | string => {
+export const evaluateBIRADSMG = (data: BIRADSMGData, options?: RADSOptionsMap): number | string => {
   // Se tem recomendação manual ativada
   if (data.recomendacaoManual?.ativo && data.recomendacaoManual.categoria) {
     return 0
@@ -1374,8 +1397,8 @@ export const evaluateBIRADSMG = (data: BIRADSMGData): number | string => {
 
   // Calcificações suspeitas
   if (data.calcificacoes.presente && data.calcificacoes.tipo === 'suspeitas') {
-    const morfOpt = biradsMGOptions.morfologiaCalcificacoes.find(o => o.value === data.calcificacoes.morfologia)
-    const distOpt = biradsMGOptions.distribuicaoCalcificacoes.find(o => o.value === data.calcificacoes.distribuicao)
+    const morfOpt = getMGOption('morfologiaCalcificacoes', data.calcificacoes.morfologia || '', options)
+    const distOpt = getMGOption('distribuicaoCalcificacoes', data.calcificacoes.distribuicao || '', options)
     
     // Pleomórfica/linear + segmentar/linear → 4C ou 5
     if (morfOpt?.suspeicao === 'alto') {
@@ -1401,7 +1424,7 @@ export const evaluateBIRADSMG = (data: BIRADSMGData): number | string => {
 
   // Distorção arquitetural
   if (data.distorcaoArquitetural.presente) {
-    const tipoOpt = biradsMGOptions.distorcaoArquitetural.find(o => o.value === data.distorcaoArquitetural.tipo)
+    const tipoOpt = getMGOption('distorcaoArquitetural', data.distorcaoArquitetural.tipo || '', options)
     if (tipoOpt?.suspeicao === 'alto') {
       const idx = categoryOrder.indexOf('4B')
       worstIndex = Math.max(worstIndex, idx)
@@ -1413,7 +1436,7 @@ export const evaluateBIRADSMG = (data: BIRADSMGData): number | string => {
 
   // Assimetria
   if (data.assimetria.presente) {
-    const tipoOpt = biradsMGOptions.assimetria.find(o => o.value === data.assimetria.tipo)
+    const tipoOpt = getMGOption('assimetria', data.assimetria.tipo || '', options)
     if (tipoOpt?.suspeicao === 'suspeito') {
       const idx = categoryOrder.indexOf('4A')
       worstIndex = Math.max(worstIndex, idx)
@@ -1425,7 +1448,7 @@ export const evaluateBIRADSMG = (data: BIRADSMGData): number | string => {
 
   // Nódulos
   for (const nodulo of data.nodulos) {
-    const cat = evaluateMGNodulo(nodulo)
+    const cat = evaluateMGNodulo(nodulo, options)
     const idx = categoryOrder.indexOf(cat)
     worstIndex = Math.max(worstIndex, idx)
   }
