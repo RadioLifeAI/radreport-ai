@@ -669,28 +669,117 @@ export function generateLinfonodosTexto(data: LungRADSData, options?: Record<str
   return texto + '.'
 }
 
-export function generateComparativoTexto(data: LungRADSData): string {
+// Helper para formatar data no padrão brasileiro
+function formatarDataBR(data: string): string {
+  if (!data) return 'data não especificada'
+  try {
+    const [ano, mes, dia] = data.split('-')
+    return `${dia}/${mes}/${ano}`
+  } catch {
+    return data
+  }
+}
+
+// Helper para obter localização genérica (lobo) a partir do segmento
+function getLocalizacaoGenerica(localizacao: string): string {
+  const loboMap: Record<string, string> = {
+    // Pulmão direito - lobo superior
+    's1_d': 'no lobo superior direito',
+    's2_d': 'no lobo superior direito',
+    's3_d': 'no lobo superior direito',
+    // Pulmão direito - lobo médio
+    's4_d': 'no lobo médio',
+    's5_d': 'no lobo médio',
+    // Pulmão direito - lobo inferior
+    's6_d': 'no lobo inferior direito',
+    's7_d': 'no lobo inferior direito',
+    's8_d': 'no lobo inferior direito',
+    's9_d': 'no lobo inferior direito',
+    's10_d': 'no lobo inferior direito',
+    // Pulmão esquerdo - lobo superior
+    's1_2_e': 'no lobo superior esquerdo',
+    's3_e': 'no lobo superior esquerdo',
+    // Pulmão esquerdo - língula
+    's4_e': 'na língula',
+    's5_e': 'na língula',
+    // Pulmão esquerdo - lobo inferior
+    's6_e': 'no lobo inferior esquerdo',
+    's7_8_e': 'no lobo inferior esquerdo',
+    's9_e': 'no lobo inferior esquerdo',
+    's10_e': 'no lobo inferior esquerdo',
+    // Localizações genéricas antigas
+    'lsd': 'no lobo superior direito',
+    'lmd': 'no lobo médio',
+    'lid': 'no lobo inferior direito',
+    'lse': 'no lobo superior esquerdo',
+    'lingula': 'na língula',
+    'lie': 'no lobo inferior esquerdo'
+  }
+  
+  return loboMap[localizacao] || ''
+}
+
+export function generateComparativoTexto(data: LungRADSData, options?: Record<string, any>): string {
   if (!data.temComparativo) {
-    return 'Sem exame anterior disponível para comparação (baseline).'
+    return 'Sem exame anterior disponível para comparação (exame baseline).'
   }
   
-  let texto = 'Comparado com exame anterior'
-  if (data.dataExameAnterior) {
-    texto += ` de ${data.dataExameAnterior}`
-  }
+  const dataFormatada = formatarDataBR(data.dataExameAnterior)
+  let texto = `Em comparação com tomografia computadorizada de tórax realizada em ${dataFormatada}`
   
-  if (data.comparativoResultado) {
-    const resultMap: Record<string, string> = {
-      'estavel': ': achados estáveis',
-      'melhora': ': melhora dos achados',
-      'piora': ': progressão dos achados',
-      'novo_achado': ': novos achados identificados',
-      'resolucao': ': resolução de achados prévios'
+  // Filtrar nódulos válidos
+  const nodulosValidos = data.nodulos.filter(n => n.tipo && n.diametroLongo > 0)
+  
+  if (nodulosValidos.length > 0) {
+    const descricoes: string[] = []
+    
+    nodulosValidos.forEach((nodulo) => {
+      const loc = getLocalizacaoGenerica(nodulo.localizacao)
+      const tipoNodulo = nodulo.tipo === 'solido' ? 'sólido' : 
+                         nodulo.tipo === 'part_solid' ? 'parcialmente sólido' :
+                         nodulo.tipo === 'ggn' ? 'em vidro fosco' : ''
+      
+      if (nodulo.novo) {
+        if (loc) {
+          descricoes.push(`identificou-se novo nódulo ${tipoNodulo} ${loc}`.trim())
+        } else {
+          descricoes.push(`identificou-se novo nódulo ${tipoNodulo}`.trim())
+        }
+      } else if (nodulo.crescimento) {
+        if (loc) {
+          descricoes.push(`o nódulo ${tipoNodulo} ${loc} apresentou crescimento significativo (≥1,5 mm)`.trim())
+        } else {
+          descricoes.push(`o nódulo ${tipoNodulo} apresentou crescimento significativo (≥1,5 mm)`.trim())
+        }
+      } else {
+        if (loc) {
+          descricoes.push(`o nódulo ${tipoNodulo} ${loc} encontra-se estável, sem alterações dimensionais significativas`.trim())
+        } else {
+          descricoes.push(`o nódulo ${tipoNodulo} encontra-se estável, sem alterações dimensionais significativas`.trim())
+        }
+      }
+    })
+    
+    if (descricoes.length === 1) {
+      texto += `, ${descricoes[0]}.`
+    } else {
+      texto += `: ${descricoes.join('; ')}.`
     }
-    texto += resultMap[data.comparativoResultado] || `: ${data.comparativoResultado}`
+  } else {
+    // Sem nódulos específicos, usar resultado geral
+    const resultMap: Record<string, string> = {
+      'estavel': ', observam-se achados estáveis, sem alterações significativas.',
+      'melhora': ', observa-se melhora dos achados previamente descritos.',
+      'piora': ', observa-se progressão dos achados.',
+      'novo_achado': ', identificam-se novos achados.',
+      'resolucao': ', houve resolução dos achados previamente descritos.',
+      'diminuicao': ', observa-se redução dos achados previamente descritos.',
+      'aumento': ', observa-se aumento dos achados previamente descritos.'
+    }
+    texto += resultMap[data.comparativoResultado] || ', sem alterações significativas.'
   }
   
-  return texto + '.'
+  return texto
 }
 
 export function generateImpressaoTexto(result: LungRADSResult, data: LungRADSData): string {

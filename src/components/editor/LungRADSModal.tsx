@@ -150,7 +150,7 @@ export function LungRADSModal({ open, onOpenChange, editor }: LungRADSModalProps
     parts.push(`<p>- ${linfonodos}</p>`)
     
     // Comparativo
-    const comparativo = generateComparativoTexto(data)
+    const comparativo = generateComparativoTexto(data, dbOptions || undefined)
     parts.push(`<p>- ${comparativo}</p>`)
     
     parts.push('<br/>')
@@ -756,7 +756,7 @@ export function LungRADSModal({ open, onOpenChange, editor }: LungRADSModalProps
             <SectionIndicator filled={isSectionFilled('comparativo')} />
             <div>
               <strong>Comparativo:</strong>
-              <p className="text-muted-foreground">{generateComparativoTexto(data)}</p>
+              <p className="text-muted-foreground">{generateComparativoTexto(data, dbOptions || undefined)}</p>
             </div>
           </div>
           
