@@ -25,6 +25,7 @@ export interface LIRADSUSData {
   elegivelTransplante: boolean
   afpStatus: string
   afpValor?: number
+  imc?: number // IMC (BMI) para avaliação de fatores de risco VIS-C
   
   // Parênquima Hepático
   aspectoParenquima: string
@@ -160,23 +161,50 @@ function createResult(categoria: string): LIRADSUSResult {
 }
 
 /**
- * Retorna recomendação considerando VIS score e AFP
+ * Verifica fatores de risco para VIS-C repetido (ACR v2024)
+ * - Cirrose por MASH/álcool
+ * - Child-Pugh B ou C
+ * - IMC ≥ 35 kg/m²
+ */
+export function hasVISCRiskFactors(data: LIRADSUSData): boolean {
+  const etiologia = data.etiologiaCirrose?.toLowerCase() || ''
+  const etiologiaRisco = ['mash', 'masld', 'nash', 'nafld', 'alcool', 'etilica', 'alcoolica'].some(
+    e => etiologia.includes(e)
+  )
+  const childPughRisco = data.childPugh === 'B' || data.childPugh === 'C'
+  const imcRisco = (data.imc || 0) >= 35
+  
+  return etiologiaRisco || childPughRisco || imcRisco
+}
+
+/**
+ * Retorna recomendação considerando VIS score, AFP e fatores de risco (ACR v2024)
  */
 export function getLIRADSUSRecommendation(
   categoria: string,
   visScore: 'A' | 'B' | 'C',
-  afpStatus: string
+  afpStatus: string,
+  data?: Partial<LIRADSUSData>
 ): string {
   let recomendacao = liradsUSCategories[categoria]?.recomendacao || ''
   
-  // VIS-C: Limitações severas
-  if (visScore === 'C') {
-    recomendacao = 'Limitações severas na visualização (VIS-C). Considerar modalidade alternativa de vigilância (TC ou RM), ou repetir ultrassonografia em até 3 meses. Se permanecer VIS-C, considerar outra modalidade.'
+  // VIS-C: Diferenciar baseado em fatores de risco (ACR v2024)
+  if (visScore === 'C' && categoria !== 'US-3') {
+    const temFatoresRisco = data ? hasVISCRiskFactors(data as LIRADSUSData) : false
+    
+    if (temFatoresRisco) {
+      recomendacao = 'Limitações severas na visualização (VIS-C) com fatores de risco para VIS-C repetido (cirrose MASH/alcoólica, Child-Pugh B/C, ou IMC ≥ 35). Considerar modalidade alternativa de vigilância (TC ou RM abreviada) sem aguardar repetição do US.'
+    } else {
+      recomendacao = 'Limitações severas na visualização (VIS-C). Repetir ultrassonografia em até 3 meses. Se permanecer VIS-C, considerar modalidade alternativa de vigilância (TC ou RM abreviada).'
+    }
   }
   
-  // AFP elevada/crescente sem observação US-3
-  if ((afpStatus === 'elevada' || afpStatus === 'crescente') && categoria !== 'US-3') {
-    recomendacao += ' AFP elevada ou em crescimento: considerar avaliação com TC ou RM multifásico independente da categoria US.'
+  // AFP positivo (≥20 ng/mL ou crescente) sem US-3: CEUS não indicado (ACR v2024)
+  const afpValor = data?.afpValor
+  const afpPositivo = (afpValor && afpValor >= 20) || afpStatus === 'elevada' || afpStatus === 'crescente'
+  
+  if (afpPositivo && categoria !== 'US-3') {
+    recomendacao += ' AFP positivo sem observação US-3: CEUS é improvável de ser útil na ausência de correlato ultrassonográfico. Avaliação com TC ou RM multifásico diagnóstico recomendada.'
   }
   
   return recomendacao
@@ -363,8 +391,8 @@ export function generateLIRADSUSLaudoCompletoHTML(
   const tecnica = generateLIRADSUSTecnica()
   const achados = generateLIRADSUSAchados(data, options)
   const visualizacao = generateLIRADSUSVisualizacao(data, options)
+  const recomendacao = getLIRADSUSRecommendation(categoria, data.visScore, data.afpStatus, data)
   const impressao = generateLIRADSUSImpressao(data, categoria, options)
-  const recomendacao = getLIRADSUSRecommendation(categoria, data.visScore, data.afpStatus)
   
   const partes = [
     '<p><strong>ULTRASSONOGRAFIA HEPÁTICA - VIGILÂNCIA CHC (LI-RADS US)</strong></p>',

@@ -56,6 +56,7 @@ const initialData: LIRADSUSData = {
   elegivelTransplante: true,
   afpStatus: 'nao_disponivel',
   afpValor: undefined,
+  imc: undefined,
   aspectoParenquima: 'homogeneo',
   tamanhoFigado: 'normal',
   contornosFigado: '',
@@ -76,6 +77,10 @@ const initialData: LIRADSUSData = {
   notas: '',
 }
 
+// Tipos benignos para verificação tiebreaker
+const TIPOS_BENIGNOS = ['nenhuma', 'cisto_simples', 'hemangioma', 'esteatose_focal']
+const isDefinitivelyBenign = (tipo: string) => TIPOS_BENIGNOS.includes(tipo)
+
 export function LIRADSUSModal({ open, onOpenChange, editor }: LIRADSUSModalProps) {
   const [activeTab, setActiveTab] = useState('paciente')
   const [data, setData] = useState<LIRADSUSData>({ ...initialData })
@@ -93,8 +98,14 @@ export function LIRADSUSModal({ open, onOpenChange, editor }: LIRADSUSModalProps
 
   const result = useMemo(() => evaluateLIRADSUS(data), [data])
   const recommendation = useMemo(() => 
-    getLIRADSUSRecommendation(result.categoria, data.visScore, data.afpStatus),
-    [result.categoria, data.visScore, data.afpStatus]
+    getLIRADSUSRecommendation(result.categoria, data.visScore, data.afpStatus, data),
+    [result.categoria, data.visScore, data.afpStatus, data]
+  )
+  
+  // Verificar se há observação próxima do limiar 10mm (tiebreaker)
+  const hasTiebreakerObservation = useMemo(() => 
+    data.observacoes.some(o => o.tamanho >= 9 && o.tamanho <= 11 && !isDefinitivelyBenign(o.tipo)),
+    [data.observacoes]
   )
 
   const updateField = <K extends keyof LIRADSUSData>(field: K, value: LIRADSUSData[K]) => {
@@ -284,6 +295,22 @@ export function LIRADSUSModal({ open, onOpenChange, editor }: LIRADSUSModalProps
                         />
                       </div>
                     )}
+
+                    <Separator />
+
+                    <div>
+                      <Label>IMC (kg/m²) - Opcional</Label>
+                      <Input
+                        type="number"
+                        value={data.imc || ''}
+                        onChange={e => updateField('imc', e.target.value ? parseFloat(e.target.value) : undefined)}
+                        placeholder="Ex: 32,5"
+                        step="0.1"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Relevante para VIS-C (≥ 35 = fator de risco)
+                      </p>
+                    </div>
                   </div>
                 )}
 
@@ -649,6 +676,13 @@ export function LIRADSUSModal({ open, onOpenChange, editor }: LIRADSUSModalProps
                         <AlertCircle className="h-4 w-4 text-yellow-500" />
                       )}
                     </div>
+
+                    {/* Alerta Tiebreaker (ACR v2024) */}
+                    {hasTiebreakerObservation && (
+                      <div className="p-2 bg-amber-500/10 border border-amber-500/30 rounded text-xs">
+                        <span className="font-medium">⚠️ Tiebreaker:</span> Observação próxima de 10mm. Se incerto entre US-2 e US-3, escolha a categoria de maior suspeição (US-3).
+                      </div>
+                    )}
 
                     <Separator />
 
