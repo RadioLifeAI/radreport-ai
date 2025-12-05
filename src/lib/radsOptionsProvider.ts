@@ -31,11 +31,12 @@ function convertBIRADSUSGToMap(): RADSOptionsMap {
   
   // Expanded options
   for (const [key, options] of Object.entries(biradsUSGExpandedOptions)) {
-    map[key] = (options as BIRADSOption[]).map(opt => ({
+    map[key] = (options as any[]).map(opt => ({
       value: opt.value,
       label: opt.label,
       texto: opt.texto,
       suspeicao: opt.suspeicao,
+      birads_associado: opt.birads?.toString(),
     }))
   }
   
@@ -46,11 +47,13 @@ function convertBIRADSMGToMap(): RADSOptionsMap {
   const map: RADSOptionsMap = {}
   
   for (const [key, options] of Object.entries(biradsMGOptions)) {
-    map[key] = (options as BIRADSOption[]).map(opt => ({
+    map[key] = (options as any[]).map(opt => ({
       value: opt.value,
       label: opt.label,
       texto: opt.texto,
       suspeicao: opt.suspeicao,
+      usa_lado: opt.usaLado,
+      usa_meses: opt.usaMeses,
     }))
   }
   
@@ -112,18 +115,58 @@ export function getCategoryOptions(
 }
 
 /**
+ * Get a single option by value from a category
+ */
+export function getOptionByValue(
+  sistemaCodigo: 'BIRADS_USG' | 'BIRADS_MG' | 'TIRADS',
+  categoria: string,
+  value: string,
+  dbOptions?: RADSOptionsMap
+): RADSOption | undefined {
+  const options = getRADSOptionsWithFallback(sistemaCodigo, dbOptions, false, false)
+  const categoryOptions = options[categoria] || []
+  return categoryOptions.find(o => o.value === value)
+}
+
+/**
  * Get texto for a specific value in a category
  */
 export function getOptionTexto(
   sistemaCodigo: 'BIRADS_USG' | 'BIRADS_MG' | 'TIRADS',
   categoria: string,
   value: string,
-  dbOptions: RADSOptionsMap | undefined
+  dbOptions?: RADSOptionsMap
 ): string {
-  const options = getRADSOptionsWithFallback(sistemaCodigo, dbOptions, false, false)
-  const categoryOptions = options[categoria] || []
-  const option = categoryOptions.find(o => o.value === value)
+  const option = getOptionByValue(sistemaCodigo, categoria, value, dbOptions)
   return option?.texto ?? ''
+}
+
+/**
+ * Get suspeicao level for BI-RADS options
+ */
+export function getSuspeicao(
+  sistemaCodigo: 'BIRADS_USG' | 'BIRADS_MG',
+  categoria: string,
+  value: string,
+  dbOptions?: RADSOptionsMap
+): string | undefined {
+  const option = getOptionByValue(sistemaCodigo, categoria, value, dbOptions)
+  return option?.suspeicao
+}
+
+/**
+ * Get BI-RADS associated with cisto tipo
+ */
+export function getBiradsFromCistoTipo(
+  value: string,
+  dbOptions?: RADSOptionsMap
+): number | string | undefined {
+  const option = getOptionByValue('BIRADS_USG', 'tipoCisto', value, dbOptions)
+  if (option?.birads_associado) {
+    const num = parseInt(option.birads_associado)
+    return isNaN(num) ? option.birads_associado : num
+  }
+  return undefined
 }
 
 /**
@@ -132,10 +175,47 @@ export function getOptionTexto(
 export function getTIRADSPoints(
   categoria: string,
   value: string,
-  dbOptions: RADSOptionsMap | undefined
+  dbOptions?: RADSOptionsMap
 ): number {
-  const options = getRADSOptionsWithFallback('TIRADS', dbOptions, false, false)
-  const categoryOptions = options[categoria] || []
-  const option = categoryOptions.find(o => o.value === value)
+  const option = getOptionByValue('TIRADS', categoria, value, dbOptions)
   return option?.pontos ?? 0
+}
+
+/**
+ * Helper to check if option has suspicious characteristics
+ */
+export function isSuspicious(
+  sistemaCodigo: 'BIRADS_USG' | 'BIRADS_MG',
+  categoria: string,
+  value: string,
+  dbOptions?: RADSOptionsMap
+): boolean {
+  const suspeicao = getSuspeicao(sistemaCodigo, categoria, value, dbOptions)
+  return suspeicao === 'suspeito' || suspeicao === 'alto'
+}
+
+/**
+ * Helper to check if option is high suspicion (alto)
+ */
+export function isHighSuspicion(
+  sistemaCodigo: 'BIRADS_USG' | 'BIRADS_MG',
+  categoria: string,
+  value: string,
+  dbOptions?: RADSOptionsMap
+): boolean {
+  const suspeicao = getSuspeicao(sistemaCodigo, categoria, value, dbOptions)
+  return suspeicao === 'alto'
+}
+
+/**
+ * Helper to check if option is benign
+ */
+export function isBenign(
+  sistemaCodigo: 'BIRADS_USG' | 'BIRADS_MG',
+  categoria: string,
+  value: string,
+  dbOptions?: RADSOptionsMap
+): boolean {
+  const suspeicao = getSuspeicao(sistemaCodigo, categoria, value, dbOptions)
+  return suspeicao === 'benigno' || suspeicao === 'benigno_definitivo'
 }
