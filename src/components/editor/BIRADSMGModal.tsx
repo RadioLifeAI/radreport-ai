@@ -139,15 +139,15 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
     })
   }
 
-  const biradsCategory = useMemo(() => evaluateBIRADSMG(data), [data])
+  const biradsCategory = useMemo(() => evaluateBIRADSMG(data, options), [data, options])
   const categoryInfo = biradsCategories.find(c => c.value === biradsCategory || c.value.toString() === biradsCategory.toString())
 
-  const indicacaoTexto = useMemo(() => generateBIRADSMGIndicacao(data), [data])
-  const achadosTexto = useMemo(() => generateBIRADSMGAchados(data), [data])
-  const impressaoTexto = useMemo(() => generateBIRADSMGImpression(data, biradsCategory), [data, biradsCategory])
-  const recomendacaoTexto = useMemo(() => generateBIRADSMGRecomendacao(data, biradsCategory), [data, biradsCategory])
-  const comparativoTexto = useMemo(() => generateBIRADSMGComparativo(data), [data])
-  const notasTexto = useMemo(() => generateBIRADSMGNotas(data), [data])
+  const indicacaoTexto = useMemo(() => generateBIRADSMGIndicacao(data, options), [data, options])
+  const achadosTexto = useMemo(() => generateBIRADSMGAchados(data, options), [data, options])
+  const impressaoTexto = useMemo(() => generateBIRADSMGImpression(data, biradsCategory, options), [data, biradsCategory, options])
+  const recomendacaoTexto = useMemo(() => generateBIRADSMGRecomendacao(data, biradsCategory, options), [data, biradsCategory, options])
+  const comparativoTexto = useMemo(() => generateBIRADSMGComparativo(data, options), [data, options])
+  const notasTexto = useMemo(() => generateBIRADSMGNotas(data, options), [data, options])
 
   // Cálculo de completude
   const completeness = useMemo(() => {
@@ -199,7 +199,7 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
         .focus()
         .selectAll()
         .deleteSelection()
-        .insertContent(generateBIRADSMGLaudoCompletoHTML(data, biradsCategory))
+        .insertContent(generateBIRADSMGLaudoCompletoHTML(data, biradsCategory, options))
         .run()
       onOpenChange(false)
     }
