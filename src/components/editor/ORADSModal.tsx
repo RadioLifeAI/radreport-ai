@@ -45,6 +45,8 @@ import {
   MinusCircle,
   Activity
 } from 'lucide-react'
+import { useRADSOptions } from '@/hooks/useRADSOptions'
+import { getCategoryOptions } from '@/lib/radsOptionsProvider'
 import {
   ORADSUSData,
   ORADSLesao,
@@ -119,6 +121,13 @@ export function ORADSModal({ open, onOpenChange, editor }: ORADSModalProps) {
   const [activeTab, setActiveTab] = useState<TabType>('paciente')
   const [showPreview, setShowPreview] = useState(true)
   const [data, setData] = useState<ORADSUSData>(createEmptyORADSData())
+  
+  // Dynamic options from database
+  const { data: oradsOptions, isLoading, isError } = useRADSOptions('ORADS_US')
+  
+  // Helper to get options for a category
+  const getOptions = (categoria: string) => 
+    getCategoryOptions('ORADS_US', categoria, oradsOptions, isLoading, isError)
 
   // Reset on open
   useEffect(() => {
