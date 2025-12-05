@@ -11,6 +11,7 @@ import {
 import { TIRADSModal } from './TIRADSModal'
 import { BIRADSModal } from './BIRADSModal'
 import { BIRADSMGModal } from './BIRADSMGModal'
+import { USTireoideModal } from './USTireoideModal'
 
 interface RADSDropdownProps {
   editor: Editor | null
@@ -20,6 +21,7 @@ export function RADSDropdown({ editor }: RADSDropdownProps) {
   const [tiradsOpen, setTiradsOpen] = useState(false)
   const [biradsUSGOpen, setBiradsUSGOpen] = useState(false)
   const [biradsMGOpen, setBiradsMGOpen] = useState(false)
+  const [usTireoideOpen, setUsTireoideOpen] = useState(false)
 
   return (
     <>
@@ -32,9 +34,13 @@ export function RADSDropdown({ editor }: RADSDropdownProps) {
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-64">
-          <DropdownMenuItem onClick={() => setTiradsOpen(true)} className="cursor-pointer">
+          <DropdownMenuItem onClick={() => setUsTireoideOpen(true)} className="cursor-pointer">
             <span className="mr-2">🦋</span>
-            ACR TI-RADS (Tireoide)
+            US Tireoide (Completo)
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setTiradsOpen(true)} className="cursor-pointer">
+            <span className="mr-2">📊</span>
+            ACR TI-RADS (Nódulos)
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => setBiradsUSGOpen(true)} className="cursor-pointer">
@@ -84,6 +90,12 @@ export function RADSDropdown({ editor }: RADSDropdownProps) {
       <BIRADSMGModal
         open={biradsMGOpen}
         onOpenChange={setBiradsMGOpen}
+        editor={editor}
+      />
+
+      <USTireoideModal
+        open={usTireoideOpen}
+        onOpenChange={setUsTireoideOpen}
         editor={editor}
       />
     </>
