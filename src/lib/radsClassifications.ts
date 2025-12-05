@@ -981,12 +981,19 @@ export const tiradOptions = {
   ] as (Omit<TIRADSOption, 'points'> & { points?: number })[],
 }
 
+// ACR TI-RADS Reference (Tessler FN, et al. J Am Coll Radiol. 2017;14(5):587-595)
+// Malignancy risks updated per final analysis (Middleton WD, et al. Radiology. 2020;294(2):265-272)
+export const ACR_TIRADS_REFERENCE = 'Tessler FN, et al. ACR Thyroid Imaging, Reporting and Data System (TI-RADS): White Paper. J Am Coll Radiol. 2017;14(5):587-595.'
+export const ACR_TIRADS_GROWTH_CRITERIA = 'Crescimento significativo: aumento >20% e >2mm em duas dimensões, ou aumento >50% no volume.'
+export const ACR_TIRADS_MAX_NODULES = 4
+
 export const getTIRADSLevel = (points: number): { level: number; category: string; risk: string } => {
-  if (points === 0) return { level: 1, category: 'TR1 - Benigno', risk: '< 2%' }
-  if (points === 2) return { level: 2, category: 'TR2 - Não suspeito', risk: '< 2%' }
-  if (points === 3) return { level: 3, category: 'TR3 - Levemente suspeito', risk: '5%' }
-  if (points >= 4 && points <= 6) return { level: 4, category: 'TR4 - Moderadamente suspeito', risk: '5-20%' }
-  return { level: 5, category: 'TR5 - Altamente suspeito', risk: '> 20%' }
+  // ACR 2020 final malignancy rates (Middleton WD, et al. Radiology. 2020)
+  if (points === 0) return { level: 1, category: 'TR1 - Benigno', risk: '0,3%' }
+  if (points === 2) return { level: 2, category: 'TR2 - Não suspeito', risk: '1,5%' }
+  if (points === 3) return { level: 3, category: 'TR3 - Levemente suspeito', risk: '4,8%' }
+  if (points >= 4 && points <= 6) return { level: 4, category: 'TR4 - Moderadamente suspeito', risk: '9,1%' }
+  return { level: 5, category: 'TR5 - Altamente suspeito', risk: '35%' }
 }
 
 export const getTIRADSRecommendation = (level: number, maxDimension: number): string => {
@@ -997,15 +1004,15 @@ export const getTIRADSRecommendation = (level: number, maxDimension: number): st
       return 'Sem necessidade de PAAF ou seguimento'
     case 3:
       if (maxDimension >= 2.5) return 'PAAF recomendada (≥ 2,5 cm)'
-      if (maxDimension >= 1.5) return 'Seguimento recomendado (≥ 1,5 cm)'
+      if (maxDimension >= 1.5) return 'Seguimento em 1, 3 e 5 anos (≥ 1,5 cm)'
       return 'Sem necessidade de PAAF ou seguimento (< 1,5 cm)'
     case 4:
       if (maxDimension >= 1.5) return 'PAAF recomendada (≥ 1,5 cm)'
-      if (maxDimension >= 1.0) return 'Seguimento recomendado (≥ 1,0 cm)'
+      if (maxDimension >= 1.0) return 'Seguimento em 1, 2, 3 e 5 anos (≥ 1,0 cm)'
       return 'Sem necessidade de PAAF ou seguimento (< 1,0 cm)'
     case 5:
       if (maxDimension >= 1.0) return 'PAAF recomendada (≥ 1,0 cm)'
-      if (maxDimension >= 0.5) return 'Seguimento recomendado ou PAAF (≥ 0,5 cm)'
+      if (maxDimension >= 0.5) return 'Seguimento anual por até 5 anos (≥ 0,5 cm)'
       return 'Seguimento anual pode ser considerado (< 0,5 cm)'
     default:
       return ''
@@ -1021,6 +1028,12 @@ const getTIRADOption = (category: keyof typeof tiradOptions, value: string, opti
 }
 
 export const calculateTIRADSPoints = (nodule: NoduleData, options?: RADSOptionsMap): number => {
+  // ACR: Nódulos císticos ou espongiformes são automaticamente TR1 (0 pontos)
+  // "Predominantly cystic or spongiform nodules are inherently benign"
+  if (nodule.composicao === 'cistico' || nodule.composicao === 'espongiforme') {
+    return 0 // TR1 automático - não adiciona pontos de outras categorias
+  }
+  
   const getPoints = (category: keyof typeof tiradOptions, value: string): number => {
     const opt = getTIRADOption(category, value, options) as any
     // Handle both 'pontos' (from DB) and 'points' (from hardcoded)

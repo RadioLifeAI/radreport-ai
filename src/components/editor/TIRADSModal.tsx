@@ -27,9 +27,12 @@ import {
   generateNoduleDescription,
   generateImpression,
   formatMeasurement,
+  ACR_TIRADS_REFERENCE,
+  ACR_TIRADS_MAX_NODULES,
 } from '@/lib/radsClassifications'
 import { useRADSOptions } from '@/hooks/useRADSOptions'
 import { getRADSOptionsWithFallback, getTIRADSPoints } from '@/lib/radsOptionsProvider'
+import { toast } from 'sonner'
 
 interface TIRADSModalProps {
   open: boolean
@@ -69,6 +72,10 @@ export function TIRADSModal({ open, onOpenChange, editor }: TIRADSModalProps) {
   }
 
   const handleAddNodulo = () => {
+    if (nodulos.length >= ACR_TIRADS_MAX_NODULES) {
+      toast.warning(`ACR TI-RADS recomenda avaliar no máximo ${ACR_TIRADS_MAX_NODULES} nódulos (os mais suspeitos, não os maiores)`)
+      return
+    }
     setNodulos(prev => [...prev, createEmptyNodule()])
   }
 
@@ -145,6 +152,7 @@ export function TIRADSModal({ open, onOpenChange, editor }: TIRADSModalProps) {
             🦋 ACR TI-RADS - Classificação de Nódulos Tireoidianos
             {isLoading && <Loader2 size={16} className="animate-spin text-muted-foreground" />}
           </DialogTitle>
+          <p className="text-xs text-muted-foreground mt-1">{ACR_TIRADS_REFERENCE}</p>
         </DialogHeader>
 
         <div className="space-y-6">
