@@ -26,6 +26,7 @@ import { BIRADSModal } from './BIRADSModal'
 import { BIRADSMGModal } from './BIRADSMGModal'
 import { BIRADSRMModal } from './BIRADSRMModal'
 import { USTireoideModal } from './USTireoideModal'
+import { PIRADSModal } from './PIRADSModal'
 
 interface RADSDropdownProps {
   editor: Editor | null
@@ -37,6 +38,7 @@ export function RADSDropdown({ editor }: RADSDropdownProps) {
   const [biradsMGOpen, setBiradsMGOpen] = useState(false)
   const [biradsRMOpen, setBiradsRMOpen] = useState(false)
   const [usTireoideOpen, setUsTireoideOpen] = useState(false)
+  const [piradsOpen, setPiradsOpen] = useState(false)
 
   return (
     <>
@@ -71,6 +73,11 @@ export function RADSDropdown({ editor }: RADSDropdownProps) {
             ACR BI-RADS (Mama - RM)
           </DropdownMenuItem>
           <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => setPiradsOpen(true)} className="cursor-pointer">
+            <CircleDot className="mr-2 h-4 w-4 text-indigo-500" />
+            ACR PI-RADS (Próstata)
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
           <DropdownMenuItem disabled className="opacity-50">
             <Wind className="mr-2 h-4 w-4 text-blue-400" />
             Lung-RADS (Pulmão) - Em breve
@@ -78,10 +85,6 @@ export function RADSDropdown({ editor }: RADSDropdownProps) {
           <DropdownMenuItem disabled className="opacity-50">
             <Heart className="mr-2 h-4 w-4 text-red-500" />
             CAD-RADS (Coronárias) - Em breve
-          </DropdownMenuItem>
-          <DropdownMenuItem disabled className="opacity-50">
-            <CircleDot className="mr-2 h-4 w-4 text-indigo-500" />
-            PI-RADS (Próstata) - Em breve
           </DropdownMenuItem>
           <DropdownMenuItem disabled className="opacity-50">
             <Database className="mr-2 h-4 w-4 text-amber-600" />
@@ -121,6 +124,12 @@ export function RADSDropdown({ editor }: RADSDropdownProps) {
       <USTireoideModal
         open={usTireoideOpen}
         onOpenChange={setUsTireoideOpen}
+        editor={editor}
+      />
+
+      <PIRADSModal
+        open={piradsOpen}
+        onOpenChange={setPiradsOpen}
         editor={editor}
       />
     </>
