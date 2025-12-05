@@ -787,11 +787,11 @@ export function LungRADSModal({ open, onOpenChange, editor }: LungRADSModalProps
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent 
-        className="max-w-6xl h-[90vh] p-0 gap-0"
+        className="max-w-6xl h-[90vh] flex flex-col p-0 overflow-hidden"
         onPointerDownOutside={(e) => e.preventDefault()}
         onInteractOutside={(e) => e.preventDefault()}
       >
-        <DialogHeader className="p-4 border-b">
+        <DialogHeader className="px-6 py-4 border-b flex-shrink-0">
           <div className="flex items-center justify-between">
             <DialogTitle className="flex items-center gap-2">
               <Wind className="w-5 h-5 text-blue-500" />
@@ -867,13 +867,25 @@ export function LungRADSModal({ open, onOpenChange, editor }: LungRADSModalProps
         </ResizablePanelGroup>
         
         {/* Footer */}
-        <div className="p-4 border-t flex justify-end gap-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancelar
+        <div className="flex items-center justify-between px-6 py-4 border-t flex-shrink-0">
+          <Button 
+            variant="outline" 
+            onClick={() => {
+              setData(initialLungRADSData())
+              setActiveTab('paciente')
+            }}
+          >
+            Limpar
           </Button>
-          <Button onClick={handleInsert}>
-            Inserir no Laudo
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleInsert} className="gap-2">
+              <Check className="h-4 w-4" />
+              Inserir Laudo
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
