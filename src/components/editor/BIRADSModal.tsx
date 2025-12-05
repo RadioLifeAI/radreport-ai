@@ -23,6 +23,7 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Separator } from '@/components/ui/separator'
 import { Progress } from '@/components/ui/progress'
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable'
 import {
   BIRADSFindingData,
   BIRADSUSGData,
@@ -1113,51 +1114,65 @@ export function BIRADSModal({ open, onOpenChange, editor }: BIRADSModalProps) {
             </div>
           </div>
 
-          {/* Main Content */}
-          <div className="flex-1 overflow-y-auto p-6">
-            {renderTabContent()}
-          </div>
-
-          {/* Preview Panel */}
-          {showPreview && (
-            <div className="w-80 border-l bg-muted/20 overflow-y-auto shrink-0">
-              <div className="p-4 space-y-4">
-                {/* BI-RADS Category */}
-                <div className="p-3 rounded-lg bg-gradient-to-r from-pink-500/10 to-purple-500/10 border border-pink-500/20">
-                  <div className="text-xs text-muted-foreground mb-1">Categoria</div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-2xl font-bold text-pink-500">BI-RADS {biradsCategory}</span>
-                  </div>
-                  {categoryInfo && (
-                    <div className="text-xs text-muted-foreground mt-1">
-                      {categoryInfo.name} • Risco: {categoryInfo.risco}
-                    </div>
-                  )}
-                </div>
-
-                {/* Progress */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground">Preenchimento</span>
-                    <span className="font-medium">{completeness.filled}/{completeness.total}</span>
-                  </div>
-                  <Progress value={completeness.percentage} className="h-1.5" />
-                </div>
-
-                <Separator />
-
-                {/* Sections Preview */}
-                <div className="space-y-1">
-                  <SectionPreview title="Indicação" content={indicacaoTexto} hasContent={!!indicacaoTexto} isRequired />
-                  <SectionPreview title="Técnica" content={tecnicaTexto} hasContent={true} />
-                  <SectionPreview title="Achados" content={achadosTexto} hasContent={!!achadosTexto} isRequired />
-                  <SectionPreview title="Comparativo" content={comparativoTexto} hasContent={!!comparativoTexto} />
-                  <SectionPreview title="Impressão" content={impressaoTexto} hasContent={!!impressaoTexto} isRequired />
-                  <SectionPreview title="Notas" content={notasTexto} hasContent={!!notasTexto} />
-                </div>
+          {/* Resizable Main Content + Preview */}
+          <ResizablePanelGroup 
+            direction="horizontal" 
+            autoSaveId="birads-usg-layout"
+            className="flex-1"
+          >
+            {/* Main Content */}
+            <ResizablePanel defaultSize={showPreview ? 65 : 100} minSize={40} maxSize={80}>
+              <div className="overflow-y-auto p-6 h-full">
+                {renderTabContent()}
               </div>
-            </div>
-          )}
+            </ResizablePanel>
+
+            {/* Preview Panel */}
+            {showPreview && (
+              <>
+                <ResizableHandle withHandle />
+                <ResizablePanel defaultSize={35} minSize={20} maxSize={60}>
+                  <div className="bg-muted/20 overflow-y-auto h-full">
+                    <div className="p-4 space-y-4">
+                      {/* BI-RADS Category */}
+                      <div className="p-3 rounded-lg bg-gradient-to-r from-pink-500/10 to-purple-500/10 border border-pink-500/20">
+                        <div className="text-xs text-muted-foreground mb-1">Categoria</div>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-2xl font-bold text-pink-500">BI-RADS {biradsCategory}</span>
+                        </div>
+                        {categoryInfo && (
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {categoryInfo.name} • Risco: {categoryInfo.risco}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Progress */}
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">Preenchimento</span>
+                          <span className="font-medium">{completeness.filled}/{completeness.total}</span>
+                        </div>
+                        <Progress value={completeness.percentage} className="h-1.5" />
+                      </div>
+
+                      <Separator />
+
+                      {/* Sections Preview */}
+                      <div className="space-y-1">
+                        <SectionPreview title="Indicação" content={indicacaoTexto} hasContent={!!indicacaoTexto} isRequired />
+                        <SectionPreview title="Técnica" content={tecnicaTexto} hasContent={true} />
+                        <SectionPreview title="Achados" content={achadosTexto} hasContent={!!achadosTexto} isRequired />
+                        <SectionPreview title="Comparativo" content={comparativoTexto} hasContent={!!comparativoTexto} />
+                        <SectionPreview title="Impressão" content={impressaoTexto} hasContent={!!impressaoTexto} isRequired />
+                        <SectionPreview title="Notas" content={notasTexto} hasContent={!!notasTexto} />
+                      </div>
+                    </div>
+                  </div>
+                </ResizablePanel>
+              </>
+            )}
+          </ResizablePanelGroup>
         </div>
 
         <DialogFooter className="px-6 py-4 border-t shrink-0">

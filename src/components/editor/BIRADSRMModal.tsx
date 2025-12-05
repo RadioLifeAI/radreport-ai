@@ -23,6 +23,7 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Separator } from '@/components/ui/separator'
 import { Progress } from '@/components/ui/progress'
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable'
 import {
   BIRADSRMData,
   BIRADSRMMassa,
@@ -913,48 +914,62 @@ export function BIRADSRMModal({ open, onOpenChange, editor }: BIRADSRMModalProps
             })}
           </div>
 
-          {/* Content */}
-          <div className="flex-1 overflow-y-auto p-6">
-            {renderTabContent()}
-          </div>
-
-          {/* Preview sidebar */}
-          {showPreview && (
-            <div className="w-72 shrink-0 border-l overflow-y-auto p-4 bg-muted/20">
-              <div className="flex items-center justify-between mb-4">
-                <h4 className="font-semibold text-sm">Preview</h4>
-                <Button variant="ghost" size="sm" onClick={() => setShowPreview(false)}>
-                  <EyeOff size={14} />
-                </Button>
+          {/* Resizable Main Content + Preview */}
+          <ResizablePanelGroup 
+            direction="horizontal" 
+            autoSaveId="birads-rm-layout"
+            className="flex-1"
+          >
+            {/* Content */}
+            <ResizablePanel defaultSize={showPreview ? 65 : 100} minSize={40} maxSize={80}>
+              <div className="overflow-y-auto p-6 h-full">
+                {renderTabContent()}
               </div>
+            </ResizablePanel>
 
-              <div className="space-y-3 mb-4">
-                <div className="flex items-center justify-between text-xs">
-                  <span>Completude</span>
-                  <span>{completeness.percentage}%</span>
-                </div>
-                <Progress value={completeness.percentage} className="h-1.5" />
-              </div>
+            {/* Preview sidebar */}
+            {showPreview && (
+              <>
+                <ResizableHandle withHandle />
+                <ResizablePanel defaultSize={35} minSize={20} maxSize={60}>
+                  <div className="overflow-y-auto p-4 bg-muted/20 h-full">
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="font-semibold text-sm">Preview</h4>
+                      <Button variant="ghost" size="sm" onClick={() => setShowPreview(false)}>
+                        <EyeOff size={14} />
+                      </Button>
+                    </div>
 
-              <div className={`p-3 rounded-lg mb-4 ${
-                typeof biradsCategory === 'number' && biradsCategory <= 2 ? 'bg-green-500/20 text-green-700' :
-                biradsCategory === 3 ? 'bg-yellow-500/20 text-yellow-700' :
-                'bg-red-500/20 text-red-700'
-              }`}>
-                <p className="font-bold text-center">BI-RADS {biradsCategory}</p>
-                {categoryInfo && (
-                  <p className="text-xs text-center mt-1">{categoryInfo.name}</p>
-                )}
-              </div>
+                    <div className="space-y-3 mb-4">
+                      <div className="flex items-center justify-between text-xs">
+                        <span>Completude</span>
+                        <span>{completeness.percentage}%</span>
+                      </div>
+                      <Progress value={completeness.percentage} className="h-1.5" />
+                    </div>
 
-              <SectionPreview title="Indicação" content={indicacaoTexto} hasContent={!!data.indicacao} isRequired />
-              <SectionPreview title="Relatório" content={achadosTexto.substring(0, 200) + (achadosTexto.length > 200 ? '...' : '')} hasContent={true} />
-              <SectionPreview title="Comparativo" content={comparativoTexto} hasContent={!!data.estudoComparativo} />
-              <SectionPreview title="Impressão" content={impressaoTexto} hasContent={true} />
-              <SectionPreview title="Recomendação" content={recomendacaoTexto} hasContent={true} />
-              {notasTexto && <SectionPreview title="Notas" content={notasTexto} hasContent={!!notasTexto} />}
-            </div>
-          )}
+                    <div className={`p-3 rounded-lg mb-4 ${
+                      typeof biradsCategory === 'number' && biradsCategory <= 2 ? 'bg-green-500/20 text-green-700' :
+                      biradsCategory === 3 ? 'bg-yellow-500/20 text-yellow-700' :
+                      'bg-red-500/20 text-red-700'
+                    }`}>
+                      <p className="font-bold text-center">BI-RADS {biradsCategory}</p>
+                      {categoryInfo && (
+                        <p className="text-xs text-center mt-1">{categoryInfo.name}</p>
+                      )}
+                    </div>
+
+                    <SectionPreview title="Indicação" content={indicacaoTexto} hasContent={!!data.indicacao} isRequired />
+                    <SectionPreview title="Relatório" content={achadosTexto.substring(0, 200) + (achadosTexto.length > 200 ? '...' : '')} hasContent={true} />
+                    <SectionPreview title="Comparativo" content={comparativoTexto} hasContent={!!data.estudoComparativo} />
+                    <SectionPreview title="Impressão" content={impressaoTexto} hasContent={true} />
+                    <SectionPreview title="Recomendação" content={recomendacaoTexto} hasContent={true} />
+                    {notasTexto && <SectionPreview title="Notas" content={notasTexto} hasContent={!!notasTexto} />}
+                  </div>
+                </ResizablePanel>
+              </>
+            )}
+          </ResizablePanelGroup>
 
           {!showPreview && (
             <Button
