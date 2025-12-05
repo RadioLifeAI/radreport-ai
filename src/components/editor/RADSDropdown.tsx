@@ -28,6 +28,7 @@ import { BIRADSRMModal } from './BIRADSRMModal'
 import { USTireoideModal } from './USTireoideModal'
 import { PIRADSModal } from './PIRADSModal'
 import { ORADSModal } from './ORADSModal'
+import { ORADSMRIModal } from './ORADSMRIModal'
 import { LIRADSUSModal } from './LIRADSUSModal'
 import { LungRADSModal } from './LungRADSModal'
 
@@ -43,6 +44,7 @@ export function RADSDropdown({ editor }: RADSDropdownProps) {
   const [usTireoideOpen, setUsTireoideOpen] = useState(false)
   const [piradsOpen, setPiradsOpen] = useState(false)
   const [oradsOpen, setOradsOpen] = useState(false)
+  const [oradsMRIOpen, setOradsMRIOpen] = useState(false)
   const [liradsUSOpen, setLiradsUSOpen] = useState(false)
   const [lungRADSOpen, setLungRADSOpen] = useState(false)
 
@@ -85,7 +87,11 @@ export function RADSDropdown({ editor }: RADSDropdownProps) {
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setOradsOpen(true)} className="cursor-pointer">
             <Circle className="mr-2 h-4 w-4 text-pink-500" />
-            ACR O-RADS US (Ginecologia)
+            ACR O-RADS US (Ginecologia - US)
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setOradsMRIOpen(true)} className="cursor-pointer">
+            <Zap className="mr-2 h-4 w-4 text-pink-500" />
+            ACR O-RADS MRI (Ginecologia - RM)
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => setLiradsUSOpen(true)} className="cursor-pointer">
@@ -143,6 +149,12 @@ export function RADSDropdown({ editor }: RADSDropdownProps) {
       <ORADSModal
         open={oradsOpen}
         onOpenChange={setOradsOpen}
+        editor={editor}
+      />
+
+      <ORADSMRIModal
+        open={oradsMRIOpen}
+        onOpenChange={setOradsMRIOpen}
         editor={editor}
       />
 
