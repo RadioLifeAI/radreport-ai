@@ -146,7 +146,7 @@ export function LungRADSModal({ open, onOpenChange, editor }: LungRADSModalProps
     parts.push(`<p>- ${parenquima}</p>`)
     
     // Linfonodos
-    const linfonodos = generateLinfonodosTexto(data)
+    const linfonodos = generateLinfonodosTexto(data, dbOptions || undefined)
     parts.push(`<p>- ${linfonodos}</p>`)
     
     // Comparativo
@@ -723,10 +723,10 @@ export function LungRADSModal({ open, onOpenChange, editor }: LungRADSModalProps
             <div>
               <strong>Nódulos ({nodulosValidos.length}):</strong>
               {nodulosValidos.length > 0 ? (
-                <ul className="text-muted-foreground">
+                <ul className="text-muted-foreground list-none space-y-1">
                   {nodulosValidos.map((n, idx) => (
                     <li key={n.id}>
-                      {idx + 1}. {n.tipo} - {calcularDiametroMedio(n.diametroLongo, n.diametroCurto).toFixed(1)}mm
+                      {idx + 1}. {generateNoduloTexto(n, dbOptions || undefined)}
                     </li>
                   ))}
                 </ul>
@@ -748,7 +748,7 @@ export function LungRADSModal({ open, onOpenChange, editor }: LungRADSModalProps
             <SectionIndicator filled={isSectionFilled('linfonodos')} />
             <div>
               <strong>Linfonodos:</strong>
-              <p className="text-muted-foreground">{generateLinfonodosTexto(data)}</p>
+              <p className="text-muted-foreground">{generateLinfonodosTexto(data, dbOptions || undefined)}</p>
             </div>
           </div>
           

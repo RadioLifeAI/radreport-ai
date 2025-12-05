@@ -547,22 +547,30 @@ export function generateNoduloTexto(nodulo: LungRADSNodulo, options?: Record<str
   }
   parts.push(tipoMap[nodulo.tipo] || 'Nódulo')
   
-  // Localização
+  // Localização - buscar texto descritivo do banco
   if (nodulo.localizacao) {
-    const locMap: Record<string, string> = {
-      'lsd': 'no lobo superior direito',
-      'lmd': 'no lobo médio',
-      'lid': 'no lobo inferior direito',
-      'lse': 'no lobo superior esquerdo',
-      'lingula': 'na língula',
-      'lie': 'no lobo inferior esquerdo',
-      'apice_direito': 'no ápice pulmonar direito',
-      'apice_esquerdo': 'no ápice pulmonar esquerdo',
-      'juxtapleural': 'em localização juxtapleural',
-      'periférico': 'de localização periférica',
-      'central': 'de localização central'
+    const segmentoOption = options?.segmento_nodulo?.find(
+      (opt: { value: string; texto: string }) => opt.value === nodulo.localizacao
+    )
+    if (segmentoOption?.texto) {
+      parts.push(segmentoOption.texto)
+    } else {
+      // Fallback para mapa local (valores antigos)
+      const locMap: Record<string, string> = {
+        'lsd': 'no lobo superior direito',
+        'lmd': 'no lobo médio',
+        'lid': 'no lobo inferior direito',
+        'lse': 'no lobo superior esquerdo',
+        'lingula': 'na língula',
+        'lie': 'no lobo inferior esquerdo',
+        'apice_direito': 'no ápice pulmonar direito',
+        'apice_esquerdo': 'no ápice pulmonar esquerdo',
+        'juxtapleural': 'em localização juxtapleural',
+        'periférico': 'de localização periférica',
+        'central': 'de localização central'
+      }
+      parts.push(locMap[nodulo.localizacao] || `no ${nodulo.localizacao}`)
     }
-    parts.push(locMap[nodulo.localizacao] || `em ${nodulo.localizacao}`)
   }
   
   // Medidas
@@ -627,7 +635,7 @@ export function generateParenquimaTexto(data: LungRADSData): string {
   return parts.join('. ') + '.'
 }
 
-export function generateLinfonodosTexto(data: LungRADSData): string {
+export function generateLinfonodosTexto(data: LungRADSData, options?: Record<string, any>): string {
   if (!data.linfadenopatia || data.linfadenopatia === 'ausente') {
     return 'Linfonodos mediastinais e hilares de dimensões normais.'
   }
@@ -645,8 +653,17 @@ export function generateLinfonodosTexto(data: LungRADSData): string {
     texto += `, o maior medindo ${data.tamanhoLinfonodo.toFixed(1).replace('.', ',')} mm`
   }
   
+  // Localização - buscar texto descritivo da estação linfonodal
   if (data.localizacaoLinfonodo) {
-    texto += ` (${data.localizacaoLinfonodo})`
+    const linfonodoOption = options?.localizacao_linfonodo?.find(
+      (opt: { value: string; texto: string }) => opt.value === data.localizacaoLinfonodo
+    )
+    if (linfonodoOption?.texto) {
+      texto += `, localizado ${linfonodoOption.texto}`
+    } else {
+      // Fallback formatando o valor técnico
+      texto += `, localizado na ${data.localizacaoLinfonodo.replace('estacao_', 'Estação ').toUpperCase()}`
+    }
   }
   
   return texto + '.'
