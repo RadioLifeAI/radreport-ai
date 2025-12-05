@@ -484,6 +484,29 @@ export function USTireoideModal({ open, onOpenChange, editor }: USTireoideModalP
   ].filter(Boolean).length
   const progress = (filledSections / 4) * 100
   
+  // Calculate highest TI-RADS among nodules
+  const highestTIRADS = useMemo(() => {
+    if (!data.temNodulos || data.nodulos.length === 0) return null
+    
+    let maxLevel = 1
+    let maxCategory = 'Benigno'
+    
+    data.nodulos.forEach(nodulo => {
+      const points = getTIRADSPoints('composicao', nodulo.composicao, tiradOptions || {}) +
+                     getTIRADSPoints('ecogenicidade', nodulo.ecogenicidade, tiradOptions || {}) +
+                     getTIRADSPoints('formato', nodulo.formato, tiradOptions || {}) +
+                     getTIRADSPoints('margens', nodulo.margens, tiradOptions || {}) +
+                     getTIRADSPoints('focos', nodulo.focos, tiradOptions || {})
+      const tirads = getTIRADSLevel(points)
+      if (tirads.level > maxLevel) {
+        maxLevel = tirads.level
+        maxCategory = tirads.category
+      }
+    })
+    
+    return { level: maxLevel, category: maxCategory }
+  }, [data.temNodulos, data.nodulos, tiradOptions])
+  
   const handleInsertLaudo = () => {
     if (!editor) return
     const html = generateLaudoHTML(data, options, tiradOptions)
@@ -1116,7 +1139,32 @@ export function USTireoideModal({ open, onOpenChange, editor }: USTireoideModalP
                 <Progress value={progress} className="h-1.5" />
               </div>
               
-              <SectionPreview 
+              {/* TI-RADS Classification Card */}
+              {highestTIRADS && (
+                <div className={`p-4 rounded-lg mb-4 text-center ${
+                  highestTIRADS.level <= 2 ? 'bg-green-500/20 border border-green-500/30' :
+                  highestTIRADS.level === 3 ? 'bg-yellow-500/20 border border-yellow-500/30' :
+                  highestTIRADS.level === 4 ? 'bg-orange-500/20 border border-orange-500/30' :
+                  'bg-red-500/20 border border-red-500/30'
+                }`}>
+                  <p className={`text-2xl font-bold ${
+                    highestTIRADS.level <= 2 ? 'text-green-700 dark:text-green-300' :
+                    highestTIRADS.level === 3 ? 'text-yellow-700 dark:text-yellow-300' :
+                    highestTIRADS.level === 4 ? 'text-orange-700 dark:text-orange-300' :
+                    'text-red-700 dark:text-red-300'
+                  }`}>
+                    TI-RADS {highestTIRADS.level}
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {highestTIRADS.category}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    {data.nodulos.length} {data.nodulos.length === 1 ? 'nódulo' : 'nódulos'}
+                  </p>
+                </div>
+              )}
+              
+              <SectionPreview
                 title="Indicação" 
                 content={indicacaoPreview} 
                 hasContent={!!indicacaoPreview}
