@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { Editor } from '@tiptap/react'
-import { Plus, Trash2, Calendar, AlertCircle, FileText, ClipboardList, FileCheck, Stethoscope, StickyNote, History, Eye, EyeOff, Check, Minus, ChevronRight, Activity, Shuffle, Scale, Circle, Sparkles, Target, LucideIcon } from 'lucide-react'
+import { Plus, Trash2, Calendar, AlertCircle, FileText, ClipboardList, FileCheck, Stethoscope, StickyNote, History, Eye, EyeOff, Check, Minus, ChevronRight, Activity, Shuffle, Scale, Circle, Sparkles, Target, LucideIcon, Loader2 } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -42,6 +42,7 @@ import {
   calcularTempoSeguimento,
   formatarTempoSeguimento,
 } from '@/lib/radsClassifications'
+import { useRADSOptions } from '@/hooks/useRADSOptions'
 
 interface BIRADSMGModalProps {
   open: boolean
@@ -94,6 +95,12 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
   const [activeTab, setActiveTab] = useState<TabType>('indicacao')
   const [data, setData] = useState<BIRADSMGData>(createEmptyBIRADSMGData())
   const [showPreview, setShowPreview] = useState(true)
+
+  // Fetch dynamic options from database (for future use)
+  const { data: dbOptions, isLoading } = useRADSOptions('BIRADS_MG')
+  
+  // Note: Currently using hardcoded options for compatibility
+  // Database options available via dbOptions for gradual migration
 
   const updateData = <K extends keyof BIRADSMGData>(field: K, value: BIRADSMGData[K]) => {
     setData(prev => ({ ...prev, [field]: value }))

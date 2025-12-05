@@ -1789,6 +1789,63 @@ export type Database = {
         }
         Relationships: []
       }
+      rads_text_options: {
+        Row: {
+          ativo: boolean | null
+          birads_associado: string | null
+          categoria: string
+          created_at: string | null
+          id: string
+          label: string
+          ordem: number | null
+          pontos: number | null
+          sistema_codigo: string
+          suspeicao: string | null
+          texto: string
+          updated_at: string | null
+          usa_lado: boolean | null
+          usa_meses: boolean | null
+          valor: string
+          variaveis: Json | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          birads_associado?: string | null
+          categoria: string
+          created_at?: string | null
+          id?: string
+          label: string
+          ordem?: number | null
+          pontos?: number | null
+          sistema_codigo: string
+          suspeicao?: string | null
+          texto?: string
+          updated_at?: string | null
+          usa_lado?: boolean | null
+          usa_meses?: boolean | null
+          valor: string
+          variaveis?: Json | null
+        }
+        Update: {
+          ativo?: boolean | null
+          birads_associado?: string | null
+          categoria?: string
+          created_at?: string | null
+          id?: string
+          label?: string
+          ordem?: number | null
+          pontos?: number | null
+          sistema_codigo?: string
+          suspeicao?: string | null
+          texto?: string
+          updated_at?: string | null
+          usa_lado?: boolean | null
+          usa_meses?: boolean | null
+          valor?: string
+          variaveis?: Json | null
+        }
+        Relationships: []
+      }
       regioes_anatomicas: {
         Row: {
           ativa: boolean | null

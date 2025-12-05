@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Plus, Trash2, Info } from 'lucide-react'
+import { useState, useMemo } from 'react'
+import { Plus, Trash2, Info, Loader2 } from 'lucide-react'
 import { Editor } from '@tiptap/react'
 import {
   Dialog,
@@ -20,16 +20,16 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import {
-  tiradOptions,
   NoduleData,
   createEmptyNodule,
-  calculateTIRADSPoints,
   getTIRADSLevel,
   getTIRADSRecommendation,
   generateNoduleDescription,
   generateImpression,
   formatMeasurement,
 } from '@/lib/radsClassifications'
+import { useRADSOptions } from '@/hooks/useRADSOptions'
+import { getRADSOptionsWithFallback, getTIRADSPoints } from '@/lib/radsOptionsProvider'
 
 interface TIRADSModalProps {
   open: boolean
@@ -40,6 +40,26 @@ interface TIRADSModalProps {
 export function TIRADSModal({ open, onOpenChange, editor }: TIRADSModalProps) {
   const [quantidade, setQuantidade] = useState<'um' | 'multiplos'>('um')
   const [nodulos, setNodulos] = useState<NoduleData[]>([createEmptyNodule()])
+
+  // Fetch dynamic options from database
+  const { data: dbOptions, isLoading, isError } = useRADSOptions('TIRADS')
+  
+  // Get options with fallback
+  const tiradOptions = useMemo(() => 
+    getRADSOptionsWithFallback('TIRADS', dbOptions, isLoading, isError),
+    [dbOptions, isLoading, isError]
+  )
+
+  // Calculate TI-RADS points for a nodule using dynamic options
+  const calculatePoints = (nodulo: NoduleData): number => {
+    let points = 0
+    points += getTIRADSPoints('composicao', nodulo.composicao, dbOptions)
+    points += getTIRADSPoints('ecogenicidade', nodulo.ecogenicidade, dbOptions)
+    points += getTIRADSPoints('formato', nodulo.formato, dbOptions)
+    points += getTIRADSPoints('margens', nodulo.margens, dbOptions)
+    points += getTIRADSPoints('focos', nodulo.focos, dbOptions)
+    return points
+  }
 
   const handleQuantidadeChange = (value: 'um' | 'multiplos') => {
     setQuantidade(value)
@@ -107,12 +127,15 @@ export function TIRADSModal({ open, onOpenChange, editor }: TIRADSModalProps) {
 
   // Calculate summary for all nodules
   const nodulosSummary = nodulos.map((n, i) => {
-    const points = calculateTIRADSPoints(n)
+    const points = calculatePoints(n)
     const tirads = getTIRADSLevel(points)
     const maxDim = Math.max(...n.medidas)
     const recommendation = getTIRADSRecommendation(tirads.level, maxDim)
     return { index: i, points, tirads, maxDim, recommendation }
   })
+
+  // Get category options with fallback
+  const getOptions = (categoria: string) => tiradOptions[categoria] || []
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -120,6 +143,7 @@ export function TIRADSModal({ open, onOpenChange, editor }: TIRADSModalProps) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-lg">
             🦋 ACR TI-RADS - Classificação de Nódulos Tireoidianos
+            {isLoading && <Loader2 size={16} className="animate-spin text-muted-foreground" />}
           </DialogTitle>
         </DialogHeader>
 
@@ -172,9 +196,9 @@ export function TIRADSModal({ open, onOpenChange, editor }: TIRADSModalProps) {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {tiradOptions.composicao.map(opt => (
+                        {getOptions('composicao').map(opt => (
                           <SelectItem key={opt.value} value={opt.value}>
-                            {opt.label} ({opt.points}pt)
+                            {opt.label} ({opt.pontos ?? 0}pt)
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -191,9 +215,9 @@ export function TIRADSModal({ open, onOpenChange, editor }: TIRADSModalProps) {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {tiradOptions.ecogenicidade.map(opt => (
+                        {getOptions('ecogenicidade').map(opt => (
                           <SelectItem key={opt.value} value={opt.value}>
-                            {opt.label} ({opt.points}pt)
+                            {opt.label} ({opt.pontos ?? 0}pt)
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -210,9 +234,9 @@ export function TIRADSModal({ open, onOpenChange, editor }: TIRADSModalProps) {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {tiradOptions.formato.map(opt => (
+                        {getOptions('formato').map(opt => (
                           <SelectItem key={opt.value} value={opt.value}>
-                            {opt.label} ({opt.points}pt)
+                            {opt.label} ({opt.pontos ?? 0}pt)
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -232,9 +256,9 @@ export function TIRADSModal({ open, onOpenChange, editor }: TIRADSModalProps) {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {tiradOptions.margens.map(opt => (
+                        {getOptions('margens').map(opt => (
                           <SelectItem key={opt.value} value={opt.value}>
-                            {opt.label} ({opt.points}pt)
+                            {opt.label} ({opt.pontos ?? 0}pt)
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -251,9 +275,9 @@ export function TIRADSModal({ open, onOpenChange, editor }: TIRADSModalProps) {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {tiradOptions.focos.map(opt => (
+                        {getOptions('focos').map(opt => (
                           <SelectItem key={opt.value} value={opt.value}>
-                            {opt.label} ({opt.points}pt)
+                            {opt.label} ({opt.pontos ?? 0}pt)
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -270,7 +294,7 @@ export function TIRADSModal({ open, onOpenChange, editor }: TIRADSModalProps) {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {tiradOptions.localizacao.map(opt => (
+                        {getOptions('localizacao').map(opt => (
                           <SelectItem key={opt.value} value={opt.value}>
                             {opt.label}
                           </SelectItem>
