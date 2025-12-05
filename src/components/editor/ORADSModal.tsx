@@ -73,7 +73,9 @@ import {
   calcularVolumeUterino,
   interpretarVolumeOvariano,
   interpretarEspessuraEndometrial,
-  getORADSCategoryFromDB
+  getORADSCategoryFromDB,
+  getORADSRecommendationFromDB,
+  getColorScoreDescriptionFromDB
 } from '@/lib/oradsClassifications'
 
 interface ORADSModalProps {
@@ -798,7 +800,7 @@ export function ORADSModal({ open, onOpenChange, editor }: ORADSModalProps) {
                                 <SelectItem key={cs} value={String(cs)}>
                                   <div className="flex items-center gap-2">
                                     <Activity size={14} className={cs === 1 ? 'text-gray-400' : cs === 2 ? 'text-green-500' : cs === 3 ? 'text-yellow-500' : 'text-red-500'} />
-                                    {colorScoreDescriptions[cs as ColorScore]}
+                                    {getColorScoreDescriptionFromDB(cs as ColorScore, oradsOptions)}
                                   </div>
                                 </SelectItem>
                               ))}
@@ -1002,6 +1004,7 @@ export function ORADSModal({ open, onOpenChange, editor }: ORADSModalProps) {
 
   // Usar categoria do banco com fallback
   const maxCat = getORADSCategoryFromDB(maxORADS, oradsOptions)
+  const maxRecomendacao = getORADSRecommendationFromDB(maxORADS, oradsOptions)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -1090,7 +1093,7 @@ export function ORADSModal({ open, onOpenChange, editor }: ORADSModalProps) {
                         </Badge>
                       </div>
                       <p className="text-sm font-medium">{maxCat.risco}</p>
-                      <p className="text-xs text-muted-foreground mt-2">{maxCat.recomendacao}</p>
+                      <p className="text-xs text-muted-foreground mt-2">{maxRecomendacao}</p>
                     </div>
 
                     {/* Preview Sections */}
