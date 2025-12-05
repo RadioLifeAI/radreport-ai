@@ -15,7 +15,7 @@ export interface RADSOption {
 
 export type RADSOptionsMap = Record<string, RADSOption[]>
 
-export type RADSSistemaCodigo = 'BIRADS_USG' | 'BIRADS_MG' | 'TIRADS'
+export type RADSSistemaCodigo = 'BIRADS_USG' | 'BIRADS_MG' | 'TIRADS' | 'US_TIREOIDE'
 
 interface RADSTextOptionRow {
   id: string
@@ -82,17 +82,19 @@ export function useRADSOptions(sistemaCodigo: RADSSistemaCodigo) {
   })
 }
 
-// Hook for all three systems at once
+// Hook for all systems at once
 export function useAllRADSOptions() {
   const biradsUSG = useRADSOptions('BIRADS_USG')
   const biradsMG = useRADSOptions('BIRADS_MG')
   const tirads = useRADSOptions('TIRADS')
+  const usTireoide = useRADSOptions('US_TIREOIDE')
 
   return {
     biradsUSG,
     biradsMG,
     tirads,
-    isLoading: biradsUSG.isLoading || biradsMG.isLoading || tirads.isLoading,
-    isError: biradsUSG.isError || biradsMG.isError || tirads.isError,
+    usTireoide,
+    isLoading: biradsUSG.isLoading || biradsMG.isLoading || tirads.isLoading || usTireoide.isLoading,
+    isError: biradsUSG.isError || biradsMG.isError || tirads.isError || usTireoide.isError,
   }
 }
