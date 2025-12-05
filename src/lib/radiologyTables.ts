@@ -8367,42 +8367,89 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
 </table>`
       },
       {
-        id: 'doppler-carotideo-sru',
-        name: 'Doppler Carotídeo (SRU 2003)',
+        id: 'doppler-carotideo-iac',
+        name: 'Doppler Carotídeo (IAC/SRU 2021)',
         category: 'vascular',
         subcategory: 'Carótidas',
         type: 'informative',
         modality: ['US'],
         htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
-  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Critérios Doppler para Estenose Carotídea (SRU Consensus 2003)</caption>
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Critérios Velocimétricos para Estenose Carotídea (IAC/AIUM/SRU/SVS Consensus 2021)</caption>
   <thead>
     <tr style="background:#1e3a5f; color:white;">
-      <th style="border:1px solid #333; padding:6px 8px;">Estenose</th>
-      <th style="border:1px solid #333; padding:6px 8px;">VP ACI (cm/s)</th>
-      <th style="border:1px solid #333; padding:6px 8px;">Razão ACI/ACC</th>
-      <th style="border:1px solid #333; padding:6px 8px;">VP Final Diástole (cm/s)</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Grau de Estenose</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">VPS ACI (cm/s)</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Razão VPS ACI/ACC</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">VDF ACI (cm/s)</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Observações</th>
     </tr>
   </thead>
   <tbody>
-    <tr><td style="border:1px solid #ddd; padding:6px 8px;">Normal</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">&lt;125</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">&lt;2,0</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">&lt;40</td></tr>
-    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;">&lt;50%</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">&lt;125</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">&lt;2,0</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">&lt;40</td></tr>
-    <tr><td style="border:1px solid #ddd; padding:6px 8px;">50-69%</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">125-230</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">2,0-4,0</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">40-100</td></tr>
-    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold;">≥70%</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold; color:#c00;">&gt;230</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">&gt;4,0</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">&gt;100</td></tr>
-    <tr><td style="border:1px solid #ddd; padding:6px 8px;">Pré-oclusão (≥95%)</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">Variável (pode ser baixa)</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">Variável</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">Variável</td></tr>
-    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;">Oclusão</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">Sem fluxo</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">-</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">-</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;">Normal</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">&lt;125</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">&lt;2,0</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">&lt;40</td><td style="border:1px solid #ddd; padding:6px 8px; font-size:9pt;">Ausência de placa ateromatosa visível</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;">&lt;50%</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">&lt;125</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">&lt;2,0</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">&lt;40</td><td style="border:1px solid #ddd; padding:6px 8px; font-size:9pt;">Placa visível sem repercussão hemodinâmica</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold; color:#856404;">50-69%</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold; color:#856404;">125-230</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">2,0-4,0</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">40-100</td><td style="border:1px solid #ddd; padding:6px 8px; font-size:9pt;">Estenose hemodinamicamente significativa</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold; color:#c00;">≥70%</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold; color:#c00;">&gt;230</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold; color:#c00;">&gt;4,0</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold; color:#c00;">&gt;100</td><td style="border:1px solid #ddd; padding:6px 8px; font-size:9pt; font-weight:bold;">Estenose crítica - avaliar revascularização</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold; color:#721c24;">Near-occlusion</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-style:italic;">Variável (↓↓)</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-style:italic;">Variável</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-style:italic;">Variável</td><td style="border:1px solid #ddd; padding:6px 8px; font-size:9pt;">String sign, lúmen filiforme, velocidades paradoxalmente baixas</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px; font-weight:bold; color:#721c24;">Oclusão</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">Ausente</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">—</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">—</td><td style="border:1px solid #ddd; padding:6px 8px; font-size:9pt;">Sem fluxo intraluminal detectável ao color/power Doppler</td></tr>
   </tbody>
   <tfoot>
     <tr>
-      <td colspan="4" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+      <td colspan="5" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.5;">
+        <strong style="color:#1e3a5f;">🔬 Parâmetros:</strong> VPS = Velocidade de Pico Sistólico | VDF = Velocidade Diastólica Final | ACI = Artéria Carótida Interna | ACC = Artéria Carótida Comum<br/>
+        <strong style="color:#1e3a5f;">⚠️ Nota clínica:</strong> Estenose ≥50% sintomática ou ≥70% assintomática podem ser elegíveis para revascularização (AHA/ASA 2021).<br/>
         <strong style="color:#1e3a5f;">📚 Referência:</strong> 
-        <span style="font-style:italic;">Grant EG et al. Carotid Artery Stenosis: Gray-Scale and Doppler US Diagnosis - Society of Radiologists in Ultrasound Consensus Conference. Radiology. 2003;229(2):340-346.</span>
+        <span style="font-style:italic;">Gornik HL et al. First AUC on Noninvasive Testing for Extracranial Carotid Artery Disease. Vascular Medicine 2021;26(5):515-525.</span>
         <br/>
-        <a href="https://pubs.rsna.org/doi/10.1148/radiol.2292030516" 
+        <a href="https://journals.sagepub.com/doi/10.1177/1358863X211035657" 
            target="_blank" 
            rel="noopener noreferrer"
            style="color:#0066cc; text-decoration:none; font-weight:500;">
-          🔗 SRU Consensus 2003
+          🔗 IAC/AIUM/SRU/SVS Consensus 2021
         </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'doppler-renal',
+        name: 'Doppler Artéria Renal (Estenose)',
+        category: 'vascular',
+        subcategory: 'Artérias Renais',
+        type: 'informative',
+        modality: ['US'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Critérios Doppler para Estenose de Artéria Renal</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px;">Parâmetro</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Normal</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Estenose ≥60%</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Sens/Esp</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr style="background:#e8f4fd;">
+      <td colspan="4" style="border:1px solid #ddd; padding:6px 8px; font-weight:bold; color:#1e3a5f;">📍 Método Direto (artéria renal principal)</td>
+    </tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;">VPS Artéria Renal</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">&lt;180 cm/s</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold; color:#c00;">≥180-200 cm/s</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">85%/92%</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;">RAR (Razão AR/Aorta)</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">&lt;3,0:1</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold; color:#c00;">≥3,5:1</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">91%/95%</td></tr>
+    <tr style="background:#fff3cd;">
+      <td colspan="4" style="border:1px solid #ddd; padding:6px 8px; font-weight:bold; color:#856404;">📍 Método Indireto (parênquima renal ipsilateral)</td>
+    </tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;">Tempo de Aceleração (TA)</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">&lt;70 ms</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold; color:#c00;">&gt;70 ms</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">78%/85%</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;">Índice de Aceleração (IA)</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">&gt;3,0 m/s²</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold; color:#c00;">&lt;3,0 m/s²</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">75%/80%</td></tr>
+    <tr><td style="border:1px solid #ddd; padding:6px 8px;">Índice de Resistência (IR)</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">0,55-0,70</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">&lt;0,55 (tardus-parvus)<br/>&gt;0,80 (nefropatia)</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">Variável</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd; padding:6px 8px;">Assimetria renal (comprimento)</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">&lt;1,5 cm</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">&gt;1,5 cm</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-style:italic;">Cronicidade</td></tr>
+    <tr style="background:#f0f0f0;"><td style="border:1px solid #ddd; padding:6px 8px;">Padrão tardus-parvus</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">Ausente</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-style:italic;">Onda de ascensão lenta, pico arredondado</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">—</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="4" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.5;">
+        <strong style="color:#1e3a5f;">🔬 Parâmetros:</strong> VPS = Velocidade de Pico Sistólico | RAR = Renal-Aortic Ratio | TA = Tempo de Aceleração | IA = Índice de Aceleração | IR = Índice de Resistência<br/>
+        <strong style="color:#1e3a5f;">⚠️ Limitações:</strong> Obesidade, gases, acessórios múltiplos, estenose bilateral (normaliza IR). Correlação com AngioTC/RM recomendada para planejamento.<br/>
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Williams GJ et al. Duplex Ultrasonography for Renal Artery Stenosis. Cochrane Database Syst Rev 2007. | Radclife KA et al. AJR 2001.</span>
       </td>
     </tr>
   </tfoot>
