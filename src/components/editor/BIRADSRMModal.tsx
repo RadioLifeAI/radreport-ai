@@ -159,7 +159,7 @@ export function BIRADSRMModal({ open, onOpenChange, editor }: BIRADSRMModalProps
   // Foco handlers
   const handleAddFoco = () => {
     if (data.focos.length < 4) {
-      setData(prev => ({ ...prev, focos: [...prev.focos, { presente: true, localizacao: 'qsl', lado: 'direita' }] }))
+      setData(prev => ({ ...prev, focos: [...prev.focos, { presente: true, localizacao: 'qse_10h', lado: 'direita' }] }))
     }
   }
 
