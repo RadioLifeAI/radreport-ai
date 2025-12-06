@@ -9,7 +9,8 @@ import {
   Shield, 
   ChevronLeft,
   CreditCard,
-  ListChecks
+  ListChecks,
+  Activity
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -19,6 +20,7 @@ const navItems = [
   { to: '/admin/ai-config', icon: Cpu, label: 'Configurações IA' },
   { to: '/admin/templates', icon: Database, label: 'Templates' },
   { to: '/admin/frases', icon: FileText, label: 'Frases Modelo' },
+  { to: '/admin/rads-options', icon: Activity, label: 'RADS Options' },
   { to: '/admin/subscriptions', icon: CreditCard, label: 'Assinaturas' },
   { to: '/admin/features', icon: ListChecks, label: 'Features Planos' },
   { to: '/admin/users', icon: Users, label: 'Usuários' },
