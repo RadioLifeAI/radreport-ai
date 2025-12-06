@@ -31,6 +31,7 @@ import SubscriptionsPage from "./pages/admin/SubscriptionsPage";
 import FeaturesPage from "./pages/admin/FeaturesPage";
 import UsersPage from "./pages/admin/UsersPage";
 import SettingsPage from "./pages/admin/SettingsPage";
+import RADSOptionsPage from "./pages/admin/RADSOptionsPage";
 import Precos from "./pages/Precos";
 
 const queryClient = new QueryClient();
@@ -70,6 +71,7 @@ const App = () => (
             <Route path="/admin/ai-config" element={<AdminProtectedRoute><AIConfigPage /></AdminProtectedRoute>} />
             <Route path="/admin/templates" element={<AdminProtectedRoute><TemplatesPage /></AdminProtectedRoute>} />
             <Route path="/admin/frases" element={<AdminProtectedRoute><FrasesPage /></AdminProtectedRoute>} />
+            <Route path="/admin/rads-options" element={<AdminProtectedRoute><RADSOptionsPage /></AdminProtectedRoute>} />
             <Route path="/admin/subscriptions" element={<AdminProtectedRoute><SubscriptionsPage /></AdminProtectedRoute>} />
             <Route path="/admin/features" element={<AdminProtectedRoute><FeaturesPage /></AdminProtectedRoute>} />
             <Route path="/admin/users" element={<AdminProtectedRoute><UsersPage /></AdminProtectedRoute>} />
