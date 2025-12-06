@@ -12,7 +12,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
-import { Plus, Search, Edit, Trash2, Eye, Copy, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Eye, Copy, ChevronLeft, ChevronRight, Loader2, FlaskConical } from 'lucide-react';
+import { FrasePreviewTab } from '@/components/admin/FrasePreviewTab';
 import type { Json } from '@/integrations/supabase/types';
 
 interface FraseModelo {
@@ -433,11 +434,15 @@ const FrasesPage = () => {
           </DialogHeader>
           
           <Tabs defaultValue="basico" className="mt-4">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="basico">Básico</TabsTrigger>
               <TabsTrigger value="conteudo">Conteúdo</TabsTrigger>
               <TabsTrigger value="variaveis">Variáveis</TabsTrigger>
               <TabsTrigger value="sinonimos">Sinônimos</TabsTrigger>
+              <TabsTrigger value="preview" className="gap-1.5">
+                <FlaskConical className="h-3.5 w-3.5" />
+                Preview
+              </TabsTrigger>
             </TabsList>
             
             <TabsContent value="basico" className="space-y-4 mt-4">
@@ -603,6 +608,10 @@ const FrasesPage = () => {
                   </div>
                 </div>
               </div>
+            </TabsContent>
+
+            <TabsContent value="preview" className="mt-4">
+              <FrasePreviewTab formData={formData} />
             </TabsContent>
           </Tabs>
           
