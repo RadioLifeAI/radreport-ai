@@ -22,7 +22,7 @@ const navItems = [
   { to: '/admin/subscriptions', icon: CreditCard, label: 'Assinaturas' },
   { to: '/admin/features', icon: ListChecks, label: 'Features Planos' },
   { to: '/admin/users', icon: Users, label: 'Usuários' },
-  { to: '/admin/settings', icon: Settings, label: 'Configurações', disabled: true },
+  { to: '/admin/settings', icon: Settings, label: 'Configurações' },
   { to: '/admin/security', icon: Shield, label: 'Segurança', disabled: true },
 ];
 

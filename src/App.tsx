@@ -30,6 +30,7 @@ import FrasesPage from "./pages/admin/FrasesPage";
 import SubscriptionsPage from "./pages/admin/SubscriptionsPage";
 import FeaturesPage from "./pages/admin/FeaturesPage";
 import UsersPage from "./pages/admin/UsersPage";
+import SettingsPage from "./pages/admin/SettingsPage";
 import Precos from "./pages/Precos";
 
 const queryClient = new QueryClient();
@@ -72,6 +73,7 @@ const App = () => (
             <Route path="/admin/subscriptions" element={<AdminProtectedRoute><SubscriptionsPage /></AdminProtectedRoute>} />
             <Route path="/admin/features" element={<AdminProtectedRoute><FeaturesPage /></AdminProtectedRoute>} />
             <Route path="/admin/users" element={<AdminProtectedRoute><UsersPage /></AdminProtectedRoute>} />
+            <Route path="/admin/settings" element={<AdminProtectedRoute><SettingsPage /></AdminProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
