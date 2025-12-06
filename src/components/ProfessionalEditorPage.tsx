@@ -540,47 +540,78 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
     setMacroDropdownVisible(false)
   }, [editorInstance, hookApplyFrase, frases, findDocumentSections, replaceConclusionText, setFraseSearchTerm, hasVariables])
   
-  // Handle variables submission
-  const handleVariablesSubmit = useCallback((processedTexto: string, processedConclusao?: string) => {
+  // Handle variables submission with contextual insertion
+  const handleVariablesSubmit = useCallback((
+    processedTexto: string, 
+    processedConclusao?: string,
+    targetLineIndex?: number
+  ) => {
     if (!editorInstance) return
     
-    const sections = findDocumentSections(editorInstance)
-    const { state } = editorInstance
-    const { selection } = state
-    const cursorPos = selection.from
-
-    const isInConclusion = sections.conclusao.start !== -1 && 
-                          cursorPos >= sections.conclusao.start && 
-                          cursorPos <= sections.conclusao.end
-
-    // Wrap text in paragraph tags to prevent uppercase from h3 styling
     const wrapInParagraph = (text: string) => {
       if (text.startsWith('<p>') || text.startsWith('<h')) return text
       return `<p>${text}</p>`
     }
 
-    if (processedTexto && processedConclusao) {
-      if (isInConclusion && processedConclusao) {
-        editorInstance.commands.insertContent(wrapInParagraph(processedConclusao))
-      } else if (sections.achados.start !== -1) {
-        editorInstance.commands.insertContent(wrapInParagraph(processedTexto))
+    // Se temos um índice de linha específico, fazer substituição contextual
+    if (targetLineIndex !== undefined && targetLineIndex >= 0) {
+      const currentHtml = editorInstance.getHTML()
+      const paragraphRegex = /<(p|h[1-6]|div|li|blockquote)[^>]*>[\s\S]*?<\/\1>/gi
+      const matches = currentHtml.match(paragraphRegex) || []
+      
+      if (targetLineIndex < matches.length) {
+        // Substituir o parágrafo específico
+        let replacementIndex = 0
+        const newHtml = currentHtml.replace(paragraphRegex, (match) => {
+          if (replacementIndex === targetLineIndex) {
+            replacementIndex++
+            return wrapInParagraph(processedTexto)
+          }
+          replacementIndex++
+          return match
+        })
+        
+        editorInstance.commands.setContent(newHtml)
+        
+        // Adicionar conclusão na seção IMPRESSÃO
         if (processedConclusao) {
           replaceConclusionText(editorInstance, processedConclusao)
         }
-      } else {
+      }
+    } else {
+      // Comportamento original: inserir no cursor
+      const sections = findDocumentSections(editorInstance)
+      const { state } = editorInstance
+      const { selection } = state
+      const cursorPos = selection.from
+
+      const isInConclusion = sections.conclusao.start !== -1 && 
+                            cursorPos >= sections.conclusao.start && 
+                            cursorPos <= sections.conclusao.end
+
+      if (processedTexto && processedConclusao) {
+        if (isInConclusion && processedConclusao) {
+          editorInstance.commands.insertContent(wrapInParagraph(processedConclusao))
+        } else if (sections.achados.start !== -1) {
+          editorInstance.commands.insertContent(wrapInParagraph(processedTexto))
+          if (processedConclusao) {
+            replaceConclusionText(editorInstance, processedConclusao)
+          }
+        } else {
+          editorInstance.commands.insertContent(wrapInParagraph(processedTexto))
+          if (processedConclusao) {
+            editorInstance.commands.insertContent('<p></p>')
+            editorInstance.commands.insertContent(wrapInParagraph(processedConclusao))
+          }
+        }
+      } else if (processedTexto) {
         editorInstance.commands.insertContent(wrapInParagraph(processedTexto))
-        if (processedConclusao) {
-          editorInstance.commands.insertContent('<p></p>')
+      } else if (processedConclusao) {
+        if (sections.conclusao.start !== -1) {
+          replaceConclusionText(editorInstance, processedConclusao)
+        } else {
           editorInstance.commands.insertContent(wrapInParagraph(processedConclusao))
         }
-      }
-    } else if (processedTexto) {
-      editorInstance.commands.insertContent(wrapInParagraph(processedTexto))
-    } else if (processedConclusao) {
-      if (sections.conclusao.start !== -1) {
-        replaceConclusionText(editorInstance, processedConclusao)
-      } else {
-        editorInstance.commands.insertContent(wrapInParagraph(processedConclusao))
       }
     }
     
@@ -592,6 +623,46 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
     setVariablesModalOpen(false)
     setSelectedFraseForVariables(null)
   }, [editorInstance, findDocumentSections, replaceConclusionText, selectedFraseForVariables, hookApplyFrase])
+
+  // Helper para extrair nome da estrutura anatômica da frase
+  const getEstruturaNome = useCallback((frase: FraseModelo): string | undefined => {
+    // Extrair nome da estrutura do código da frase
+    // Exemplo: USG_ABD_FIG_EST_LEVE_001 -> "Fígado"
+    const codigo = frase.codigo?.toUpperCase() || ''
+    
+    // Mapeamento de códigos para nomes de estruturas
+    const estruturaMap: Record<string, string> = {
+      'FIG': 'Fígado',
+      'VB': 'Vesícula Biliar',
+      'VESICULA': 'Vesícula Biliar',
+      'BACO': 'Baço',
+      'PANC': 'Pâncreas',
+      'RIM': 'Rim',
+      'RD': 'Rim Direito',
+      'RE': 'Rim Esquerdo',
+      'BEXIGA': 'Bexiga',
+      'PROSTATA': 'Próstata',
+      'UTERO': 'Útero',
+      'OVARIO': 'Ovário',
+      'OVD': 'Ovário Direito',
+      'OVE': 'Ovário Esquerdo',
+      'TIREOIDE': 'Tireoide',
+      'TIREOI': 'Tireoide',
+      'MAMA': 'Mama',
+      'AORTA': 'Aorta',
+      'VEIA_PORTA': 'Veia Porta',
+      'TEST': 'Testículo',
+      'EPID': 'Epidídimo',
+    }
+    
+    for (const [key, nome] of Object.entries(estruturaMap)) {
+      if (codigo.includes(key)) {
+        return nome
+      }
+    }
+    
+    return undefined
+  }, [])
 
   return (
     <UserDictionaryProvider>
@@ -761,6 +832,8 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
           texto={selectedFraseForVariables.frase}
           conclusao={selectedFraseForVariables.conclusao}
           variaveis={selectedFraseForVariables.variaveis || []}
+          editorHtml={editorInstance?.getHTML() || ''}
+          estruturaNome={getEstruturaNome(selectedFraseForVariables)}
           onSubmit={handleVariablesSubmit}
         />
       )}
