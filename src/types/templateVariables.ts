@@ -3,7 +3,7 @@
 
 export interface TemplateVariable {
   nome: string
-  tipo: 'texto' | 'numero' | 'select' | 'boolean' | 'volume'
+  tipo: 'texto' | 'numero' | 'select' | 'boolean' | 'volume' | 'data'
   descricao?: string
   opcoes?: string[]
   valor_padrao?: string | number | boolean

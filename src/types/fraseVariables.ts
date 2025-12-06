@@ -1,6 +1,6 @@
 export interface FraseVariable {
   nome: string
-  tipo: 'texto' | 'numero' | 'select' | 'boolean'
+  tipo: 'texto' | 'numero' | 'select' | 'boolean' | 'data'
   descricao?: string
   opcoes?: string[]
   valor_padrao?: string | number | boolean
