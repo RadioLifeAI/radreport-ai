@@ -234,6 +234,25 @@ export default function TemplatesPage() {
     return text.replace(/\\n\\n/g, '\n\n').replace(/\\n/g, '\n');
   };
 
+  // Sanitiza campos JSONB (tecnica, tecnica_config) para \n reais
+  const sanitizeJsonbNewlines = (obj: Json | undefined): Json | undefined => {
+    if (!obj || typeof obj !== 'object') return obj;
+    if (Array.isArray(obj)) {
+      return obj.map(item => sanitizeJsonbNewlines(item)) as Json;
+    }
+    const result: Record<string, Json> = {};
+    for (const [key, value] of Object.entries(obj)) {
+      if (typeof value === 'string') {
+        result[key] = value.replace(/\\n\\n/g, '\n\n').replace(/\\n/g, '\n');
+      } else if (typeof value === 'object' && value !== null) {
+        result[key] = sanitizeJsonbNewlines(value as Json) as Json;
+      } else {
+        result[key] = value as Json;
+      }
+    }
+    return result;
+  };
+
   const handleSave = async () => {
     try {
       if (!formData.codigo || !formData.titulo || !formData.modalidade_codigo || !formData.achados || !formData.impressao) {
@@ -246,16 +265,18 @@ export default function TemplatesPage() {
         titulo: formData.titulo,
         modalidade_codigo: formData.modalidade_codigo,
         regiao_codigo: formData.regiao_codigo || null,
-        tecnica: formData.tecnica,
+        tecnica: sanitizeJsonbNewlines(formData.tecnica),
         achados: sanitizeNewlines(formData.achados),
         impressao: sanitizeNewlines(formData.impressao),
         adicionais: sanitizeNewlines(formData.adicionais) || null,
+        conteudo_template: sanitizeNewlines(formData.conteudo_template) || null,
+        indicacao_clinica: sanitizeNewlines((formData as any).indicacao_clinica) || null,
         tags: formData.tags,
         ativo: formData.ativo,
         variaveis: formData.variaveis,
         condicoes_logicas: formData.condicoes_logicas,
         categoria: formData.categoria || 'normal',
-        tecnica_config: tecnicaConfigForm as unknown as Json
+        tecnica_config: sanitizeJsonbNewlines(tecnicaConfigForm as unknown as Json) as unknown as Json
       };
 
       if (selectedTemplate) {
