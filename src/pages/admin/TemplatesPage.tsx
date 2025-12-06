@@ -14,8 +14,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { toast } from 'sonner';
 import { 
   Plus, Search, Pencil, Trash2, Copy, Eye, ChevronLeft, ChevronRight,
-  FileText, RefreshCw, Save, Variable
+  FileText, RefreshCw, Save, Variable, FlaskConical
 } from 'lucide-react';
+import { TemplatePreviewTab } from '@/components/admin/TemplatePreviewTab';
 import { Json } from '@/integrations/supabase/types';
 
 interface TecnicaConfig {
@@ -510,11 +511,15 @@ export default function TemplatesPage() {
             </DialogHeader>
 
             <Tabs value={formTab} onValueChange={setFormTab} className="flex-1 overflow-hidden flex flex-col">
-              <TabsList className="grid grid-cols-4">
+              <TabsList className="grid grid-cols-5">
                 <TabsTrigger value="basico">Básico</TabsTrigger>
                 <TabsTrigger value="conteudo">Conteúdo</TabsTrigger>
                 <TabsTrigger value="variaveis">Variáveis</TabsTrigger>
                 <TabsTrigger value="config">Configurações</TabsTrigger>
+                <TabsTrigger value="preview" className="gap-1.5">
+                  <FlaskConical className="h-3.5 w-3.5" />
+                  Preview
+                </TabsTrigger>
               </TabsList>
 
               <div className="flex-1 overflow-y-auto mt-4">
@@ -901,6 +906,13 @@ export default function TemplatesPage() {
                       </div>
                     </div>
                   )}
+                </TabsContent>
+
+                <TabsContent value="preview" className="m-0">
+                  <TemplatePreviewTab 
+                    formData={formData} 
+                    tecnicaConfigForm={tecnicaConfigForm} 
+                  />
                 </TabsContent>
               </div>
             </Tabs>
