@@ -17,7 +17,7 @@ import { ChevronDown, FileText, Calculator, Ruler, Settings2, CalendarIcon, Tras
 import { format, parse } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
-import { TemplateVariable, TemplateVariableValues, TemplateWithVariables, VolumeMeasurement } from '@/types/templateVariables'
+import { TemplateVariable, TemplateVariableValues, TemplateWithVariables, VolumeMeasurement, TecnicaConfig } from '@/types/templateVariables'
 import { 
   processTemplateText, 
   getAvailableTechniques, 
@@ -26,7 +26,8 @@ import {
   isVolumeVariable,
   createDefaultVolumeMeasurement,
   getVolumeValue,
-  calculateEllipsoidVolume
+  calculateEllipsoidVolume,
+  getTechniquePattern
 } from '@/utils/templateVariableProcessor'
 import { dividirEmSentencas } from '@/utils/templateFormatter'
 
@@ -54,13 +55,28 @@ export function TemplateVariablesModal({
   const availableTechniques = template ? getAvailableTechniques(template) : []
   const hasMultipleTechniques = availableTechniques.length > 1
   const variaveis = template?.variaveis || []
+  
+  // Get technique configuration - from database or detect pattern
+  const tecnicaConfig: TecnicaConfig = useMemo(() => {
+    if (!template) return { tipo: 'unico', concatenar: false }
+    // Use database config if available, otherwise detect pattern
+    if (template.tecnica_config && template.tecnica_config.tipo !== 'auto') {
+      return template.tecnica_config
+    }
+    return getTechniquePattern(template.conteudo.tecnica)
+  }, [template])
 
   // Initialize with default values
   useEffect(() => {
     if (open && template) {
-      // Set default technique(s) - select first one by default
-      const defaultTech = getDefaultTechnique(template)
-      setSelectedTechniques(defaultTech ? [defaultTech] : [])
+      // For complementary patterns, select ALL techniques automatically
+      // For alternative patterns, select first one by default
+      if (tecnicaConfig.tipo === 'complementar') {
+        setSelectedTechniques(availableTechniques)
+      } else {
+        const defaultTech = getDefaultTechnique(template)
+        setSelectedTechniques(defaultTech ? [defaultTech] : [])
+      }
 
       // Initialize variable values and volume measurements
       const initialValues: TemplateVariableValues = {}
@@ -98,12 +114,31 @@ export function TemplateVariablesModal({
       ? processTemplateText(template.conteudo.adicionais, processedValues)
       : ''
 
-    // Get combined technique text from all selected techniques
-    const tecnicaText = selectedTechniques
-      .map(tech => template.conteudo.tecnica[tech])
-      .filter(Boolean)
-      .map(text => processTemplateText(text, processedValues))
-      .join(' ')
+    // Get combined technique text based on config type
+    let tecnicaText = ''
+    if (tecnicaConfig.tipo === 'complementar') {
+      // For complementary: concatenate all with labels if configured
+      const orderedKeys = tecnicaConfig.ordem_exibicao || availableTechniques
+      const parts = orderedKeys
+        .filter(key => template.conteudo.tecnica[key])
+        .map(key => {
+          const text = processTemplateText(template.conteudo.tecnica[key], processedValues)
+          if (tecnicaConfig.prefixo_label) {
+            // Capitalize first letter of key for label
+            const label = key.charAt(0).toUpperCase() + key.slice(1).toLowerCase()
+            return `${label}: ${text}`
+          }
+          return text
+        })
+      tecnicaText = parts.join(tecnicaConfig.separador || '. ')
+    } else {
+      // For alternative/single: use selected techniques
+      tecnicaText = selectedTechniques
+        .map(tech => template.conteudo.tecnica[tech])
+        .filter(Boolean)
+        .map(text => processTemplateText(text, processedValues))
+        .join(tecnicaConfig.separador || ' ')
+    }
 
     // Build sections array with ids for removal tracking
     const sections: { id: string; html: string; label: string }[] = []
@@ -495,8 +530,8 @@ export function TemplateVariablesModal({
 
         <ScrollArea className="flex-1 -mx-6 px-6 [&>[data-radix-scroll-area-viewport]]:scroll-smooth [&_[data-orientation=vertical]]:w-2 [&_[data-orientation=vertical]]:bg-muted/50 [&_[data-orientation=vertical]]:rounded-full [&_[data-orientation=vertical]_>_div]:bg-cyan-500/40 [&_[data-orientation=vertical]_>_div]:hover:bg-cyan-500/60 [&_[data-orientation=vertical]_>_div]:rounded-full">
           <div className="space-y-6 py-4">
-            {/* Technique Selection - Checkbox for multiple */}
-            {hasMultipleTechniques && (
+            {/* Technique Selection - based on config type */}
+            {hasMultipleTechniques && tecnicaConfig.tipo === 'alternativo' && (
               <div className="space-y-3">
                 <Label className="text-base font-semibold">TÉCNICA (selecione uma ou mais)</Label>
                 <div className="space-y-2">
@@ -519,6 +554,30 @@ export function TemplateVariablesModal({
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {/* Complementary techniques - show preview only, no checkboxes */}
+            {hasMultipleTechniques && tecnicaConfig.tipo === 'complementar' && (
+              <div className="space-y-3">
+                <Label className="text-base font-semibold">TÉCNICA</Label>
+                <div className="text-sm bg-muted/30 p-3 rounded-lg space-y-1 border border-border/50">
+                  {availableTechniques.map((tech) => (
+                    <div key={tech} className="text-muted-foreground">
+                      {tecnicaConfig.prefixo_label && (
+                        <span className="font-medium text-foreground">
+                          {tech.charAt(0).toUpperCase() + tech.slice(1).toLowerCase()}:
+                        </span>
+                      )}{' '}
+                      <span className="text-foreground/80">
+                        {template?.conteudo.tecnica[tech]}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Campos complementares são concatenados automaticamente
+                </p>
               </div>
             )}
 

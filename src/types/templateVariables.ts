@@ -28,6 +28,15 @@ export interface ConditionalLogic {
   derivar: Record<string, string | number | boolean>  // Derived variables
 }
 
+// Configuration for technique field behavior
+export interface TecnicaConfig {
+  tipo: 'alternativo' | 'complementar' | 'misto' | 'unico' | 'auto'
+  concatenar: boolean
+  separador?: string  // e.g., ". " for complementary
+  prefixo_label?: boolean  // true = "posição: texto" | false = just "texto"
+  ordem_exibicao?: string[]  // Order of keys in preview
+}
+
 export interface TemplateWithVariables {
   id: string
   titulo: string
@@ -43,6 +52,7 @@ export interface TemplateWithVariables {
   ativo: boolean
   variaveis?: TemplateVariable[]
   condicoes_logicas?: ConditionalLogic[]
+  tecnica_config?: TecnicaConfig  // Configuration for technique behavior
 }
 
 export interface TemplateVariableValues {
