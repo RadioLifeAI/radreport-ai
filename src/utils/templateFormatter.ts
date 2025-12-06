@@ -4,6 +4,17 @@
  */
 
 /**
+ * Normaliza quebras de linha literais (\n) para quebras reais
+ * Corrige templates com \n armazenado como texto literal no banco
+ */
+export function normalizeNewlines(texto: string): string {
+  if (!texto) return texto
+  return texto
+    .replace(/\\n\\n/g, '\n\n')  // \\n\\n escapado → quebra dupla real
+    .replace(/\\n/g, '\n')        // \\n escapado → quebra simples real
+}
+
+/**
  * Divide texto em sentenças baseado em pontos finais
  * Ex: "Fígado normal. Baço normal." → "<p>Fígado normal.</p><p>Baço normal.</p>"
  */
@@ -11,6 +22,9 @@ export function dividirEmSentencas(texto: string): string {
   if (!texto || !texto.trim()) {
     return '<p></p>'
   }
+  
+  // Normalizar \n literais para quebras reais
+  const textoNormalizado = normalizeNewlines(texto)
   
   // Se tem quebras de linha explícitas (\n), cada linha vira um parágrafo
   if (texto.includes('\n')) {
