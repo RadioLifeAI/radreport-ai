@@ -176,7 +176,7 @@ export function createEmptyPIRADSLesao(): PIRADSLesao {
   return {
     id: Math.random().toString(36).substring(2, 9),
     zona: 'pz',
-    setor: 'medio_posterolateral_direita',
+    setor: '',
     lado: 'direita',
     nivel: 'medio',
     medidas: [0, 0, 0],
@@ -187,6 +187,15 @@ export function createEmptyPIRADSLesao(): PIRADSLesao {
     invasaoSV: false,
     lesaoIndice: false,
   }
+}
+
+// Check if a PI-RADS lesion has required fields filled for classification
+export function isPIRADSLesaoComplete(lesao: PIRADSLesao): boolean {
+  return !!(
+    lesao.zona &&
+    lesao.setor &&
+    lesao.medidas.some(m => m > 0)
+  )
 }
 
 export function createEmptyPIRADSData(): PIRADSData {

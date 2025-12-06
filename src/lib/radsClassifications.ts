@@ -378,20 +378,31 @@ export const generateBIRADSImpression = (findings: BIRADSFindingData[], biradsCa
 }
 
 export const createEmptyBIRADSFinding = (): BIRADSFindingData => ({
-  ecogenicidade: 'hipoecogenico',
-  forma: 'oval',
-  margens: 'circunscrito',
-  eixo: 'paralela',
-  sombra: 'sem',
-  localizacao: '1h',
-  lado: 'direita',
-  medidas: [1.0, 1.0, 1.0],
-  distPele: 1.0,
-  distPapila: 1.0,
+  ecogenicidade: '',
+  forma: '',
+  margens: '',
+  eixo: '',
+  sombra: '',
+  localizacao: '',
+  lado: '',
+  medidas: [0, 0, 0],
+  distPele: 0,
+  distPapila: 0,
   temComparacao: false,
   dataExameAnterior: null,
   estadoNodulo: 'novo',
 })
+
+// Check if a BI-RADS USG finding has required fields filled
+export const isBIRADSFindingComplete = (finding: BIRADSFindingData): boolean => {
+  return !!(
+    finding.ecogenicidade &&
+    finding.forma &&
+    finding.margens &&
+    finding.eixo &&
+    finding.lado
+  )
+}
 
 // ==========================================
 // BI-RADS USG EXPANDED DATA STRUCTURES
@@ -988,6 +999,9 @@ export const ACR_TIRADS_GROWTH_CRITERIA = 'Crescimento significativo: aumento >2
 export const ACR_TIRADS_MAX_NODULES = 4
 
 export const getTIRADSLevel = (points: number): { level: number; category: string; risk: string } => {
+  // Return incomplete state if points is -1
+  if (points < 0) return { level: 0, category: 'Incompleto', risk: '-' }
+  
   // ACR 2020 final malignancy rates (Middleton WD, et al. Radiology. 2020)
   if (points === 0) return { level: 1, category: 'TR1 - Benigno', risk: '0,3%' }
   if (points === 2) return { level: 2, category: 'TR2 - Não suspeito', risk: '1,5%' }
@@ -1028,6 +1042,11 @@ const getTIRADOption = (category: keyof typeof tiradOptions, value: string, opti
 }
 
 export const calculateTIRADSPoints = (nodule: NoduleData, options?: RADSOptionsMap): number => {
+  // Return -1 if required fields are not filled (incomplete classification)
+  if (!nodule.composicao || !nodule.ecogenicidade) {
+    return -1
+  }
+  
   // ACR: Nódulos císticos ou espongiformes são automaticamente TR1 (0 pontos)
   // "Predominantly cystic or spongiform nodules are inherently benign"
   if (nodule.composicao === 'cistico' || nodule.composicao === 'espongiforme') {
@@ -1035,6 +1054,7 @@ export const calculateTIRADSPoints = (nodule: NoduleData, options?: RADSOptionsM
   }
   
   const getPoints = (category: keyof typeof tiradOptions, value: string): number => {
+    if (!value) return 0 // Empty values contribute 0 points
     const opt = getTIRADOption(category, value, options) as any
     // Handle both 'pontos' (from DB) and 'points' (from hardcoded)
     return opt?.pontos ?? opt?.points ?? 0
@@ -1082,14 +1102,25 @@ export const generateImpression = (noduleCount: number): string => {
 }
 
 export const createEmptyNodule = (): NoduleData => ({
-  composicao: 'solido',
-  ecogenicidade: 'hipoecogenico',
-  formato: 'paralelo',
-  margens: 'bem_definidas',
-  focos: 'nenhum',
-  localizacao: 'ld_med',
-  medidas: [1.0, 1.0, 1.0],
+  composicao: '',
+  ecogenicidade: '',
+  formato: '',
+  margens: '',
+  focos: '',
+  localizacao: '',
+  medidas: [0, 0, 0],
 })
+
+// Check if a nodule has required fields filled for classification
+export const isNoduleComplete = (nodule: NoduleData): boolean => {
+  return !!(
+    nodule.composicao &&
+    nodule.ecogenicidade &&
+    nodule.formato &&
+    nodule.margens &&
+    nodule.focos
+  )
+}
 
 // ============================================
 // BI-RADS MAMOGRAFIA (MG) Classification System
@@ -1829,16 +1860,26 @@ export const generateBIRADSMGLaudoCompletoHTML = (data: BIRADSMGData, biradsCate
 }
 
 export const createEmptyBIRADSMGNodulo = (): BIRADSMGNodulo => ({
-  densidade: 'igual',
-  forma: 'oval',
-  margens: 'circunscrito',
-  medidas: [1.0, 1.0, 1.0],
-  lado: 'direita',
-  localizacao: 'qsl',
+  densidade: '',
+  forma: '',
+  margens: '',
+  medidas: [0, 0, 0],
+  lado: '',
+  localizacao: '',
   temComparacao: false,
   dataExameAnterior: null,
   estadoNodulo: 'novo',
 })
+
+// Check if a BI-RADS MG nodule has required fields filled
+export const isBIRADSMGNoduloComplete = (nodulo: BIRADSMGNodulo): boolean => {
+  return !!(
+    nodulo.densidade &&
+    nodulo.forma &&
+    nodulo.margens &&
+    nodulo.lado
+  )
+}
 
 export const createEmptyBIRADSMGData = (): BIRADSMGData => ({
   indicacao: {

@@ -25,6 +25,7 @@ import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/componen
 import {
   NoduleData,
   createEmptyNodule,
+  isNoduleComplete,
   getTIRADSLevel,
   getTIRADSRecommendation,
   generateNoduleDescription,
@@ -143,16 +144,24 @@ export function TIRADSModal({ open, onOpenChange, editor }: TIRADSModalProps) {
 
   // Calculate summary for all nodules
   const nodulosSummary = nodulos.map((n, i) => {
+    const isComplete = isNoduleComplete(n)
     const points = calculatePoints(n)
     const tirads = getTIRADSLevel(points)
     const maxDim = Math.max(...n.medidas)
-    const recommendation = getTIRADSRecommendation(tirads.level, maxDim)
-    return { index: i, points, tirads, maxDim, recommendation }
+    const recommendation = isComplete ? getTIRADSRecommendation(tirads.level, maxDim) : 'Complete as seleções para ver a recomendação'
+    return { index: i, points, tirads, maxDim, recommendation, isComplete }
   })
 
-  // Get highest TI-RADS level among all nodules
+  // Check if any nodule is complete for enabling insert buttons
+  const hasCompleteNodule = nodulosSummary.some(n => n.isComplete)
+
+  // Get highest TI-RADS level among all complete nodules
   const highestTIRADS = useMemo(() => {
-    return nodulosSummary.reduce((max, n) => 
+    const completeNodules = nodulosSummary.filter(n => n.isComplete)
+    if (completeNodules.length === 0) {
+      return { level: 0, category: 'Incompleto', risk: '-' }
+    }
+    return completeNodules.reduce((max, n) => 
       n.tirads.level > max.level ? n.tirads : max, 
       { level: 1, category: 'Benigno', risk: '< 2%' }
     )
@@ -242,6 +251,7 @@ export function TIRADSModal({ open, onOpenChange, editor }: TIRADSModalProps) {
 
   // Get color classes based on TI-RADS level
   const getTIRADSColorClasses = (level: number) => {
+    if (level === 0) return 'bg-muted/50 text-muted-foreground border-muted-foreground/30'
     if (level <= 2) return 'bg-green-500/20 text-green-700 dark:text-green-400 border-green-500/30'
     if (level === 3) return 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border-yellow-500/30'
     if (level === 4) return 'bg-orange-500/20 text-orange-700 dark:text-orange-400 border-orange-500/30'
@@ -328,13 +338,13 @@ export function TIRADSModal({ open, onOpenChange, editor }: TIRADSModalProps) {
                       {/* Row 1: Composição, Ecogenicidade, Formato */}
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div className="space-y-1.5">
-                          <Label className="text-xs text-muted-foreground">Composição</Label>
+                          <Label className="text-xs text-muted-foreground">Composição *</Label>
                           <Select
-                            value={nodulo.composicao}
+                            value={nodulo.composicao || undefined}
                             onValueChange={(v) => updateNodulo(noduloIndex, 'composicao', v)}
                           >
                             <SelectTrigger className="h-9">
-                              <SelectValue />
+                              <SelectValue placeholder="Selecione..." />
                             </SelectTrigger>
                             <SelectContent>
                               {getOptions('composicao').map(opt => (
@@ -347,13 +357,13 @@ export function TIRADSModal({ open, onOpenChange, editor }: TIRADSModalProps) {
                         </div>
 
                         <div className="space-y-1.5">
-                          <Label className="text-xs text-muted-foreground">Ecogenicidade</Label>
+                          <Label className="text-xs text-muted-foreground">Ecogenicidade *</Label>
                           <Select
-                            value={nodulo.ecogenicidade}
+                            value={nodulo.ecogenicidade || undefined}
                             onValueChange={(v) => updateNodulo(noduloIndex, 'ecogenicidade', v)}
                           >
                             <SelectTrigger className="h-9">
-                              <SelectValue />
+                              <SelectValue placeholder="Selecione..." />
                             </SelectTrigger>
                             <SelectContent>
                               {getOptions('ecogenicidade').map(opt => (
@@ -366,13 +376,13 @@ export function TIRADSModal({ open, onOpenChange, editor }: TIRADSModalProps) {
                         </div>
 
                         <div className="space-y-1.5">
-                          <Label className="text-xs text-muted-foreground">Formato</Label>
+                          <Label className="text-xs text-muted-foreground">Formato *</Label>
                           <Select
-                            value={nodulo.formato}
+                            value={nodulo.formato || undefined}
                             onValueChange={(v) => updateNodulo(noduloIndex, 'formato', v)}
                           >
                             <SelectTrigger className="h-9">
-                              <SelectValue />
+                              <SelectValue placeholder="Selecione..." />
                             </SelectTrigger>
                             <SelectContent>
                               {getOptions('formato').map(opt => (
@@ -388,13 +398,13 @@ export function TIRADSModal({ open, onOpenChange, editor }: TIRADSModalProps) {
                       {/* Row 2: Margens, Focos, Localização */}
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div className="space-y-1.5">
-                          <Label className="text-xs text-muted-foreground">Margens</Label>
+                          <Label className="text-xs text-muted-foreground">Margens *</Label>
                           <Select
-                            value={nodulo.margens}
+                            value={nodulo.margens || undefined}
                             onValueChange={(v) => updateNodulo(noduloIndex, 'margens', v)}
                           >
                             <SelectTrigger className="h-9">
-                              <SelectValue />
+                              <SelectValue placeholder="Selecione..." />
                             </SelectTrigger>
                             <SelectContent>
                               {getOptions('margens').map(opt => (
@@ -407,13 +417,13 @@ export function TIRADSModal({ open, onOpenChange, editor }: TIRADSModalProps) {
                         </div>
 
                         <div className="space-y-1.5">
-                          <Label className="text-xs text-muted-foreground">Focos ecogênicos</Label>
+                          <Label className="text-xs text-muted-foreground">Focos ecogênicos *</Label>
                           <Select
-                            value={nodulo.focos}
+                            value={nodulo.focos || undefined}
                             onValueChange={(v) => updateNodulo(noduloIndex, 'focos', v)}
                           >
                             <SelectTrigger className="h-9">
-                              <SelectValue />
+                              <SelectValue placeholder="Selecione..." />
                             </SelectTrigger>
                             <SelectContent>
                               {getOptions('focos').map(opt => (
@@ -428,11 +438,11 @@ export function TIRADSModal({ open, onOpenChange, editor }: TIRADSModalProps) {
                         <div className="space-y-1.5">
                           <Label className="text-xs text-muted-foreground">Localização</Label>
                           <Select
-                            value={nodulo.localizacao}
+                            value={nodulo.localizacao || undefined}
                             onValueChange={(v) => updateNodulo(noduloIndex, 'localizacao', v)}
                           >
                             <SelectTrigger className="h-9">
-                              <SelectValue />
+                              <SelectValue placeholder="Selecione..." />
                             </SelectTrigger>
                             <SelectContent>
                               {getOptions('localizacao').map(opt => (
@@ -477,23 +487,32 @@ export function TIRADSModal({ open, onOpenChange, editor }: TIRADSModalProps) {
                       </div>
 
                       {/* TI-RADS Result inline badge */}
-                      <div className={`rounded-lg p-3 border ${getTIRADSColorClasses(nodulosSummary[noduloIndex].tirads.level)}`}>
-                        <div className="flex items-center gap-2 text-sm">
-                          <span className="font-bold">
-                            TI-RADS {nodulosSummary[noduloIndex].tirads.level}
-                          </span>
-                          <span className="opacity-80">
-                            ({nodulosSummary[noduloIndex].tirads.category})
-                          </span>
-                          <span className="text-xs bg-background/50 px-2 py-0.5 rounded">
-                            {nodulosSummary[noduloIndex].points} pontos
-                          </span>
+                      {nodulosSummary[noduloIndex].isComplete ? (
+                        <div className={`rounded-lg p-3 border ${getTIRADSColorClasses(nodulosSummary[noduloIndex].tirads.level)}`}>
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className="font-bold">
+                              TI-RADS {nodulosSummary[noduloIndex].tirads.level}
+                            </span>
+                            <span className="opacity-80">
+                              ({nodulosSummary[noduloIndex].tirads.category})
+                            </span>
+                            <span className="text-xs bg-background/50 px-2 py-0.5 rounded">
+                              {nodulosSummary[noduloIndex].points} pontos
+                            </span>
+                          </div>
+                          <div className="text-xs opacity-80 mt-1 flex items-start gap-1">
+                            <Info size={12} className="mt-0.5 shrink-0" />
+                            <span>{nodulosSummary[noduloIndex].recommendation}</span>
+                          </div>
                         </div>
-                        <div className="text-xs opacity-80 mt-1 flex items-start gap-1">
-                          <Info size={12} className="mt-0.5 shrink-0" />
-                          <span>{nodulosSummary[noduloIndex].recommendation}</span>
+                      ) : (
+                        <div className="rounded-lg p-3 border border-dashed border-muted-foreground/30 bg-muted/30">
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <AlertCircle size={14} />
+                            <span>Complete as seleções obrigatórias (*) para ver a classificação</span>
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
                   ))}
 
@@ -523,11 +542,18 @@ export function TIRADSModal({ open, onOpenChange, editor }: TIRADSModalProps) {
                   <ScrollArea className="flex-1">
                     <div className="p-4 space-y-4">
                       {/* TI-RADS Classification Card - HIGHLIGHTED */}
-                      <div className={`p-4 rounded-lg border-2 text-center ${getTIRADSColorClasses(highestTIRADS.level)}`}>
-                        <p className="text-3xl font-bold">TI-RADS {highestTIRADS.level}</p>
-                        <p className="text-sm mt-1 font-medium">{highestTIRADS.category}</p>
-                        <p className="text-xs mt-1 opacity-80">Risco de malignidade: {highestTIRADS.risk}</p>
-                      </div>
+                      {hasCompleteNodule ? (
+                        <div className={`p-4 rounded-lg border-2 text-center ${getTIRADSColorClasses(highestTIRADS.level)}`}>
+                          <p className="text-3xl font-bold">TI-RADS {highestTIRADS.level}</p>
+                          <p className="text-sm mt-1 font-medium">{highestTIRADS.category}</p>
+                          <p className="text-xs mt-1 opacity-80">Risco de malignidade: {highestTIRADS.risk}</p>
+                        </div>
+                      ) : (
+                        <div className="p-4 rounded-lg border-2 border-dashed border-muted-foreground/30 text-center bg-muted/30">
+                          <p className="text-lg font-medium text-muted-foreground">Classificação Pendente</p>
+                          <p className="text-xs mt-1 text-muted-foreground">Complete os campos obrigatórios (*) para ver o TI-RADS</p>
+                        </div>
+                      )}
 
                       {/* Progress Bar */}
                       <div className="space-y-2">
@@ -580,13 +606,24 @@ export function TIRADSModal({ open, onOpenChange, editor }: TIRADSModalProps) {
               <Button variant="outline" onClick={() => onOpenChange(false)}>
                 Cancelar
               </Button>
-              <Button variant="secondary" onClick={handleInsertImpressao}>
+              <Button 
+                variant="secondary" 
+                onClick={handleInsertImpressao}
+                disabled={!hasCompleteNodule}
+              >
                 Inserir Opinião
               </Button>
-              <Button variant="secondary" onClick={handleInsertAchados}>
+              <Button 
+                variant="secondary" 
+                onClick={handleInsertAchados}
+                disabled={!hasCompleteNodule}
+              >
                 Inserir Análise
               </Button>
-              <Button onClick={handleInsertLaudoCompleto}>
+              <Button 
+                onClick={handleInsertLaudoCompleto}
+                disabled={!hasCompleteNodule}
+              >
                 Inserir Laudo Completo
               </Button>
             </div>
