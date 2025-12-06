@@ -9,14 +9,12 @@ export type AppRole = 'admin' | 'moderator' | 'user';
 const MAX_RETRIES = 3;
 const INITIAL_RETRY_DELAY = 1000; // 1s
 const TIMEOUT_MS = 10000; // 10s
-const SUPER_ADMIN_EMAIL = 'radiolife.ai@gmail.com';
 
 interface UseAdminResult {
   isAdmin: boolean;
   isModerator: boolean;
   loading: boolean;
   error: string | null;
-  emergencyMode: boolean;
   retryCount: number;
   hasRole: (role: AppRole) => Promise<boolean>;
   retry: () => void;
@@ -24,11 +22,12 @@ interface UseAdminResult {
 
 /**
  * Hook seguro para verificação de permissões administrativas
- * Implementa 4 camadas de verificação com fallback:
+ * Implementa 3 camadas de verificação com fallback:
  * 1. RPC has_role (método principal)
  * 2. Retry com backoff exponencial
  * 3. Query direta em user_roles
- * 4. Super admin email (emergência)
+ * 
+ * Se todas falharem, admin deve acessar via Supabase Dashboard
  */
 export const useAdmin = (): UseAdminResult => {
   const { user, loading: authLoading } = useAuth();
@@ -36,7 +35,6 @@ export const useAdmin = (): UseAdminResult => {
   const [isModerator, setIsModerator] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [emergencyMode, setEmergencyMode] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
 
   // Delay com backoff exponencial
@@ -98,16 +96,9 @@ export const useAdmin = (): UseAdminResult => {
     }
   };
 
-  // Camada 4: Super admin email (emergência)
-  const checkSuperAdminEmail = (userEmail: string | undefined): boolean => {
-    if (!userEmail) return false;
-    return userEmail.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase();
-  };
-
   // Verificação multi-camada completa
-  const checkRoleWithFallback = async (userId: string, role: AppRole, userEmail?: string): Promise<{
+  const checkRoleWithFallback = async (userId: string, role: AppRole): Promise<{
     hasRole: boolean;
-    isEmergency: boolean;
     attempts: number;
   }> => {
     let attempts = 0;
@@ -116,34 +107,25 @@ export const useAdmin = (): UseAdminResult => {
     attempts++;
     const rpcResult = await checkRoleViaRPC(userId, role);
     if (rpcResult !== null) {
-      return { hasRole: rpcResult, isEmergency: false, attempts };
+      return { hasRole: rpcResult, attempts };
     }
 
     // Camada 3: Query direta
     attempts++;
     const directResult = await checkRoleViaDirect(userId, role);
     if (directResult !== null) {
-      return { hasRole: directResult, isEmergency: false, attempts };
+      return { hasRole: directResult, attempts };
     }
 
-    // Camada 4: Super admin email (apenas para role 'admin')
-    if (role === 'admin') {
-      attempts++;
-      const isSuperAdmin = checkSuperAdminEmail(userEmail);
-      if (isSuperAdmin) {
-        logger.warn('🚨 Modo emergência ativado - acesso via super admin email');
-        return { hasRole: true, isEmergency: true, attempts };
-      }
-    }
-
-    return { hasRole: false, isEmergency: false, attempts };
+    // Todas camadas falharam
+    return { hasRole: false, attempts };
   };
 
   // Função pública para verificar role (usada externamente)
   const hasRole = async (role: AppRole): Promise<boolean> => {
     if (!user?.id) return false;
     
-    const result = await checkRoleWithFallback(user.id, role, user.email);
+    const result = await checkRoleWithFallback(user.id, role);
     return result.hasRole;
   };
 
@@ -163,7 +145,6 @@ export const useAdmin = (): UseAdminResult => {
         setIsAdmin(false);
         setIsModerator(false);
         setLoading(false);
-        setEmergencyMode(false);
         return;
       }
 
@@ -173,42 +154,31 @@ export const useAdmin = (): UseAdminResult => {
       try {
         // Verificar admin e moderator em paralelo
         const [adminResult, moderatorResult] = await Promise.all([
-          checkRoleWithFallback(user.id, 'admin', user.email),
-          checkRoleWithFallback(user.id, 'moderator', user.email)
+          checkRoleWithFallback(user.id, 'admin'),
+          checkRoleWithFallback(user.id, 'moderator')
         ]);
 
         setIsAdmin(adminResult.hasRole);
         setIsModerator(moderatorResult.hasRole);
-        setEmergencyMode(adminResult.isEmergency || moderatorResult.isEmergency);
-
-        if (adminResult.isEmergency || moderatorResult.isEmergency) {
-          logger.warn('⚠️ Admin acessando em modo emergência - verificar conexão com banco');
-        }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido na verificação';
         setError(errorMessage);
         logger.error('Erro fatal na verificação de permissões:', err);
-        
-        // Último recurso: verificar super admin email
-        if (checkSuperAdminEmail(user.email)) {
-          logger.warn('🚨 Fallback final - super admin email detectado');
-          setIsAdmin(true);
-          setEmergencyMode(true);
-        }
+        setIsAdmin(false);
+        setIsModerator(false);
       } finally {
         setLoading(false);
       }
     };
 
     checkRoles();
-  }, [user?.id, user?.email, authLoading, retryCount]);
+  }, [user?.id, authLoading, retryCount]);
 
   return {
     isAdmin,
     isModerator,
     loading: loading || authLoading,
     error,
-    emergencyMode,
     retryCount,
     hasRole,
     retry

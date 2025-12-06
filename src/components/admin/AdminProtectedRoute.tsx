@@ -16,7 +16,7 @@ export const AdminProtectedRoute = ({
   children, 
   requiredRole = 'admin' 
 }: AdminProtectedRouteProps) => {
-  const { isAdmin, isModerator, loading, error, emergencyMode, retry } = useAdmin();
+  const { isAdmin, isModerator, loading, error, retry } = useAdmin();
   const location = useLocation();
   const [timedOut, setTimedOut] = useState(false);
 
@@ -87,33 +87,5 @@ export const AdminProtectedRoute = ({
     );
   }
 
-  return (
-    <>
-      {/* Banner de modo emergência */}
-      {emergencyMode && (
-        <Alert variant="destructive" className="fixed top-0 left-0 right-0 z-50 rounded-none border-x-0 border-t-0">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription className="flex items-center justify-between">
-            <span>
-              <strong>Modo Emergência:</strong> Acesso via fallback. Verifique a conexão com o banco de dados.
-            </span>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={retry}
-              className="ml-4 bg-background/20 hover:bg-background/40"
-            >
-              <RefreshCw className="h-3 w-3 mr-1" />
-              Reconectar
-            </Button>
-          </AlertDescription>
-        </Alert>
-      )}
-      
-      {/* Adiciona padding-top se banner visível */}
-      <div className={emergencyMode ? 'pt-14' : ''}>
-        {children}
-      </div>
-    </>
-  );
+  return <>{children}</>;
 };
