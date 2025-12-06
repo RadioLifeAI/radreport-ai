@@ -228,6 +228,12 @@ export default function TemplatesPage() {
     }
   };
 
+  // Sanitiza \n literal para quebra real (previne problemas de importação/edição)
+  const sanitizeNewlines = (text: string | undefined): string | undefined => {
+    if (!text) return text;
+    return text.replace(/\\n\\n/g, '\n\n').replace(/\\n/g, '\n');
+  };
+
   const handleSave = async () => {
     try {
       if (!formData.codigo || !formData.titulo || !formData.modalidade_codigo || !formData.achados || !formData.impressao) {
@@ -241,9 +247,9 @@ export default function TemplatesPage() {
         modalidade_codigo: formData.modalidade_codigo,
         regiao_codigo: formData.regiao_codigo || null,
         tecnica: formData.tecnica,
-        achados: formData.achados,
-        impressao: formData.impressao,
-        adicionais: formData.adicionais || null,
+        achados: sanitizeNewlines(formData.achados),
+        impressao: sanitizeNewlines(formData.impressao),
+        adicionais: sanitizeNewlines(formData.adicionais) || null,
         tags: formData.tags,
         ativo: formData.ativo,
         variaveis: formData.variaveis,
