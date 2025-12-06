@@ -11,6 +11,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Progress } from '@/components/ui/progress';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { AreaChart, Area, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { 
@@ -32,7 +35,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { format } from 'date-fns';
+import { format, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 // Types
@@ -78,14 +81,53 @@ interface ActivityLog {
   description: string;
 }
 
+interface DailyActivity {
+  day: string;
+  transactions: number;
+  users: number;
+}
+
+interface PlanDistribution {
+  name: string;
+  value: number;
+  color: string;
+}
+
+// Chart config
+const chartConfig = {
+  transactions: { label: 'Transações', color: 'hsl(var(--chart-1))' },
+  users: { label: 'Usuários', color: 'hsl(var(--chart-2))' },
+};
+
+const PLAN_COLORS: Record<string, string> = {
+  gratuito: '#94a3b8',
+  basico: '#3b82f6',
+  profissional: '#06b6d4',
+  premium: '#a855f7',
+};
+
 // ============= VISÃO GERAL TAB =============
 function OverviewTab() {
   const [metrics, setMetrics] = useState<UserMetrics | null>(null);
+  const [dailyActivity, setDailyActivity] = useState<DailyActivity[]>([]);
+  const [planDistribution, setPlanDistribution] = useState<PlanDistribution[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchMetrics();
+    fetchAllData();
   }, []);
+
+  const fetchAllData = async () => {
+    try {
+      await Promise.all([
+        fetchMetrics(),
+        fetchDailyActivity(),
+        fetchPlanDistribution()
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchMetrics = async () => {
     try {
@@ -94,7 +136,7 @@ function OverviewTab() {
         .from('profiles')
         .select('*', { count: 'exact', head: true });
 
-      // Active users (last 30 days) - based on ai_credits_ledger activity
+      // Active users (last 30 days)
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
       
@@ -128,25 +170,99 @@ function OverviewTab() {
       });
     } catch (error) {
       console.error('Error fetching metrics:', error);
-      toast.error('Erro ao carregar métricas');
-    } finally {
-      setLoading(false);
+    }
+  };
+
+  const fetchDailyActivity = async () => {
+    try {
+      const sevenDaysAgo = subDays(new Date(), 7);
+      
+      const { data } = await supabase
+        .from('ai_credits_ledger')
+        .select('created_at, user_id')
+        .gte('created_at', sevenDaysAgo.toISOString());
+
+      // Group by day
+      const dayMap = new Map<string, { transactions: number; users: Set<string> }>();
+      
+      // Initialize last 7 days
+      for (let i = 6; i >= 0; i--) {
+        const date = subDays(new Date(), i);
+        const dayKey = format(date, 'EEE', { locale: ptBR });
+        dayMap.set(dayKey, { transactions: 0, users: new Set() });
+      }
+
+      data?.forEach(item => {
+        const dayKey = format(new Date(item.created_at), 'EEE', { locale: ptBR });
+        const existing = dayMap.get(dayKey);
+        if (existing) {
+          existing.transactions++;
+          existing.users.add(item.user_id);
+        }
+      });
+
+      const chartData: DailyActivity[] = Array.from(dayMap.entries()).map(([day, data]) => ({
+        day: day.charAt(0).toUpperCase() + day.slice(1),
+        transactions: data.transactions,
+        users: data.users.size
+      }));
+
+      setDailyActivity(chartData);
+    } catch (error) {
+      console.error('Error fetching daily activity:', error);
+    }
+  };
+
+  const fetchPlanDistribution = async () => {
+    try {
+      const { data } = await supabase
+        .from('user_ai_balance')
+        .select('plan_type');
+
+      const planCounts: Record<string, number> = {
+        gratuito: 0,
+        basico: 0,
+        profissional: 0,
+        premium: 0
+      };
+
+      data?.forEach(item => {
+        const plan = item.plan_type || 'gratuito';
+        planCounts[plan] = (planCounts[plan] || 0) + 1;
+      });
+
+      const distribution: PlanDistribution[] = [
+        { name: 'Gratuito', value: planCounts.gratuito, color: PLAN_COLORS.gratuito },
+        { name: 'Básico', value: planCounts.basico, color: PLAN_COLORS.basico },
+        { name: 'Profissional', value: planCounts.profissional, color: PLAN_COLORS.profissional },
+        { name: 'Premium', value: planCounts.premium, color: PLAN_COLORS.premium },
+      ].filter(p => p.value > 0);
+
+      setPlanDistribution(distribution);
+    } catch (error) {
+      console.error('Error fetching plan distribution:', error);
     }
   };
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {[...Array(4)].map((_, i) => (
-          <Card key={i}>
-            <CardHeader className="pb-2">
-              <Skeleton className="h-4 w-24" />
-            </CardHeader>
-            <CardContent>
-              <Skeleton className="h-8 w-16" />
-            </CardContent>
-          </Card>
-        ))}
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="pb-2">
+                <Skeleton className="h-4 w-24" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-16" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <Card><CardContent className="pt-6"><Skeleton className="h-[200px]" /></CardContent></Card>
+          <Card><CardContent className="pt-6"><Skeleton className="h-[200px]" /></CardContent></Card>
+        </div>
       </div>
     );
   }
@@ -158,8 +274,13 @@ function OverviewTab() {
     { label: 'Assinantes Pagos', value: metrics?.paidSubscribers || 0, icon: CreditCard, color: 'text-purple-500' },
   ];
 
+  const conversionRate = metrics?.total ? (metrics.paidSubscribers / metrics.total) * 100 : 0;
+  const activityRate = metrics?.total ? (metrics.active30Days / metrics.total) * 100 : 0;
+  const retentionRate = metrics?.new7Days && metrics.active30Days ? Math.min(100, (metrics.new7Days / metrics.active30Days) * 100) : 0;
+
   return (
     <div className="space-y-6">
+      {/* Metric Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {metricCards.map((metric, i) => (
           <Card key={i} className="hover:shadow-md transition-shadow">
@@ -176,33 +297,130 @@ function OverviewTab() {
         ))}
       </div>
 
+      {/* Charts Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Activity Chart */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Activity className="h-4 w-4 text-cyan-500" />
+              Atividade dos Últimos 7 Dias
+            </CardTitle>
+            <CardDescription>Transações de créditos AI por dia</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={chartConfig} className="h-[200px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={dailyActivity} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorTransactions" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.4}/>
+                      <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis dataKey="day" tick={{ fontSize: 12 }} className="text-muted-foreground" />
+                  <YAxis tick={{ fontSize: 12 }} className="text-muted-foreground" />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Area 
+                    type="monotone" 
+                    dataKey="transactions" 
+                    stroke="hsl(var(--chart-1))" 
+                    strokeWidth={2}
+                    fill="url(#colorTransactions)" 
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+
+        {/* Plan Distribution Chart */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <CreditCard className="h-4 w-4 text-purple-500" />
+              Distribuição por Plano
+            </CardTitle>
+            <CardDescription>Usuários por tipo de assinatura</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-center gap-6">
+              <ChartContainer config={chartConfig} className="h-[180px] w-[180px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={planDistribution}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={50}
+                      outerRadius={80}
+                      paddingAngle={2}
+                      dataKey="value"
+                    >
+                      {planDistribution.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+              <div className="flex flex-col gap-2">
+                {planDistribution.map((plan, i) => (
+                  <div key={i} className="flex items-center gap-2 text-sm">
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: plan.color }} />
+                    <span className="text-muted-foreground">{plan.name}</span>
+                    <span className="font-medium">{plan.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Progress Bars */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Resumo do Sistema</CardTitle>
-          <CardDescription>Visão geral da base de usuários</CardDescription>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Conversão & Engajamento</CardTitle>
+          <CardDescription>Métricas de performance da plataforma</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-            <div className="p-3 rounded-lg bg-muted/50">
-              <p className="text-muted-foreground">Taxa de Conversão</p>
-              <p className="text-lg font-semibold">
-                {metrics?.total ? ((metrics.paidSubscribers / metrics.total) * 100).toFixed(1) : 0}%
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Conversion Rate */}
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Taxa de Conversão</span>
+                <span className="font-medium">{conversionRate.toFixed(1)}%</span>
+              </div>
+              <Progress value={conversionRate} className="h-2" />
+              <p className="text-xs text-muted-foreground">
+                {metrics?.paidSubscribers || 0} de {metrics?.total || 0} usuários pagos
               </p>
             </div>
-            <div className="p-3 rounded-lg bg-muted/50">
-              <p className="text-muted-foreground">Taxa de Atividade</p>
-              <p className="text-lg font-semibold">
-                {metrics?.total ? ((metrics.active30Days / metrics.total) * 100).toFixed(1) : 0}%
+
+            {/* Activity Rate */}
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Taxa de Atividade</span>
+                <span className="font-medium">{activityRate.toFixed(1)}%</span>
+              </div>
+              <Progress value={activityRate} className="h-2" />
+              <p className="text-xs text-muted-foreground">
+                {metrics?.active30Days || 0} ativos nos últimos 30 dias
               </p>
             </div>
-            <div className="p-3 rounded-lg bg-muted/50">
-              <p className="text-muted-foreground">Crescimento Semanal</p>
-              <p className="text-lg font-semibold text-green-500">+{metrics?.new7Days || 0}</p>
-            </div>
-            <div className="p-3 rounded-lg bg-muted/50">
-              <p className="text-muted-foreground">Usuários Gratuitos</p>
-              <p className="text-lg font-semibold">
-                {(metrics?.total || 0) - (metrics?.paidSubscribers || 0)}
+
+            {/* Retention */}
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Crescimento Semanal</span>
+                <span className="font-medium text-green-500">+{metrics?.new7Days || 0}</span>
+              </div>
+              <Progress value={retentionRate} className="h-2" />
+              <p className="text-xs text-muted-foreground">
+                Novos usuários nos últimos 7 dias
               </p>
             </div>
           </div>
