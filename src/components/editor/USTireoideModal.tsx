@@ -32,9 +32,9 @@ import {
   getTIRADSLevel, 
   getTIRADSRecommendation,
   generateNoduleDescription,
-  formatMeasurement 
+  formatMeasurement,
+  calculateTIRADSPoints
 } from '@/lib/radsClassifications'
-import { getTIRADSPoints } from '@/lib/radsOptionsProvider'
 
 interface USTireoideModalProps {
   open: boolean
@@ -286,14 +286,10 @@ const generateImpressao = (data: USTireoideData, tiradOptions: Record<string, RA
     }
   }
   
-  // Nódulos com TI-RADS
+  // Nódulos com TI-RADS - usa função centralizada que respeita regra ACR espongiforme/cistico = TR1
   if (data.temNodulos && data.nodulos.length > 0) {
     const nodulosComTIRADS = data.nodulos.map((n, i) => {
-      const points = getTIRADSPoints('composicao', n.composicao, tiradOptions || {}) +
-                     getTIRADSPoints('ecogenicidade', n.ecogenicidade, tiradOptions || {}) +
-                     getTIRADSPoints('formato', n.formato, tiradOptions || {}) +
-                     getTIRADSPoints('margens', n.margens, tiradOptions || {}) +
-                     getTIRADSPoints('focos', n.focos, tiradOptions || {})
+      const points = calculateTIRADSPoints(n, tiradOptions || {})
       const tirads = getTIRADSLevel(points)
       const maxDim = Math.max(...n.medidas)
       const rec = getTIRADSRecommendation(tirads.level, maxDim)
@@ -493,11 +489,8 @@ export function USTireoideModal({ open, onOpenChange, editor }: USTireoideModalP
     let maxCategory = 'Benigno'
     
     data.nodulos.forEach(nodulo => {
-      const points = getTIRADSPoints('composicao', nodulo.composicao, tiradOptions || {}) +
-                     getTIRADSPoints('ecogenicidade', nodulo.ecogenicidade, tiradOptions || {}) +
-                     getTIRADSPoints('formato', nodulo.formato, tiradOptions || {}) +
-                     getTIRADSPoints('margens', nodulo.margens, tiradOptions || {}) +
-                     getTIRADSPoints('focos', nodulo.focos, tiradOptions || {})
+      // Usa função centralizada que respeita regra ACR espongiforme/cistico = TR1
+      const points = calculateTIRADSPoints(nodulo, tiradOptions || {})
       const tirads = getTIRADSLevel(points)
       if (tirads.level > maxLevel) {
         maxLevel = tirads.level
@@ -876,11 +869,8 @@ export function USTireoideModal({ open, onOpenChange, editor }: USTireoideModalP
                 {data.temNodulos && (
                   <>
                     {data.nodulos.map((nodulo, index) => {
-                      const points = getTIRADSPoints('composicao', nodulo.composicao, tiradOptions || {}) +
-                                     getTIRADSPoints('ecogenicidade', nodulo.ecogenicidade, tiradOptions || {}) +
-                                     getTIRADSPoints('formato', nodulo.formato, tiradOptions || {}) +
-                                     getTIRADSPoints('margens', nodulo.margens, tiradOptions || {}) +
-                                     getTIRADSPoints('focos', nodulo.focos, tiradOptions || {})
+                      // Usa função centralizada que respeita regra ACR espongiforme/cistico = TR1
+                      const points = calculateTIRADSPoints(nodulo, tiradOptions || {})
                       const tirads = getTIRADSLevel(points)
                       
                       return (
