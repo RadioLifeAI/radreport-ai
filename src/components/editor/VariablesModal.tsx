@@ -18,10 +18,10 @@ import {
 import { FraseVariable, VariableValues } from '@/types/fraseVariables'
 import { useVariableProcessor } from '@/hooks/useVariableProcessor'
 import { splitIntoParagraphs, findAnatomicalLine, ParsedParagraph } from '@/utils/anatomicalMapping'
-import { ChevronDown, ChevronRight, MapPin, MousePointer, AlertCircle, Check, Plus, RefreshCw, TextCursorInput, ArrowUp, ArrowDown } from 'lucide-react'
+import { ChevronDown, ChevronRight, MapPin, MousePointer, AlertCircle, Check, Plus, RefreshCw, TextCursorInput, ArrowUp, ArrowDown, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-type InsertionMode = 'replace' | 'append' | 'above' | 'below'
+type InsertionMode = 'replace' | 'append' | 'above' | 'below' | 'remove'
 
 interface VariablesModalProps {
   open: boolean
@@ -325,7 +325,8 @@ export function VariablesModal({
                     "flex-1 px-2 py-1 rounded text-sm transition-all",
                     para.isHeader && "font-semibold text-foreground bg-muted/20 cursor-default",
                     !para.isHeader && "hover:bg-muted/30",
-                    isSelected && "bg-cyan-500/20 border-l-4 border-cyan-500 pl-3"
+                    isSelected && insertionMode !== 'remove' && "bg-cyan-500/20 border-l-4 border-cyan-500 pl-3",
+                    isSelected && insertionMode === 'remove' && "line-through opacity-50 bg-destructive/10 border-l-4 border-destructive/50 pl-3"
                   )}
                 >
                   {isSelected && previewContent ? (
@@ -386,6 +387,14 @@ export function VariablesModal({
                         <ArrowDown className="h-3.5 w-3.5 text-muted-foreground" />
                         Inserir abaixo
                       </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem 
+                        onClick={() => handleSelectLine(idx, 'remove')}
+                        className="gap-2 text-xs text-destructive/70"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        Remover linha
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 )}
@@ -420,6 +429,7 @@ export function VariablesModal({
       case 'append': return 'Ao final'
       case 'above': return 'Acima'
       case 'below': return 'Abaixo'
+      case 'remove': return 'Remover'
       default: return null
     }
   }

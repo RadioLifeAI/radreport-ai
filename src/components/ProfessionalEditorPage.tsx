@@ -545,7 +545,7 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
     processedTexto: string, 
     processedConclusao?: string,
     targetLineIndex?: number,
-    insertionMode?: 'replace' | 'append' | 'above' | 'below'
+    insertionMode?: 'replace' | 'append' | 'above' | 'below' | 'remove'
   ) => {
     if (!editorInstance) return
     
@@ -586,6 +586,9 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
               case 'below':
                 resultParts.push(match)
                 resultParts.push(wrapInParagraph(processedTexto))
+                break
+              case 'remove':
+                // Não adiciona nada - efetivamente remove a linha
                 break
             }
           } else {
