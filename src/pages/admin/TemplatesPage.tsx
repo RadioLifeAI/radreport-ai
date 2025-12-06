@@ -18,6 +18,14 @@ import {
 } from 'lucide-react';
 import { Json } from '@/integrations/supabase/types';
 
+interface TecnicaConfig {
+  tipo: 'alternativo' | 'complementar' | 'misto' | 'unico' | 'auto';
+  concatenar: boolean;
+  separador?: string;
+  prefixo_label?: boolean;
+  ordem_exibicao?: string[];
+}
+
 interface SystemTemplate {
   id: string;
   codigo: string;
@@ -34,10 +42,26 @@ interface SystemTemplate {
   variaveis?: Json;
   condicoes_logicas?: Json;
   categoria?: string;
+  tecnica_config?: Json;
   version?: number;
   created_at?: string;
   updated_at?: string;
 }
+
+// Helper to parse tecnica_config from Json
+const parseTecnicaConfig = (config: Json | undefined): TecnicaConfig => {
+  if (!config || typeof config !== 'object' || Array.isArray(config)) {
+    return { tipo: 'auto', concatenar: true };
+  }
+  const c = config as Record<string, unknown>;
+  return {
+    tipo: (c.tipo as TecnicaConfig['tipo']) || 'auto',
+    concatenar: c.concatenar !== false,
+    separador: typeof c.separador === 'string' ? c.separador : '. ',
+    prefixo_label: c.prefixo_label === true,
+    ordem_exibicao: Array.isArray(c.ordem_exibicao) ? c.ordem_exibicao : undefined
+  };
+};
 
 interface Modalidade {
   id: string;
@@ -84,6 +108,7 @@ export default function TemplatesPage() {
     condicoes_logicas: [],
     categoria: 'normal'
   });
+  const [tecnicaConfigForm, setTecnicaConfigForm] = useState<TecnicaConfig>({ tipo: 'auto', concatenar: true });
   const [formTab, setFormTab] = useState('basico');
 
   useEffect(() => {
@@ -136,6 +161,7 @@ export default function TemplatesPage() {
       variaveis: template.variaveis || [],
       condicoes_logicas: template.condicoes_logicas || []
     });
+    setTecnicaConfigForm(parseTecnicaConfig(template.tecnica_config));
     setFormTab('basico');
     setEditModalOpen(true);
   };
@@ -157,6 +183,7 @@ export default function TemplatesPage() {
       condicoes_logicas: [],
       categoria: 'normal'
     });
+    setTecnicaConfigForm({ tipo: 'auto', concatenar: true });
     setFormTab('basico');
     setEditModalOpen(true);
   };
@@ -186,7 +213,8 @@ export default function TemplatesPage() {
         ativo: template.ativo,
         variaveis: template.variaveis,
         condicoes_logicas: template.condicoes_logicas,
-        categoria: template.categoria
+        categoria: template.categoria,
+        tecnica_config: template.tecnica_config
       };
 
       const { error } = await supabase.from('system_templates').insert(newTemplate);
@@ -219,7 +247,8 @@ export default function TemplatesPage() {
         ativo: formData.ativo,
         variaveis: formData.variaveis,
         condicoes_logicas: formData.condicoes_logicas,
-        categoria: formData.categoria || 'normal'
+        categoria: formData.categoria || 'normal',
+        tecnica_config: tecnicaConfigForm as unknown as Json
       };
 
       if (selectedTemplate) {
@@ -742,6 +771,111 @@ export default function TemplatesPage() {
                       checked={formData.ativo ?? true}
                       onCheckedChange={(v) => setFormData({ ...formData, ativo: v })}
                     />
+                  </div>
+
+                  {/* Configuração de Técnica */}
+                  <div className="p-4 bg-muted/30 rounded-lg space-y-4">
+                    <div>
+                      <Label className="text-base font-semibold">Configuração de Técnica</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Define como as opções de técnica são apresentadas no modal de variáveis
+                      </p>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      {/* Tipo de Técnica */}
+                      <div className="space-y-2">
+                        <Label>Tipo de Apresentação</Label>
+                        <Select 
+                          value={tecnicaConfigForm.tipo}
+                          onValueChange={(v) => setTecnicaConfigForm({
+                            ...tecnicaConfigForm, 
+                            tipo: v as TecnicaConfig['tipo']
+                          })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="auto">🔄 Auto (detectar)</SelectItem>
+                            <SelectItem value="alternativo">☑️ Alternativo (checkboxes)</SelectItem>
+                            <SelectItem value="complementar">📝 Complementar (todos concatenados)</SelectItem>
+                            <SelectItem value="unico">1️⃣ Único (sem seleção)</SelectItem>
+                            <SelectItem value="misto">🔀 Misto (info + opções)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <p className="text-xs text-muted-foreground">
+                          Alternativo: usuário escolhe uma opção. Complementar: todas as partes são concatenadas.
+                        </p>
+                      </div>
+                      
+                      {/* Separador */}
+                      <div className="space-y-2">
+                        <Label>Separador</Label>
+                        <Input 
+                          value={tecnicaConfigForm.separador ?? '. '}
+                          onChange={(e) => setTecnicaConfigForm({
+                            ...tecnicaConfigForm,
+                            separador: e.target.value
+                          })}
+                          placeholder=". "
+                          className="font-mono"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Texto usado entre partes concatenadas. Ex: ". " ou " | "
+                        </p>
+                      </div>
+                      
+                      {/* Concatenar */}
+                      <div className="flex items-center gap-3 p-3 bg-background rounded-md border">
+                        <Switch 
+                          checked={tecnicaConfigForm.concatenar}
+                          onCheckedChange={(v) => setTecnicaConfigForm({
+                            ...tecnicaConfigForm,
+                            concatenar: v
+                          })}
+                        />
+                        <div>
+                          <Label className="cursor-pointer">Concatenar seleções</Label>
+                          <p className="text-xs text-muted-foreground">Une múltiplas técnicas selecionadas</p>
+                        </div>
+                      </div>
+                      
+                      {/* Prefixo Label */}
+                      <div className="flex items-center gap-3 p-3 bg-background rounded-md border">
+                        <Switch 
+                          checked={tecnicaConfigForm.prefixo_label ?? false}
+                          onCheckedChange={(v) => setTecnicaConfigForm({
+                            ...tecnicaConfigForm,
+                            prefixo_label: v
+                          })}
+                        />
+                        <div>
+                          <Label className="cursor-pointer">Mostrar prefixo</Label>
+                          <p className="text-xs text-muted-foreground">Ex: "Posição: ortostática"</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Preview da configuração atual */}
+                    {tecnicaConfigForm.tipo !== 'auto' && (
+                      <div className="flex gap-2 pt-2 border-t border-border/50">
+                        <Badge variant="outline" className="text-xs">
+                          {tecnicaConfigForm.tipo}
+                        </Badge>
+                        {tecnicaConfigForm.concatenar && (
+                          <Badge variant="secondary" className="text-xs">Concatena</Badge>
+                        )}
+                        {tecnicaConfigForm.prefixo_label && (
+                          <Badge variant="secondary" className="text-xs">Com prefixo</Badge>
+                        )}
+                        {tecnicaConfigForm.separador && tecnicaConfigForm.separador !== '. ' && (
+                          <Badge variant="secondary" className="text-xs font-mono">
+                            sep: "{tecnicaConfigForm.separador}"
+                          </Badge>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   {selectedTemplate && (
