@@ -2420,6 +2420,7 @@ export type Database = {
           regiao_codigo: string
           tags: string[] | null
           tecnica: Json
+          tecnica_config: Json | null
           titulo: string
           updated_at: string | null
           variaveis: Json | null
@@ -2441,6 +2442,7 @@ export type Database = {
           regiao_codigo: string
           tags?: string[] | null
           tecnica: Json
+          tecnica_config?: Json | null
           titulo: string
           updated_at?: string | null
           variaveis?: Json | null
@@ -2462,6 +2464,7 @@ export type Database = {
           regiao_codigo?: string
           tags?: string[] | null
           tecnica?: Json
+          tecnica_config?: Json | null
           titulo?: string
           updated_at?: string | null
           variaveis?: Json | null

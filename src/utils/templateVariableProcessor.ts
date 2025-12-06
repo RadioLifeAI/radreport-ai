@@ -1,7 +1,72 @@
 // Template variable processing utilities
 // Handles extraction and substitution of {{variable}} placeholders in templates
 
-import { TemplateVariable, TemplateVariableValues, TemplateWithVariables, ConditionalLogic, VolumeMeasurement } from '@/types/templateVariables'
+import { TemplateVariable, TemplateVariableValues, TemplateWithVariables, ConditionalLogic, VolumeMeasurement, TecnicaConfig } from '@/types/templateVariables'
+
+// Keys that indicate alternative options (choose one or multiple)
+const ALTERNATIVE_TECHNIQUE_KEYS = [
+  'EV', 'SEM', 'COM', 'Primovist', 'TOMOSSINTESE', 'CONVENCIONAL',
+  'Metodologia COM', 'Metodologia SEM', 'Técnica EV', 'Técnica SEM',
+  'EV_VO', 'arterial', 'venoso', 'tardio', 'COM_CONTRASTE', 'SEM_CONTRASTE'
+]
+
+// Keys that indicate complementary fields (all should be concatenated)
+const COMPLEMENTARY_TECHNIQUE_KEYS = [
+  'posição', 'projeção', 'técnica', 'método', 'metodo', 'incidência', 'incidencias',
+  'Posição', 'Projeção', 'Técnica', 'Método', 'Incidência', 'Incidências'
+]
+
+/**
+ * Detect the type of technique structure based on keys
+ * Returns a TecnicaConfig object with detected settings
+ */
+export function getTechniquePattern(tecnica: Record<string, string>): TecnicaConfig {
+  const keys = Object.keys(tecnica)
+  
+  // Single key = no selection needed
+  if (keys.length <= 1) {
+    return { tipo: 'unico', concatenar: false }
+  }
+  
+  // Check if any key matches alternative patterns (contrast, etc.)
+  const hasAlternativeKeys = keys.some(k => 
+    ALTERNATIVE_TECHNIQUE_KEYS.some(ak => 
+      k.toLowerCase() === ak.toLowerCase() || k.includes(ak)
+    )
+  )
+  
+  // Check if all keys match complementary patterns
+  const allComplementary = keys.every(k => 
+    COMPLEMENTARY_TECHNIQUE_KEYS.some(ck => 
+      k.toLowerCase() === ck.toLowerCase()
+    )
+  )
+  
+  if (allComplementary) {
+    return {
+      tipo: 'complementar',
+      concatenar: true,
+      separador: '. ',
+      prefixo_label: true,
+      ordem_exibicao: keys
+    }
+  }
+  
+  if (hasAlternativeKeys) {
+    return {
+      tipo: 'alternativo',
+      concatenar: false,
+      separador: ' '
+    }
+  }
+  
+  // Default to alternative for unknown patterns
+  return {
+    tipo: 'alternativo',
+    concatenar: false,
+    separador: ' '
+  }
+}
 
 /**
  * Extract variable names from text with {{variable}} placeholders
