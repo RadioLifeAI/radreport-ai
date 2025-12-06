@@ -998,41 +998,41 @@ export function interpretarEspessuraEndometrial(espessura: number, statusMenopau
 // Default empty data structure
 export function createEmptyORADSData(): ORADSUSData {
   return {
-    statusMenopausal: 'pre',
+    statusMenopausal: '' as any, // Empty for placeholder
     utero: {
-      posicao: 'anteversoflexao',
-      forma: 'regular',
-      contornos: 'regulares',
-      simetria: 'simetrico',
-      ecotextura: 'homogenea',
-      zonaJuncional: 'regular',
+      posicao: '' as any,
+      forma: '' as any,
+      contornos: '' as any,
+      simetria: '' as any,
+      ecotextura: '' as any,
+      zonaJuncional: '' as any,
       mx: 0,
       my: 0,
       mz: 0,
       nodulos: []
     },
     endometrio: {
-      aspecto: 'uniforme',
-      linhaMedia: 'linear',
-      juncao: 'regular',
+      aspecto: '' as any,
+      linhaMedia: '' as any,
+      juncao: '' as any,
       espessura: 0
     },
     ovarioDireito: {
       presente: true,
-      localizacao: 'situação parauterina',
+      localizacao: '',
       mx: 0,
       my: 0,
       mz: 0,
-      ecogenicidade: 'habitual',
+      ecogenicidade: '',
       lesoes: []
     },
     ovarioEsquerdo: {
       presente: true,
-      localizacao: 'situação parauterina',
+      localizacao: '',
       mx: 0,
       my: 0,
       mz: 0,
-      ecogenicidade: 'habitual',
+      ecogenicidade: '',
       lesoes: []
     },
     liquidoLivre: {

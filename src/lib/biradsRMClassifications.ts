@@ -86,14 +86,14 @@ export interface BIRADSRMData {
 // ==========================================
 
 export const createEmptyBIRADSRMMassa = (): BIRADSRMMassa => ({
-  forma: 'oval',
-  margens: 'circunscrito',
-  realceInterno: 'homogeneo',
-  localizacao: 'qse_10h',
-  lado: 'direita',
-  medidas: [1.0, 1.0, 1.0],
-  cineticaInicial: 'medio',
-  cineticaTardia: 'tipo_2',
+  forma: '',
+  margens: '',
+  realceInterno: '',
+  localizacao: '',
+  lado: '' as 'direita' | 'esquerda',
+  medidas: [0, 0, 0],
+  cineticaInicial: '',
+  cineticaTardia: '',
   temComparacao: false,
   dataExameAnterior: null,
   estadoMassa: 'novo',
@@ -101,19 +101,19 @@ export const createEmptyBIRADSRMMassa = (): BIRADSRMMassa => ({
 
 export const createEmptyBIRADSRMNME = (): BIRADSRMNME => ({
   presente: false,
-  distribuicao: 'focal',
-  padraoInterno: 'homogeneo',
-  localizacao: 'qse_10h',
-  lado: 'direita',
-  extensao: 1.0,
-  cineticaInicial: 'medio',
-  cineticaTardia: 'tipo_2',
+  distribuicao: '',
+  padraoInterno: '',
+  localizacao: '',
+  lado: '' as 'direita' | 'esquerda',
+  extensao: 0,
+  cineticaInicial: '',
+  cineticaTardia: '',
 })
 
 export const createEmptyBIRADSRMData = (): BIRADSRMData => ({
-  indicacao: 'rastreamento',
-  composicaoParenquima: 'acr_c',
-  bpe: 'minimo',
+  indicacao: '',
+  composicaoParenquima: '',
+  bpe: '',
   campoMagnetico: '1.5T',
   bobinaDedicada: true,
   contrastado: true,
@@ -128,7 +128,7 @@ export const createEmptyBIRADSRMData = (): BIRADSRMData => ({
     implanteRoturaIntra: false,
     implanteRoturaExtra: false,
   },
-  estudoComparativo: 'primeiro_exame',
+  estudoComparativo: '',
 })
 
 // ==========================================

@@ -1883,7 +1883,7 @@ export const isBIRADSMGNoduloComplete = (nodulo: BIRADSMGNodulo): boolean => {
 
 export const createEmptyBIRADSMGData = (): BIRADSMGData => ({
   indicacao: {
-    tipo: 'rastreamento',
+    tipo: '' as 'rastreamento' | 'diagnostica',
     historiaFamiliar: false,
     antecedentes: {
       neoplasiaCirurgiaConservadora: null,
@@ -1891,17 +1891,17 @@ export const createEmptyBIRADSMGData = (): BIRADSMGData => ({
       mamoplastia: false,
     },
   },
-  pele: 'normal',
-  parenquima: 'fibroglandulares',
+  pele: '' as 'normal' | 'alterada',
+  parenquima: '',
   distorcaoArquitetural: { presente: false },
   assimetria: { presente: false },
   nodulos: [],
   calcificacoes: { presente: false },
   linfonodomegalias: { presente: false },
   linfonodoIntramamario: { presente: false },
-  prolongamentosAxilares: 'normal',
+  prolongamentosAxilares: '' as 'normal' | 'alterado',
   estudoComparativo: {
-    tipo: 'sem_alteracoes',
+    tipo: '' as 'sem_alteracoes' | 'primeira' | 'nao_disponivel' | 'diferencas_tecnicas' | 'tamanho_reduzido' | 'incompleto',
   },
   notas: {
     densaMamasUS: false,
@@ -1909,8 +1909,8 @@ export const createEmptyBIRADSMGData = (): BIRADSMGData => ({
   },
   recomendacaoManual: {
     ativo: false,
-    categoria: '2',
-    lado: 'direita',
-    mesesControle: 6,
+    categoria: '',
+    lado: '' as 'direita' | 'esquerda' | 'bilateral',
+    mesesControle: 6, // Keep valid default for type constraint
   },
 })
