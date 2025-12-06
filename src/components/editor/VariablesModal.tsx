@@ -1,11 +1,11 @@
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { cn } from '@/lib/utils'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import { FraseVariable, VariableValues } from '@/types/fraseVariables'
 import { useVariableProcessor } from '@/hooks/useVariableProcessor'
 
@@ -51,12 +51,9 @@ export function VariablesModal({
     return processText(texto, values)
   }, [texto, values, processText])
 
-  const conclusaoPreview = useMemo(() => {
-    return conclusao ? processText(conclusao, values) : null
-  }, [conclusao, values, processText])
-
-  const handleValueChange = useCallback((nome: string, value: string | number | boolean) => {
+  const handleValueChange = (nome: string, value: string | number | boolean) => {
     setValues(prev => ({ ...prev, [nome]: value }))
+    // Clear error for this field
     if (errors[nome]) {
       setErrors(prev => {
         const newErrors = { ...prev }
@@ -64,7 +61,7 @@ export function VariablesModal({
         return newErrors
       })
     }
-  }, [errors])
+  }
 
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {}
@@ -73,7 +70,7 @@ export function VariablesModal({
       if (v.obrigatorio) {
         const value = values[v.nome]
         if (value === undefined || value === null || value === '') {
-          newErrors[v.nome] = 'Obrigatório'
+          newErrors[v.nome] = 'Campo obrigatório'
         }
       }
     })
@@ -84,77 +81,49 @@ export function VariablesModal({
 
   const handleSubmit = () => {
     if (!validate()) return
+
     const processedTexto = processText(texto, values)
     const processedConclusao = conclusao ? processText(conclusao, values) : undefined
+
     onSubmit(processedTexto, processedConclusao)
     onOpenChange(false)
   }
 
-  // Count filled/total for progress
-  const filledCount = useMemo(() => {
-    return variaveis.filter(v => {
-      const val = values[v.nome]
-      if (v.tipo === 'boolean') return true
-      return val !== undefined && val !== null && val !== ''
-    }).length
-  }, [variaveis, values])
-
-  const getFieldStatus = (variable: FraseVariable): 'filled' | 'pending' | 'optional' => {
-    const value = values[variable.nome]
-    const isEmpty = value === undefined || value === null || value === ''
-    
-    if (variable.tipo === 'boolean') return 'filled'
-    if (!isEmpty) return 'filled'
-    if (variable.obrigatorio) return 'pending'
-    return 'optional'
-  }
-
-  const renderCompactField = (variable: FraseVariable) => {
+  const renderField = (variable: FraseVariable) => {
     const value = values[variable.nome]
     const error = errors[variable.nome]
-    const status = getFieldStatus(variable)
-
-    const statusIndicator = (
-      <span className={cn(
-        "text-[10px] leading-none shrink-0",
-        status === 'filled' && "text-emerald-500",
-        status === 'pending' && "text-amber-500",
-        status === 'optional' && "text-muted-foreground/50"
-      )}>
-        {status === 'filled' ? '●' : status === 'pending' ? '○' : '·'}
-      </span>
-    )
-
-    const labelText = variable.descricao || variable.nome.replace(/_/g, ' ')
 
     switch (variable.tipo) {
       case 'texto':
         return (
-          <div key={variable.nome} className="flex items-center gap-2 py-0.5">
-            {statusIndicator}
-            <Label htmlFor={variable.nome} className="text-[11px] text-muted-foreground min-w-[80px] max-w-[100px] truncate">
-              {labelText}
+          <div key={variable.nome} className="space-y-2">
+            <Label htmlFor={variable.nome}>
+              {variable.descricao || variable.nome}
+              {variable.obrigatorio && <span className="text-destructive ml-1">*</span>}
             </Label>
             <Input
               id={variable.nome}
               value={value?.toString() || ''}
               onChange={(e) => handleValueChange(variable.nome, e.target.value)}
-              placeholder={variable.valor_padrao?.toString() || '...'}
-              className={cn(
-                "h-6 text-[11px] flex-1 px-2",
-                error && 'border-destructive'
-              )}
+              placeholder={variable.valor_padrao?.toString() || ''}
+              className={error ? 'border-destructive' : ''}
             />
+            {error && <p className="text-xs text-destructive">{error}</p>}
           </div>
         )
 
       case 'numero':
         return (
-          <div key={variable.nome} className="flex items-center gap-2 py-0.5">
-            {statusIndicator}
-            <Label htmlFor={variable.nome} className="text-[11px] text-muted-foreground min-w-[80px] max-w-[100px] truncate">
-              {labelText}
-              {variable.unidade && <span className="ml-0.5 opacity-60">({variable.unidade})</span>}
+          <div key={variable.nome} className="space-y-2">
+            <Label htmlFor={variable.nome}>
+              {variable.descricao || variable.nome}
+              {variable.unidade && <span className="text-muted-foreground ml-1">({variable.unidade})</span>}
+              {variable.obrigatorio && <span className="text-destructive ml-1">*</span>}
+              {(variable.minimo !== undefined || variable.maximo !== undefined) && (
+                <span className="text-xs text-muted-foreground ml-2">
+                  [{variable.minimo ?? '...'} - {variable.maximo ?? '...'}]
+                </span>
+              )}
             </Label>
             <Input
               id={variable.nome}
@@ -165,51 +134,48 @@ export function VariablesModal({
               value={value?.toString() || ''}
               onChange={(e) => handleValueChange(variable.nome, parseFloat(e.target.value) || 0)}
               placeholder={variable.valor_padrao?.toString() || '0'}
-              className={cn(
-                "h-6 text-[11px] w-16 px-2",
-                error && 'border-destructive'
-              )}
+              className={error ? 'border-destructive' : ''}
             />
+            {error && <p className="text-xs text-destructive">{error}</p>}
           </div>
         )
 
       case 'select':
         return (
-          <div key={variable.nome} className="flex items-center gap-2 py-0.5">
-            {statusIndicator}
-            <Label htmlFor={variable.nome} className="text-[11px] text-muted-foreground min-w-[80px] max-w-[100px] truncate">
-              {labelText}
+          <div key={variable.nome} className="space-y-2">
+            <Label htmlFor={variable.nome}>
+              {variable.descricao || variable.nome}
+              {variable.obrigatorio && <span className="text-destructive ml-1">*</span>}
             </Label>
             <Select
               value={value?.toString() || ''}
               onValueChange={(val) => handleValueChange(variable.nome, val)}
             >
-              <SelectTrigger className={cn("h-6 text-[11px] flex-1 px-2", error && 'border-destructive')}>
-                <SelectValue placeholder="Selecione..." />
+              <SelectTrigger className={error ? 'border-destructive' : ''}>
+                <SelectValue placeholder="Selecione uma opção" />
               </SelectTrigger>
               <SelectContent>
                 {variable.opcoes?.map((opcao) => (
-                  <SelectItem key={opcao} value={opcao} className="text-[11px]">
+                  <SelectItem key={opcao} value={opcao}>
                     {opcao}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            {error && <p className="text-xs text-destructive">{error}</p>}
           </div>
         )
 
       case 'boolean':
         return (
-          <div key={variable.nome} className="flex items-center gap-2 py-0.5">
-            {statusIndicator}
-            <Label htmlFor={variable.nome} className="text-[11px] text-muted-foreground flex-1 truncate">
-              {labelText}
+          <div key={variable.nome} className="flex items-center justify-between space-y-2">
+            <Label htmlFor={variable.nome}>
+              {variable.descricao || variable.nome}
             </Label>
             <Switch
               id={variable.nome}
               checked={!!value}
               onCheckedChange={(checked) => handleValueChange(variable.nome, checked)}
-              className="scale-[0.65]"
             />
           </div>
         )
@@ -221,80 +187,33 @@ export function VariablesModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent 
-        className="max-w-3xl h-[80vh] flex flex-col p-0 gap-0"
-        onPointerDownOutside={(e) => e.preventDefault()}
-        onInteractOutside={(e) => e.preventDefault()}
-      >
-        {/* Header */}
-        <DialogHeader className="px-3 py-2 border-b shrink-0">
-          <div className="flex items-center justify-between gap-3">
-            <DialogTitle className="text-xs font-medium truncate">{codigo}</DialogTitle>
-            <div className="flex items-center gap-2 shrink-0">
-              <span className="text-[10px] text-muted-foreground">
-                {filledCount}/{variaveis.length}
-              </span>
-              <div className="w-12 h-1 bg-muted rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-emerald-500 transition-all duration-300"
-                  style={{ width: `${(filledCount / variaveis.length) * 100}%` }}
-                />
-              </div>
-            </div>
-          </div>
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
+        <DialogHeader>
+          <DialogTitle>Preencher Variáveis</DialogTitle>
+          <p className="text-sm text-muted-foreground">{codigo}</p>
         </DialogHeader>
 
-        {/* Main Content - Two columns */}
-        <div className="flex-1 flex min-h-0">
-          {/* Variables Panel - Compact, scrollable */}
-          <div className="w-[240px] border-r flex flex-col shrink-0">
-            <div className="px-2 py-1.5 border-b bg-muted/30">
-              <span className="text-[9px] font-medium uppercase tracking-wide text-muted-foreground">
-                Variáveis
-              </span>
-            </div>
-            <div className="flex-1 overflow-y-auto scrollbar-thin p-2 space-y-0.5">
-              {variaveis.map(renderCompactField)}
-            </div>
-          </div>
+        <ScrollArea className="flex-1 -mx-6 px-6">
+          <div className="space-y-4 py-4">
+            {variaveis.map(renderField)}
 
-          {/* Preview Panel - Primary, always visible */}
-          <div className="flex-1 flex flex-col min-w-0">
-            <div className="px-3 py-1.5 border-b bg-muted/30">
-              <span className="text-[9px] font-medium uppercase tracking-wide text-muted-foreground">
-                Preview
-              </span>
-            </div>
-            <div className="flex-1 overflow-y-auto scrollbar-thin p-3">
-              <div className="space-y-3">
-                {/* Texto Preview */}
-                <div>
-                  <div className="text-[10px] font-medium text-muted-foreground uppercase mb-1">Texto</div>
-                  <div className="text-sm leading-relaxed whitespace-pre-wrap bg-muted/20 rounded p-2 border">
-                    {preview || <span className="text-muted-foreground italic">Preencha as variáveis...</span>}
-                  </div>
+            {/* Preview Section */}
+            {preview && (
+              <div className="mt-6 space-y-2">
+                <Label>Preview:</Label>
+                <div className="p-3 bg-muted/50 rounded-md text-sm">
+                  {preview}
                 </div>
-
-                {/* Conclusão Preview */}
-                {conclusao && (
-                  <div>
-                    <div className="text-[10px] font-medium text-muted-foreground uppercase mb-1">Conclusão</div>
-                    <div className="text-sm leading-relaxed whitespace-pre-wrap bg-muted/20 rounded p-2 border">
-                      {conclusaoPreview || <span className="text-muted-foreground italic">Preencha as variáveis...</span>}
-                    </div>
-                  </div>
-                )}
               </div>
-            </div>
+            )}
           </div>
-        </div>
+        </ScrollArea>
 
-        {/* Footer */}
-        <DialogFooter className="px-3 py-2 border-t shrink-0">
-          <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => onOpenChange(false)}>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
-          <Button size="sm" className="h-7 text-xs" onClick={handleSubmit}>
+          <Button onClick={handleSubmit}>
             Inserir
           </Button>
         </DialogFooter>
