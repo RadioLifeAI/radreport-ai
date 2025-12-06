@@ -8,6 +8,8 @@ import { Switch } from '@/components/ui/switch'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Badge } from '@/components/ui/badge'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Calendar } from '@/components/ui/calendar'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,8 +20,10 @@ import {
 import { FraseVariable, VariableValues } from '@/types/fraseVariables'
 import { useVariableProcessor } from '@/hooks/useVariableProcessor'
 import { splitIntoParagraphs, findAnatomicalLine, ParsedParagraph } from '@/utils/anatomicalMapping'
-import { ChevronDown, ChevronRight, MapPin, MousePointer, AlertCircle, Check, Plus, RefreshCw, TextCursorInput, ArrowUp, ArrowDown, Trash2 } from 'lucide-react'
+import { ChevronDown, ChevronRight, MapPin, MousePointer, AlertCircle, Check, Plus, RefreshCw, TextCursorInput, ArrowUp, ArrowDown, Trash2, CalendarIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { format, parse } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 
 type InsertionMode = 'replace' | 'append' | 'above' | 'below' | 'remove'
 
@@ -260,6 +264,53 @@ export function VariablesModal({
               checked={!!value}
               onCheckedChange={(checked) => handleValueChange(variable.nome, checked)}
             />
+          </div>
+        )
+
+      case 'data':
+        // Parse the stored date string (DD/MM/YYYY) back to Date object for Calendar
+        const dateValue = value ? parse(value as string, 'dd/MM/yyyy', new Date()) : undefined
+        const isValidDate = dateValue && !isNaN(dateValue.getTime())
+        
+        return (
+          <div key={variable.nome} className="space-y-1.5">
+            <Label htmlFor={variable.nome} className="text-xs font-medium">
+              {variable.descricao || variable.nome}
+              {variable.obrigatorio && <span className="text-destructive ml-1">*</span>}
+            </Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal h-8 text-sm",
+                    !isValidDate && "text-muted-foreground",
+                    error && "border-destructive"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-3.5 w-3.5" />
+                  {isValidDate 
+                    ? format(dateValue, "dd/MM/yyyy", { locale: ptBR })
+                    : "Selecione a data..."
+                  }
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={isValidDate ? dateValue : undefined}
+                  onSelect={(date) => {
+                    if (date) {
+                      handleValueChange(variable.nome, format(date, "dd/MM/yyyy"))
+                    }
+                  }}
+                  locale={ptBR}
+                  initialFocus
+                  className="pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
+            {error && <p className="text-xs text-destructive">{error}</p>}
           </div>
         )
 
