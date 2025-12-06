@@ -13,9 +13,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { 
+  VOICE_COMMANDS_CONFIG, 
+  getCommandsByCategory,
+  getTotalCommands 
+} from '@/lib/voiceCommandsConfig';
 import { 
   Settings, 
   Scan, 
@@ -24,8 +28,6 @@ import {
   Mic, 
   FileSearch,
   RefreshCw,
-  Check,
-  X,
   ChevronDown,
   ChevronUp,
   ExternalLink,
@@ -37,7 +39,10 @@ import {
   Calendar,
   Search,
   Plus,
-  GripVertical
+  GripVertical,
+  CheckCircle,
+  XCircle,
+  Clock
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -76,68 +81,22 @@ interface AuditLog {
   registro_id: string;
 }
 
-interface VoiceCommand {
+interface SystemSetting {
+  id: string;
+  setting_key: string;
+  setting_value: string;
   category: string;
-  command: string;
-  action: string;
+  description: string | null;
+  updated_at: string | null;
 }
 
-// Voice commands from config (static reference)
-const VOICE_COMMANDS: VoiceCommand[] = [
-  // Pontuação
-  { category: 'punctuation', command: 'vírgula', action: ',' },
-  { category: 'punctuation', command: 'ponto', action: '.' },
-  { category: 'punctuation', command: 'ponto final', action: '.' },
-  { category: 'punctuation', command: 'dois pontos', action: ':' },
-  { category: 'punctuation', command: 'ponto e vírgula', action: ';' },
-  { category: 'punctuation', command: 'interrogação', action: '?' },
-  { category: 'punctuation', command: 'ponto de interrogação', action: '?' },
-  { category: 'punctuation', command: 'exclamação', action: '!' },
-  { category: 'punctuation', command: 'ponto de exclamação', action: '!' },
-  { category: 'punctuation', command: 'abre parênteses', action: '(' },
-  { category: 'punctuation', command: 'fecha parênteses', action: ')' },
-  { category: 'punctuation', command: 'hífen', action: '-' },
-  // Estruturais
-  { category: 'structural', command: 'nova linha', action: '<br>' },
-  { category: 'structural', command: 'próxima linha', action: '<br>' },
-  { category: 'structural', command: 'linha', action: '<br>' },
-  { category: 'structural', command: 'novo parágrafo', action: '<p>' },
-  { category: 'structural', command: 'próximo parágrafo', action: '<p>' },
-  { category: 'structural', command: 'parágrafo', action: '<p>' },
-  { category: 'structural', command: 'enter', action: '<br>' },
-  { category: 'structural', command: 'tab', action: '\t' },
-  // Edição
-  { category: 'editing', command: 'apagar', action: 'delete' },
-  { category: 'editing', command: 'apagar isso', action: 'delete' },
-  { category: 'editing', command: 'deletar', action: 'delete' },
-  { category: 'editing', command: 'desfazer', action: 'undo' },
-  { category: 'editing', command: 'refazer', action: 'redo' },
-  { category: 'editing', command: 'selecionar tudo', action: 'selectAll' },
-  { category: 'editing', command: 'copiar', action: 'copy' },
-  { category: 'editing', command: 'colar', action: 'paste' },
-  { category: 'editing', command: 'recortar', action: 'cut' },
-  { category: 'editing', command: 'limpar', action: 'clear' },
-  // Formatação
-  { category: 'formatting', command: 'negrito', action: 'bold' },
-  { category: 'formatting', command: 'itálico', action: 'italic' },
-  { category: 'formatting', command: 'sublinhado', action: 'underline' },
-  { category: 'formatting', command: 'tachado', action: 'strike' },
-  { category: 'formatting', command: 'maiúsculo', action: 'uppercase' },
-  { category: 'formatting', command: 'minúsculo', action: 'lowercase' },
-  { category: 'formatting', command: 'título', action: 'capitalize' },
-  // Navegação
-  { category: 'navigation', command: 'início', action: 'goStart' },
-  { category: 'navigation', command: 'fim', action: 'goEnd' },
-  { category: 'navigation', command: 'subir', action: 'goUp' },
-  { category: 'navigation', command: 'descer', action: 'goDown' },
-];
-
+// Voice command category labels
 const CATEGORY_LABELS: Record<string, { label: string; icon: string }> = {
-  punctuation: { label: 'Pontuação', icon: '📌' },
-  structural: { label: 'Estruturais', icon: '📐' },
-  editing: { label: 'Edição', icon: '✂️' },
-  formatting: { label: 'Formatação', icon: '🔤' },
-  navigation: { label: 'Navegação', icon: '🧭' },
+  'pontuação': { label: 'Pontuação', icon: '📌' },
+  'navegação': { label: 'Navegação', icon: '🧭' },
+  'edição': { label: 'Edição', icon: '✂️' },
+  'formatação': { label: 'Formatação', icon: '🔤' },
+  'especiais': { label: 'Especiais', icon: '⭐' },
 };
 
 // ============= GENERAL TAB =============
@@ -146,6 +105,7 @@ const GeneralTab = () => {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const [platformVersion, setPlatformVersion] = useState('v1.0.0');
   const [environment, setEnvironment] = useState<'test' | 'live'>('test');
 
   useEffect(() => {
@@ -173,10 +133,44 @@ const GeneralTab = () => {
       if (stripeSettings) {
         setEnvironment(stripeSettings.setting_value as 'test' | 'live');
       }
+
+      // Fetch system settings (version and maintenance mode)
+      const { data: systemSettings } = await supabase
+        .from('system_settings')
+        .select('*')
+        .in('setting_key', ['platform_version', 'maintenance_mode']);
+      
+      if (systemSettings) {
+        const versionSetting = systemSettings.find(s => s.setting_key === 'platform_version');
+        const maintenanceSetting = systemSettings.find(s => s.setting_key === 'maintenance_mode');
+        
+        if (versionSetting) setPlatformVersion(versionSetting.setting_value);
+        if (maintenanceSetting) setMaintenanceMode(maintenanceSetting.setting_value === 'true');
+      }
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const toggleMaintenanceMode = async (enabled: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('system_settings')
+        .update({ 
+          setting_value: enabled.toString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('setting_key', 'maintenance_mode');
+      
+      if (error) throw error;
+      
+      setMaintenanceMode(enabled);
+      toast.success(`Modo manutenção ${enabled ? 'ativado' : 'desativado'}`);
+    } catch (error) {
+      console.error('Error toggling maintenance mode:', error);
+      toast.error('Erro ao alterar modo de manutenção');
     }
   };
 
@@ -265,8 +259,8 @@ const GeneralTab = () => {
             <CardTitle className="text-sm font-medium text-muted-foreground">Versão</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold font-mono">v1.0.0</div>
-            <p className="text-xs text-muted-foreground mt-1">Build: 2025.12.06</p>
+            <div className="text-2xl font-bold font-mono">{platformVersion}</div>
+            <p className="text-xs text-muted-foreground mt-1">Build: {format(new Date(), 'yyyy.MM.dd')}</p>
           </CardContent>
         </Card>
 
@@ -306,7 +300,7 @@ const GeneralTab = () => {
             </div>
             <Switch
               checked={maintenanceMode}
-              onCheckedChange={setMaintenanceMode}
+              onCheckedChange={toggleMaintenanceMode}
             />
           </div>
         </CardContent>
@@ -432,7 +426,7 @@ const ModalitiesTab = () => {
       </div>
 
       <div className="space-y-2">
-        {modalidades.map((mod, index) => {
+        {modalidades.map((mod) => {
           const regioesCount = getRegioesForModalidade(mod.id).length;
           const isExpanded = expandedModality === mod.id;
 
@@ -495,51 +489,125 @@ const ModalitiesTab = () => {
 
 // ============= INTEGRATIONS TAB =============
 const IntegrationsTab = () => {
-  const integrations = [
-    {
-      name: 'OpenAI API',
-      description: 'Modelo padrão: gpt-5-nano-2025-08-07',
-      secretKey: 'OPENAI_API_KEY',
-      status: 'configured',
-      docUrl: 'https://platform.openai.com/docs',
-    },
-    {
-      name: 'Groq API',
-      description: 'Whisper: whisper-large-v3-turbo',
-      secretKey: 'GROQ_API_KEY',
-      status: 'configured',
-      docUrl: 'https://console.groq.com/docs',
-    },
-    {
-      name: 'Stripe Live',
-      description: 'Pagamentos em produção',
-      secretKey: 'STRIPE_SECRET_KEY',
-      status: 'configured',
-      docUrl: 'https://stripe.com/docs',
-    },
-    {
-      name: 'Stripe Test',
-      description: 'Pagamentos em teste',
-      secretKey: 'STRIPE_SECRET_KEY_TEST',
-      status: 'configured',
-      docUrl: 'https://stripe.com/docs/testing',
-    },
-    {
-      name: 'Cloudflare Turnstile',
-      description: 'Proteção anti-bot',
-      secretKey: 'TURNSTILE_SECRET_KEY',
-      status: 'configured',
-      docUrl: 'https://developers.cloudflare.com/turnstile/',
-    },
-  ];
+  const [integrations, setIntegrations] = useState<Array<{
+    name: string;
+    description: string;
+    secretKey: string;
+    status: 'configured' | 'pending' | 'error';
+    docUrl: string;
+  }>>([]);
+  const [loading, setLoading] = useState(true);
+  const [environment, setEnvironment] = useState<'test' | 'live'>('test');
+
+  useEffect(() => {
+    fetchIntegrationStatus();
+  }, []);
+
+  const fetchIntegrationStatus = async () => {
+    setLoading(true);
+    try {
+      // Fetch stripe settings to check configuration status
+      const { data: stripeSettings } = await supabase
+        .from('stripe_settings')
+        .select('setting_key, setting_value');
+
+      const settingsMap = new Map(stripeSettings?.map(s => [s.setting_key, s.setting_value]) || []);
+      
+      const envMode = settingsMap.get('environment_mode') as 'test' | 'live' || 'test';
+      setEnvironment(envMode);
+
+      // Check if keys are configured
+      const stripeTestConfigured = settingsMap.get('test_webhook_secret') || settingsMap.get('test_publishable_key');
+      const stripeLiveConfigured = settingsMap.get('live_webhook_secret') || settingsMap.get('live_publishable_key');
+
+      setIntegrations([
+        {
+          name: 'OpenAI API',
+          description: 'Modelo padrão: gpt-5-nano-2025-08-07',
+          secretKey: 'OPENAI_API_KEY',
+          status: 'configured', // Assumed configured via Vault
+          docUrl: 'https://platform.openai.com/docs',
+        },
+        {
+          name: 'Groq API',
+          description: 'Whisper: whisper-large-v3-turbo',
+          secretKey: 'GROQ_API_KEY',
+          status: 'configured', // Assumed configured via Vault
+          docUrl: 'https://console.groq.com/docs',
+        },
+        {
+          name: 'Stripe Live',
+          description: 'Pagamentos em produção',
+          secretKey: 'STRIPE_SECRET_KEY',
+          status: stripeLiveConfigured ? 'configured' : 'pending',
+          docUrl: 'https://stripe.com/docs',
+        },
+        {
+          name: 'Stripe Test',
+          description: 'Pagamentos em teste',
+          secretKey: 'STRIPE_SECRET_KEY_TEST',
+          status: stripeTestConfigured ? 'configured' : 'pending',
+          docUrl: 'https://stripe.com/docs/testing',
+        },
+        {
+          name: 'Cloudflare Turnstile',
+          description: 'Proteção anti-bot',
+          secretKey: 'TURNSTILE_SECRET_KEY',
+          status: 'configured', // Assumed configured via Vault
+          docUrl: 'https://developers.cloudflare.com/turnstile/',
+        },
+      ]);
+    } catch (error) {
+      console.error('Error fetching integration status:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'configured':
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case 'pending':
+        return <Clock className="h-4 w-4 text-yellow-500" />;
+      case 'error':
+        return <XCircle className="h-4 w-4 text-red-500" />;
+      default:
+        return <Clock className="h-4 w-4 text-muted-foreground" />;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'configured': return 'bg-green-500';
+      case 'pending': return 'bg-yellow-500';
+      case 'error': return 'bg-red-500';
+      default: return 'bg-muted';
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        {[1, 2, 3, 4, 5].map(i => (
+          <Skeleton key={i} className="h-20" />
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-semibold">Integrações & API Keys</h3>
-        <p className="text-sm text-muted-foreground">
-          Status das integrações externas. Chaves gerenciadas no Supabase Vault.
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-semibold">Integrações & API Keys</h3>
+          <p className="text-sm text-muted-foreground">
+            Status das integrações externas. Chaves gerenciadas no Supabase Vault.
+          </p>
+        </div>
+        <Badge variant={environment === 'live' ? 'default' : 'secondary'}>
+          Ambiente: {environment.toUpperCase()}
+        </Badge>
       </div>
 
       <div className="space-y-3">
@@ -548,15 +616,14 @@ const IntegrationsTab = () => {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className={`w-3 h-3 rounded-full ${
-                    integration.status === 'configured' ? 'bg-green-500' : 'bg-yellow-500'
-                  }`} />
+                  <div className={`w-3 h-3 rounded-full ${getStatusColor(integration.status)}`} />
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="font-medium">{integration.name}</span>
                       <Badge variant="outline" className="font-mono text-xs">
                         {integration.secretKey}
                       </Badge>
+                      {getStatusIcon(integration.status)}
                     </div>
                     <p className="text-sm text-muted-foreground">{integration.description}</p>
                   </div>
@@ -609,14 +676,71 @@ const EditorDefaultsTab = () => {
     voice_sensitivity: 0.5,
     voice_auto_punctuation: true,
   });
+  const [originalSettings, setOriginalSettings] = useState(settings);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    fetchEditorSettings();
+  }, []);
+
+  const fetchEditorSettings = async () => {
+    setLoading(true);
+    try {
+      const { data } = await supabase
+        .from('system_settings')
+        .select('*')
+        .eq('category', 'editor');
+
+      if (data && data.length > 0) {
+        const settingsFromDB: Record<string, string | number | boolean> = {};
+        
+        data.forEach((s: SystemSetting) => {
+          const key = s.setting_key.replace('editor_default_', '');
+          let value: string | number | boolean = s.setting_value;
+          
+          // Parse values based on type
+          if (value === 'true') value = true;
+          else if (value === 'false') value = false;
+          else if (!isNaN(Number(value)) && value !== '') {
+            value = Number(value);
+          }
+          
+          settingsFromDB[key] = value;
+        });
+
+        const newSettings = { ...settings, ...settingsFromDB };
+        setSettings(newSettings);
+        setOriginalSettings(newSettings);
+      }
+    } catch (error) {
+      console.error('Error fetching editor settings:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSave = async () => {
     setSaving(true);
     try {
-      // In a real implementation, this would save to a system_settings table
+      const settingsToSave = Object.entries(settings).map(([key, value]) => ({
+        setting_key: `editor_default_${key}`,
+        setting_value: String(value),
+        category: 'editor',
+        description: `Default value for ${key}`,
+        updated_at: new Date().toISOString()
+      }));
+
+      for (const setting of settingsToSave) {
+        await supabase
+          .from('system_settings')
+          .upsert(setting, { onConflict: 'setting_key' });
+      }
+
+      setOriginalSettings(settings);
       toast.success('Configurações padrão salvas');
     } catch (error) {
+      console.error('Error saving settings:', error);
       toast.error('Erro ao salvar configurações');
     } finally {
       setSaving(false);
@@ -624,23 +748,19 @@ const EditorDefaultsTab = () => {
   };
 
   const handleReset = () => {
-    setSettings({
-      theme: 'dark',
-      font_family: 'Inter',
-      font_size: 14,
-      line_height: 1.5,
-      auto_save_enabled: true,
-      auto_save_interval: 30,
-      ai_enabled: true,
-      ai_auto_suggest: false,
-      ai_confidence_threshold: 0.7,
-      voice_enabled: true,
-      voice_language: 'pt-BR',
-      voice_sensitivity: 0.5,
-      voice_auto_punctuation: true,
-    });
-    toast.info('Configurações restauradas para o padrão');
+    setSettings(originalSettings);
+    toast.info('Configurações restauradas para o último estado salvo');
   };
+
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        {[1, 2, 3, 4].map(i => (
+          <Skeleton key={i} className="h-40" />
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -860,19 +980,19 @@ const EditorDefaultsTab = () => {
 // ============= VOICE COMMANDS TAB =============
 const VoiceCommandsTab = () => {
   const [search, setSearch] = useState('');
-  const [expandedCategories, setExpandedCategories] = useState<string[]>(['punctuation', 'structural']);
+  const [expandedCategories, setExpandedCategories] = useState<string[]>(['pontuação', 'navegação']);
 
-  const groupedCommands = VOICE_COMMANDS.reduce((acc, cmd) => {
-    if (!acc[cmd.category]) acc[cmd.category] = [];
-    acc[cmd.category].push(cmd);
-    return acc;
-  }, {} as Record<string, VoiceCommand[]>);
+  // Use the real voice commands config
+  const groupedCommands = getCommandsByCategory();
+  const totalCommands = getTotalCommands();
 
   const filteredGroups = Object.entries(groupedCommands).map(([category, commands]) => ({
     category,
     commands: commands.filter(c => 
       c.command.toLowerCase().includes(search.toLowerCase()) ||
-      c.action.toLowerCase().includes(search.toLowerCase())
+      c.description.toLowerCase().includes(search.toLowerCase()) ||
+      c.action.toLowerCase().includes(search.toLowerCase()) ||
+      c.synonyms?.some(s => s.toLowerCase().includes(search.toLowerCase()))
     )
   })).filter(g => g.commands.length > 0);
 
@@ -890,19 +1010,16 @@ const VoiceCommandsTab = () => {
         <div>
           <h3 className="text-lg font-semibold">Comandos de Voz</h3>
           <p className="text-sm text-muted-foreground">
-            {VOICE_COMMANDS.length} comandos ativos em {Object.keys(groupedCommands).length} categorias
+            {totalCommands} comandos ativos em {Object.keys(groupedCommands).length} categorias
           </p>
         </div>
-        <Button variant="outline" size="sm" disabled>
-          <Plus className="h-4 w-4 mr-2" />
-          Adicionar
-        </Button>
+        <Badge variant="secondary">Somente leitura</Badge>
       </div>
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Buscar comando..."
+          placeholder="Buscar comando, sinônimo ou descrição..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-10"
@@ -931,11 +1048,25 @@ const VoiceCommandsTab = () => {
                 </CollapsibleTrigger>
                 <CollapsibleContent>
                   <CardContent className="pt-0">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                    <div className="space-y-2">
                       {commands.map((cmd, idx) => (
-                        <div key={idx} className="flex items-center justify-between p-2 bg-muted/50 rounded-md text-sm">
-                          <span className="font-medium">{cmd.command}</span>
-                          <span className="text-muted-foreground font-mono">→ {cmd.action}</span>
+                        <div key={idx} className="p-3 bg-muted/50 rounded-md">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-medium text-sm">"{cmd.command}"</span>
+                            <Badge variant="outline" className="font-mono text-xs">
+                              {cmd.action}
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-muted-foreground">{cmd.description}</p>
+                          {cmd.synonyms && cmd.synonyms.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-2">
+                              {cmd.synonyms.map((syn, i) => (
+                                <Badge key={i} variant="secondary" className="text-xs">
+                                  {syn}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -946,6 +1077,17 @@ const VoiceCommandsTab = () => {
           );
         })}
       </div>
+
+      <Card className="bg-muted/50">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Mic className="h-4 w-4" />
+            <span>
+              Os comandos de voz são definidos em <code className="text-xs bg-muted px-1 rounded">voiceCommandsConfig.ts</code> e não podem ser editados via interface.
+            </span>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
