@@ -31,11 +31,12 @@ import {
   generateNoduleDescription,
   generateImpression,
   formatMeasurement,
+  calculateTIRADSPoints,
   ACR_TIRADS_REFERENCE,
   ACR_TIRADS_MAX_NODULES,
 } from '@/lib/radsClassifications'
 import { useRADSOptions } from '@/hooks/useRADSOptions'
-import { getRADSOptionsWithFallback, getTIRADSPoints } from '@/lib/radsOptionsProvider'
+import { getRADSOptionsWithFallback } from '@/lib/radsOptionsProvider'
 import { toast } from 'sonner'
 
 interface TIRADSModalProps {
@@ -94,15 +95,9 @@ export function TIRADSModal({ open, onOpenChange, editor }: TIRADSModalProps) {
     [dbOptions, isLoading, isError]
   )
 
-  // Calculate TI-RADS points for a nodule using dynamic options
+  // Use centralized function that handles espongiforme/cistico = TR1 automatically
   const calculatePoints = (nodulo: NoduleData): number => {
-    let points = 0
-    points += getTIRADSPoints('composicao', nodulo.composicao, dbOptions)
-    points += getTIRADSPoints('ecogenicidade', nodulo.ecogenicidade, dbOptions)
-    points += getTIRADSPoints('formato', nodulo.formato, dbOptions)
-    points += getTIRADSPoints('margens', nodulo.margens, dbOptions)
-    points += getTIRADSPoints('focos', nodulo.focos, dbOptions)
-    return points
+    return calculateTIRADSPoints(nodulo, dbOptions)
   }
 
   const handleQuantidadeChange = (value: 'um' | 'multiplos') => {
