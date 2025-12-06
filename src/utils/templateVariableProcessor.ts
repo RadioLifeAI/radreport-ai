@@ -1,7 +1,7 @@
 // Template variable processing utilities
 // Handles extraction and substitution of {{variable}} placeholders in templates
 
-import { TemplateVariable, TemplateVariableValues, TemplateWithVariables, ConditionalLogic } from '@/types/templateVariables'
+import { TemplateVariable, TemplateVariableValues, TemplateWithVariables, ConditionalLogic, VolumeMeasurement } from '@/types/templateVariables'
 
 /**
  * Extract variable names from text with {{variable}} placeholders
@@ -106,10 +106,11 @@ function normalizeVariable(v: any): TemplateVariable {
   let tipo = v.tipo || v.type || 'texto'
   if (tipo === 'number') tipo = 'numero'
   if (tipo === 'text' || tipo === 'string') tipo = 'texto'
+  if (tipo === 'volume') tipo = 'volume' // Preserve volume type
   
   return {
     nome: v.nome || v.name || 'unnamed',
-    tipo: tipo as 'texto' | 'numero' | 'select' | 'boolean',
+    tipo: tipo as 'texto' | 'numero' | 'select' | 'boolean' | 'volume',
     descricao: v.descricao || v.description || v.nome,
     opcoes: v.opcoes || v.options || v.valores || [],
     valor_padrao: v.valor_padrao || v.default || v.defaultValue,
@@ -118,6 +119,55 @@ function normalizeVariable(v: any): TemplateVariable {
     minimo: v.minimo !== undefined ? v.minimo : v.min || v.valor_min,
     maximo: v.maximo !== undefined ? v.maximo : v.max || v.valor_max
   }
+}
+
+/**
+ * Calculate volume using ellipsoid formula: L × W × H × 0.52
+ */
+export function calculateEllipsoidVolume(x: number, y: number, z: number): number {
+  return x * y * z * 0.52
+}
+
+/**
+ * Get final volume value from VolumeMeasurement
+ */
+export function getVolumeValue(measurement: VolumeMeasurement): number {
+  if (measurement.useCalculated) {
+    return calculateEllipsoidVolume(measurement.x, measurement.y, measurement.z)
+  }
+  return measurement.directVolume
+}
+
+/**
+ * Create default VolumeMeasurement
+ */
+export function createDefaultVolumeMeasurement(): VolumeMeasurement {
+  return {
+    useCalculated: true,
+    x: 0,
+    y: 0,
+    z: 0,
+    directVolume: 0
+  }
+}
+
+/**
+ * Check if a variable should be treated as volume type
+ * Based on unit (cm³, ml) or name pattern (vol_, volume)
+ */
+export function isVolumeVariable(variable: TemplateVariable): boolean {
+  // Explicit volume type
+  if (variable.tipo === 'volume') return true
+  
+  // Check by unit
+  const volumeUnits = ['cm³', 'cm3', 'ml', 'mL', 'cc']
+  if (variable.unidade && volumeUnits.includes(variable.unidade)) return true
+  
+  // Check by name pattern
+  const nome = variable.nome.toLowerCase()
+  if (nome.includes('volume') || nome.startsWith('vol_')) return true
+  
+  return false
 }
 
 /**

@@ -11,9 +11,18 @@ import { Switch } from '@/components/ui/switch'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
-import { ChevronDown, FileText } from 'lucide-react'
-import { TemplateVariable, TemplateVariableValues, TemplateWithVariables } from '@/types/templateVariables'
-import { processTemplateText, getAvailableTechniques, getDefaultTechnique, processConditionalLogic } from '@/utils/templateVariableProcessor'
+import { ChevronDown, FileText, Calculator, Ruler } from 'lucide-react'
+import { TemplateVariable, TemplateVariableValues, TemplateWithVariables, VolumeMeasurement } from '@/types/templateVariables'
+import { 
+  processTemplateText, 
+  getAvailableTechniques, 
+  getDefaultTechnique, 
+  processConditionalLogic,
+  isVolumeVariable,
+  createDefaultVolumeMeasurement,
+  getVolumeValue,
+  calculateEllipsoidVolume
+} from '@/utils/templateVariableProcessor'
 import { dividirEmSentencas } from '@/utils/templateFormatter'
 
 interface TemplateVariablesModalProps {
@@ -31,6 +40,7 @@ export function TemplateVariablesModal({
 }: TemplateVariablesModalProps) {
   const [selectedTechnique, setSelectedTechnique] = useState<string | null>(null)
   const [values, setValues] = useState<TemplateVariableValues>({})
+  const [volumeMeasurements, setVolumeMeasurements] = useState<Record<string, VolumeMeasurement>>({})
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [previewOpen, setPreviewOpen] = useState(true)
 
@@ -45,14 +55,22 @@ export function TemplateVariablesModal({
       const defaultTech = getDefaultTechnique(template)
       setSelectedTechnique(defaultTech)
 
-      // Initialize variable values
+      // Initialize variable values and volume measurements
       const initialValues: TemplateVariableValues = {}
+      const initialVolumeMeasurements: Record<string, VolumeMeasurement> = {}
+      
       variaveis.forEach(v => {
         if (v.valor_padrao !== undefined && v.valor_padrao !== null) {
           initialValues[v.nome] = v.valor_padrao
         }
+        // Initialize volume measurements for volume-type variables
+        if (isVolumeVariable(v)) {
+          initialVolumeMeasurements[v.nome] = createDefaultVolumeMeasurement()
+        }
       })
+      
       setValues(initialValues)
+      setVolumeMeasurements(initialVolumeMeasurements)
       setErrors({})
       setPreviewOpen(true)
     }
@@ -109,6 +127,33 @@ export function TemplateVariablesModal({
     }
   }
 
+  // Handle volume measurement changes
+  const handleVolumeMeasurementChange = (
+    nome: string, 
+    field: keyof VolumeMeasurement, 
+    value: number | boolean
+  ) => {
+    setVolumeMeasurements(prev => {
+      const currentMeasurement = prev[nome] || createDefaultVolumeMeasurement()
+      const updated = { ...currentMeasurement, [field]: value }
+      
+      // Update the values object with calculated volume
+      const volumeValue = getVolumeValue(updated)
+      setValues(prevValues => ({ ...prevValues, [nome]: volumeValue }))
+      
+      return { ...prev, [nome]: updated }
+    })
+    
+    // Clear error for this field
+    if (errors[nome]) {
+      setErrors(prev => {
+        const newErrors = { ...prev }
+        delete newErrors[nome]
+        return newErrors
+      })
+    }
+  }
+
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {}
     
@@ -136,6 +181,117 @@ export function TemplateVariablesModal({
   const renderField = (variable: TemplateVariable) => {
     const value = values[variable.nome]
     const error = errors[variable.nome]
+
+    // Check if this is a volume variable (by type or detection)
+    if (variable.tipo === 'volume' || isVolumeVariable(variable)) {
+      const measurement = volumeMeasurements[variable.nome] || createDefaultVolumeMeasurement()
+      const calculatedVolume = calculateEllipsoidVolume(measurement.x, measurement.y, measurement.z)
+      const displayVolume = measurement.useCalculated ? calculatedVolume : measurement.directVolume
+      
+      return (
+        <div key={variable.nome} className="space-y-3 p-4 rounded-lg border border-border bg-muted/30">
+          <div className="flex items-center justify-between">
+            <Label className="text-sm font-medium">
+              {variable.descricao || variable.nome}
+              <span className="text-muted-foreground ml-1">({variable.unidade || 'cm³'})</span>
+              {variable.obrigatorio && <span className="text-destructive ml-1">*</span>}
+            </Label>
+            <div className="flex items-center gap-2 text-xs">
+              <Ruler className="h-3.5 w-3.5 text-muted-foreground" />
+              <span className={measurement.useCalculated ? 'text-cyan-500 font-medium' : 'text-muted-foreground'}>
+                Medidas
+              </span>
+              <Switch
+                checked={!measurement.useCalculated}
+                onCheckedChange={(checked) => handleVolumeMeasurementChange(variable.nome, 'useCalculated', !checked)}
+                className="h-4 w-7"
+              />
+              <span className={!measurement.useCalculated ? 'text-cyan-500 font-medium' : 'text-muted-foreground'}>
+                Direto
+              </span>
+              <Calculator className="h-3.5 w-3.5 text-muted-foreground" />
+            </div>
+          </div>
+
+          {measurement.useCalculated ? (
+            // X, Y, Z measurement inputs with auto calculation
+            <div className="space-y-2">
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <Label className="text-xs text-muted-foreground">X (cm)</Label>
+                  <Input
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    value={measurement.x || ''}
+                    onChange={(e) => handleVolumeMeasurementChange(variable.nome, 'x', parseFloat(e.target.value) || 0)}
+                    placeholder="0,0"
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Y (cm)</Label>
+                  <Input
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    value={measurement.y || ''}
+                    onChange={(e) => handleVolumeMeasurementChange(variable.nome, 'y', parseFloat(e.target.value) || 0)}
+                    placeholder="0,0"
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Z (cm)</Label>
+                  <Input
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    value={measurement.z || ''}
+                    onChange={(e) => handleVolumeMeasurementChange(variable.nome, 'z', parseFloat(e.target.value) || 0)}
+                    placeholder="0,0"
+                    className="h-8 text-sm"
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <Calculator className="h-3 w-3" />
+                Fórmula elipsoide: L × W × H × 0,52 = 
+                <span className="font-semibold text-cyan-500">
+                  {calculatedVolume.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} cm³
+                </span>
+              </p>
+            </div>
+          ) : (
+            // Direct volume input
+            <div className="space-y-2">
+              <Input
+                type="number"
+                step="0.1"
+                min="0"
+                value={measurement.directVolume || ''}
+                onChange={(e) => handleVolumeMeasurementChange(variable.nome, 'directVolume', parseFloat(e.target.value) || 0)}
+                placeholder="0,0"
+                className={error ? 'border-destructive' : ''}
+              />
+              <p className="text-xs text-muted-foreground">
+                Volume informado pelo equipamento ou medido diretamente
+              </p>
+            </div>
+          )}
+
+          {/* Display final volume */}
+          <div className="flex items-center justify-between pt-2 border-t border-border">
+            <span className="text-sm text-muted-foreground">Volume final:</span>
+            <span className="text-lg font-bold text-cyan-500">
+              {displayVolume.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} {variable.unidade || 'cm³'}
+            </span>
+          </div>
+
+          {error && <p className="text-xs text-destructive">{error}</p>}
+        </div>
+      )
+    }
 
     switch (variable.tipo) {
       case 'texto':

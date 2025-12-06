@@ -3,14 +3,23 @@
 
 export interface TemplateVariable {
   nome: string
-  tipo: 'texto' | 'numero' | 'select' | 'boolean'
+  tipo: 'texto' | 'numero' | 'select' | 'boolean' | 'volume'
   descricao?: string
   opcoes?: string[]
   valor_padrao?: string | number | boolean
   obrigatorio?: boolean
-  unidade?: string  // ex: "mm", "cm", "HU"
+  unidade?: string  // ex: "mm", "cm", "HU", "cm³"
   minimo?: number  // Validação min para números
   maximo?: number  // Validação max para números
+}
+
+// Volume measurement data for 'volume' type variables
+export interface VolumeMeasurement {
+  useCalculated: boolean  // true = use X*Y*Z*0.52, false = direct volume entry
+  x: number  // cm
+  y: number  // cm
+  z: number  // cm
+  directVolume: number  // cm³ (used when useCalculated = false)
 }
 
 export interface ConditionalLogic {
