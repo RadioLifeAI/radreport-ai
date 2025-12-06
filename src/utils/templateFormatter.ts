@@ -27,8 +27,8 @@ export function dividirEmSentencas(texto: string): string {
   const textoNormalizado = normalizeNewlines(texto)
   
   // Se tem quebras de linha explícitas (\n), cada linha vira um parágrafo
-  if (texto.includes('\n')) {
-    const linhas = texto.split('\n').filter(l => l.trim())
+  if (textoNormalizado.includes('\n')) {
+    const linhas = textoNormalizado.split('\n').filter(l => l.trim())
     if (linhas.length > 0) {
       return linhas.map(l => `<p>${l.trim()}</p>`).join('')
     }
