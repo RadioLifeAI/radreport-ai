@@ -9,13 +9,16 @@ import { Slider } from '@/components/ui/slider';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { PasswordRequirements } from '@/components/ui/password-requirements';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { useEditorSettings } from '@/hooks/useEditorSettings';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useAuth } from '@/hooks/useAuth';
 import { UserCreditsCard } from './UserCreditsCard';
-import { User, FileText, Sparkles, Mic, Lock, AlertTriangle, History, CreditCard, Crown, ExternalLink } from 'lucide-react';
+import { validateMedicalPassword } from '@/utils/validation';
+import { User, FileText, Sparkles, Mic, Lock, AlertTriangle, History, CreditCard, Crown, ExternalLink, Key, Mail } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -63,6 +66,12 @@ export const UserSettingsModal = ({ open, onOpenChange, defaultTab = 'profile', 
   const [isSaving, setIsSaving] = useState(false);
   const [currentTab, setCurrentTab] = useState(defaultTab);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  
+  // Password change states
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return '-';
@@ -132,6 +141,66 @@ export const UserSettingsModal = ({ open, onOpenChange, defaultTab = 'profile', 
     } catch (error) {
       console.error('Error sending reset password email:', error);
       toast.error('Erro ao enviar email de redefinição');
+    }
+  };
+
+  const handleDirectPasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!user?.email) {
+      toast.error('Usuário não encontrado');
+      return;
+    }
+
+    // Validate new password strength
+    const validation = validateMedicalPassword(newPassword);
+    if (!validation.isValid) {
+      toast.error(validation.errors[0]);
+      return;
+    }
+
+    // Confirm passwords match
+    if (newPassword !== confirmNewPassword) {
+      toast.error('As senhas não coincidem');
+      return;
+    }
+
+    setIsChangingPassword(true);
+
+    try {
+      // Re-authenticate with current password
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: currentPassword
+      });
+
+      if (signInError) {
+        toast.error('Senha atual incorreta');
+        setIsChangingPassword(false);
+        return;
+      }
+
+      // Update password
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (updateError) {
+        toast.error('Erro ao alterar senha: ' + updateError.message);
+        setIsChangingPassword(false);
+        return;
+      }
+
+      toast.success('Senha alterada com sucesso!');
+      // Clear fields
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmNewPassword('');
+    } catch (error) {
+      console.error('Error changing password:', error);
+      toast.error('Erro ao alterar senha');
+    } finally {
+      setIsChangingPassword(false);
     }
   };
 
@@ -539,9 +608,80 @@ export const UserSettingsModal = ({ open, onOpenChange, defaultTab = 'profile', 
                 </div>
               </div>
 
-              {/* Password Reset */}
+              <Separator />
+
+              {/* Direct Password Change */}
               <div className="space-y-3">
-                <h3 className="text-sm font-semibold">Redefinir Senha</h3>
+                <h3 className="text-sm font-semibold flex items-center gap-2">
+                  <Key size={16} />
+                  Alterar Senha
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  Altere sua senha diretamente, sem necessidade de email
+                </p>
+                
+                <form onSubmit={handleDirectPasswordChange} className="space-y-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="currentPassword">Senha Atual</Label>
+                    <Input 
+                      id="currentPassword"
+                      type="password" 
+                      placeholder="Digite sua senha atual"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      disabled={isChangingPassword}
+                      className="min-h-[44px]"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="newPassword">Nova Senha</Label>
+                    <Input 
+                      id="newPassword"
+                      type="password" 
+                      placeholder="Digite sua nova senha"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      disabled={isChangingPassword}
+                      className="min-h-[44px]"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmNewPassword">Confirmar Nova Senha</Label>
+                    <Input 
+                      id="confirmNewPassword"
+                      type="password" 
+                      placeholder="Confirme sua nova senha"
+                      value={confirmNewPassword}
+                      onChange={(e) => setConfirmNewPassword(e.target.value)}
+                      disabled={isChangingPassword}
+                      className="min-h-[44px]"
+                    />
+                  </div>
+                  
+                  {newPassword && (
+                    <PasswordRequirements password={newPassword} />
+                  )}
+                  
+                  <Button 
+                    type="submit" 
+                    className="w-full min-h-[44px]"
+                    disabled={isChangingPassword || !currentPassword || !newPassword || !confirmNewPassword}
+                  >
+                    {isChangingPassword ? 'Alterando...' : 'Alterar Senha'}
+                  </Button>
+                </form>
+              </div>
+
+              <Separator />
+
+              {/* Password Reset via Email (alternative) */}
+              <div className="space-y-3">
+                <h3 className="text-sm font-semibold flex items-center gap-2 text-muted-foreground">
+                  <Mail size={16} />
+                  Esqueceu a senha atual?
+                </h3>
                 <p className="text-xs text-muted-foreground">
                   Enviaremos um email com instruções para redefinir sua senha
                 </p>
@@ -554,8 +694,10 @@ export const UserSettingsModal = ({ open, onOpenChange, defaultTab = 'profile', 
                 </Button>
               </div>
 
+              <Separator className="border-destructive/20" />
+
               {/* Danger Zone */}
-              <div className="space-y-3 pt-4 border-t border-destructive/20">
+              <div className="space-y-3">
                 <h3 className="text-sm font-semibold text-destructive flex items-center gap-2">
                   <AlertTriangle size={16} />
                   Zona de Perigo
