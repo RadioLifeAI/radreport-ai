@@ -865,7 +865,7 @@ export function BIRADSMGModal({ open, onOpenChange, editor }: BIRADSMGModalProps
                 <SelectTrigger><SelectValue placeholder="Automática (baseada no BI-RADS)" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="">Automática (baseada no BI-RADS)</SelectItem>
-                  {getOpts('recomendacao').map((opt) => (
+                  {getOpts('recomendacaoManual').map((opt) => (
                     <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                   ))}
                 </SelectContent>

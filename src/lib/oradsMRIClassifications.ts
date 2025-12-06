@@ -497,17 +497,17 @@ export function hasHighRiskAssociatedFindingsMRI(data: ORADSMRIData): boolean {
 export function createEmptyLesaoMRI(localizacao: 'ovario_direito' | 'ovario_esquerdo' = 'ovario_direito'): ORADSMRILesao {
   return {
     id: crypto.randomUUID(),
-    tipo: 'cisto_unilocular',
+    tipo: '' as any, // Empty for placeholder
     tamanho: 0,
-    conteudoFluido: 'simple',
-    tecidoSolido: 'none',
-    sinalT1: 'hypointense',
-    sinalT2: 'hyperintense',
-    sinalDWI: 'non_restricted',
-    curvaDCE: 'not_performed',
+    conteudoFluido: '' as any,
+    tecidoSolido: '' as any,
+    sinalT1: '' as any,
+    sinalT2: '' as any,
+    sinalDWI: '' as any,
+    curvaDCE: '' as any,
     paredeEnhancement: false,
-    parede: 'thin_smooth',
-    septacao: 'none',
+    parede: '' as any,
+    septacao: '' as any,
     lipidContent: false,
     rokitanskyEnhancement: false,
     localizacao
@@ -516,7 +516,7 @@ export function createEmptyLesaoMRI(localizacao: 'ovario_direito' | 'ovario_esqu
 
 export function createEmptyORADSMRIData(): ORADSMRIData {
   return {
-    statusMenopausal: 'pre',
+    statusMenopausal: '' as any, // Empty for placeholder
     tecnica: {
       campo: '1.5T',
       contraste: true,
@@ -525,31 +525,31 @@ export function createEmptyORADSMRIData(): ORADSMRIData {
     },
     utero: {
       presente: true,
-      posicao: 'anteversoflexao',
-      forma: 'regular',
+      posicao: '' as any,
+      forma: '' as any,
       mx: 0, my: 0, mz: 0,
-      sinalT2: 'homogeneo',
-      zonaJuncional: 'regular',
+      sinalT2: '' as any,
+      zonaJuncional: '' as any,
       nodulos: []
     },
     endometrio: {
       espessura: 0,
-      sinalT2: 'normal',
+      sinalT2: '' as any,
       distensao: false,
       massaIntracavitaria: false
     },
     ovarioDireito: {
       presente: true,
-      localizacao: 'parauterina',
+      localizacao: '',
       mx: 0, my: 0, mz: 0,
-      sinalT2: 'normal',
+      sinalT2: '' as any,
       lesoes: []
     },
     ovarioEsquerdo: {
       presente: true,
-      localizacao: 'parauterina',
+      localizacao: '',
       mx: 0, my: 0, mz: 0,
-      sinalT2: 'normal',
+      sinalT2: '' as any,
       lesoes: []
     },
     ascite: false,
