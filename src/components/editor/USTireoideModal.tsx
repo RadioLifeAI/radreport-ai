@@ -130,9 +130,9 @@ const createEmptyData = (): USTireoideData => ({
   ecotextura: 'homogenea',
   vascularizacao: 'normal',
   medidas: {
-    loboDireito: { x: 4.5, y: 1.5, z: 1.5 },
-    loboEsquerdo: { x: 4.5, y: 1.5, z: 1.5 },
-    istmo: 0.3,
+    loboDireito: { x: 0, y: 0, z: 0 },
+    loboEsquerdo: { x: 0, y: 0, z: 0 },
+    istmo: 0,
   },
   temCistos: false,
   cistos: [],
@@ -145,18 +145,18 @@ const createEmptyData = (): USTireoideData => ({
 })
 
 const createEmptyCisto = (): USTireoideCisto => ({
-  tipo: 'simples',
-  localizacao: 'lobo_direito',
-  terco: 'medio',
-  medida: 0.5,
+  tipo: '' as any,
+  localizacao: '' as any,
+  terco: '' as any,
+  medida: 0,
 })
 
 const createEmptyLinfonodo = (): USTireoideLinfonodo => ({
-  nivel: 'II',
-  lateralidade: 'direita',
-  morfologia: 'reacional',
-  medidaMaior: 1.0,
-  medidaMenor: 0.5,
+  nivel: '' as any,
+  lateralidade: '' as any,
+  morfologia: '' as any,
+  medidaMaior: 0,
+  medidaMenor: 0,
 })
 
 // Volume calculation: x * y * z * 0.52 (cm³)

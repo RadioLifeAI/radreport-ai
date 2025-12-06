@@ -41,7 +41,7 @@ const TABS = [
 ]
 
 const initialObservacao: LIRADSUSObservacao = {
-  tipo: 'nenhuma',
+  tipo: '' as any,
   tamanho: 0,
   localizacao: '',
   ecogenicidade: '',
@@ -50,25 +50,25 @@ const initialObservacao: LIRADSUSObservacao = {
 }
 
 const initialData: LIRADSUSData = {
-  populacaoRisco: 'cirrose',
+  populacaoRisco: '' as any,
   etiologiaCirrose: '',
   childPugh: '',
-  elegivelTransplante: true,
-  afpStatus: 'nao_disponivel',
+  elegivelTransplante: false,
+  afpStatus: '' as any,
   afpValor: undefined,
   imc: undefined,
-  aspectoParenquima: 'homogeneo',
-  tamanhoFigado: 'normal',
+  aspectoParenquima: '' as any,
+  tamanhoFigado: '' as any,
   contornosFigado: '',
   esteatose: '',
   esplenomegalia: '',
   tamanhoBaco: undefined,
   ascite: '',
-  observacoes: [{ ...initialObservacao }],
-  tromboTipo: 'nenhum',
+  observacoes: [],
+  tromboTipo: '' as any,
   tromboLocalizacao: '',
   tromboNovo: false,
-  visScore: 'A',
+  visScore: '' as any,
   limitacoesVIS: [],
   temComparativo: false,
   dataExameAnterior: '',
