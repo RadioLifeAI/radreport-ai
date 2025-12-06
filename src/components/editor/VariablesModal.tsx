@@ -8,11 +8,20 @@ import { Switch } from '@/components/ui/switch'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Badge } from '@/components/ui/badge'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { FraseVariable, VariableValues } from '@/types/fraseVariables'
 import { useVariableProcessor } from '@/hooks/useVariableProcessor'
 import { splitIntoParagraphs, findAnatomicalLine, ParsedParagraph } from '@/utils/anatomicalMapping'
-import { ChevronDown, ChevronRight, MapPin, MousePointer, AlertCircle, Check } from 'lucide-react'
+import { ChevronDown, ChevronRight, MapPin, MousePointer, AlertCircle, Check, Plus, RefreshCw, TextCursorInput, ArrowUp, ArrowDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
+
+type InsertionMode = 'replace' | 'append' | 'above' | 'below'
 
 interface VariablesModalProps {
   open: boolean
@@ -21,13 +30,13 @@ interface VariablesModalProps {
   texto: string
   conclusao?: string
   variaveis: FraseVariable[]
-  // Novas props para mapeamento contextual
   editorHtml?: string
   estruturaNome?: string
   onSubmit: (
     processedTexto: string, 
     processedConclusao?: string,
-    targetLineIndex?: number
+    targetLineIndex?: number,
+    insertionMode?: InsertionMode
   ) => void
 }
 
@@ -54,6 +63,7 @@ export function VariablesModal({
   const [paragraphs, setParagraphs] = useState<ParsedParagraph[]>([])
   const [selectedLineIndex, setSelectedLineIndex] = useState<number | null>(null)
   const [autoMapped, setAutoMapped] = useState(false)
+  const [insertionMode, setInsertionMode] = useState<InsertionMode>('replace')
 
   // Inicializar valores padrão e mapeamento ao abrir
   useEffect(() => {
@@ -67,6 +77,7 @@ export function VariablesModal({
       })
       setValues(initialValues)
       setErrors({})
+      setInsertionMode('replace')
       
       // Parsear parágrafos do editor
       if (editorHtml) {
@@ -132,13 +143,11 @@ export function VariablesModal({
     }
   }, [errors])
 
-  const handleLineClick = useCallback((index: number) => {
-    const para = paragraphs[index]
-    if (para && !para.isHeader) {
-      setSelectedLineIndex(index)
-      setAutoMapped(false)
-    }
-  }, [paragraphs])
+  const handleSelectLine = useCallback((index: number, mode: InsertionMode) => {
+    setSelectedLineIndex(index)
+    setInsertionMode(mode)
+    setAutoMapped(false)
+  }, [])
 
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {}
@@ -162,7 +171,8 @@ export function VariablesModal({
     onSubmit(
       processedTexto, 
       processedConclusao,
-      selectedLineIndex !== null ? selectedLineIndex : undefined
+      selectedLineIndex !== null ? selectedLineIndex : undefined,
+      insertionMode
     )
     onOpenChange(false)
   }
@@ -258,10 +268,26 @@ export function VariablesModal({
     }
   }
 
+  // Obter conteúdo do preview baseado no modo de inserção
+  const getPreviewContent = (para: ParsedParagraph, idx: number): string | null => {
+    if (idx !== selectedLineIndex) return null
+    
+    switch (insertionMode) {
+      case 'replace':
+        return processedTexto
+      case 'append':
+        const existing = para.text.trim()
+        const sep = existing.endsWith('.') ? ' ' : '. '
+        return `${existing}${sep}${processedTexto}`
+      case 'above':
+      case 'below':
+        return null // Linha original mantida, nova mostrada separadamente
+    }
+  }
+
   // Renderizar preview contextual com parágrafos clicáveis
   const renderContextualPreview = () => {
     if (paragraphs.length === 0) {
-      // Fallback: mostrar apenas o texto processado
       return (
         <div className="p-3 bg-muted/30 rounded-md text-sm">
           {processedTexto}
@@ -280,27 +306,97 @@ export function VariablesModal({
         {paragraphs.map((para, idx) => {
           const isSelected = idx === selectedLineIndex
           const isClickable = !para.isHeader
+          const previewContent = getPreviewContent(para, idx)
           
           return (
-            <div
-              key={idx}
-              onClick={() => isClickable && handleLineClick(idx)}
-              className={cn(
-                "px-2 py-1 rounded text-sm transition-all",
-                para.isHeader && "font-semibold text-foreground bg-muted/20 cursor-default",
-                !para.isHeader && "cursor-pointer hover:bg-muted/40",
-                isSelected && "bg-cyan-500/20 border-l-4 border-cyan-500 pl-3"
+            <div key={idx}>
+              {/* Nova linha acima (modo 'above') */}
+              {isSelected && insertionMode === 'above' && (
+                <div className="px-2 py-1 mb-0.5 rounded bg-amber-500/15 border-l-4 border-amber-400 pl-3 text-sm flex items-center gap-2">
+                  <span className="text-foreground">{processedTexto}</span>
+                  <Badge variant="outline" className="text-[10px] px-1 py-0 h-4">nova</Badge>
+                </div>
               )}
-            >
-              {isSelected ? (
-                <span className="text-foreground">{processedTexto}</span>
-              ) : (
-                <span 
+              
+              {/* Linha principal */}
+              <div className="group relative flex items-center">
+                <div
                   className={cn(
-                    para.isHeader ? "text-foreground" : "text-muted-foreground"
+                    "flex-1 px-2 py-1 rounded text-sm transition-all",
+                    para.isHeader && "font-semibold text-foreground bg-muted/20 cursor-default",
+                    !para.isHeader && "hover:bg-muted/30",
+                    isSelected && "bg-cyan-500/20 border-l-4 border-cyan-500 pl-3"
                   )}
-                  dangerouslySetInnerHTML={{ __html: para.text }}
-                />
+                >
+                  {isSelected && previewContent ? (
+                    <span className="text-foreground">{previewContent}</span>
+                  ) : (
+                    <span 
+                      className={cn(
+                        para.isHeader ? "text-foreground" : "text-muted-foreground"
+                      )}
+                      dangerouslySetInnerHTML={{ __html: para.text }}
+                    />
+                  )}
+                </div>
+                
+                {/* Botão + discreto (hover-only) */}
+                {isClickable && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className={cn(
+                          "h-5 w-5 absolute right-1 top-1/2 -translate-y-1/2",
+                          "opacity-0 group-hover:opacity-40 hover:!opacity-100 transition-opacity",
+                          isSelected && "opacity-60"
+                        )}
+                      >
+                        <Plus className="h-3 w-3 text-muted-foreground" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-44">
+                      <DropdownMenuItem 
+                        onClick={() => handleSelectLine(idx, 'replace')}
+                        className="gap-2 text-xs"
+                      >
+                        <RefreshCw className="h-3.5 w-3.5 text-muted-foreground" />
+                        Substituir
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => handleSelectLine(idx, 'append')}
+                        className="gap-2 text-xs"
+                      >
+                        <TextCursorInput className="h-3.5 w-3.5 text-muted-foreground" />
+                        Adicionar ao final
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem 
+                        onClick={() => handleSelectLine(idx, 'above')}
+                        className="gap-2 text-xs"
+                      >
+                        <ArrowUp className="h-3.5 w-3.5 text-muted-foreground" />
+                        Inserir acima
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => handleSelectLine(idx, 'below')}
+                        className="gap-2 text-xs"
+                      >
+                        <ArrowDown className="h-3.5 w-3.5 text-muted-foreground" />
+                        Inserir abaixo
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+              </div>
+              
+              {/* Nova linha abaixo (modo 'below') */}
+              {isSelected && insertionMode === 'below' && (
+                <div className="px-2 py-1 mt-0.5 rounded bg-amber-500/15 border-l-4 border-amber-400 pl-3 text-sm flex items-center gap-2">
+                  <span className="text-foreground">{processedTexto}</span>
+                  <Badge variant="outline" className="text-[10px] px-1 py-0 h-4">nova</Badge>
+                </div>
               )}
             </div>
           )
@@ -317,6 +413,16 @@ export function VariablesModal({
   }
 
   const hasContextualPreview = paragraphs.length > 0
+
+  // Label do modo de inserção
+  const getInsertionModeLabel = () => {
+    switch (insertionMode) {
+      case 'append': return 'Ao final'
+      case 'above': return 'Acima'
+      case 'below': return 'Abaixo'
+      default: return null
+    }
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -381,8 +487,13 @@ export function VariablesModal({
                         <MapPin className="h-3 w-3" />
                         {estruturaNome || `Linha ${selectedLineIndex + 1}`}
                       </Badge>
+                      {getInsertionModeLabel() && (
+                        <Badge variant="secondary" className="text-xs">
+                          {getInsertionModeLabel()}
+                        </Badge>
+                      )}
                       <Badge 
-                        variant={autoMapped ? "default" : "secondary"} 
+                        variant={autoMapped ? "default" : "outline"} 
                         className="text-xs gap-1"
                       >
                         {autoMapped ? (
@@ -402,7 +513,7 @@ export function VariablesModal({
                   {hasContextualPreview && selectedLineIndex === null && (
                     <Badge variant="outline" className="text-xs gap-1 text-amber-600">
                       <AlertCircle className="h-3 w-3" />
-                      Clique para selecionar
+                      Clique + para selecionar
                     </Badge>
                   )}
                 </div>
@@ -413,7 +524,7 @@ export function VariablesModal({
                 </div>
                 {hasContextualPreview && (
                   <p className="text-xs text-muted-foreground mt-2">
-                    Clique em um parágrafo para alterar o local de inserção
+                    Passe o mouse em um parágrafo e clique em + para opções de inserção
                   </p>
                 )}
               </CollapsibleContent>

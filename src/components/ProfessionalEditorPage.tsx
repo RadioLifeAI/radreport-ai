@@ -544,7 +544,8 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
   const handleVariablesSubmit = useCallback((
     processedTexto: string, 
     processedConclusao?: string,
-    targetLineIndex?: number
+    targetLineIndex?: number,
+    insertionMode?: 'replace' | 'append' | 'above' | 'below'
   ) => {
     if (!editorInstance) return
     
@@ -553,24 +554,48 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
       return `<p>${text}</p>`
     }
 
-    // Se temos um índice de linha específico, fazer substituição contextual
+    // Se temos um índice de linha específico, processar baseado no modo
     if (targetLineIndex !== undefined && targetLineIndex >= 0) {
       const currentHtml = editorInstance.getHTML()
       const paragraphRegex = /<(p|h[1-6]|div|li|blockquote)[^>]*>[\s\S]*?<\/\1>/gi
       const matches = currentHtml.match(paragraphRegex) || []
       
       if (targetLineIndex < matches.length) {
-        // Substituir o parágrafo específico
+        const mode = insertionMode || 'replace'
         let replacementIndex = 0
-        const newHtml = currentHtml.replace(paragraphRegex, (match) => {
+        let resultParts: string[] = []
+        
+        currentHtml.replace(paragraphRegex, (match) => {
           if (replacementIndex === targetLineIndex) {
-            replacementIndex++
-            return wrapInParagraph(processedTexto)
+            switch (mode) {
+              case 'replace':
+                resultParts.push(wrapInParagraph(processedTexto))
+                break
+              case 'append':
+                // Extrair texto existente e adicionar novo
+                const textMatch = match.match(/>([^<]*)</)
+                const existingText = textMatch ? textMatch[1].trim() : ''
+                const sep = existingText.endsWith('.') ? ' ' : '. '
+                const combined = `${existingText}${sep}${processedTexto}`
+                resultParts.push(wrapInParagraph(combined))
+                break
+              case 'above':
+                resultParts.push(wrapInParagraph(processedTexto))
+                resultParts.push(match)
+                break
+              case 'below':
+                resultParts.push(match)
+                resultParts.push(wrapInParagraph(processedTexto))
+                break
+            }
+          } else {
+            resultParts.push(match)
           }
           replacementIndex++
           return match
         })
         
+        const newHtml = resultParts.join('\n')
         editorInstance.commands.setContent(newHtml)
         
         // Adicionar conclusão na seção IMPRESSÃO
