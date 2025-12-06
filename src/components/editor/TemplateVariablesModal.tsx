@@ -11,7 +11,7 @@ import { Switch } from '@/components/ui/switch'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
-import { ChevronDown, FileText, Calculator, Ruler } from 'lucide-react'
+import { ChevronDown, FileText, Calculator, Ruler, Settings2 } from 'lucide-react'
 import { TemplateVariable, TemplateVariableValues, TemplateWithVariables, VolumeMeasurement } from '@/types/templateVariables'
 import { 
   processTemplateText, 
@@ -42,6 +42,7 @@ export function TemplateVariablesModal({
   const [values, setValues] = useState<TemplateVariableValues>({})
   const [volumeMeasurements, setVolumeMeasurements] = useState<Record<string, VolumeMeasurement>>({})
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [variablesOpen, setVariablesOpen] = useState(true)
   const [previewOpen, setPreviewOpen] = useState(true)
 
   const availableTechniques = template ? getAvailableTechniques(template) : []
@@ -400,7 +401,7 @@ export function TemplateVariablesModal({
           </p>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 -mx-6 px-6">
+        <ScrollArea className="flex-1 -mx-6 px-6 [&>[data-radix-scroll-area-viewport]]:scroll-smooth [&_[data-orientation=vertical]]:w-2 [&_[data-orientation=vertical]]:bg-muted/50 [&_[data-orientation=vertical]]:rounded-full [&_[data-orientation=vertical]_>_div]:bg-cyan-500/40 [&_[data-orientation=vertical]_>_div]:hover:bg-cyan-500/60 [&_[data-orientation=vertical]_>_div]:rounded-full">
           <div className="space-y-6 py-4">
             {/* Technique Selection */}
             {hasMultipleTechniques && (
@@ -423,26 +424,54 @@ export function TemplateVariablesModal({
               </div>
             )}
 
-            {/* Variables Section */}
+            {/* Variables Section - Collapsible */}
             {variaveis.length > 0 && (
-              <div className="space-y-3">
-                <Label className="text-base font-semibold">VARIÁVEIS</Label>
-                <div className="space-y-4">
-                  {variaveis.map(renderField)}
-                </div>
-              </div>
+              <Collapsible open={variablesOpen} onOpenChange={setVariablesOpen}>
+                <CollapsibleTrigger className="flex items-center justify-between w-full py-2 px-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                  <div className="flex items-center gap-2">
+                    <Settings2 className="h-4 w-4 text-cyan-500" />
+                    <Label className="text-base font-semibold cursor-pointer">VARIÁVEIS</Label>
+                    <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                      {Object.keys(values).filter(k => values[k] !== undefined && values[k] !== '').length}/{variaveis.length} preenchidas
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {(() => {
+                      const requiredPending = variaveis.filter(v => 
+                        v.obrigatorio && (values[v.nome] === undefined || values[v.nome] === '')
+                      ).length
+                      return requiredPending > 0 && (
+                        <span className="text-xs bg-amber-500/20 text-amber-500 px-2 py-0.5 rounded-full">
+                          {requiredPending} obrigatória{requiredPending > 1 ? 's' : ''} pendente{requiredPending > 1 ? 's' : ''}
+                        </span>
+                      )
+                    })()}
+                    <ChevronDown 
+                      className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${variablesOpen ? 'rotate-180' : ''}`} 
+                    />
+                  </div>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="mt-3">
+                  <div className="space-y-4">
+                    {variaveis.map(renderField)}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
             )}
 
-            {/* Preview Section */}
+            {/* Preview Section - Collapsible */}
             <Collapsible open={previewOpen} onOpenChange={setPreviewOpen}>
-              <CollapsibleTrigger className="flex items-center justify-between w-full">
-                <Label className="text-base font-semibold cursor-pointer">PREVIEW</Label>
+              <CollapsibleTrigger className="flex items-center justify-between w-full py-2 px-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                <div className="flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-cyan-500" />
+                  <Label className="text-base font-semibold cursor-pointer">PREVIEW</Label>
+                </div>
                 <ChevronDown 
-                  className={`h-4 w-4 transition-transform ${previewOpen ? 'rotate-180' : ''}`} 
+                  className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${previewOpen ? 'rotate-180' : ''}`} 
                 />
               </CollapsibleTrigger>
               <CollapsibleContent className="mt-3">
-                <ScrollArea className="h-[300px] w-full rounded-lg border border-border">
+                <ScrollArea className="h-[300px] w-full rounded-lg border border-border [&_[data-orientation=vertical]]:w-1.5 [&_[data-orientation=vertical]]:bg-transparent [&_[data-orientation=vertical]_>_div]:bg-cyan-500/30 [&_[data-orientation=vertical]_>_div]:hover:bg-cyan-500/50 [&_[data-orientation=vertical]_>_div]:rounded-full">
                   <div 
                     className="p-4 bg-background prose prose-sm prose-invert max-w-none"
                     style={{ color: 'hsl(var(--foreground))' }}
