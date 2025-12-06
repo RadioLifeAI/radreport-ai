@@ -456,9 +456,13 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
   }, [needsVariableInput, handleTemplateSelectDirect, handleTemplateSelectWithVariables])
 
   // Template variables modal submit handler
-  const handleTemplateVariablesSubmit = useCallback((selectedTechnique: string | null, variableValues: TemplateVariableValues) => {
+  const handleTemplateVariablesSubmit = useCallback((
+    selectedTechniques: string[], 
+    variableValues: TemplateVariableValues,
+    removedSections?: string[]
+  ) => {
     if (selectedTemplateForVariables) {
-      applyTemplateWithVariables(selectedTemplateForVariables as any, selectedTechnique, variableValues)
+      applyTemplateWithVariables(selectedTemplateForVariables as any, selectedTechniques, variableValues, removedSections)
     }
     setTemplateVariablesModalOpen(false)
     setSelectedTemplateForVariables(null)

@@ -9,11 +9,11 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Calendar } from '@/components/ui/calendar'
-import { ChevronDown, FileText, Calculator, Ruler, Settings2, CalendarIcon } from 'lucide-react'
+import { ChevronDown, FileText, Calculator, Ruler, Settings2, CalendarIcon, Trash2 } from 'lucide-react'
 import { format, parse } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
@@ -34,7 +34,7 @@ interface TemplateVariablesModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   template: TemplateWithVariables | null
-  onSubmit: (selectedTechnique: string | null, variableValues: TemplateVariableValues) => void
+  onSubmit: (selectedTechniques: string[], variableValues: TemplateVariableValues, removedSections?: string[]) => void
 }
 
 export function TemplateVariablesModal({
@@ -43,12 +43,13 @@ export function TemplateVariablesModal({
   template,
   onSubmit
 }: TemplateVariablesModalProps) {
-  const [selectedTechnique, setSelectedTechnique] = useState<string | null>(null)
+  const [selectedTechniques, setSelectedTechniques] = useState<string[]>([])
   const [values, setValues] = useState<TemplateVariableValues>({})
   const [volumeMeasurements, setVolumeMeasurements] = useState<Record<string, VolumeMeasurement>>({})
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [variablesOpen, setVariablesOpen] = useState(true)
   const [previewOpen, setPreviewOpen] = useState(true)
+  const [removedSections, setRemovedSections] = useState<string[]>([])
 
   const availableTechniques = template ? getAvailableTechniques(template) : []
   const hasMultipleTechniques = availableTechniques.length > 1
@@ -57,9 +58,9 @@ export function TemplateVariablesModal({
   // Initialize with default values
   useEffect(() => {
     if (open && template) {
-      // Set default technique
+      // Set default technique(s) - select first one by default
       const defaultTech = getDefaultTechnique(template)
-      setSelectedTechnique(defaultTech)
+      setSelectedTechniques(defaultTech ? [defaultTech] : [])
 
       // Initialize variable values and volume measurements
       const initialValues: TemplateVariableValues = {}
@@ -79,12 +80,13 @@ export function TemplateVariablesModal({
       setVolumeMeasurements(initialVolumeMeasurements)
       setErrors({})
       setPreviewOpen(true)
+      setRemovedSections([])
     }
   }, [open, template, variaveis])
 
-  // Generate preview HTML
-  const previewHtml = useMemo(() => {
-    if (!template) return ''
+  // Generate preview HTML with removable sections
+  const previewSections = useMemo(() => {
+    if (!template) return []
 
     // Process conditional logic to derive additional variables
     const processedValues = processConditionalLogic(template.condicoes_logicas, values)
@@ -96,30 +98,68 @@ export function TemplateVariablesModal({
       ? processTemplateText(template.conteudo.adicionais, processedValues)
       : ''
 
-    // Get selected technique text
-    const tecnicaText = selectedTechnique && template.conteudo.tecnica[selectedTechnique]
-      ? processTemplateText(template.conteudo.tecnica[selectedTechnique], processedValues)
-      : ''
-
-    // Format sections
-    const tituloHtml = `<h2 style="text-align: center; text-transform: uppercase; font-weight: bold; margin-bottom: 12pt;">${template.titulo}</h2>`
-    
-    const tecnicaHtml = tecnicaText
-      ? `<h3 style="text-transform: uppercase; font-weight: bold; margin-top: 18pt; margin-bottom: 8pt;">TÉCNICA</h3>${dividirEmSentencas(tecnicaText)}`
-      : ''
-    
-    const achadosHtml = `<h3 style="text-transform: uppercase; font-weight: bold; margin-top: 18pt; margin-bottom: 8pt;">ACHADOS</h3>${dividirEmSentencas(processedAchados)}`
-    
-    const impressaoHtml = `<h3 style="text-transform: uppercase; font-weight: bold; margin-top: 18pt; margin-bottom: 8pt;">IMPRESSÃO</h3>${dividirEmSentencas(processedImpressao)}`
-    
-    const adicionaisHtml = processedAdicionais
-      ? `<h3 style="text-transform: uppercase; font-weight: bold; margin-top: 18pt; margin-bottom: 8pt;">ADICIONAIS</h3>${dividirEmSentencas(processedAdicionais)}`
-      : ''
-
-    return [tituloHtml, tecnicaHtml, achadosHtml, impressaoHtml, adicionaisHtml]
+    // Get combined technique text from all selected techniques
+    const tecnicaText = selectedTechniques
+      .map(tech => template.conteudo.tecnica[tech])
       .filter(Boolean)
+      .map(text => processTemplateText(text, processedValues))
+      .join(' ')
+
+    // Build sections array with ids for removal tracking
+    const sections: { id: string; html: string; label: string }[] = []
+    
+    sections.push({
+      id: 'titulo',
+      label: 'Título',
+      html: `<h2 style="text-align: center; text-transform: uppercase; font-weight: bold; margin-bottom: 12pt;">${template.titulo}</h2>`
+    })
+    
+    if (tecnicaText) {
+      sections.push({
+        id: 'tecnica',
+        label: 'Técnica',
+        html: `<h3 style="text-transform: uppercase; font-weight: bold; margin-top: 18pt; margin-bottom: 8pt;">TÉCNICA</h3>${dividirEmSentencas(tecnicaText)}`
+      })
+    }
+    
+    sections.push({
+      id: 'achados',
+      label: 'Achados',
+      html: `<h3 style="text-transform: uppercase; font-weight: bold; margin-top: 18pt; margin-bottom: 8pt;">ACHADOS</h3>${dividirEmSentencas(processedAchados)}`
+    })
+    
+    sections.push({
+      id: 'impressao',
+      label: 'Impressão',
+      html: `<h3 style="text-transform: uppercase; font-weight: bold; margin-top: 18pt; margin-bottom: 8pt;">IMPRESSÃO</h3>${dividirEmSentencas(processedImpressao)}`
+    })
+    
+    if (processedAdicionais) {
+      sections.push({
+        id: 'adicionais',
+        label: 'Adicionais',
+        html: `<h3 style="text-transform: uppercase; font-weight: bold; margin-top: 18pt; margin-bottom: 8pt;">ADICIONAIS</h3>${dividirEmSentencas(processedAdicionais)}`
+      })
+    }
+
+    return sections
+  }, [template, selectedTechniques, values])
+
+  // Filter out removed sections for final HTML
+  const previewHtml = useMemo(() => {
+    return previewSections
+      .filter(section => !removedSections.includes(section.id))
+      .map(section => section.html)
       .join('')
-  }, [template, selectedTechnique, values])
+  }, [previewSections, removedSections])
+
+  const toggleSectionRemoval = (sectionId: string) => {
+    setRemovedSections(prev => 
+      prev.includes(sectionId) 
+        ? prev.filter(id => id !== sectionId)
+        : [...prev, sectionId]
+    )
+  }
 
   const handleValueChange = (nome: string, value: string | number | boolean) => {
     setValues(prev => ({ ...prev, [nome]: value }))
@@ -180,7 +220,7 @@ export function TemplateVariablesModal({
     if (!validate()) return
     // Process conditional logic before submitting
     const processedValues = processConditionalLogic(template?.condicoes_logicas, values)
-    onSubmit(selectedTechnique, processedValues)
+    onSubmit(selectedTechniques, processedValues, removedSections)
     onOpenChange(false)
   }
 
@@ -455,24 +495,30 @@ export function TemplateVariablesModal({
 
         <ScrollArea className="flex-1 -mx-6 px-6 [&>[data-radix-scroll-area-viewport]]:scroll-smooth [&_[data-orientation=vertical]]:w-2 [&_[data-orientation=vertical]]:bg-muted/50 [&_[data-orientation=vertical]]:rounded-full [&_[data-orientation=vertical]_>_div]:bg-cyan-500/40 [&_[data-orientation=vertical]_>_div]:hover:bg-cyan-500/60 [&_[data-orientation=vertical]_>_div]:rounded-full">
           <div className="space-y-6 py-4">
-            {/* Technique Selection */}
+            {/* Technique Selection - Checkbox for multiple */}
             {hasMultipleTechniques && (
               <div className="space-y-3">
-                <Label className="text-base font-semibold">TÉCNICA</Label>
-                <RadioGroup
-                  value={selectedTechnique || ''}
-                  onValueChange={setSelectedTechnique}
-                  className="space-y-2"
-                >
+                <Label className="text-base font-semibold">TÉCNICA (selecione uma ou mais)</Label>
+                <div className="space-y-2">
                   {availableTechniques.map((tech) => (
                     <div key={tech} className="flex items-center space-x-2">
-                      <RadioGroupItem value={tech} id={tech} />
-                      <Label htmlFor={tech} className="cursor-pointer">
+                      <Checkbox
+                        id={`tech-${tech}`}
+                        checked={selectedTechniques.includes(tech)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedTechniques(prev => [...prev, tech])
+                          } else {
+                            setSelectedTechniques(prev => prev.filter(t => t !== tech))
+                          }
+                        }}
+                      />
+                      <Label htmlFor={`tech-${tech}`} className="cursor-pointer">
                         {tech}
                       </Label>
                     </div>
                   ))}
-                </RadioGroup>
+                </div>
               </div>
             )}
 
@@ -511,18 +557,44 @@ export function TemplateVariablesModal({
               </Collapsible>
             )}
 
-            {/* Preview Section - Collapsible */}
+            {/* Preview Section - Collapsible with remove option */}
             <Collapsible open={previewOpen} onOpenChange={setPreviewOpen}>
               <CollapsibleTrigger className="flex items-center justify-between w-full py-2 px-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
                 <div className="flex items-center gap-2">
                   <FileText className="h-4 w-4 text-cyan-500" />
                   <Label className="text-base font-semibold cursor-pointer">PREVIEW</Label>
+                  {removedSections.length > 0 && (
+                    <span className="text-xs bg-amber-500/20 text-amber-500 px-2 py-0.5 rounded-full">
+                      {removedSections.length} seção removida{removedSections.length > 1 ? 's' : ''}
+                    </span>
+                  )}
                 </div>
                 <ChevronDown 
                   className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${previewOpen ? 'rotate-180' : ''}`} 
                 />
               </CollapsibleTrigger>
               <CollapsibleContent className="mt-3">
+                {/* Section removal controls */}
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {previewSections.map((section) => (
+                    <Button
+                      key={section.id}
+                      variant={removedSections.includes(section.id) ? "destructive" : "outline"}
+                      size="sm"
+                      onClick={() => toggleSectionRemoval(section.id)}
+                      className="h-7 text-xs gap-1.5"
+                    >
+                      {removedSections.includes(section.id) ? (
+                        <>
+                          <Trash2 className="h-3 w-3" />
+                          {section.label} (removida)
+                        </>
+                      ) : (
+                        section.label
+                      )}
+                    </Button>
+                  ))}
+                </div>
                 <ScrollArea className="h-[300px] w-full rounded-lg border border-border [&_[data-orientation=vertical]]:w-1.5 [&_[data-orientation=vertical]]:bg-transparent [&_[data-orientation=vertical]_>_div]:bg-cyan-500/30 [&_[data-orientation=vertical]_>_div]:hover:bg-cyan-500/50 [&_[data-orientation=vertical]_>_div]:rounded-full">
                   <div 
                     className="p-4 bg-background prose prose-sm prose-invert max-w-none"

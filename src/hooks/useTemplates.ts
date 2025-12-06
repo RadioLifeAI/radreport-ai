@@ -46,7 +46,7 @@ interface UseTemplatesReturn {
   setSelectedVariableFilter: (filter: VariableFilter) => void
   loadTemplates: () => Promise<void>
   applyTemplate: (template: Template) => void
-  applyTemplateWithVariables: (template: Template, selectedTechnique: string | null, variableValues: Record<string, any>) => void
+  applyTemplateWithVariables: (template: Template, selectedTechniques: string[], variableValues: Record<string, any>, removedSections?: string[]) => void
   needsVariableInput: (template: Template) => boolean
   addToFavorites: (templateId: string) => void
   removeFromFavorites: (templateId: string) => void
@@ -376,8 +376,9 @@ export function useTemplates(): UseTemplatesReturn {
   // Apply template with variables and technique selection
   const applyTemplateWithVariables = useCallback(async (
     template: Template,
-    selectedTechnique: string | null,
-    variableValues: Record<string, any>
+    selectedTechniques: string[],
+    variableValues: Record<string, any>,
+    removedSections?: string[]
   ) => {
     setModalidade(template.modalidade)
     
@@ -398,39 +399,56 @@ export function useTemplates(): UseTemplatesReturn {
       })
     }
     
-    // Título centralizado e em maiúsculas
-    const tituloHtml = `<h2 style="text-align: center; text-transform: uppercase;">${template.titulo}</h2>`
+    const removed = removedSections || []
     
-    // Técnica - use selected technique or format all
+    // Título centralizado e em maiúsculas
+    const tituloHtml = removed.includes('titulo') 
+      ? '' 
+      : `<h2 style="text-align: center; text-transform: uppercase;">${template.titulo}</h2>`
+    
+    // Técnica - combine selected techniques
     let tecnicaHtml = ''
-    if (selectedTechnique && template.conteudo.tecnica[selectedTechnique]) {
-      const tecnicaText = template.conteudo.tecnica[selectedTechnique]
-      tecnicaHtml = `<h3 style="text-transform: uppercase;">TÉCNICA</h3>${dividirEmSentencas(processText(tecnicaText))}`
-    } else {
-      tecnicaHtml = formatarTecnica(template.conteudo.tecnica)
+    if (!removed.includes('tecnica')) {
+      if (selectedTechniques.length > 0) {
+        const combinedTecnica = selectedTechniques
+          .map(tech => template.conteudo.tecnica[tech])
+          .filter(Boolean)
+          .map(text => processText(text))
+          .join(' ')
+        if (combinedTecnica) {
+          tecnicaHtml = `<h3 style="text-transform: uppercase;">TÉCNICA</h3>${dividirEmSentencas(combinedTecnica)}`
+        }
+      } else {
+        tecnicaHtml = formatarTecnica(template.conteudo.tecnica)
+      }
     }
     
     // Achados - process variables
-    const achadosProcessed = processText(template.conteudo.achados)
-    const achadosHtml = dividirEmSentencas(achadosProcessed)
+    let achadosHtml = ''
+    if (!removed.includes('achados')) {
+      const achadosProcessed = processText(template.conteudo.achados)
+      achadosHtml = `<h3 style="text-transform: uppercase;">ACHADOS</h3>${dividirEmSentencas(achadosProcessed)}`
+    }
     
     // Impressão - process variables
-    const impressaoProcessed = processText(template.conteudo.impressao)
-    const impressaoHtml = dividirEmSentencas(impressaoProcessed)
+    let impressaoHtml = ''
+    if (!removed.includes('impressao')) {
+      const impressaoProcessed = processText(template.conteudo.impressao)
+      impressaoHtml = `<h3 style="text-transform: uppercase;">IMPRESSÃO</h3>${dividirEmSentencas(impressaoProcessed)}`
+    }
     
     // Adicionais - process variables
-    const adicionaisHtml = template.conteudo.adicionais 
-      ? dividirEmSentencas(processText(template.conteudo.adicionais))
-      : ''
+    let adicionaisHtml = ''
+    if (!removed.includes('adicionais') && template.conteudo.adicionais) {
+      adicionaisHtml = `<h3 style="text-transform: uppercase;">ADICIONAIS</h3>${dividirEmSentencas(processText(template.conteudo.adicionais))}`
+    }
     
     const html = [
       tituloHtml,
       tecnicaHtml,
-      `<h3 style="text-transform: uppercase;">ACHADOS</h3>`,
       achadosHtml,
-      `<h3 style="text-transform: uppercase;">IMPRESSÃO</h3>`,
       impressaoHtml,
-      adicionaisHtml ? `<h3 style="text-transform: uppercase;">ADICIONAIS</h3>${adicionaisHtml}` : ''
+      adicionaisHtml
     ].filter(Boolean).join('')
     
     setContent(html)
