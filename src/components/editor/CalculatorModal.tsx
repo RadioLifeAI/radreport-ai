@@ -3,9 +3,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible'
 import { Calculator, ExternalLink, Info, ChevronDown } from 'lucide-react'
-import { RadiologyCalculator, CalculatorResult } from '@/lib/radiologyCalculators'
+import { RadiologyCalculator, CalculatorResult, CalculatorInput } from '@/lib/radiologyCalculators'
 
 interface CalculatorModalProps {
   calculator: RadiologyCalculator | null
@@ -33,10 +34,20 @@ export function CalculatorModal({ calculator, isOpen, onClose, onInsert }: Calcu
     }
   }, [calculator, isOpen])
 
+  // Filter inputs based on showWhen conditions
+  const getVisibleInputs = (): CalculatorInput[] => {
+    if (!calculator) return []
+    return calculator.inputs.filter(input => {
+      if (!input.showWhen) return true
+      return values[input.showWhen.field] === input.showWhen.value
+    })
+  }
+
   useEffect(() => {
     if (calculator && Object.keys(values).length > 0) {
-      // Check if all required values are present
-      const allValuesFilled = calculator.inputs.every(input => {
+      // Check if all VISIBLE required values are present
+      const visibleInputs = getVisibleInputs()
+      const allValuesFilled = visibleInputs.every(input => {
         const value = values[input.name]
         return value !== undefined && value !== '' && value !== null
       })
@@ -71,6 +82,8 @@ export function CalculatorModal({ calculator, isOpen, onClose, onInsert }: Calcu
         })
       }
     } else if (input.type === 'date') {
+      setValues(prev => ({ ...prev, [name]: value }))
+    } else if (input.type === 'select') {
       setValues(prev => ({ ...prev, [name]: value }))
     }
   }
@@ -161,22 +174,40 @@ export function CalculatorModal({ calculator, isOpen, onClose, onInsert }: Calcu
           <div className="space-y-4">
             <h3 className="text-sm font-semibold text-foreground">Parâmetros</h3>
             <div className="grid gap-4">
-              {calculator.inputs.map(input => (
+              {getVisibleInputs().map(input => (
                 <div key={input.name} className="grid gap-2">
                   <Label htmlFor={input.name}>
                     {input.label} {input.unit && <span className="text-muted-foreground">({input.unit})</span>}
                   </Label>
-                  <Input
-                    id={input.name}
-                    type={input.type === 'date' ? 'date' : 'number'}
-                    min={input.min}
-                    max={input.max}
-                    step={input.step}
-                    value={values[input.name] || ''}
-                    onChange={(e) => handleInputChange(input.name, e.target.value)}
-                    placeholder={input.placeholder}
-                    className="font-mono"
-                  />
+                  {input.type === 'select' && input.options ? (
+                    <Select
+                      value={values[input.name] as string || ''}
+                      onValueChange={(v) => handleInputChange(input.name, v)}
+                    >
+                      <SelectTrigger className="font-mono">
+                        <SelectValue placeholder="Selecione..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {input.options.map(opt => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input
+                      id={input.name}
+                      type={input.type === 'date' ? 'date' : 'number'}
+                      min={input.min}
+                      max={input.max}
+                      step={input.step}
+                      value={values[input.name] || ''}
+                      onChange={(e) => handleInputChange(input.name, e.target.value)}
+                      placeholder={input.placeholder}
+                      className="font-mono"
+                    />
+                  )}
                 </div>
               ))}
             </div>
