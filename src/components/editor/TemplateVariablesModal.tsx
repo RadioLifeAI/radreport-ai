@@ -67,6 +67,9 @@ export function TemplateVariablesModal({
   const [removedSections, setRemovedSections] = useState<string[]>([])
   const [sectionOrder, setSectionOrder] = useState<string[]>([])
   const [draggedSection, setDraggedSection] = useState<string | null>(null)
+  
+  // Estado para selecionar fonte dos dados de IG (obstétrico)
+  const [igSourceMode, setIGSourceMode] = useState<'biometria' | 'dum' | 'usg_previo'>('biometria')
 
   const availableTechniques = template ? getAvailableTechniques(template) : []
   const hasMultipleTechniques = availableTechniques.length > 1
@@ -126,79 +129,92 @@ export function TemplateVariablesModal({
            (varNames.includes('dbp') && varNames.includes('cf'))
   }, [variaveis])
 
-  // Automatic obstetric calculations effect - flexível: DUM e/ou USG
+  // Automatic obstetric calculations effect - baseado no igSourceMode
   useEffect(() => {
     if (!isObstetricTemplate) return
     
     const newCalculatedValues: TemplateVariableValues = {}
     
-    // Track which sources of IG are available
-    let hasDUM = false
-    let hasUSG = false
-    
-    // 1. Calculate IG from DUM if available
-    const dumDateStr = values['data_dum'] as string
-    if (dumDateStr) {
-      const dumDate = parseDateBR(dumDateStr)
-      if (dumDate) {
-        hasDUM = true
-        const igDUM = calculateIGFromDUM(dumDate)
-        newCalculatedValues['ig_dum_semanas'] = igDUM.weeks
-        newCalculatedValues['ig_dum_dias'] = igDUM.days
-        
-        // Calculate DPP
-        const dpp = calculateDPP(dumDate)
-        newCalculatedValues['dpp'] = formatDateBR(dpp)
-      }
-    }
-    
-    // 2. Calculate IG and weight from biometry if available
-    const dbp = values['dbp'] as number || 0
-    const cc = values['cc'] as number || 0
-    const ca = values['ca'] as number || 0
-    const cf = values['cf'] as number || 0
-    
-    if (dbp > 0 || cf > 0) {
-      hasUSG = true
-      const igBiometry = estimateIGFromBiometry(dbp, cc, ca, cf)
-      newCalculatedValues['ig_usg_semanas'] = igBiometry.weeks
-      newCalculatedValues['ig_usg_dias'] = igBiometry.days
-      newCalculatedValues['ig_biometria_semanas'] = igBiometry.weeks
-      newCalculatedValues['ig_biometria_dias'] = igBiometry.days
-      
-      // Calculate fetal weight (Hadlock II) if we have enough measurements
-      if (dbp > 0 && ca > 0 && cf > 0) {
-        const peso = estimateFetalWeight(dbp, cc, ca, cf)
-        newCalculatedValues['peso_estimado'] = peso
-        
-        // Estimate percentile using USG IG
-        const percentile = estimateWeightPercentile(peso, igBiometry.weeks)
-        if (percentile !== null) {
-          newCalculatedValues['percentil_peso'] = percentile
+    // Modo 1: DUM conhecida
+    if (igSourceMode === 'dum') {
+      const dumDateStr = values['data_dum'] as string
+      if (dumDateStr) {
+        const dumDate = parseDateBR(dumDateStr)
+        if (dumDate) {
+          const igDUM = calculateIGFromDUM(dumDate)
+          newCalculatedValues['ig_dum_semanas'] = igDUM.weeks
+          newCalculatedValues['ig_dum_dias'] = igDUM.days
+          newCalculatedValues['ig_final_semanas'] = igDUM.weeks
+          newCalculatedValues['ig_final_dias'] = igDUM.days
+          newCalculatedValues['ig_fonte'] = 'dum'
+          
+          // Calculate DPP
+          const dpp = calculateDPP(dumDate)
+          newCalculatedValues['dpp'] = formatDateBR(dpp)
         }
       }
     }
     
-    // 3. Determine final IG for conclusion (priority: USG > DUM > manual)
-    // This allows the conclusion to adapt to available data
-    const igManualSemanas = values['ig_manual_semanas'] as number
-    const igManualDias = values['ig_manual_dias'] as number
+    // Modo 2: USG prévio (calcula DUM retroativamente)
+    if (igSourceMode === 'usg_previo') {
+      const dataUsgPrevio = values['data_usg_previo'] as string
+      const igPrevioSemanas = values['ig_previo_semanas'] as number
+      const igPrevioDias = values['ig_previo_dias'] as number || 0
+      
+      if (dataUsgPrevio && igPrevioSemanas && igPrevioSemanas > 0) {
+        const usgDate = parseDateBR(dataUsgPrevio)
+        if (usgDate) {
+          // Calcular DUM retroativamente: data USG - (IG no exame)
+          const totalDaysAtUsg = igPrevioSemanas * 7 + igPrevioDias
+          const dumCalculada = new Date(usgDate)
+          dumCalculada.setDate(dumCalculada.getDate() - totalDaysAtUsg)
+          
+          newCalculatedValues['dum_calculada'] = formatDateBR(dumCalculada)
+          
+          // Calcular IG atual desde DUM calculada
+          const igAtual = calculateIGFromDUM(dumCalculada)
+          newCalculatedValues['ig_usg_semanas'] = igAtual.weeks
+          newCalculatedValues['ig_usg_dias'] = igAtual.days
+          newCalculatedValues['ig_final_semanas'] = igAtual.weeks
+          newCalculatedValues['ig_final_dias'] = igAtual.days
+          newCalculatedValues['ig_fonte'] = 'usg_previo'
+          
+          // DPP pela DUM calculada
+          const dpp = calculateDPP(dumCalculada)
+          newCalculatedValues['dpp'] = formatDateBR(dpp)
+        }
+      }
+    }
     
-    if (igManualSemanas && igManualSemanas > 0) {
-      // Manual entry takes highest priority
-      newCalculatedValues['ig_final_semanas'] = igManualSemanas
-      newCalculatedValues['ig_final_dias'] = igManualDias || 0
-      newCalculatedValues['ig_fonte'] = 'manual'
-    } else if (hasUSG) {
-      // USG biometry is most accurate in early pregnancy
-      newCalculatedValues['ig_final_semanas'] = newCalculatedValues['ig_usg_semanas']
-      newCalculatedValues['ig_final_dias'] = newCalculatedValues['ig_usg_dias']
-      newCalculatedValues['ig_fonte'] = 'usg'
-    } else if (hasDUM) {
-      // DUM as fallback
-      newCalculatedValues['ig_final_semanas'] = newCalculatedValues['ig_dum_semanas']
-      newCalculatedValues['ig_final_dias'] = newCalculatedValues['ig_dum_dias']
-      newCalculatedValues['ig_fonte'] = 'dum'
+    // Modo 3: Biometria atual (sempre calcula peso e IG por biometria)
+    if (igSourceMode === 'biometria') {
+      const dbp = values['dbp'] as number || 0
+      const cc = values['cc'] as number || 0
+      const ca = values['ca'] as number || 0
+      const cf = values['cf'] as number || 0
+      
+      if (dbp > 0 || cf > 0) {
+        const igBiometry = estimateIGFromBiometry(dbp, cc, ca, cf)
+        newCalculatedValues['ig_usg_semanas'] = igBiometry.weeks
+        newCalculatedValues['ig_usg_dias'] = igBiometry.days
+        newCalculatedValues['ig_biometria_semanas'] = igBiometry.weeks
+        newCalculatedValues['ig_biometria_dias'] = igBiometry.days
+        newCalculatedValues['ig_final_semanas'] = igBiometry.weeks
+        newCalculatedValues['ig_final_dias'] = igBiometry.days
+        newCalculatedValues['ig_fonte'] = 'biometria'
+        
+        // Calculate fetal weight (Hadlock II) if we have enough measurements
+        if (dbp > 0 && ca > 0 && cf > 0) {
+          const peso = estimateFetalWeight(dbp, cc, ca, cf)
+          newCalculatedValues['peso_estimado'] = peso
+          
+          // Estimate percentile using USG IG
+          const percentile = estimateWeightPercentile(peso, igBiometry.weeks)
+          if (percentile !== null) {
+            newCalculatedValues['percentil_peso'] = percentile
+          }
+        }
+      }
     }
     
     // Update values with calculated ones (without triggering re-render loop)
