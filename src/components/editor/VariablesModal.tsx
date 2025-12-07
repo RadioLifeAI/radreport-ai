@@ -454,8 +454,8 @@ export function VariablesModal({
             <div key={idx}>
               {/* Nova linha acima (modo 'above') */}
               {isSelected && insertionMode === 'above' && (
-                <div className="px-2 py-1 mb-0.5 rounded bg-amber-500/15 border-l-4 border-amber-400 pl-3 text-sm flex items-center gap-2">
-                  <span className="text-foreground font-medium bg-amber-400/25 px-1 rounded">{processedTexto}</span>
+                <div className="px-2 py-1 mb-0.5 rounded bg-emerald-500/20 border-l-4 border-emerald-500 pl-3 text-sm flex items-center gap-2">
+                  <span className="text-foreground font-medium">{processedTexto}</span>
                   <Badge variant="outline" className="text-[10px] px-1 py-0 h-4">nova</Badge>
                 </div>
               )}
@@ -484,13 +484,13 @@ export function VariablesModal({
                     "flex-1 px-2 py-1 rounded text-sm transition-all",
                     para.isHeader && "font-semibold text-foreground bg-muted/20 cursor-default",
                     !para.isHeader && "hover:bg-muted/30 cursor-grab active:cursor-grabbing",
-                    isSelected && insertionMode !== 'remove' && "bg-cyan-500/20 border-l-4 border-cyan-500 pl-3",
+                    isSelected && insertionMode !== 'remove' && "bg-emerald-500/20 border-l-4 border-emerald-500 pl-3",
                     isSelected && insertionMode === 'remove' && "line-through opacity-50 bg-destructive/10 border-l-4 border-destructive/50 pl-3",
                     draggedParagraph === idx && "opacity-50 scale-95 border border-cyan-500 bg-cyan-500/10"
                   )}
                 >
                 {isSelected && previewContent ? (
-                    <span className="text-foreground font-medium bg-amber-400/25 px-1 rounded">{previewContent}</span>
+                    <span className="text-foreground font-medium">{previewContent}</span>
                   ) : (
                     <span 
                       className={cn(
@@ -562,8 +562,8 @@ export function VariablesModal({
               
               {/* Nova linha abaixo (modo 'below') */}
               {isSelected && insertionMode === 'below' && (
-                <div className="px-2 py-1 mt-0.5 rounded bg-amber-500/15 border-l-4 border-amber-400 pl-3 text-sm flex items-center gap-2">
-                  <span className="text-foreground font-medium bg-amber-400/25 px-1 rounded">{processedTexto}</span>
+                <div className="px-2 py-1 mt-0.5 rounded bg-emerald-500/20 border-l-4 border-emerald-500 pl-3 text-sm flex items-center gap-2">
+                  <span className="text-foreground font-medium">{processedTexto}</span>
                   <Badge variant="outline" className="text-[10px] px-1 py-0 h-4">nova</Badge>
                 </div>
               )}
