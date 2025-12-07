@@ -442,6 +442,19 @@ export function useFrasesModelo() {
     fetchFrases()
   }, [fetchFrases])
 
+  // Check if frase needs variable input
+  const needsFraseVariableInput = useCallback((frase: FraseModelo): boolean => {
+    const hasVars = frase.variaveis && frase.variaveis.length > 0
+    if (!hasVars) return false
+    
+    // Check if texto or conclusao contain {{placeholder}} patterns
+    const placeholderRegex = /\{\{[\w_]+\}\}/
+    const textoHasPlaceholders = placeholderRegex.test(frase.frase || '')
+    const conclusaoHasPlaceholders = placeholderRegex.test(frase.conclusao || '')
+    
+    return textoHasPlaceholders || conclusaoHasPlaceholders
+  }, [])
+
   return {
     frases,
     filteredFrases,
@@ -462,6 +475,7 @@ export function useFrasesModelo() {
     categories,
     modalities,
     refetch: fetchFrases,
-    filteredFrasesForDisplay: serverResults.length || searchTerm.trim() ? serverResults : filteredFrases
+    filteredFrasesForDisplay: serverResults.length || searchTerm.trim() ? serverResults : filteredFrases,
+    needsFraseVariableInput
   }
 }
