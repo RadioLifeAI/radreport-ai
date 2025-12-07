@@ -311,8 +311,8 @@ export const radiologyCalculators: RadiologyCalculator[] = [
       }
     },
     reference: {
-      text: 'Hadlock FP et al. Radiology 1984',
-      url: 'https://pubmed.ncbi.nlm.nih.gov/6333079/'
+      text: 'Hadlock FP et al. Estimation of fetal weight with the use of head, body, and femur measurements. Radiology 1984;150(2):535-540.',
+      url: 'https://pubmed.ncbi.nlm.nih.gov/6691115/'
     },
     info: {
       purpose: 'Estimar o peso fetal usando a fórmula de Hadlock com 4 parâmetros biométricos. É a fórmula mais validada e utilizada mundialmente, com margem de erro de ±15%.',
@@ -551,8 +551,8 @@ export const radiologyCalculators: RadiologyCalculator[] = [
       }
     },
     reference: {
-      text: 'OMS - Organização Mundial da Saúde',
-      url: 'https://www.who.int/health-topics/obesity'
+      text: 'WHO Expert Consultation. Appropriate body-mass index for Asian populations. Lancet 2004;363(9403):157-163.',
+      url: 'https://pubmed.ncbi.nlm.nih.gov/14726171/'
     },
     info: {
       purpose: 'Classificar o estado nutricional do paciente segundo critérios da OMS. Importante para ajuste de doses de contraste e avaliação de risco cardiovascular.',
@@ -600,7 +600,7 @@ export const radiologyCalculators: RadiologyCalculator[] = [
       }
     },
     reference: {
-      text: 'DuBois D, DuBois EF. Arch Intern Med 1916',
+      text: 'Du Bois D, Du Bois EF. A formula to estimate the approximate surface area if height and weight be known. Arch Intern Med 1916;17:863-871.',
       url: 'https://pubmed.ncbi.nlm.nih.gov/2520314/'
     },
     info: {
@@ -713,8 +713,8 @@ export const radiologyCalculators: RadiologyCalculator[] = [
       }
     },
     reference: {
-      text: 'Robinson HP, Fleming JE. BJOG 1975',
-      url: 'https://pubmed.ncbi.nlm.nih.gov/1156108/'
+      text: 'Robinson HP, Fleming JE. A critical evaluation of sonar crown-rump length measurements. Br J Obstet Gynaecol 1975;82(9):702-710.',
+      url: 'https://pubmed.ncbi.nlm.nih.gov/1182090/'
     },
     info: {
       purpose: 'Datação gestacional precisa no primeiro trimestre (6-14 semanas). É o parâmetro mais acurado para determinar idade gestacional, com erro de ±3-5 dias.',
@@ -814,8 +814,8 @@ export const radiologyCalculators: RadiologyCalculator[] = [
       }
     },
     reference: {
-      text: 'Phelan JP et al. Am J Obstet Gynecol 1987',
-      url: 'https://pubmed.ncbi.nlm.nih.gov/3322321/'
+      text: 'Phelan JP et al. Amniotic fluid index measurements during pregnancy. J Reprod Med 1987;32(8):601-604.',
+      url: 'https://pubmed.ncbi.nlm.nih.gov/3309290/'
     },
     info: {
       purpose: 'Avaliar o volume de líquido amniótico somando a maior bolsa vertical livre de cordão em cada quadrante uterino.',
@@ -890,8 +890,8 @@ export const radiologyCalculators: RadiologyCalculator[] = [
       }
     },
     reference: {
-      text: 'INTERGROWTH-21st Fetal Growth Standards',
-      url: 'https://intergrowth21.tghn.org/'
+      text: 'Papageorghiou AT et al. International standards for fetal growth. Lancet 2014;384(9946):869-879.',
+      url: 'https://pubmed.ncbi.nlm.nih.gov/25209488/'
     },
     info: {
       purpose: 'Classificar o peso fetal em relação às curvas de crescimento INTERGROWTH-21st para identificar restrição de crescimento ou macrossomia.',
@@ -1013,8 +1013,8 @@ export const radiologyCalculators: RadiologyCalculator[] = [
       }
     },
     reference: {
-      text: 'Bezerra AS et al. Radiol Bras 2005',
-      url: 'https://www.scielo.br/j/rb/a/8YcWHLTMxJjdnzQkHbkRX4F/'
+      text: 'Bezerra AS et al. Avaliação volumétrica por ressonância magnética de um fígado normal. Radiol Bras 2005;38(5):333-337.',
+      url: 'https://doi.org/10.1590/S0100-39842005000500006'
     },
     info: {
       purpose: 'Quantificar o volume esplênico para diagnóstico e acompanhamento de esplenomegalia. Normal: até 250 mL ou 13 cm de comprimento.',
@@ -1197,7 +1197,7 @@ export const radiologyCalculators: RadiologyCalculator[] = [
       }
     },
     reference: {
-      text: 'Brunn J et al. Ultrasound Med Biol 1981',
+      text: 'Brunn J et al. Volumetric analysis of thyroid lobes by real-time ultrasound. Ultrasound Med Biol 1981;7(5):449-456.',
       url: 'https://pubmed.ncbi.nlm.nih.gov/7256012/'
     },
     info: {
@@ -1516,8 +1516,8 @@ export const radiologyCalculators: RadiologyCalculator[] = [
       }
     },
     reference: {
-      text: 'Hiratzka LF et al. Circulation 2010',
-      url: 'https://www.ahajournals.org/doi/10.1161/CIR.0b013e3181d4739e'
+      text: 'Hiratzka LF et al. 2010 ACCF/AHA/AATS/ACR/ASA Guidelines for the Diagnosis and Management of Patients With Thoracic Aortic Disease. Circulation 2010;121(13):e266-e369.',
+      url: 'https://pubmed.ncbi.nlm.nih.gov/20233780/'
     },
     info: {
       purpose: 'Avaliar dilatação aórtica e classificar ectasia/aneurisma. O Z-score permite comparação ajustada pela superfície corporal.',
@@ -2069,7 +2069,7 @@ export const radiologyCalculators: RadiologyCalculator[] = [
       }
     },
     reference: {
-      text: 'Kellgren JH & Lawrence JS. Ann Rheum Dis 1957',
+      text: 'Kellgren JH, Lawrence JS. Radiological assessment of osteo-arthrosis. Ann Rheum Dis 1957;16(4):494-502.',
       url: 'https://pubmed.ncbi.nlm.nih.gov/13498604/'
     },
     info: {
@@ -2125,7 +2125,7 @@ export const radiologyCalculators: RadiologyCalculator[] = [
       }
     },
     reference: {
-      text: 'Pfirrmann CW et al. Spine 2001',
+      text: 'Pfirrmann CW et al. Magnetic resonance classification of lumbar intervertebral disc degeneration. Spine 2001;26(17):1873-1878.',
       url: 'https://pubmed.ncbi.nlm.nih.gov/11568697/'
     },
     info: {
@@ -2188,7 +2188,7 @@ export const radiologyCalculators: RadiologyCalculator[] = [
       }
     },
     reference: {
-      text: 'Goutallier D et al. Clin Orthop Relat Res 1994',
+      text: 'Goutallier D et al. Fatty muscle degeneration in cuff ruptures. Clin Orthop Relat Res 1994;(304):78-83.',
       url: 'https://pubmed.ncbi.nlm.nih.gov/8020238/'
     },
     info: {
@@ -2257,8 +2257,8 @@ export const radiologyCalculators: RadiologyCalculator[] = [
       }
     },
     reference: {
-      text: 'Balthazar EJ et al. Radiology 1990',
-      url: 'https://pubmed.ncbi.nlm.nih.gov/2217773/'
+      text: 'Balthazar EJ et al. Acute pancreatitis: prognostic value of CT. Radiology 1990;174(2):331-336.',
+      url: 'https://pubmed.ncbi.nlm.nih.gov/2296641/'
     },
     info: {
       purpose: 'Classificar a gravidade da pancreatite aguda por TC e predizer morbidade/mortalidade. CTSI = Balthazar + pontos de necrose.',
@@ -2312,8 +2312,8 @@ export const radiologyCalculators: RadiologyCalculator[] = [
       }
     },
     reference: {
-      text: 'Hamaguchi M et al. J Gastroenterol 2007',
-      url: 'https://pubmed.ncbi.nlm.nih.gov/17530363/'
+      text: 'Hamaguchi M et al. The severity of ultrasonographic findings in nonalcoholic fatty liver disease reflects the metabolic syndrome. J Gastroenterol Hepatol 2007;22(12):2118-2123.',
+      url: 'https://pubmed.ncbi.nlm.nih.gov/17559366/'
     },
     info: {
       purpose: 'Classificar o grau de esteatose hepática por US baseado na ecogenicidade e visualização de estruturas vasculares.',
@@ -2390,7 +2390,7 @@ export const radiologyCalculators: RadiologyCalculator[] = [
       }
     },
     reference: {
-      text: 'MacMahon H et al. Radiology 2017',
+      text: 'MacMahon H et al. Guidelines for Management of Incidental Pulmonary Nodules Detected on CT Images. Radiology 2017;284(1):228-243.',
       url: 'https://pubmed.ncbi.nlm.nih.gov/28240562/'
     },
     info: {
