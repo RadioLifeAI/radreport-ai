@@ -2,12 +2,14 @@ export interface CalculatorInput {
   name: string
   label: string
   unit?: string
-  type: 'number' | 'date'
+  type: 'number' | 'date' | 'select'
+  options?: { value: string; label: string }[]
   min?: number
   max?: number
   step?: number
-  defaultValue?: number
+  defaultValue?: number | string
   placeholder?: string
+  showWhen?: { field: string; value: string | number }
 }
 
 export interface CalculatorResult {
@@ -135,6 +137,142 @@ export const radiologyCalculators: RadiologyCalculator[] = [
         'Insira a data do primeiro dia da última menstruação',
         'O cálculo considera ciclos regulares de 28 dias',
         'Compare com a biometria fetal para confirmar datação'
+      ]
+    }
+  },
+
+  // 2.5 Calculadora Obstétrica Avançada (DUM/USG)
+  {
+    id: 'obstetric-advanced',
+    name: 'Calculadora Obstétrica (DUM/USG)',
+    category: 'obstetricia',
+    description: 'Idade gestacional, DPP e DUM corrigida por USG',
+    inputs: [
+      { 
+        name: 'mode', 
+        label: 'Tipo de Dado Disponível', 
+        type: 'select',
+        options: [
+          { value: 'dum', label: 'DUM (Data da Última Menstruação)' },
+          { value: 'usg', label: 'USG (Ultrassonografia prévia)' }
+        ],
+        defaultValue: 'dum'
+      },
+      { 
+        name: 'dum', 
+        label: 'Data da Última Menstruação', 
+        type: 'date',
+        showWhen: { field: 'mode', value: 'dum' }
+      },
+      { 
+        name: 'usgDate', 
+        label: 'Data do Exame USG', 
+        type: 'date',
+        showWhen: { field: 'mode', value: 'usg' }
+      },
+      { 
+        name: 'usgWeeks', 
+        label: 'IG no Exame (semanas)', 
+        type: 'number',
+        min: 4, max: 42, step: 1, defaultValue: 12,
+        showWhen: { field: 'mode', value: 'usg' }
+      },
+      { 
+        name: 'usgDays', 
+        label: 'IG no Exame (dias adicionais)', 
+        type: 'number',
+        min: 0, max: 6, step: 1, defaultValue: 0,
+        showWhen: { field: 'mode', value: 'usg' }
+      }
+    ],
+    calculate: (values) => {
+      const mode = values.mode as string
+      const today = new Date()
+      let dumDate: Date
+      let dumSource: string
+      
+      if (mode === 'dum') {
+        // Modo DUM: usar data fornecida diretamente
+        dumDate = new Date(values.dum as string)
+        dumSource = 'pela DUM'
+      } else {
+        // Modo USG: calcular DUM retroativamente a partir do exame
+        const usgDate = new Date(values.usgDate as string)
+        const usgWeeks = values.usgWeeks as number
+        const usgDays = values.usgDays as number
+        const igDaysAtUsg = (usgWeeks * 7) + usgDays
+        
+        // DUM = data_usg - IG em dias (regra: IG = dias desde DUM)
+        dumDate = new Date(usgDate.getTime() - (igDaysAtUsg * 24 * 60 * 60 * 1000))
+        dumSource = 'corrigida pelo USG'
+      }
+      
+      // Calcular IG atual (dias desde DUM até hoje)
+      const diffMs = today.getTime() - dumDate.getTime()
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+      const igWeeks = Math.floor(diffDays / 7)
+      const igDays = diffDays % 7
+      
+      // Calcular DPP (Data Provável do Parto): DUM + 280 dias (40 semanas)
+      const dppDate = new Date(dumDate.getTime() + (280 * 24 * 60 * 60 * 1000))
+      
+      // Determinar trimestre
+      let trimestre = ''
+      if (igWeeks < 14) trimestre = '1º trimestre'
+      else if (igWeeks < 28) trimestre = '2º trimestre'
+      else trimestre = '3º trimestre'
+      
+      // Interpretação clínica
+      let interpretation = trimestre
+      let color: 'success' | 'warning' | 'danger' = 'warning'
+      
+      if (igWeeks >= 37 && igWeeks <= 41) {
+        interpretation = 'Gestação a termo'
+        color = 'success'
+      } else if (igWeeks > 41) {
+        interpretation = 'Gestação pós-termo'
+        color = 'danger'
+      } else if (igWeeks < 37) {
+        interpretation += ' (pré-termo)'
+      }
+      
+      // Formatação brasileira de datas
+      const formatDate = (d: Date) => d.toLocaleDateString('pt-BR')
+      
+      // Texto formatado para laudo
+      let formattedText = `Idade gestacional ${dumSource}: ${igWeeks}+${igDays} semanas`
+      formattedText += `, compatível com ${trimestre.toLowerCase()}.`
+      formattedText += ` DPP: ${formatDate(dppDate)}.`
+      if (mode === 'usg') {
+        formattedText += ` DUM calculada: ${formatDate(dumDate)}.`
+      }
+      
+      return {
+        value: `${igWeeks}+${igDays}`,
+        unit: 'semanas',
+        interpretation,
+        color,
+        formattedText
+      }
+    },
+    reference: {
+      text: 'ACOG Committee Opinion No. 700 (2017)',
+      url: 'https://www.acog.org/clinical/clinical-guidance/committee-opinion/articles/2017/05/methods-for-estimating-the-due-date'
+    },
+    info: {
+      purpose: 'Calculadora obstétrica completa que permite calcular idade gestacional e data provável do parto (DPP) a partir da DUM conhecida ou dos dados de um exame ultrassonográfico prévio. Útil quando a DUM é desconhecida mas existe USG de datação anterior.',
+      usage: [
+        'Selecione o tipo de dado disponível (DUM ou USG)',
+        'Para DUM: insira a data do primeiro dia da última menstruação',
+        'Para USG: insira a data do exame e a IG encontrada (semanas+dias)',
+        'O sistema calcula automaticamente IG atual, DPP e DUM corrigida'
+      ],
+      grading: [
+        '1º trimestre: até 13+6 semanas',
+        '2º trimestre: 14+0 a 27+6 semanas',
+        '3º trimestre: 28+0 até o parto',
+        'Termo: 37+0 a 41+6 semanas',
+        'Pós-termo: ≥42+0 semanas'
       ]
     }
   },
