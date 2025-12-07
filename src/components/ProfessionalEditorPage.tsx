@@ -895,6 +895,7 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
           codigo={selectedFraseForVariables.codigo}
           texto={selectedFraseForVariables.frase}
           conclusao={selectedFraseForVariables.conclusao}
+          observacao={selectedFraseForVariables.observacao}
           variaveis={selectedFraseForVariables.variaveis || []}
           editorHtml={editorInstance?.getHTML() || ''}
           estruturaNome={getEstruturaNome(selectedFraseForVariables)}
