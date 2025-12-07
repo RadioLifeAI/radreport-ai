@@ -40,7 +40,8 @@ interface VariablesModalProps {
     processedTexto: string, 
     processedConclusao?: string,
     targetLineIndex?: number,
-    insertionMode?: InsertionMode
+    insertionMode?: InsertionMode,
+    reorderedHtml?: string
   ) => void
 }
 
@@ -217,14 +218,93 @@ export function VariablesModal({
     return Object.keys(newErrors).length === 0
   }
 
+  // Construir HTML final com todas as modificações do preview (ordem, inserções, etc.)
+  const buildFinalHtml = useCallback((): string => {
+    if (paragraphs.length === 0) {
+      // Sem parágrafos do editor, retornar texto simples
+      let result = `<p>${processedTexto}</p>`
+      if (processedConclusao) {
+        result += `\n<h3>IMPRESSÃO</h3>\n<p>- ${processedConclusao}</p>`
+      }
+      return result
+    }
+
+    const resultParts: string[] = []
+    
+    paragraphOrder.forEach((originalIdx) => {
+      // Conclusão (índice especial)
+      if (originalIdx === CONCLUSAO_INDEX) {
+        if (processedConclusao) {
+          // Encontrar se já existe uma seção IMPRESSÃO nos parágrafos
+          const hasImpressao = paragraphs.some(p => 
+            p.isHeader && /impress[ãa]o|conclus[ãa]o/i.test(p.text)
+          )
+          if (!hasImpressao) {
+            resultParts.push('<h3>IMPRESSÃO</h3>')
+          }
+          resultParts.push(`<p>- ${processedConclusao}</p>`)
+        }
+        return
+      }
+      
+      const para = paragraphs[originalIdx]
+      if (!para) return
+      
+      const isSelected = originalIdx === selectedLineIndex
+      
+      // Inserir frase ACIMA se modo 'above'
+      if (isSelected && insertionMode === 'above') {
+        resultParts.push(`<p>${processedTexto}</p>`)
+      }
+      
+      // Processar o parágrafo original baseado no modo
+      if (isSelected) {
+        switch (insertionMode) {
+          case 'replace':
+            resultParts.push(`<p>${processedTexto}</p>`)
+            break
+          case 'append':
+            const existingText = para.text.trim()
+            const sep = existingText.endsWith('.') ? ' ' : '. '
+            resultParts.push(`<p>${existingText}${sep}${processedTexto}</p>`)
+            break
+          case 'remove':
+            // Não adiciona nada - remove a linha
+            break
+          case 'above':
+          case 'below':
+            // Mantém o parágrafo original
+            resultParts.push(para.html)
+            break
+          default:
+            resultParts.push(para.html)
+        }
+      } else {
+        // Parágrafo não selecionado - manter como está
+        resultParts.push(para.html)
+      }
+      
+      // Inserir frase ABAIXO se modo 'below'
+      if (isSelected && insertionMode === 'below') {
+        resultParts.push(`<p>${processedTexto}</p>`)
+      }
+    })
+    
+    return resultParts.join('\n')
+  }, [paragraphs, paragraphOrder, selectedLineIndex, insertionMode, processedTexto, processedConclusao, CONCLUSAO_INDEX])
+
   const handleSubmit = () => {
     if (!validate()) return
+
+    // Construir HTML final com todas as modificações do preview
+    const finalHtml = buildFinalHtml()
 
     onSubmit(
       processedTexto, 
       processedConclusao,
       selectedLineIndex !== null ? selectedLineIndex : undefined,
-      insertionMode
+      insertionMode,
+      finalHtml
     )
     onOpenChange(false)
   }
