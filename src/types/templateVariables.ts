@@ -12,7 +12,7 @@ export interface TemplateVariable {
   minimo?: number  // Validação min para números
   maximo?: number  // Validação max para números
   calculado?: boolean  // true = auto-calculated field (disabled input)
-  grupo?: string  // Group name for visual organization (e.g., "biometria", "placenta")
+  grupo?: string  // Group name for visual organization (e.g., "datas", "biometria", "liquido", "placenta", "caracteristicas", "cordao", "peso", "ig_calculada")
 }
 
 // Volume measurement data for 'volume' type variables

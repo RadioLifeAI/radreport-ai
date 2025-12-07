@@ -1,5 +1,6 @@
 // Modal for filling template variables before applying template
-// Includes technique selection, variable input with real-time preview, and automatic obstetric calculations
+// Includes technique selection, variable input with real-time preview, automatic obstetric calculations,
+// and visual grouping of variables by category (grupo)
 
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
@@ -14,7 +15,10 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Calendar } from '@/components/ui/calendar'
 import { Badge } from '@/components/ui/badge'
-import { ChevronDown, FileText, Calculator, Ruler, Settings2, CalendarIcon, Trash2, GripVertical, Zap } from 'lucide-react'
+import { 
+  ChevronDown, FileText, Calculator, Ruler, Settings2, CalendarIcon, Trash2, GripVertical, Zap,
+  Baby, Heart, Droplet, Link2, Scale, Activity, Stethoscope
+} from 'lucide-react'
 import { format, parse } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
@@ -717,7 +721,7 @@ export function TemplateVariablesModal({
               </div>
             )}
 
-            {/* Variables Section - Collapsible */}
+            {/* Variables Section - Collapsible with Visual Grouping */}
             {variaveis.length > 0 && (
               <Collapsible open={variablesOpen} onOpenChange={setVariablesOpen}>
                 <CollapsibleTrigger className="flex items-center justify-between w-full py-2 px-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
@@ -745,9 +749,81 @@ export function TemplateVariablesModal({
                   </div>
                 </CollapsibleTrigger>
                 <CollapsibleContent className="mt-3">
-                  <div className="space-y-4">
-                    {variaveis.map(renderField)}
-                  </div>
+                  {/* Render variables grouped by 'grupo' field */}
+                  {(() => {
+                    // Group configuration with icons and labels
+                    const groupConfig: Record<string, { label: string; icon: React.ReactNode; order: number }> = {
+                      datas: { label: 'DATAS', icon: <CalendarIcon className="h-4 w-4" />, order: 1 },
+                      biometria: { label: 'BIOMETRIA FETAL', icon: <Ruler className="h-4 w-4" />, order: 2 },
+                      ig_calculada: { label: 'IDADES GESTACIONAIS', icon: <Calculator className="h-4 w-4" />, order: 3 },
+                      peso: { label: 'PESO FETAL', icon: <Scale className="h-4 w-4" />, order: 4 },
+                      caracteristicas: { label: 'CARACTERÍSTICAS FETAIS', icon: <Baby className="h-4 w-4" />, order: 5 },
+                      cordao: { label: 'CORDÃO UMBILICAL', icon: <Link2 className="h-4 w-4" />, order: 6 },
+                      placenta: { label: 'PLACENTA', icon: <Heart className="h-4 w-4" />, order: 7 },
+                      liquido: { label: 'LÍQUIDO AMNIÓTICO', icon: <Droplet className="h-4 w-4" />, order: 8 },
+                      vitalidade: { label: 'VITALIDADE', icon: <Activity className="h-4 w-4" />, order: 9 },
+                      outros: { label: 'OUTROS', icon: <Stethoscope className="h-4 w-4" />, order: 99 }
+                    }
+
+                    // Group variables by 'grupo' field
+                    const groupedVariables = variaveis.reduce((acc, v) => {
+                      const grupo = v.grupo || 'outros'
+                      if (!acc[grupo]) acc[grupo] = []
+                      acc[grupo].push(v)
+                      return acc
+                    }, {} as Record<string, typeof variaveis>)
+
+                    // Sort groups by order
+                    const sortedGroups = Object.entries(groupedVariables).sort(([a], [b]) => {
+                      const orderA = groupConfig[a]?.order ?? 99
+                      const orderB = groupConfig[b]?.order ?? 99
+                      return orderA - orderB
+                    })
+
+                    // Check if we have any groups defined (obstetric template)
+                    const hasDefinedGroups = sortedGroups.some(([grupo]) => grupo !== 'outros')
+
+                    // If no groups defined, render flat list
+                    if (!hasDefinedGroups) {
+                      return (
+                        <div className="space-y-4">
+                          {variaveis.map(renderField)}
+                        </div>
+                      )
+                    }
+
+                    // Render grouped variables
+                    return (
+                      <div className="space-y-6">
+                        {sortedGroups.map(([grupo, vars]) => {
+                          const config = groupConfig[grupo] || groupConfig.outros
+                          return (
+                            <div key={grupo} className="space-y-3">
+                              {/* Group Header */}
+                              <div className="flex items-center gap-2 border-b border-border pb-2">
+                                <span className="text-cyan-500">{config.icon}</span>
+                                <span className="text-sm font-semibold text-muted-foreground tracking-wide">
+                                  {config.label}
+                                </span>
+                                <span className="text-xs text-muted-foreground/60 bg-muted px-1.5 py-0.5 rounded">
+                                  {vars.length}
+                                </span>
+                              </div>
+                              {/* Group Fields - 2 column grid for compact layout */}
+                              <div className={cn(
+                                "grid gap-4",
+                                vars.some(v => v.tipo === 'volume' || isVolumeVariable(v)) 
+                                  ? "grid-cols-1" 
+                                  : "grid-cols-1 sm:grid-cols-2"
+                              )}>
+                                {vars.map(renderField)}
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )
+                  })()}
                 </CollapsibleContent>
               </Collapsible>
             )}
