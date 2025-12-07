@@ -76,8 +76,9 @@ export function VariablesModal({
   const [paragraphOrder, setParagraphOrder] = useState<number[]>([])
   const [draggedParagraph, setDraggedParagraph] = useState<number | null>(null)
   
-  // Estado para mostrar/ocultar observação
+  // Estado para mostrar/ocultar observação e conclusão
   const [showObservacao, setShowObservacao] = useState(true)
+  const [showConclusao, setShowConclusao] = useState(true)
   
   // Índices especiais para conclusão e observação
   const CONCLUSAO_INDEX = -999
@@ -106,6 +107,7 @@ export function VariablesModal({
         if (conclusao) order.push(CONCLUSAO_INDEX)
         if (observacao) order.push(OBSERVACAO_INDEX)
         setParagraphOrder(order)
+        setShowConclusao(!!conclusao)
         setShowObservacao(!!observacao)
         
         // Tentar mapeamento automático
@@ -249,7 +251,7 @@ export function VariablesModal({
     paragraphOrder.forEach((originalIdx) => {
       // Conclusão (índice especial)
       if (originalIdx === CONCLUSAO_INDEX) {
-        if (processedConclusao) {
+        if (processedConclusao && showConclusao) {
           // Encontrar se já existe uma seção IMPRESSÃO nos parágrafos
           const hasImpressao = paragraphs.some(p => 
             p.isHeader && /impress[ãa]o|conclus[ãa]o/i.test(p.text)
@@ -315,7 +317,7 @@ export function VariablesModal({
     })
     
     return resultParts.join('\n')
-  }, [paragraphs, paragraphOrder, selectedLineIndex, insertionMode, processedTexto, processedConclusao, processedObservacao, showObservacao, CONCLUSAO_INDEX, OBSERVACAO_INDEX])
+  }, [paragraphs, paragraphOrder, selectedLineIndex, insertionMode, processedTexto, processedConclusao, processedObservacao, showConclusao, showObservacao, CONCLUSAO_INDEX, OBSERVACAO_INDEX])
 
   const handleSubmit = () => {
     if (!validate()) return
@@ -518,7 +520,7 @@ export function VariablesModal({
           const isConclusao = originalIdx === CONCLUSAO_INDEX
           const isObservacao = originalIdx === OBSERVACAO_INDEX
           
-          if (isConclusao && processedConclusao) {
+          if (isConclusao && processedConclusao && showConclusao) {
             return (
               <div
                 key="conclusao"
@@ -545,9 +547,24 @@ export function VariablesModal({
                 )}>
                   <span className="text-foreground font-medium">- {processedConclusao}</span>
                 </div>
+                {/* Botão remover conclusão */}
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-6 w-6 ml-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={() => {
+                    setShowConclusao(false)
+                    setParagraphOrder(prev => prev.filter(idx => idx !== CONCLUSAO_INDEX))
+                  }}
+                >
+                  <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                </Button>
               </div>
             )
           }
+          
+          // Skip if conclusao is hidden
+          if (isConclusao) return null
           
           // Observação (special index)
           if (isObservacao && processedObservacao && showObservacao) {
@@ -598,7 +615,6 @@ export function VariablesModal({
           
           // Skip if observacao is hidden
           if (isObservacao) return null
-          if (isConclusao) return null // Skip if no conclusao text
           
           const para = paragraphs[originalIdx]
           if (!para) return null
