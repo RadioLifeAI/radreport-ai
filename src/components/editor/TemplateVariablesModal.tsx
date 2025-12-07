@@ -818,7 +818,7 @@ export function TemplateVariablesModal({
                   </div>
                 </CollapsibleTrigger>
                 <CollapsibleContent className="mt-3">
-                  {/* Render variables grouped by 'grupo' field - sem ScrollArea aninhado */}
+                  <ScrollArea className="max-h-[400px]">
                   {(() => {
                     // Group configuration with icons and labels
                     const groupConfig: Record<string, { label: string; icon: React.ReactNode; order: number }> = {
@@ -893,6 +893,7 @@ export function TemplateVariablesModal({
                       </div>
                     )
                   })()}
+                  </ScrollArea>
                 </CollapsibleContent>
               </Collapsible>
             )}
