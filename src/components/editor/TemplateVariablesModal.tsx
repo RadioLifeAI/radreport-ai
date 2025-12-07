@@ -13,7 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Calendar } from '@/components/ui/calendar'
-import { ChevronDown, FileText, Calculator, Ruler, Settings2, CalendarIcon, Trash2 } from 'lucide-react'
+import { ChevronDown, FileText, Calculator, Ruler, Settings2, CalendarIcon, Trash2, ArrowUp, ArrowDown, GripVertical } from 'lucide-react'
 import { format, parse } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
@@ -51,6 +51,7 @@ export function TemplateVariablesModal({
   const [variablesOpen, setVariablesOpen] = useState(true)
   const [previewOpen, setPreviewOpen] = useState(true)
   const [removedSections, setRemovedSections] = useState<string[]>([])
+  const [sectionOrder, setSectionOrder] = useState<string[]>([])
 
   const availableTechniques = template ? getAvailableTechniques(template) : []
   const hasMultipleTechniques = availableTechniques.length > 1
@@ -97,6 +98,9 @@ export function TemplateVariablesModal({
       setErrors({})
       setPreviewOpen(true)
       setRemovedSections([])
+      
+      // Initialize section order with default order
+      setSectionOrder(['titulo', 'tecnica', 'achados', 'impressao', 'adicionais'])
     }
   }, [open, template, variaveis])
 
@@ -180,13 +184,14 @@ export function TemplateVariablesModal({
     return sections
   }, [template, selectedTechniques, values])
 
-  // Filter out removed sections for final HTML
+  // Filter out removed sections and apply order for final HTML
   const previewHtml = useMemo(() => {
-    return previewSections
-      .filter(section => !removedSections.includes(section.id))
-      .map(section => section.html)
+    const sectionMap = new Map(previewSections.map(s => [s.id, s]))
+    return sectionOrder
+      .filter(id => !removedSections.includes(id) && sectionMap.has(id))
+      .map(id => sectionMap.get(id)!.html)
       .join('')
-  }, [previewSections, removedSections])
+  }, [previewSections, sectionOrder, removedSections])
 
   const toggleSectionRemoval = (sectionId: string) => {
     setRemovedSections(prev => 
@@ -194,6 +199,27 @@ export function TemplateVariablesModal({
         ? prev.filter(id => id !== sectionId)
         : [...prev, sectionId]
     )
+  }
+
+  // Functions to reorder sections
+  const moveSectionUp = (sectionId: string) => {
+    setSectionOrder(prev => {
+      const idx = prev.indexOf(sectionId)
+      if (idx <= 0) return prev
+      const newOrder = [...prev]
+      ;[newOrder[idx - 1], newOrder[idx]] = [newOrder[idx], newOrder[idx - 1]]
+      return newOrder
+    })
+  }
+
+  const moveSectionDown = (sectionId: string) => {
+    setSectionOrder(prev => {
+      const idx = prev.indexOf(sectionId)
+      if (idx < 0 || idx >= prev.length - 1) return prev
+      const newOrder = [...prev]
+      ;[newOrder[idx], newOrder[idx + 1]] = [newOrder[idx + 1], newOrder[idx]]
+      return newOrder
+    })
   }
 
   const handleValueChange = (nome: string, value: string | number | boolean) => {
@@ -633,26 +659,56 @@ export function TemplateVariablesModal({
                 />
               </CollapsibleTrigger>
               <CollapsibleContent className="mt-3">
-                {/* Section removal controls */}
+                {/* Section reorder and removal controls */}
                 <div className="flex flex-wrap gap-2 mb-3">
-                  {previewSections.map((section) => (
-                    <Button
-                      key={section.id}
-                      variant={removedSections.includes(section.id) ? "destructive" : "outline"}
-                      size="sm"
-                      onClick={() => toggleSectionRemoval(section.id)}
-                      className="h-7 text-xs gap-1.5"
-                    >
-                      {removedSections.includes(section.id) ? (
-                        <>
-                          <Trash2 className="h-3 w-3" />
-                          {section.label} (removida)
-                        </>
-                      ) : (
-                        section.label
-                      )}
-                    </Button>
-                  ))}
+                  {sectionOrder.map((sectionId, orderIdx) => {
+                    const section = previewSections.find(s => s.id === sectionId)
+                    if (!section) return null
+                    const isRemoved = removedSections.includes(sectionId)
+                    
+                    return (
+                      <div key={sectionId} className="flex items-center gap-0.5 bg-muted/30 rounded-lg px-1 py-0.5">
+                        {/* Reorder arrows */}
+                        <div className="flex flex-col">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-4 w-4 hover:bg-muted"
+                            onClick={() => moveSectionUp(sectionId)}
+                            disabled={orderIdx === 0 || isRemoved}
+                          >
+                            <ArrowUp className="h-2.5 w-2.5" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-4 w-4 hover:bg-muted"
+                            onClick={() => moveSectionDown(sectionId)}
+                            disabled={orderIdx === sectionOrder.length - 1 || isRemoved}
+                          >
+                            <ArrowDown className="h-2.5 w-2.5" />
+                          </Button>
+                        </div>
+                        
+                        {/* Section name + remove button */}
+                        <Button
+                          variant={isRemoved ? "destructive" : "outline"}
+                          size="sm"
+                          onClick={() => toggleSectionRemoval(sectionId)}
+                          className="h-6 text-xs gap-1 px-2"
+                        >
+                          {isRemoved ? (
+                            <>
+                              <Trash2 className="h-3 w-3" />
+                              {section.label}
+                            </>
+                          ) : (
+                            section.label
+                          )}
+                        </Button>
+                      </div>
+                    )
+                  })}
                 </div>
                 <ScrollArea className="h-[300px] w-full rounded-lg border border-border [&_[data-orientation=vertical]]:w-1.5 [&_[data-orientation=vertical]]:bg-transparent [&_[data-orientation=vertical]_>_div]:bg-cyan-500/30 [&_[data-orientation=vertical]_>_div]:hover:bg-cyan-500/50 [&_[data-orientation=vertical]_>_div]:rounded-full">
                   <div 
