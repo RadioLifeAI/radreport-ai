@@ -453,9 +453,14 @@ export function VariablesModal({
             <div key={idx}>
               {/* Nova linha acima (modo 'above') */}
               {isSelected && insertionMode === 'above' && (
-                <div className="px-2 py-1 mb-0.5 rounded bg-emerald-500/20 border-l-4 border-emerald-500 pl-3 text-sm flex items-center gap-2">
-                  <span className="text-foreground font-medium">{processedTexto}</span>
-                  <Badge variant="outline" className="text-[10px] px-1 py-0 h-4">nova</Badge>
+                <div className="group relative flex items-center mb-0.5">
+                  <div className="mr-1.5 cursor-grab active:cursor-grabbing">
+                    <GripVertical className="h-4 w-4 text-muted-foreground/60" />
+                  </div>
+                  <div className="flex-1 px-2 py-1 rounded bg-emerald-500/20 border-l-4 border-emerald-500 pl-3 text-sm flex items-center gap-2">
+                    <span className="text-foreground font-medium">{processedTexto}</span>
+                    <Badge variant="outline" className="text-[10px] px-1 py-0 h-4">nova</Badge>
+                  </div>
                 </div>
               )}
               
@@ -561,9 +566,14 @@ export function VariablesModal({
               
               {/* Nova linha abaixo (modo 'below') */}
               {isSelected && insertionMode === 'below' && (
-                <div className="px-2 py-1 mt-0.5 rounded bg-emerald-500/20 border-l-4 border-emerald-500 pl-3 text-sm flex items-center gap-2">
-                  <span className="text-foreground font-medium">{processedTexto}</span>
-                  <Badge variant="outline" className="text-[10px] px-1 py-0 h-4">nova</Badge>
+                <div className="group relative flex items-center mt-0.5">
+                  <div className="mr-1.5 cursor-grab active:cursor-grabbing">
+                    <GripVertical className="h-4 w-4 text-muted-foreground/60" />
+                  </div>
+                  <div className="flex-1 px-2 py-1 rounded bg-emerald-500/20 border-l-4 border-emerald-500 pl-3 text-sm flex items-center gap-2">
+                    <span className="text-foreground font-medium">{processedTexto}</span>
+                    <Badge variant="outline" className="text-[10px] px-1 py-0 h-4">nova</Badge>
+                  </div>
                 </div>
               )}
             </div>
