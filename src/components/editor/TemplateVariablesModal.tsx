@@ -126,17 +126,22 @@ export function TemplateVariablesModal({
            (varNames.includes('dbp') && varNames.includes('cf'))
   }, [variaveis])
 
-  // Automatic obstetric calculations effect
+  // Automatic obstetric calculations effect - flexível: DUM e/ou USG
   useEffect(() => {
     if (!isObstetricTemplate) return
     
     const newCalculatedValues: TemplateVariableValues = {}
     
-    // 1. Calculate IG from DUM if DUM date is available
+    // Track which sources of IG are available
+    let hasDUM = false
+    let hasUSG = false
+    
+    // 1. Calculate IG from DUM if available
     const dumDateStr = values['data_dum'] as string
     if (dumDateStr) {
       const dumDate = parseDateBR(dumDateStr)
       if (dumDate) {
+        hasDUM = true
         const igDUM = calculateIGFromDUM(dumDate)
         newCalculatedValues['ig_dum_semanas'] = igDUM.weeks
         newCalculatedValues['ig_dum_dias'] = igDUM.days
@@ -147,30 +152,53 @@ export function TemplateVariablesModal({
       }
     }
     
-    // 2. Calculate IG and weight from biometry
+    // 2. Calculate IG and weight from biometry if available
     const dbp = values['dbp'] as number || 0
     const cc = values['cc'] as number || 0
     const ca = values['ca'] as number || 0
     const cf = values['cf'] as number || 0
     
     if (dbp > 0 || cf > 0) {
+      hasUSG = true
       const igBiometry = estimateIGFromBiometry(dbp, cc, ca, cf)
       newCalculatedValues['ig_usg_semanas'] = igBiometry.weeks
       newCalculatedValues['ig_usg_dias'] = igBiometry.days
       newCalculatedValues['ig_biometria_semanas'] = igBiometry.weeks
       newCalculatedValues['ig_biometria_dias'] = igBiometry.days
       
-      // Calculate fetal weight (Hadlock II)
+      // Calculate fetal weight (Hadlock II) if we have enough measurements
       if (dbp > 0 && ca > 0 && cf > 0) {
         const peso = estimateFetalWeight(dbp, cc, ca, cf)
         newCalculatedValues['peso_estimado'] = peso
         
-        // Estimate percentile
+        // Estimate percentile using USG IG
         const percentile = estimateWeightPercentile(peso, igBiometry.weeks)
         if (percentile !== null) {
           newCalculatedValues['percentil_peso'] = percentile
         }
       }
+    }
+    
+    // 3. Determine final IG for conclusion (priority: USG > DUM > manual)
+    // This allows the conclusion to adapt to available data
+    const igManualSemanas = values['ig_manual_semanas'] as number
+    const igManualDias = values['ig_manual_dias'] as number
+    
+    if (igManualSemanas && igManualSemanas > 0) {
+      // Manual entry takes highest priority
+      newCalculatedValues['ig_final_semanas'] = igManualSemanas
+      newCalculatedValues['ig_final_dias'] = igManualDias || 0
+      newCalculatedValues['ig_fonte'] = 'manual'
+    } else if (hasUSG) {
+      // USG biometry is most accurate in early pregnancy
+      newCalculatedValues['ig_final_semanas'] = newCalculatedValues['ig_usg_semanas']
+      newCalculatedValues['ig_final_dias'] = newCalculatedValues['ig_usg_dias']
+      newCalculatedValues['ig_fonte'] = 'usg'
+    } else if (hasDUM) {
+      // DUM as fallback
+      newCalculatedValues['ig_final_semanas'] = newCalculatedValues['ig_dum_semanas']
+      newCalculatedValues['ig_final_dias'] = newCalculatedValues['ig_dum_dias']
+      newCalculatedValues['ig_fonte'] = 'dum'
     }
     
     // Update values with calculated ones (without triggering re-render loop)
@@ -185,7 +213,7 @@ export function TemplateVariablesModal({
         return prev
       })
     }
-  }, [isObstetricTemplate, values['data_dum'], values['dbp'], values['cc'], values['ca'], values['cf']])
+  }, [isObstetricTemplate, values['data_dum'], values['dbp'], values['cc'], values['ca'], values['cf'], values['ig_manual_semanas'], values['ig_manual_dias']])
 
   // Generate preview HTML with removable sections
   const previewSections = useMemo(() => {
@@ -360,19 +388,10 @@ export function TemplateVariablesModal({
   }
 
   const validate = (): boolean => {
-    const newErrors: Record<string, string> = {}
-    
-    variaveis.forEach(v => {
-      if (v.obrigatorio) {
-        const value = values[v.nome]
-        if (value === undefined || value === null || value === '') {
-          newErrors[v.nome] = 'Campo obrigatório'
-        }
-      }
-    })
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+    // Nenhuma validação obrigatória - permite inserção parcial
+    // Radiologista pode inserir template mesmo sem preencher todos os campos
+    setErrors({})
+    return true
   }
 
   const handleSubmit = () => {
@@ -501,19 +520,17 @@ export function TemplateVariablesModal({
     switch (variable.tipo) {
       case 'texto':
         return (
-          <div key={variable.nome} className="space-y-2">
-            <Label htmlFor={variable.nome}>
+          <div key={variable.nome} className="space-y-1">
+            <Label htmlFor={variable.nome} className="text-xs">
               {variable.descricao || variable.nome}
-              {variable.obrigatorio && <span className="text-destructive ml-1">*</span>}
             </Label>
             <Input
               id={variable.nome}
               value={value?.toString() || ''}
               onChange={(e) => handleValueChange(variable.nome, e.target.value)}
               placeholder={variable.valor_padrao?.toString() || ''}
-              className={error ? 'border-destructive' : ''}
+              className="h-8 text-sm"
             />
-            {error && <p className="text-xs text-destructive">{error}</p>}
           </div>
         )
 
@@ -522,22 +539,16 @@ export function TemplateVariablesModal({
         const isCalculated = variable.calculado === true
         
         return (
-          <div key={variable.nome} className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Label htmlFor={variable.nome} className={isCalculated ? 'text-muted-foreground' : ''}>
+          <div key={variable.nome} className="space-y-1">
+            <div className="flex items-center gap-1.5">
+              <Label htmlFor={variable.nome} className={cn("text-xs", isCalculated ? 'text-muted-foreground' : '')}>
                 {variable.descricao || variable.nome}
-                {variable.unidade && <span className="text-muted-foreground ml-1">({variable.unidade})</span>}
-                {variable.obrigatorio && !isCalculated && <span className="text-destructive ml-1">*</span>}
-                {(variable.minimo !== undefined || variable.maximo !== undefined) && !isCalculated && (
-                  <span className="text-xs text-muted-foreground ml-2">
-                    [{variable.minimo ?? '...'} - {variable.maximo ?? '...'}]
-                  </span>
-                )}
+                {variable.unidade && <span className="text-muted-foreground">({variable.unidade})</span>}
               </Label>
               {isCalculated && (
-                <Badge variant="outline" className="text-xs bg-cyan-500/10 text-cyan-600 border-cyan-500/30">
-                  <Zap className="h-3 w-3 mr-1" />
-                  Calculado
+                <Badge variant="outline" className="text-[10px] py-0 px-1 bg-cyan-500/10 text-cyan-600 border-cyan-500/30">
+                  <Zap className="h-2.5 w-2.5 mr-0.5" />
+                  Auto
                 </Badge>
               )}
             </div>
@@ -549,31 +560,30 @@ export function TemplateVariablesModal({
               step="0.1"
               value={value?.toString() || ''}
               onChange={(e) => handleValueChange(variable.nome, parseFloat(e.target.value) || 0)}
-              placeholder={variable.valor_padrao?.toString() || '0'}
+              placeholder={variable.valor_padrao?.toString() || ''}
               className={cn(
+                "h-8 text-sm",
                 error && 'border-destructive',
-                isCalculated && 'bg-muted/50 text-cyan-600 font-semibold cursor-not-allowed'
+                isCalculated && 'bg-muted/50 text-cyan-600 font-medium cursor-not-allowed'
               )}
               disabled={isCalculated}
               readOnly={isCalculated}
             />
-            {error && <p className="text-xs text-destructive">{error}</p>}
           </div>
         )
 
       case 'select':
         return (
-          <div key={variable.nome} className="space-y-2">
-            <Label htmlFor={variable.nome}>
+          <div key={variable.nome} className="space-y-1">
+            <Label htmlFor={variable.nome} className="text-xs">
               {variable.descricao || variable.nome}
-              {variable.obrigatorio && <span className="text-destructive ml-1">*</span>}
             </Label>
             <Select
               value={value?.toString() || ''}
               onValueChange={(val) => handleValueChange(variable.nome, val)}
             >
-              <SelectTrigger className={error ? 'border-destructive' : ''}>
-                <SelectValue placeholder="Selecione uma opção" />
+              <SelectTrigger className="h-8 text-sm">
+                <SelectValue placeholder="Selecione..." />
               </SelectTrigger>
               <SelectContent>
                 {variable.opcoes?.map((opcao) => (
@@ -583,7 +593,6 @@ export function TemplateVariablesModal({
                 ))}
               </SelectContent>
             </Select>
-            {error && <p className="text-xs text-destructive">{error}</p>}
           </div>
         )
 
@@ -749,20 +758,22 @@ export function TemplateVariablesModal({
                   </div>
                 </CollapsibleTrigger>
                 <CollapsibleContent className="mt-3">
+                  {/* ScrollArea interno para lista de variáveis com altura máxima */}
+                  <ScrollArea className="max-h-[400px] pr-3 [&_[data-orientation=vertical]]:w-1.5 [&_[data-orientation=vertical]]:bg-muted/30 [&_[data-orientation=vertical]_>_div]:bg-cyan-500/40 [&_[data-orientation=vertical]_>_div]:hover:bg-cyan-500/60 [&_[data-orientation=vertical]_>_div]:rounded-full">
                   {/* Render variables grouped by 'grupo' field */}
                   {(() => {
                     // Group configuration with icons and labels
                     const groupConfig: Record<string, { label: string; icon: React.ReactNode; order: number }> = {
                       datas: { label: 'DATAS', icon: <CalendarIcon className="h-4 w-4" />, order: 1 },
-                      biometria: { label: 'BIOMETRIA FETAL', icon: <Ruler className="h-4 w-4" />, order: 2 },
-                      ig_calculada: { label: 'IDADES GESTACIONAIS', icon: <Calculator className="h-4 w-4" />, order: 3 },
-                      peso: { label: 'PESO FETAL', icon: <Scale className="h-4 w-4" />, order: 4 },
-                      caracteristicas: { label: 'CARACTERÍSTICAS FETAIS', icon: <Baby className="h-4 w-4" />, order: 5 },
-                      cordao: { label: 'CORDÃO UMBILICAL', icon: <Link2 className="h-4 w-4" />, order: 6 },
-                      placenta: { label: 'PLACENTA', icon: <Heart className="h-4 w-4" />, order: 7 },
-                      liquido: { label: 'LÍQUIDO AMNIÓTICO', icon: <Droplet className="h-4 w-4" />, order: 8 },
-                      vitalidade: { label: 'VITALIDADE', icon: <Activity className="h-4 w-4" />, order: 9 },
-                      outros: { label: 'OUTROS', icon: <Stethoscope className="h-4 w-4" />, order: 99 }
+                      biometria: { label: 'BIOMETRIA FETAL', icon: <Ruler className="h-3.5 w-3.5" />, order: 2 },
+                      ig_calculada: { label: 'IDADES GESTACIONAIS', icon: <Calculator className="h-3.5 w-3.5" />, order: 3 },
+                      peso: { label: 'PESO FETAL', icon: <Scale className="h-3.5 w-3.5" />, order: 4 },
+                      caracteristicas: { label: 'CARACTERÍSTICAS FETAIS', icon: <Baby className="h-3.5 w-3.5" />, order: 5 },
+                      cordao: { label: 'CORDÃO UMBILICAL', icon: <Link2 className="h-3.5 w-3.5" />, order: 6 },
+                      placenta: { label: 'PLACENTA', icon: <Heart className="h-3.5 w-3.5" />, order: 7 },
+                      liquido: { label: 'LÍQUIDO AMNIÓTICO', icon: <Droplet className="h-3.5 w-3.5" />, order: 8 },
+                      vitalidade: { label: 'VITALIDADE', icon: <Activity className="h-3.5 w-3.5" />, order: 9 },
+                      outros: { label: 'OUTROS', icon: <Stethoscope className="h-3.5 w-3.5" />, order: 99 }
                     }
 
                     // Group variables by 'grupo' field
@@ -786,35 +797,35 @@ export function TemplateVariablesModal({
                     // If no groups defined, render flat list
                     if (!hasDefinedGroups) {
                       return (
-                        <div className="space-y-4">
+                        <div className="space-y-3">
                           {variaveis.map(renderField)}
                         </div>
                       )
                     }
 
-                    // Render grouped variables
+                    // Render grouped variables - mais compacto
                     return (
-                      <div className="space-y-6">
+                      <div className="space-y-4">
                         {sortedGroups.map(([grupo, vars]) => {
                           const config = groupConfig[grupo] || groupConfig.outros
                           return (
-                            <div key={grupo} className="space-y-3">
-                              {/* Group Header */}
-                              <div className="flex items-center gap-2 border-b border-border pb-2">
+                            <div key={grupo} className="space-y-2">
+                              {/* Group Header - mais compacto */}
+                              <div className="flex items-center gap-2 border-b border-border/50 pb-1.5">
                                 <span className="text-cyan-500">{config.icon}</span>
-                                <span className="text-sm font-semibold text-muted-foreground tracking-wide">
+                                <span className="text-xs font-semibold text-muted-foreground tracking-wide">
                                   {config.label}
                                 </span>
-                                <span className="text-xs text-muted-foreground/60 bg-muted px-1.5 py-0.5 rounded">
+                                <span className="text-[10px] text-muted-foreground/60 bg-muted px-1 py-0.5 rounded">
                                   {vars.length}
                                 </span>
                               </div>
-                              {/* Group Fields - 2 column grid for compact layout */}
+                              {/* Group Fields - grid compacto */}
                               <div className={cn(
-                                "grid gap-4",
+                                "grid gap-2",
                                 vars.some(v => v.tipo === 'volume' || isVolumeVariable(v)) 
                                   ? "grid-cols-1" 
-                                  : "grid-cols-1 sm:grid-cols-2"
+                                  : "grid-cols-2"
                               )}>
                                 {vars.map(renderField)}
                               </div>
@@ -824,6 +835,7 @@ export function TemplateVariablesModal({
                       </div>
                     )
                   })()}
+                  </ScrollArea>
                 </CollapsibleContent>
               </Collapsible>
             )}
