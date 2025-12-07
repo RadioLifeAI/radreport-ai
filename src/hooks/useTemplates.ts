@@ -385,9 +385,9 @@ export function useTemplates(): UseTemplatesReturn {
     
     // Process variable substitution
     const processText = (text: string) => {
-      return text.replace(/\{\{(\w+)\}\}/g, (match, varName) => {
+      let result = text.replace(/\{\{(\w+)\}\}/g, (match, varName) => {
         const value = variableValues[varName]
-        if (value !== undefined && value !== null) {
+        if (value !== undefined && value !== null && value !== '') {
           if (typeof value === 'number') {
             return value.toLocaleString('pt-BR', { 
               minimumFractionDigits: 1,
@@ -396,8 +396,16 @@ export function useTemplates(): UseTemplatesReturn {
           }
           return value.toString()
         }
-        return match
+        return '' // Return empty string instead of placeholder
       })
+      
+      // Clean up empty lines after placeholder removal
+      result = result
+        .replace(/^\s*[-•]\s*$/gm, '') // Remove lines with only bullet points
+        .replace(/\n{3,}/g, '\n\n')    // Max 2 consecutive line breaks
+        .replace(/^\n+/, '')           // Remove leading line breaks
+      
+      return result
     }
     
     const removed = removedSections || []
