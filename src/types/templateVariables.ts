@@ -11,6 +11,8 @@ export interface TemplateVariable {
   unidade?: string  // ex: "mm", "cm", "HU", "cm³"
   minimo?: number  // Validação min para números
   maximo?: number  // Validação max para números
+  calculado?: boolean  // true = auto-calculated field (disabled input)
+  grupo?: string  // Group name for visual organization (e.g., "biometria", "placenta")
 }
 
 // Volume measurement data for 'volume' type variables
