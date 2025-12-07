@@ -172,17 +172,20 @@ function normalizeVariable(v: any): TemplateVariable {
   if (tipo === 'number') tipo = 'numero'
   if (tipo === 'text' || tipo === 'string') tipo = 'texto'
   if (tipo === 'volume') tipo = 'volume' // Preserve volume type
+  if (tipo === 'date') tipo = 'data' // English to Portuguese
   
   return {
     nome: v.nome || v.name || 'unnamed',
-    tipo: tipo as 'texto' | 'numero' | 'select' | 'boolean' | 'volume',
+    tipo: tipo as 'texto' | 'numero' | 'select' | 'boolean' | 'volume' | 'data',
     descricao: v.descricao || v.description || v.nome,
     opcoes: v.opcoes || v.options || v.valores || [],
     valor_padrao: v.valor_padrao || v.default || v.defaultValue,
     obrigatorio: v.obrigatorio !== undefined ? v.obrigatorio : v.required || false,
     unidade: v.unidade || v.unit,
     minimo: v.minimo !== undefined ? v.minimo : v.min || v.valor_min,
-    maximo: v.maximo !== undefined ? v.maximo : v.max || v.valor_max
+    maximo: v.maximo !== undefined ? v.maximo : v.max || v.valor_max,
+    calculado: v.calculado !== undefined ? v.calculado : v.calculated || false,
+    grupo: v.grupo || v.group
   }
 }
 
@@ -259,13 +262,19 @@ export function getDefaultTechnique(template: TemplateWithVariables): string | n
 /**
  * Process conditional logic to derive variables based on selected values
  * 
+ * Supports multiple operators:
+ * - "igual": exact match (string, number, boolean)
+ * - "menor_que": less than (numeric comparison)
+ * - "maior_que": greater than (numeric comparison)
+ * - "menor_igual": less than or equal
+ * - "maior_igual": greater than or equal
+ * 
  * Example structure:
  * {
- *   "quando": "grau_esteatose",
- *   "igual": "I",
+ *   "quando": "ila",
+ *   "menor_que": 5,
  *   "derivar": {
- *     "achados_figado": "text...",
- *     "impressao_grau": "leve (grau I)"
+ *     "alerta_la": "- Oligoâmnio. Recomenda-se correlação clínica."
  *   }
  * }
  */
@@ -278,15 +287,56 @@ export function processConditionalLogic(
   const derivedValues = { ...values }
 
   condicoes.forEach(condicao => {
-    // Check if condition is met
     const sourceValue = values[condicao.quando]
-    if (sourceValue !== undefined && sourceValue === condicao.igual) {
-      // Add derived variables
-      if (condicao.derivar && typeof condicao.derivar === 'object') {
-        Object.entries(condicao.derivar).forEach(([key, value]) => {
-          derivedValues[key] = value as string | number | boolean
-        })
+    if (sourceValue === undefined || sourceValue === null) return
+    
+    let conditionMet = false
+    
+    // Exact match (igual)
+    if (condicao.igual !== undefined) {
+      conditionMet = sourceValue === condicao.igual
+    }
+    
+    // Numeric comparisons
+    const numericValue = typeof sourceValue === 'number' ? sourceValue : parseFloat(String(sourceValue))
+    
+    if (!isNaN(numericValue)) {
+      // Less than (menor_que)
+      if (condicao.menor_que !== undefined && numericValue < condicao.menor_que) {
+        conditionMet = true
       }
+      
+      // Greater than (maior_que)
+      if (condicao.maior_que !== undefined && numericValue > condicao.maior_que) {
+        conditionMet = true
+      }
+      
+      // Less than or equal (menor_igual)
+      if (condicao.menor_igual !== undefined && numericValue <= condicao.menor_igual) {
+        conditionMet = true
+      }
+      
+      // Greater than or equal (maior_igual)
+      if (condicao.maior_igual !== undefined && numericValue >= condicao.maior_igual) {
+        conditionMet = true
+      }
+    }
+    
+    // Apply derived variables if condition is met
+    if (conditionMet && condicao.derivar && typeof condicao.derivar === 'object') {
+      Object.entries(condicao.derivar).forEach(([key, value]) => {
+        // Process placeholders in derived values (e.g., "FCF {{fcf}} bpm")
+        let processedValue = value as string | number | boolean
+        if (typeof processedValue === 'string') {
+          processedValue = processedValue.replace(/\{\{(\w+)\}\}/g, (match, varName) => {
+            const varValue = values[varName]
+            return varValue !== undefined && varValue !== null 
+              ? formatVariableValue(varValue) 
+              : match
+          })
+        }
+        derivedValues[key] = processedValue
+      })
     }
   })
 
