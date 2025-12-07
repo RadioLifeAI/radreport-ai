@@ -9137,7 +9137,7 @@ export type Database = {
           p_reason?: string
           p_user_id: string
         }
-        Returns: number
+        Returns: Json
       }
       renew_monthly_credits:
         | {
