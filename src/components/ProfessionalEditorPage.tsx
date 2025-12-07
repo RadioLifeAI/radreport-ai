@@ -460,10 +460,11 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
   const handleTemplateVariablesSubmit = useCallback((
     selectedTechniques: string[], 
     variableValues: TemplateVariableValues,
-    removedSections?: string[]
+    removedSections?: string[],
+    sectionOrder?: string[]
   ) => {
     if (selectedTemplateForVariables) {
-      applyTemplateWithVariables(selectedTemplateForVariables as any, selectedTechniques, variableValues, removedSections)
+      applyTemplateWithVariables(selectedTemplateForVariables as any, selectedTechniques, variableValues, removedSections, sectionOrder)
     }
     setTemplateVariablesModalOpen(false)
     setSelectedTemplateForVariables(null)
