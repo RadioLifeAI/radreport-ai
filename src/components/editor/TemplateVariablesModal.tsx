@@ -70,6 +70,9 @@ export function TemplateVariablesModal({
   
   // Estado para selecionar fonte dos dados de IG (obstétrico)
   const [igSourceMode, setIGSourceMode] = useState<'biometria' | 'dum' | 'usg_previo'>('biometria')
+  
+  // Estado para toggle de peso manual (permite override do cálculo automático)
+  const [useManualWeight, setUseManualWeight] = useState(false)
 
   const availableTechniques = template ? getAvailableTechniques(template) : []
   const hasMultipleTechniques = availableTechniques.length > 1
@@ -147,6 +150,22 @@ export function TemplateVariablesModal({
     
     const newCalculatedValues: TemplateVariableValues = {}
     
+    // Extrair valores numéricos de biometria de forma segura
+    const getNumericValue = (key: string): number => {
+      const val = values[key]
+      if (typeof val === 'number') return val
+      if (typeof val === 'string' && val !== '') {
+        const parsed = parseFloat(val.replace(',', '.'))
+        return isNaN(parsed) ? 0 : parsed
+      }
+      return 0
+    }
+    
+    const dbp = getNumericValue('dbp')
+    const cc = getNumericValue('cc')
+    const ca = getNumericValue('ca')
+    const cf = getNumericValue('cf')
+    
     // Modo 1: DUM conhecida
     if (igSourceMode === 'dum') {
       const dumDateStr = values['data_dum'] as string
@@ -170,10 +189,10 @@ export function TemplateVariablesModal({
     // Modo 2: USG prévio (calcula DUM retroativamente)
     if (igSourceMode === 'usg_previo') {
       const dataUsgPrevio = values['data_usg_previo'] as string
-      const igPrevioSemanas = values['ig_previo_semanas'] as number
-      const igPrevioDias = values['ig_previo_dias'] as number || 0
+      const igPrevioSemanas = getNumericValue('ig_previo_semanas')
+      const igPrevioDias = getNumericValue('ig_previo_dias')
       
-      if (dataUsgPrevio && igPrevioSemanas && igPrevioSemanas > 0) {
+      if (dataUsgPrevio && igPrevioSemanas > 0) {
         const usgDate = parseDateBR(dataUsgPrevio)
         if (usgDate) {
           // Calcular DUM retroativamente: data USG - (IG no exame)
@@ -198,13 +217,8 @@ export function TemplateVariablesModal({
       }
     }
     
-    // Modo 3: Biometria atual (sempre calcula peso e IG por biometria)
+    // Modo 3: Biometria atual (calcula IG por biometria)
     if (igSourceMode === 'biometria') {
-      const dbp = values['dbp'] as number || 0
-      const cc = values['cc'] as number || 0
-      const ca = values['ca'] as number || 0
-      const cf = values['cf'] as number || 0
-      
       if (dbp > 0 || cf > 0) {
         const igBiometry = estimateIGFromBiometry(dbp, cc, ca, cf)
         newCalculatedValues['ig_usg_semanas'] = igBiometry.weeks
@@ -214,16 +228,26 @@ export function TemplateVariablesModal({
         newCalculatedValues['ig_final_semanas'] = igBiometry.weeks
         newCalculatedValues['ig_final_dias'] = igBiometry.days
         newCalculatedValues['ig_fonte'] = 'biometria'
+      }
+    }
+    
+    // CÁLCULO PESO/PERCENTIL - SEMPRE que tiver DBP, CA e CF, INDEPENDENTE do modo IG
+    // Só calcula se NÃO estiver em modo manual
+    if (!useManualWeight && dbp > 0 && ca > 0 && cf > 0) {
+      const peso = estimateFetalWeight(dbp, cc, ca, cf)
+      if (peso > 0) {
+        newCalculatedValues['peso_estimado'] = Math.round(peso)
         
-        // Calculate fetal weight (Hadlock II) if we have enough measurements
-        if (dbp > 0 && ca > 0 && cf > 0) {
-          const peso = estimateFetalWeight(dbp, cc, ca, cf)
-          newCalculatedValues['peso_estimado'] = peso
-          
-          // Estimate percentile using USG IG
-          const percentile = estimateWeightPercentile(peso, igBiometry.weeks)
+        // Para percentil, usar IG disponível de qualquer fonte
+        const igSemanas = getNumericValue('ig_final_semanas') || 
+                          getNumericValue('ig_usg_semanas') || 
+                          getNumericValue('ig_dum_semanas') ||
+                          getNumericValue('ig_biometria_semanas')
+        
+        if (igSemanas >= 20) {
+          const percentile = estimateWeightPercentile(peso, igSemanas)
           if (percentile !== null) {
-            newCalculatedValues['percentil_peso'] = percentile
+            newCalculatedValues['percentil_peso'] = Math.round(percentile)
           }
         }
       }
@@ -241,7 +265,25 @@ export function TemplateVariablesModal({
         return prev
       })
     }
-  }, [isObstetricTemplate, igSourceMode, values['data_dum'], values['data_usg_previo'], values['ig_previo_semanas'], values['ig_previo_dias'], values['dbp'], values['cc'], values['ca'], values['cf']])
+  }, [
+    isObstetricTemplate, 
+    igSourceMode,
+    useManualWeight,
+    // Use JSON.stringify para dependências de objeto para evitar problemas de referência
+    JSON.stringify({
+      data_dum: values['data_dum'],
+      data_usg_previo: values['data_usg_previo'],
+      ig_previo_semanas: values['ig_previo_semanas'],
+      ig_previo_dias: values['ig_previo_dias'],
+      dbp: values['dbp'],
+      cc: values['cc'],
+      ca: values['ca'],
+      cf: values['cf'],
+      ig_final_semanas: values['ig_final_semanas'],
+      ig_usg_semanas: values['ig_usg_semanas'],
+      ig_dum_semanas: values['ig_dum_semanas']
+    })
+  ])
 
   // Generate preview HTML with removable sections
   const previewSections = useMemo(() => {
@@ -594,19 +636,40 @@ export function TemplateVariablesModal({
       case 'numero':
         // Check if this is an auto-calculated field
         const isCalculated = variable.calculado === true
+        // Campos de peso/percentil permitem toggle manual
+        const isWeightField = ['peso_estimado', 'percentil_peso'].includes(variable.nome)
+        const isDisabled = isCalculated && (!isWeightField || !useManualWeight)
         
         return (
           <div key={variable.nome} className="space-y-1">
-            <div className="flex items-center gap-1.5">
-              <Label htmlFor={variable.nome} className={cn("text-xs", isCalculated ? 'text-muted-foreground' : '')}>
-                {variable.descricao || variable.nome}
-                {variable.unidade && <span className="text-muted-foreground">({variable.unidade})</span>}
-              </Label>
-              {isCalculated && (
-                <Badge variant="outline" className="text-[10px] py-0 px-1 bg-cyan-500/10 text-cyan-600 border-cyan-500/30">
-                  <Zap className="h-2.5 w-2.5 mr-0.5" />
-                  Auto
-                </Badge>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <Label htmlFor={variable.nome} className={cn("text-xs", isDisabled ? 'text-muted-foreground' : '')}>
+                  {variable.descricao || variable.nome}
+                  {variable.unidade && <span className="text-muted-foreground">({variable.unidade})</span>}
+                </Label>
+                {isCalculated && !isWeightField && (
+                  <Badge variant="outline" className="text-[10px] py-0 px-1 bg-cyan-500/10 text-cyan-600 border-cyan-500/30">
+                    <Zap className="h-2.5 w-2.5 mr-0.5" />
+                    Auto
+                  </Badge>
+                )}
+              </div>
+              {/* Toggle para modo manual de peso/percentil */}
+              {isWeightField && variable.nome === 'peso_estimado' && (
+                <div className="flex items-center gap-2">
+                  <span className={cn("text-[10px]", !useManualWeight ? 'text-cyan-500 font-medium' : 'text-muted-foreground')}>
+                    Auto
+                  </span>
+                  <Switch
+                    checked={useManualWeight}
+                    onCheckedChange={setUseManualWeight}
+                    className="h-4 w-7"
+                  />
+                  <span className={cn("text-[10px]", useManualWeight ? 'text-cyan-500 font-medium' : 'text-muted-foreground')}>
+                    Manual
+                  </span>
+                </div>
               )}
             </div>
             <Input
@@ -621,10 +684,10 @@ export function TemplateVariablesModal({
               className={cn(
                 "h-8 text-sm",
                 error && 'border-destructive',
-                isCalculated && 'bg-muted/50 text-cyan-600 font-medium cursor-not-allowed'
+                isDisabled && 'bg-muted/50 text-cyan-600 font-medium cursor-not-allowed'
               )}
-              disabled={isCalculated}
-              readOnly={isCalculated}
+              disabled={isDisabled}
+              readOnly={isDisabled}
             />
           </div>
         )
