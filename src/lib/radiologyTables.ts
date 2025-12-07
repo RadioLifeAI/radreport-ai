@@ -224,6 +224,89 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
     </tr>
   </tfoot>
 </table>`
+      },
+      {
+        id: 'precise-v2',
+        name: 'PRECISE v2 (RM Próstata - Vigilância Ativa)',
+        category: 'rads',
+        type: 'informative',
+        modality: ['RM'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">PRECISE v2 2024 - Avaliação de Progressão Radiológica em Vigilância Ativa de Câncer de Próstata</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Score</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Categoria</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Descrição Radiológica</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Conduta Recomendada</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr style="background:#d4edda;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">1</td><td style="border:1px solid #ddd; padding:6px 8px;">Resolução</td><td style="border:1px solid #ddd; padding:6px 8px;">Desaparecimento completo do realce/restrição à difusão da lesão índice</td><td style="border:1px solid #ddd; padding:6px 8px;">Manter vigilância ativa, repetir RM conforme protocolo</td></tr>
+    <tr style="background:#c3e6cb;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">2</td><td style="border:1px solid #ddd; padding:6px 8px;">Regressão</td><td style="border:1px solid #ddd; padding:6px 8px;">Redução significativa (≥20%) no tamanho ou intensidade de sinal da lesão</td><td style="border:1px solid #ddd; padding:6px 8px;">Manter vigilância ativa, repetir RM conforme protocolo</td></tr>
+    <tr style="background:#fff3cd;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">3</td><td style="border:1px solid #ddd; padding:6px 8px;">Estável</td><td style="border:1px solid #ddd; padding:6px 8px;">Sem alterações significativas na lesão índice (variação &lt;20%)</td><td style="border:1px solid #ddd; padding:6px 8px;">Manter vigilância ativa, repetir RM conforme protocolo</td></tr>
+    <tr style="background:#f8d7da;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">4</td><td style="border:1px solid #ddd; padding:6px 8px;">Progressão</td><td style="border:1px solid #ddd; padding:6px 8px;">Aumento significativo (≥20%) no tamanho, aumento de restrição DWI, ou nova lesão PI-RADS ≥3</td><td style="border:1px solid #ddd; padding:6px 8px;">Considerar biópsia de fusão RM-US ou biópsia sistemática</td></tr>
+    <tr style="background:#f5c6cb;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">5</td><td style="border:1px solid #ddd; padding:6px 8px;">Progressão Definitiva</td><td style="border:1px solid #ddd; padding:6px 8px;">Extensão extraprostática (EPE), invasão de vesículas seminais (SVI), ou metástases</td><td style="border:1px solid #ddd; padding:6px 8px;">Tratamento ativo indicado (cirurgia ou radioterapia)</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="4" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Englman C et al. PRECISE Version 2: Updated Recommendations for Reporting Prostate MRI in Active Surveillance. Eur Urol 2024;86(3):240-255.</span>
+        <br/>
+        <a href="https://www.sciencedirect.com/science/article/pii/S0302283824022322" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 European Urology - PRECISE v2 2024
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
+      },
+      {
+        id: 'gleason-isup',
+        name: 'Gleason Score / ISUP Grade Groups (Próstata)',
+        category: 'rads',
+        type: 'informative',
+        modality: ['RM', 'US'],
+        htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
+  <caption style="font-weight:bold; text-align:left; margin-bottom:8px; font-size:11pt;">Sistema de Graduação Histopatológica do Adenocarcinoma de Próstata (ISUP 2019)</caption>
+  <thead>
+    <tr style="background:#1e3a5f; color:white;">
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Grade Group (ISUP)</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Gleason Score</th>
+      <th style="border:1px solid #333; padding:6px 8px;">Padrão Histológico</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Sobrevida 5 anos</th>
+      <th style="border:1px solid #333; padding:6px 8px; text-align:center;">Elegível VA?</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr style="background:#d4edda;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">GG 1</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">3+3 = 6</td><td style="border:1px solid #ddd; padding:6px 8px;">Bem diferenciado - glândulas discretas e uniformes</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">96%</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; color:green;">✓ Sim</td></tr>
+    <tr style="background:#c3e6cb;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">GG 2</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">3+4 = 7</td><td style="border:1px solid #ddd; padding:6px 8px;">Moderadamente diferenciado - predomínio padrão 3</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">88%</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; color:green;">✓ Favorável</td></tr>
+    <tr style="background:#fff3cd;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">GG 3</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">4+3 = 7</td><td style="border:1px solid #ddd; padding:6px 8px;">Moderadamente diferenciado - predomínio padrão 4</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">63%</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; color:orange;">⚠ Selecionados</td></tr>
+    <tr style="background:#f8d7da;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">GG 4</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">4+4, 3+5, 5+3 = 8</td><td style="border:1px solid #ddd; padding:6px 8px;">Pouco diferenciado - glândulas cribriformes/fundidas</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">48%</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; color:red;">✗ Não</td></tr>
+    <tr style="background:#f5c6cb;"><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; font-weight:bold;">GG 5</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">4+5, 5+4, 5+5 = 9-10</td><td style="border:1px solid #ddd; padding:6px 8px;">Alto grau - células indiferenciadas, necrose comedo</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center;">26%</td><td style="border:1px solid #ddd; padding:6px 8px; text-align:center; color:red;">✗ Não</td></tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="5" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
+        <strong style="color:#1e3a5f;">📄 Nota:</strong> VA = Vigilância Ativa. GG1-2 são candidatos ideais para VA. GG3 pode ser considerado em casos selecionados com volume tumoral baixo.
+        <br/><br/>
+        <strong style="color:#1e3a5f;">📚 Referência:</strong> 
+        <span style="font-style:italic;">Epstein JI et al. The 2014 ISUP Consensus Conference on Gleason Grading of Prostatic Carcinoma. Am J Surg Pathol 2016;40:244-252.</span>
+        <br/>
+        <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4695851/" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           style="color:#0066cc; text-decoration:none; font-weight:500;">
+          🔗 ISUP Consensus 2014/2019
+        </a>
+      </td>
+    </tr>
+  </tfoot>
+</table>`
       }
     ]
   },
