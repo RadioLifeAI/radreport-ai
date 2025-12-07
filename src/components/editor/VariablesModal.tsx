@@ -33,6 +33,7 @@ interface VariablesModalProps {
   codigo: string
   texto: string
   conclusao?: string
+  observacao?: string
   variaveis: FraseVariable[]
   editorHtml?: string
   estruturaNome?: string
@@ -51,6 +52,7 @@ export function VariablesModal({
   codigo,
   texto,
   conclusao,
+  observacao,
   variaveis,
   editorHtml,
   estruturaNome,
@@ -74,8 +76,12 @@ export function VariablesModal({
   const [paragraphOrder, setParagraphOrder] = useState<number[]>([])
   const [draggedParagraph, setDraggedParagraph] = useState<number | null>(null)
   
-  // Índice especial para a conclusão
+  // Estado para mostrar/ocultar observação
+  const [showObservacao, setShowObservacao] = useState(true)
+  
+  // Índices especiais para conclusão e observação
   const CONCLUSAO_INDEX = -999
+  const OBSERVACAO_INDEX = -998
 
   // Inicializar valores padrão e mapeamento ao abrir
   useEffect(() => {
@@ -95,10 +101,12 @@ export function VariablesModal({
       if (editorHtml) {
         const paras = splitIntoParagraphs(editorHtml)
         setParagraphs(paras)
-        // Initialize order with conclusão at end (use CONCLUSAO_INDEX = -999 as special marker)
+        // Initialize order with conclusão and observação at end
         const order = paras.map((_, idx) => idx)
         if (conclusao) order.push(CONCLUSAO_INDEX)
+        if (observacao) order.push(OBSERVACAO_INDEX)
         setParagraphOrder(order)
+        setShowObservacao(!!observacao)
         
         // Tentar mapeamento automático
         if (estruturaNome) {
@@ -131,6 +139,10 @@ export function VariablesModal({
   const processedConclusao = useMemo(() => {
     return conclusao ? processText(conclusao, values) : undefined
   }, [conclusao, values, processText])
+
+  const processedObservacao = useMemo(() => {
+    return observacao ? processText(observacao, values) : undefined
+  }, [observacao, values, processText])
 
   // Calcular progresso das variáveis
   const variableStats = useMemo(() => {
@@ -226,6 +238,9 @@ export function VariablesModal({
       if (processedConclusao) {
         result += `\n<h3>IMPRESSÃO</h3>\n<p>- ${processedConclusao}</p>`
       }
+      if (processedObservacao && showObservacao) {
+        result += `\n<p></p>\n<p><em>Obs.: ${processedObservacao}</em></p>`
+      }
       return result
     }
 
@@ -243,6 +258,15 @@ export function VariablesModal({
             resultParts.push('<h3>IMPRESSÃO</h3>')
           }
           resultParts.push(`<p>- ${processedConclusao}</p>`)
+        }
+        return
+      }
+      
+      // Observação (índice especial)
+      if (originalIdx === OBSERVACAO_INDEX) {
+        if (processedObservacao && showObservacao) {
+          resultParts.push('<p></p>') // Linha em branco antes
+          resultParts.push(`<p><em>Obs.: ${processedObservacao}</em></p>`)
         }
         return
       }
@@ -291,7 +315,7 @@ export function VariablesModal({
     })
     
     return resultParts.join('\n')
-  }, [paragraphs, paragraphOrder, selectedLineIndex, insertionMode, processedTexto, processedConclusao, CONCLUSAO_INDEX])
+  }, [paragraphs, paragraphOrder, selectedLineIndex, insertionMode, processedTexto, processedConclusao, processedObservacao, showObservacao, CONCLUSAO_INDEX, OBSERVACAO_INDEX])
 
   const handleSubmit = () => {
     if (!validate()) return
@@ -476,6 +500,12 @@ export function VariablesModal({
               <div className="mt-1">- {processedConclusao}</div>
             </div>
           )}
+          {processedObservacao && showObservacao && (
+            <div className="mt-3 pt-3 border-t border-border/50">
+              <span className="text-muted-foreground text-xs uppercase">Observação:</span>
+              <div className="mt-1 italic">Obs.: {processedObservacao}</div>
+            </div>
+          )}
         </div>
       )
     }
@@ -486,6 +516,7 @@ export function VariablesModal({
         {paragraphOrder.map((originalIdx, displayIndex) => {
           // Check if this is the conclusion (special index)
           const isConclusao = originalIdx === CONCLUSAO_INDEX
+          const isObservacao = originalIdx === OBSERVACAO_INDEX
           
           if (isConclusao && processedConclusao) {
             return (
@@ -518,7 +549,55 @@ export function VariablesModal({
             )
           }
           
-          // Regular paragraph
+          // Observação (special index)
+          if (isObservacao && processedObservacao && showObservacao) {
+            return (
+              <div key="observacao" className="mt-2">
+                {/* Linha em branco visual */}
+                <div className="h-2" />
+                <div
+                  draggable
+                  onDragStart={(e) => handleParagraphDragStart(e, OBSERVACAO_INDEX)}
+                  onDragOver={handleParagraphDragOver}
+                  onDrop={(e) => handleParagraphDrop(e, OBSERVACAO_INDEX)}
+                  onDragEnd={handleParagraphDragEnd}
+                  className={cn(
+                    "group relative flex items-center",
+                    draggedParagraph === OBSERVACAO_INDEX && "opacity-50 scale-95"
+                  )}
+                >
+                  <div className="mr-1.5 cursor-grab active:cursor-grabbing">
+                    <GripVertical className={cn(
+                      "h-4 w-4 text-muted-foreground/60 transition-all",
+                      draggedParagraph === OBSERVACAO_INDEX && "text-amber-500"
+                    )} />
+                  </div>
+                  <div className={cn(
+                    "flex-1 px-2 py-1 rounded text-sm transition-all cursor-grab active:cursor-grabbing",
+                    "bg-amber-500/20 border-l-4 border-amber-500 pl-3 italic",
+                    draggedParagraph === OBSERVACAO_INDEX && "border border-amber-500 bg-amber-500/10"
+                  )}>
+                    <span className="text-foreground">Obs.: {processedObservacao}</span>
+                  </div>
+                  {/* Botão remover observação */}
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-6 w-6 ml-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => {
+                      setShowObservacao(false)
+                      setParagraphOrder(prev => prev.filter(idx => idx !== OBSERVACAO_INDEX))
+                    }}
+                  >
+                    <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                  </Button>
+                </div>
+              </div>
+            )
+          }
+          
+          // Skip if observacao is hidden
+          if (isObservacao) return null
           if (isConclusao) return null // Skip if no conclusao text
           
           const para = paragraphs[originalIdx]

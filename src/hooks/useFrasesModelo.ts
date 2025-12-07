@@ -8,6 +8,7 @@ export interface FraseModelo {
   titulo: string
   frase: string
   conclusao: string
+  observacao?: string
   categoria: string
   tags: string[]
   sinônimos: string[]
