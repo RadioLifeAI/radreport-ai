@@ -432,8 +432,7 @@ export function VariablesModal({
                   "bg-emerald-500/20 border-l-4 border-emerald-500 pl-3",
                   draggedParagraph === CONCLUSAO_INDEX && "border border-emerald-500 bg-emerald-500/10"
                 )}>
-                  <span className="font-medium text-emerald-700 dark:text-emerald-300 text-xs uppercase mr-1">Impressão: </span>
-                  <span className="text-foreground font-medium bg-amber-400/25 px-1 rounded">- {processedConclusao}</span>
+                  <span className="text-foreground font-medium">- {processedConclusao}</span>
                 </div>
               </div>
             )
