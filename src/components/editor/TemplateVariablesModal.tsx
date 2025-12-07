@@ -1,7 +1,7 @@
 // Modal for filling template variables before applying template
-// Includes technique selection and variable input with real-time preview
+// Includes technique selection, variable input with real-time preview, and automatic obstetric calculations
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -13,7 +13,8 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Calendar } from '@/components/ui/calendar'
-import { ChevronDown, FileText, Calculator, Ruler, Settings2, CalendarIcon, Trash2, GripVertical } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { ChevronDown, FileText, Calculator, Ruler, Settings2, CalendarIcon, Trash2, GripVertical, Zap } from 'lucide-react'
 import { format, parse } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
@@ -30,6 +31,15 @@ import {
   getTechniquePattern
 } from '@/utils/templateVariableProcessor'
 import { dividirEmSentencas } from '@/utils/templateFormatter'
+import {
+  calculateIGFromDUM,
+  calculateDPP,
+  estimateIGFromBiometry,
+  estimateFetalWeight,
+  estimateWeightPercentile,
+  parseDateBR,
+  formatDateBR
+} from '@/utils/obstetricCalculations'
 
 interface TemplateVariablesModalProps {
   open: boolean
@@ -104,6 +114,74 @@ export function TemplateVariablesModal({
       setSectionOrder(['titulo', 'tecnica', 'achados', 'impressao', 'adicionais'])
     }
   }, [open, template, variaveis])
+
+  // Check if this is an obstetric template (has DUM and biometry variables)
+  const isObstetricTemplate = useMemo(() => {
+    const varNames = variaveis.map(v => v.nome.toLowerCase())
+    return varNames.includes('data_dum') || varNames.includes('dum') || 
+           (varNames.includes('dbp') && varNames.includes('cf'))
+  }, [variaveis])
+
+  // Automatic obstetric calculations effect
+  useEffect(() => {
+    if (!isObstetricTemplate) return
+    
+    const newCalculatedValues: TemplateVariableValues = {}
+    
+    // 1. Calculate IG from DUM if DUM date is available
+    const dumDateStr = values['data_dum'] as string
+    if (dumDateStr) {
+      const dumDate = parseDateBR(dumDateStr)
+      if (dumDate) {
+        const igDUM = calculateIGFromDUM(dumDate)
+        newCalculatedValues['ig_dum_semanas'] = igDUM.weeks
+        newCalculatedValues['ig_dum_dias'] = igDUM.days
+        
+        // Calculate DPP
+        const dpp = calculateDPP(dumDate)
+        newCalculatedValues['dpp'] = formatDateBR(dpp)
+      }
+    }
+    
+    // 2. Calculate IG and weight from biometry
+    const dbp = values['dbp'] as number || 0
+    const cc = values['cc'] as number || 0
+    const ca = values['ca'] as number || 0
+    const cf = values['cf'] as number || 0
+    
+    if (dbp > 0 || cf > 0) {
+      const igBiometry = estimateIGFromBiometry(dbp, cc, ca, cf)
+      newCalculatedValues['ig_usg_semanas'] = igBiometry.weeks
+      newCalculatedValues['ig_usg_dias'] = igBiometry.days
+      newCalculatedValues['ig_biometria_semanas'] = igBiometry.weeks
+      newCalculatedValues['ig_biometria_dias'] = igBiometry.days
+      
+      // Calculate fetal weight (Hadlock II)
+      if (dbp > 0 && ca > 0 && cf > 0) {
+        const peso = estimateFetalWeight(dbp, cc, ca, cf)
+        newCalculatedValues['peso_estimado'] = peso
+        
+        // Estimate percentile
+        const percentile = estimateWeightPercentile(peso, igBiometry.weeks)
+        if (percentile !== null) {
+          newCalculatedValues['percentil_peso'] = percentile
+        }
+      }
+    }
+    
+    // Update values with calculated ones (without triggering re-render loop)
+    if (Object.keys(newCalculatedValues).length > 0) {
+      setValues(prev => {
+        const hasChanges = Object.entries(newCalculatedValues).some(
+          ([key, value]) => prev[key] !== value
+        )
+        if (hasChanges) {
+          return { ...prev, ...newCalculatedValues }
+        }
+        return prev
+      })
+    }
+  }, [isObstetricTemplate, values['data_dum'], values['dbp'], values['cc'], values['ca'], values['cf']])
 
   // Generate preview HTML with removable sections
   const previewSections = useMemo(() => {
@@ -436,18 +514,29 @@ export function TemplateVariablesModal({
         )
 
       case 'numero':
+        // Check if this is an auto-calculated field
+        const isCalculated = variable.calculado === true
+        
         return (
           <div key={variable.nome} className="space-y-2">
-            <Label htmlFor={variable.nome}>
-              {variable.descricao || variable.nome}
-              {variable.unidade && <span className="text-muted-foreground ml-1">({variable.unidade})</span>}
-              {variable.obrigatorio && <span className="text-destructive ml-1">*</span>}
-              {(variable.minimo !== undefined || variable.maximo !== undefined) && (
-                <span className="text-xs text-muted-foreground ml-2">
-                  [{variable.minimo ?? '...'} - {variable.maximo ?? '...'}]
-                </span>
+            <div className="flex items-center gap-2">
+              <Label htmlFor={variable.nome} className={isCalculated ? 'text-muted-foreground' : ''}>
+                {variable.descricao || variable.nome}
+                {variable.unidade && <span className="text-muted-foreground ml-1">({variable.unidade})</span>}
+                {variable.obrigatorio && !isCalculated && <span className="text-destructive ml-1">*</span>}
+                {(variable.minimo !== undefined || variable.maximo !== undefined) && !isCalculated && (
+                  <span className="text-xs text-muted-foreground ml-2">
+                    [{variable.minimo ?? '...'} - {variable.maximo ?? '...'}]
+                  </span>
+                )}
+              </Label>
+              {isCalculated && (
+                <Badge variant="outline" className="text-xs bg-cyan-500/10 text-cyan-600 border-cyan-500/30">
+                  <Zap className="h-3 w-3 mr-1" />
+                  Calculado
+                </Badge>
               )}
-            </Label>
+            </div>
             <Input
               id={variable.nome}
               type="number"
@@ -457,7 +546,12 @@ export function TemplateVariablesModal({
               value={value?.toString() || ''}
               onChange={(e) => handleValueChange(variable.nome, parseFloat(e.target.value) || 0)}
               placeholder={variable.valor_padrao?.toString() || '0'}
-              className={error ? 'border-destructive' : ''}
+              className={cn(
+                error && 'border-destructive',
+                isCalculated && 'bg-muted/50 text-cyan-600 font-semibold cursor-not-allowed'
+              )}
+              disabled={isCalculated}
+              readOnly={isCalculated}
             />
             {error && <p className="text-xs text-destructive">{error}</p>}
           </div>
