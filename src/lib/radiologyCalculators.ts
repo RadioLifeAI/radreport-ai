@@ -2410,5 +2410,132 @@ export const radiologyCalculators: RadiologyCalculator[] = [
         'Subsólido ≥6mm: TC 6-12m, depois anual por 5 anos'
       ]
     }
+  },
+  
+  // ===== PRECISE v2 - Vigilância Ativa de Câncer de Próstata =====
+  {
+    id: 'precise-score-v2',
+    name: 'PRECISE Score v2 (Próstata - VA)',
+    category: 'urologia',
+    description: 'Avaliação de progressão radiológica em vigilância ativa de câncer de próstata por RM (PRECISE v2 2024)',
+    inputs: [
+      {
+        name: 'lesaoEstado',
+        label: 'Estado da lesão índice comparado ao exame anterior',
+        type: 'select',
+        options: [
+          { value: 'resolucao', label: 'Resolução completa do realce/restrição' },
+          { value: 'regressao', label: 'Redução ≥20% no tamanho ou intensidade' },
+          { value: 'estavel', label: 'Sem alterações significativas (<20%)' },
+          { value: 'aumento', label: 'Aumento ≥20% ou nova lesão PI-RADS ≥3' }
+        ]
+      },
+      {
+        name: 'epe',
+        label: 'Extensão extraprostática (EPE)?',
+        type: 'select',
+        options: [
+          { value: 'nao', label: 'Não' },
+          { value: 'sim', label: 'Sim - EPE identificada' }
+        ]
+      },
+      {
+        name: 'svi',
+        label: 'Invasão de vesículas seminais (SVI)?',
+        type: 'select',
+        options: [
+          { value: 'nao', label: 'Não' },
+          { value: 'sim', label: 'Sim - SVI identificada' }
+        ]
+      },
+      {
+        name: 'metastase',
+        label: 'Metástases ósseas ou linfonodais?',
+        type: 'select',
+        options: [
+          { value: 'nao', label: 'Não' },
+          { value: 'sim', label: 'Sim - Metástases identificadas' }
+        ]
+      }
+    ],
+    calculate: (inputs) => {
+      const { lesaoEstado, epe, svi, metastase } = inputs
+      
+      // PRECISE 5: EPE, SVI ou metástases = progressão definitiva
+      if (epe === 'sim' || svi === 'sim' || metastase === 'sim') {
+        return {
+          value: '5',
+          unit: '',
+          interpretation: 'Progressão Definitiva - Extensão extraprostática, invasão de vesículas seminais ou metástases',
+          color: 'danger' as const,
+          formattedText: 'PRECISE 5 (Progressão Definitiva): Evidência de doença localmente avançada ou metastática. Tratamento ativo indicado (cirurgia ou radioterapia).'
+        }
+      }
+      
+      // Baseado no estado da lesão
+      switch (lesaoEstado) {
+        case 'resolucao':
+          return {
+            value: '1',
+            unit: '',
+            interpretation: 'Resolução - Desaparecimento completo da lesão índice',
+            color: 'success' as const,
+            formattedText: 'PRECISE 1 (Resolução): Desaparecimento completo do realce e restrição à difusão da lesão índice. Manter vigilância ativa conforme protocolo institucional.'
+          }
+        case 'regressao':
+          return {
+            value: '2',
+            unit: '',
+            interpretation: 'Regressão - Redução significativa da lesão',
+            color: 'success' as const,
+            formattedText: 'PRECISE 2 (Regressão): Redução significativa (≥20%) no tamanho ou intensidade de sinal da lesão índice. Manter vigilância ativa conforme protocolo institucional.'
+          }
+        case 'estavel':
+          return {
+            value: '3',
+            unit: '',
+            interpretation: 'Estável - Sem alterações significativas',
+            color: 'warning' as const,
+            formattedText: 'PRECISE 3 (Estável): Lesão índice sem alterações significativas (variação <20%). Manter vigilância ativa conforme protocolo institucional.'
+          }
+        case 'aumento':
+          return {
+            value: '4',
+            unit: '',
+            interpretation: 'Progressão - Aumento significativo ou nova lesão suspeita',
+            color: 'danger' as const,
+            formattedText: 'PRECISE 4 (Progressão): Aumento significativo (≥20%) no tamanho, aumento de restrição DWI, ou nova lesão PI-RADS ≥3. Considerar biópsia de fusão RM-US ou biópsia sistemática.'
+          }
+        default:
+          return {
+            value: '-',
+            unit: '',
+            interpretation: 'Selecione o estado da lesão para calcular o score',
+            color: 'warning' as const,
+            formattedText: ''
+          }
+      }
+    },
+    reference: {
+      text: 'Englman C et al. Eur Urol 2024;86(3):240-255',
+      url: 'https://www.sciencedirect.com/science/article/pii/S0302283824022322'
+    },
+    info: {
+      purpose: 'Padronizar a avaliação de progressão radiológica em pacientes com câncer de próstata em vigilância ativa, comparando exames de RM sequenciais.',
+      usage: [
+        'Compare a RM atual com o exame anterior',
+        'Avalie alterações na lesão índice (tamanho, sinal DWI)',
+        'Verifique extensão extraprostática e vesículas seminais',
+        'Procure por linfonodos e metástases ósseas',
+        'Score orienta decisão entre manter VA ou iniciar tratamento'
+      ],
+      grading: [
+        'PRECISE 1: Resolução completa - manter VA',
+        'PRECISE 2: Regressão ≥20% - manter VA',
+        'PRECISE 3: Estável <20% - manter VA',
+        'PRECISE 4: Progressão ≥20% ou nova lesão - considerar biópsia',
+        'PRECISE 5: EPE/SVI/metástases - tratamento ativo'
+      ]
+    }
   }
 ]
