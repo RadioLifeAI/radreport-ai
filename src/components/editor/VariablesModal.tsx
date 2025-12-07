@@ -72,6 +72,9 @@ export function VariablesModal({
   // Estado para ordem dos parágrafos e drag-and-drop
   const [paragraphOrder, setParagraphOrder] = useState<number[]>([])
   const [draggedParagraph, setDraggedParagraph] = useState<number | null>(null)
+  
+  // Índice especial para a conclusão
+  const CONCLUSAO_INDEX = -999
 
   // Inicializar valores padrão e mapeamento ao abrir
   useEffect(() => {
@@ -91,7 +94,10 @@ export function VariablesModal({
       if (editorHtml) {
         const paras = splitIntoParagraphs(editorHtml)
         setParagraphs(paras)
-        setParagraphOrder(paras.map((_, idx) => idx)) // Initialize order [0, 1, 2, ...]
+        // Initialize order with conclusão at end (use CONCLUSAO_INDEX = -999 as special marker)
+        const order = paras.map((_, idx) => idx)
+        if (conclusao) order.push(CONCLUSAO_INDEX)
+        setParagraphOrder(order)
         
         // Tentar mapeamento automático
         if (estruturaNome) {
@@ -394,16 +400,52 @@ export function VariablesModal({
       )
     }
 
-    // Map ordered paragraphs for display
-    const orderedParagraphs = paragraphOrder.map((originalIdx, displayIdx) => ({
-      para: paragraphs[originalIdx],
-      originalIndex: originalIdx,
-      displayIndex: displayIdx
-    }))
 
     return (
       <div className="space-y-0.5">
-        {orderedParagraphs.map(({ para, originalIndex: idx, displayIndex }) => {
+        {paragraphOrder.map((originalIdx, displayIndex) => {
+          // Check if this is the conclusion (special index)
+          const isConclusao = originalIdx === CONCLUSAO_INDEX
+          
+          if (isConclusao && processedConclusao) {
+            return (
+              <div
+                key="conclusao"
+                draggable
+                onDragStart={(e) => handleParagraphDragStart(e, CONCLUSAO_INDEX)}
+                onDragOver={handleParagraphDragOver}
+                onDrop={(e) => handleParagraphDrop(e, CONCLUSAO_INDEX)}
+                onDragEnd={handleParagraphDragEnd}
+                className={cn(
+                  "group relative flex items-center",
+                  draggedParagraph === CONCLUSAO_INDEX && "opacity-50 scale-95"
+                )}
+              >
+                <div className="mr-1.5 cursor-grab active:cursor-grabbing">
+                  <GripVertical className={cn(
+                    "h-4 w-4 text-muted-foreground/60 transition-all",
+                    draggedParagraph === CONCLUSAO_INDEX && "text-emerald-500"
+                  )} />
+                </div>
+                <div className={cn(
+                  "flex-1 px-2 py-1 rounded text-sm transition-all cursor-grab active:cursor-grabbing",
+                  "bg-emerald-500/20 border-l-4 border-emerald-500 pl-3",
+                  draggedParagraph === CONCLUSAO_INDEX && "border border-emerald-500 bg-emerald-500/10"
+                )}>
+                  <span className="font-medium text-emerald-700 dark:text-emerald-300 text-xs uppercase mr-1">Impressão: </span>
+                  <span className="text-foreground font-medium bg-amber-400/25 px-1 rounded">- {processedConclusao}</span>
+                </div>
+              </div>
+            )
+          }
+          
+          // Regular paragraph
+          if (isConclusao) return null // Skip if no conclusao text
+          
+          const para = paragraphs[originalIdx]
+          if (!para) return null
+          
+          const idx = originalIdx
           const isSelected = idx === selectedLineIndex
           const isClickable = !para.isHeader
           const previewContent = getPreviewContent(para, idx)
@@ -413,7 +455,7 @@ export function VariablesModal({
               {/* Nova linha acima (modo 'above') */}
               {isSelected && insertionMode === 'above' && (
                 <div className="px-2 py-1 mb-0.5 rounded bg-amber-500/15 border-l-4 border-amber-400 pl-3 text-sm flex items-center gap-2">
-                  <span className="text-foreground">{processedTexto}</span>
+                  <span className="text-foreground font-medium bg-amber-400/25 px-1 rounded">{processedTexto}</span>
                   <Badge variant="outline" className="text-[10px] px-1 py-0 h-4">nova</Badge>
                 </div>
               )}
@@ -447,8 +489,8 @@ export function VariablesModal({
                     draggedParagraph === idx && "opacity-50 scale-95 border border-cyan-500 bg-cyan-500/10"
                   )}
                 >
-                  {isSelected && previewContent ? (
-                    <span className="text-foreground">{previewContent}</span>
+                {isSelected && previewContent ? (
+                    <span className="text-foreground font-medium bg-amber-400/25 px-1 rounded">{previewContent}</span>
                   ) : (
                     <span 
                       className={cn(
@@ -521,7 +563,7 @@ export function VariablesModal({
               {/* Nova linha abaixo (modo 'below') */}
               {isSelected && insertionMode === 'below' && (
                 <div className="px-2 py-1 mt-0.5 rounded bg-amber-500/15 border-l-4 border-amber-400 pl-3 text-sm flex items-center gap-2">
-                  <span className="text-foreground">{processedTexto}</span>
+                  <span className="text-foreground font-medium bg-amber-400/25 px-1 rounded">{processedTexto}</span>
                   <Badge variant="outline" className="text-[10px] px-1 py-0 h-4">nova</Badge>
                 </div>
               )}
@@ -529,12 +571,7 @@ export function VariablesModal({
           )
         })}
         
-        {/* Mostrar conclusão na seção IMPRESSÃO */}
-        {processedConclusao && (
-          <div className="mt-2 px-2 py-1 rounded bg-emerald-500/20 border-l-4 border-emerald-500 pl-3 text-sm">
-            - {processedConclusao}
-          </div>
-        )}
+        {/* Conclusão agora é renderizada dentro do loop ordenado */}
       </div>
     )
   }
