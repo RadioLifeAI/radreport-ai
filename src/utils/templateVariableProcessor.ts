@@ -126,17 +126,29 @@ export function formatVariableValue(value: string | number | boolean): string {
 
 /**
  * Process text by replacing {{variable}} placeholders with actual values
+ * Empty placeholders are removed completely (not left as {{variable}})
  */
 export function processTemplateText(
   text: string, 
   values: TemplateVariableValues
 ): string {
-  return text.replace(/\{\{(\w+)\}\}/g, (match, varName) => {
+  let result = text.replace(/\{\{(\w+)\}\}/g, (match, varName) => {
     const value = values[varName]
-    return value !== undefined && value !== null 
-      ? formatVariableValue(value) 
-      : match
+    // If value exists and is not empty, use formatted value
+    // Otherwise, remove the placeholder entirely
+    if (value !== undefined && value !== null && value !== '') {
+      return formatVariableValue(value)
+    }
+    return '' // Remove empty/undefined placeholders
   })
+  
+  // Clean up empty lines left after removing placeholders
+  result = result
+    .replace(/^\s*[-•]\s*$/gm, '') // Remove lines with only "- " or "• "
+    .replace(/\n{3,}/g, '\n\n')    // Max 2 consecutive newlines
+    .replace(/^\n+/, '')          // Remove leading newlines
+  
+  return result
 }
 
 /**

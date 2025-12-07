@@ -377,7 +377,17 @@ export function TemplateVariablesModal({
   }
 
   const handleValueChange = (nome: string, value: string | number | boolean) => {
-    setValues(prev => ({ ...prev, [nome]: value }))
+    // Find variable to check type and convert if needed
+    const variable = variaveis.find(v => v.nome === nome)
+    let processedValue: string | number | boolean = value
+    
+    // Convert string to number for numeric types to ensure calculations work
+    if (variable?.tipo === 'numero' && typeof value === 'string' && value !== '') {
+      const numericValue = parseFloat(value.replace(',', '.'))
+      processedValue = isNaN(numericValue) ? 0 : numericValue
+    }
+    
+    setValues(prev => ({ ...prev, [nome]: processedValue }))
     // Clear error for this field
     if (errors[nome]) {
       setErrors(prev => {
