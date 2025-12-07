@@ -1,6 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react'
-import { ChevronDown, Star } from 'lucide-react'
-import { useTheme } from 'next-themes'
+import { Star, FileText, Edit3 } from 'lucide-react'
 import { Portal } from '@/components/ui/portal'
 
 export interface Macro {
@@ -18,6 +17,8 @@ export interface MacroSelectorProps {
   selectedMacro: string
   onMacroSearch: (value: string) => void
   onMacroSelect: (macro: Macro) => void
+  onMacroSelectDirect?: (macro: Macro) => void
+  onMacroSelectWithVariables?: (macro: Macro) => void
   onCategoryClick: (category: string) => void
   onModalityClick: (modality: string) => void
   onFavoriteToggle: (macroId: string) => void
@@ -35,12 +36,15 @@ export interface MacroSelectorProps {
   setDropdownVisible: (visible: boolean) => void
   categories: string[]
   modalities: string[]
+  needsVariableInput?: (macro: Macro) => boolean
 }
 
 export const MacroSelector: React.FC<MacroSelectorProps> = ({
   selectedMacro,
   onMacroSearch,
   onMacroSelect,
+  onMacroSelectDirect,
+  onMacroSelectWithVariables,
   onCategoryClick,
   onModalityClick,
   onFavoriteToggle,
@@ -58,8 +62,8 @@ export const MacroSelector: React.FC<MacroSelectorProps> = ({
   setDropdownVisible,
   categories,
   modalities,
+  needsVariableInput
 }) => {
-  const { theme } = useTheme()
   const inputRef = useRef<HTMLInputElement>(null)
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 })
 
@@ -79,10 +83,11 @@ export const MacroSelector: React.FC<MacroSelectorProps> = ({
     isRecent?: boolean
     isFavoriteMacro?: boolean
   }) => {
-    // Get modality from modalidade_id (que agora contém o código direto)
+    const hasVariables = needsVariableInput?.(macro) ?? false
+    
+    // Get modality from modalidade_id
     const getModality = (modalidadeId?: string) => {
       if (!modalidadeId) return ''
-      // Mapeamento dos códigos da tabela para os badges
       const modalityMap = {
         'US': 'USG',
         'TC': 'TC', 
@@ -97,23 +102,63 @@ export const MacroSelector: React.FC<MacroSelectorProps> = ({
     
     return (
       <div 
-        className="template-item"
+        className="template-item group"
         onClick={() => {
+          // Default click: auto-detect (will open modal if has variables)
           onMacroSelect(macro)
           setDropdownVisible(false)
         }}
       >
         <div className="template-modality-badge">{modality || 'GERAL'}</div>
-        <div className="template-title">{macro.codigo}</div>
-        <button
-          onClick={(e) => {
-            e.stopPropagation()
-            onFavoriteToggle(macro.id)
-          }}
-          className={`template-star ${isFavorite(macro.id) ? 'favorited' : ''}`}
-        >
-          <Star size={14} />
-        </button>
+        <div className="template-title flex-1">{macro.codigo}</div>
+        
+        <div className="flex items-center gap-1">
+          {hasVariables && (
+            <>
+              {/* Badge indicator */}
+              <span className="text-[9px] px-1.5 py-0.5 bg-indigo-500/20 text-indigo-400 rounded font-medium">
+                VAR
+              </span>
+              
+              {/* Completo button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onMacroSelectDirect?.(macro)
+                  setDropdownVisible(false)
+                }}
+                className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors opacity-0 group-hover:opacity-100"
+                title="Inserir completo (com placeholders)"
+              >
+                <FileText size={14} />
+              </button>
+              
+              {/* Variáveis button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onMacroSelectWithVariables?.(macro)
+                  setDropdownVisible(false)
+                }}
+                className="p-1.5 text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/20 rounded transition-colors"
+                title="Preencher variáveis"
+              >
+                <Edit3 size={14} />
+              </button>
+            </>
+          )}
+          
+          {/* Botão favorito SEMPRE visível */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              onFavoriteToggle(macro.id)
+            }}
+            className={`template-star ${isFavorite(macro.id) ? 'favorited' : ''}`}
+          >
+            <Star size={14} />
+          </button>
+        </div>
       </div>
     )
   }

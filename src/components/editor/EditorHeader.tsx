@@ -41,6 +41,8 @@ interface EditorHeaderProps {
   fraseSearchTerm: string
   onMacroSearch: (term: string) => void
   onMacroSelect: (macro: Macro) => void
+  onMacroSelectDirect?: (macro: Macro) => void
+  onMacroSelectWithVariables?: (macro: Macro) => void
   onCategoryClick: (category: string | null) => void
   onMacroModalityClick: (modality: string | null) => void
   onMacroFavoriteToggle: (id: string) => void
@@ -62,6 +64,9 @@ interface EditorHeaderProps {
   
   // Template variables support
   needsVariableInput: (template: any) => boolean
+  
+  // Frase variables support
+  needsFraseVariableInput?: (macro: Macro) => boolean
 }
 
 export function EditorHeader({
@@ -92,6 +97,8 @@ export function EditorHeader({
   fraseSearchTerm,
   onMacroSearch,
   onMacroSelect,
+  onMacroSelectDirect,
+  onMacroSelectWithVariables,
   onCategoryClick,
   onMacroModalityClick,
   onMacroFavoriteToggle,
@@ -110,6 +117,7 @@ export function EditorHeader({
   macroModalities,
   onChatToggle,
   needsVariableInput,
+  needsFraseVariableInput,
 }: EditorHeaderProps) {
   const navigate = useNavigate()
   const { theme, setTheme } = useTheme()
@@ -173,6 +181,8 @@ export function EditorHeader({
               searchTerm={fraseSearchTerm}
               onMacroSearch={onMacroSearch}
               onMacroSelect={onMacroSelect}
+              onMacroSelectDirect={onMacroSelectDirect}
+              onMacroSelectWithVariables={onMacroSelectWithVariables}
               onCategoryClick={onCategoryClick}
               onModalityClick={onMacroModalityClick}
               onFavoriteToggle={onMacroFavoriteToggle}
@@ -189,6 +199,7 @@ export function EditorHeader({
               setDropdownVisible={setMacroDropdownVisible}
               categories={categories}
               modalities={macroModalities}
+              needsVariableInput={needsFraseVariableInput}
             />
           </div>
           </div>

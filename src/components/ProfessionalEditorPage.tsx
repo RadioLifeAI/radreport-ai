@@ -146,6 +146,7 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
     applyFrase: hookApplyFrase,
     categories: fraseCategories,
     modalities: fraseModalities,
+    needsFraseVariableInput,
   } = useFrasesModelo()
 
   // Convert FraseModelo to Macro
@@ -477,26 +478,13 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
     }
   }, [hookSelectedModality, setSelectedModality])
 
-  // Frase selection handler
-  const handleFraseSelect = useCallback((frase: Macro) => {
+  // Frase selection handler - direct (no modal, with placeholders)
+  const handleFraseSelectDirect = useCallback((frase: Macro) => {
     if (!editorInstance) return
     
-    // Find original frase with variables
     const fraseOriginal = frases.find(f => f.id === frase.id)
     
-    // Check if frase has variables that need to be filled
-    const needsVariables = fraseOriginal?.variaveis && 
-                          fraseOriginal.variaveis.length > 0 && 
-                          (hasVariables(frase.frase) || (frase.conclusao && hasVariables(frase.conclusao)))
-    
-    if (needsVariables && fraseOriginal) {
-      // Open modal for variable filling
-      setSelectedFraseForVariables(fraseOriginal)
-      setVariablesModalOpen(true)
-      return
-    }
-    
-    // Insert directly if no variables
+    // Insert directly with placeholders
     const sections = findDocumentSections(editorInstance)
     const { state } = editorInstance
     const { selection } = state
@@ -506,7 +494,6 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
                           cursorPos >= sections.conclusao.start && 
                           cursorPos <= sections.conclusao.end
 
-    // Wrap text in paragraph tags to prevent uppercase from h3 styling
     const wrapInParagraph = (text: string) => {
       if (text.startsWith('<p>') || text.startsWith('<h')) return text
       return `<p>${text}</p>`
@@ -542,7 +529,29 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
     }
     setFraseSearchTerm('')
     setMacroDropdownVisible(false)
-  }, [editorInstance, hookApplyFrase, frases, findDocumentSections, replaceConclusionText, setFraseSearchTerm, hasVariables])
+  }, [editorInstance, hookApplyFrase, frases, findDocumentSections, replaceConclusionText, setFraseSearchTerm])
+
+  // Frase selection handler - with variables modal
+  const handleFraseSelectWithVariables = useCallback((frase: Macro) => {
+    const fraseOriginal = frases.find(f => f.id === frase.id)
+    if (fraseOriginal) {
+      setSelectedFraseForVariables(fraseOriginal)
+      setVariablesModalOpen(true)
+    }
+    setMacroDropdownVisible(false)
+  }, [frases])
+
+  // Frase selection handler - auto-detect
+  const handleFraseSelect = useCallback((frase: Macro) => {
+    const fraseOriginal = frases.find(f => f.id === frase.id)
+    
+    // Check if frase has variables that need to be filled
+    if (fraseOriginal && needsFraseVariableInput(fraseOriginal)) {
+      handleFraseSelectWithVariables(frase)
+    } else {
+      handleFraseSelectDirect(frase)
+    }
+  }, [frases, needsFraseVariableInput, handleFraseSelectWithVariables, handleFraseSelectDirect])
   
   // Handle variables submission with contextual insertion
   const handleVariablesSubmit = useCallback((
@@ -737,6 +746,8 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
           setSelectedMacro(term)
         }}
         onMacroSelect={handleFraseSelect}
+        onMacroSelectDirect={handleFraseSelectDirect}
+        onMacroSelectWithVariables={handleFraseSelectWithVariables}
         onCategoryClick={setFraseSelectedCategory}
         onMacroModalityClick={setFraseSelectedModality}
         onMacroFavoriteToggle={(id) => {
@@ -760,6 +771,10 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
         categories={fraseCategories}
         macroModalities={['RM', 'TC', 'USG', 'RX', 'MG']}
         needsVariableInput={needsVariableInput}
+        needsFraseVariableInput={(macro) => {
+          const fraseOriginal = frases.find(f => f.id === macro.id)
+          return fraseOriginal ? needsFraseVariableInput(fraseOriginal) : false
+        }}
         onTemplateSelectDirect={handleTemplateSelectDirect}
         onTemplateSelectWithVariables={handleTemplateSelectWithVariables}
         onChatToggle={() => setIsChatOpen(!isChatOpen)}
