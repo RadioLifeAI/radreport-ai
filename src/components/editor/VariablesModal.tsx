@@ -20,7 +20,7 @@ import {
 import { FraseVariable, VariableValues } from '@/types/fraseVariables'
 import { useVariableProcessor } from '@/hooks/useVariableProcessor'
 import { splitIntoParagraphs, findAnatomicalLine, ParsedParagraph } from '@/utils/anatomicalMapping'
-import { ChevronDown, ChevronRight, MapPin, MousePointer, AlertCircle, Check, Plus, RefreshCw, TextCursorInput, ArrowUp, ArrowDown, Trash2, CalendarIcon } from 'lucide-react'
+import { ChevronDown, ChevronRight, MapPin, MousePointer, AlertCircle, Check, Plus, RefreshCw, TextCursorInput, ArrowUp, ArrowDown, Trash2, CalendarIcon, MoveUp, MoveDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { format, parse } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -68,6 +68,9 @@ export function VariablesModal({
   const [selectedLineIndex, setSelectedLineIndex] = useState<number | null>(null)
   const [autoMapped, setAutoMapped] = useState(false)
   const [insertionMode, setInsertionMode] = useState<InsertionMode>('replace')
+  
+  // Estado para ordem dos parágrafos
+  const [paragraphOrder, setParagraphOrder] = useState<number[]>([])
 
   // Inicializar valores padrão e mapeamento ao abrir
   useEffect(() => {
@@ -87,6 +90,7 @@ export function VariablesModal({
       if (editorHtml) {
         const paras = splitIntoParagraphs(editorHtml)
         setParagraphs(paras)
+        setParagraphOrder(paras.map((_, idx) => idx)) // Initialize order [0, 1, 2, ...]
         
         // Tentar mapeamento automático
         if (estruturaNome) {
@@ -104,6 +108,7 @@ export function VariablesModal({
         }
       } else {
         setParagraphs([])
+        setParagraphOrder([])
         setSelectedLineIndex(null)
         setAutoMapped(false)
       }
@@ -151,6 +156,27 @@ export function VariablesModal({
     setSelectedLineIndex(index)
     setInsertionMode(mode)
     setAutoMapped(false)
+  }, [])
+
+  // Functions to reorder paragraphs
+  const moveParagraphUp = useCallback((originalIndex: number) => {
+    setParagraphOrder(prev => {
+      const currentPos = prev.indexOf(originalIndex)
+      if (currentPos <= 0) return prev
+      const newOrder = [...prev]
+      ;[newOrder[currentPos - 1], newOrder[currentPos]] = [newOrder[currentPos], newOrder[currentPos - 1]]
+      return newOrder
+    })
+  }, [])
+
+  const moveParagraphDown = useCallback((originalIndex: number) => {
+    setParagraphOrder(prev => {
+      const currentPos = prev.indexOf(originalIndex)
+      if (currentPos < 0 || currentPos >= prev.length - 1) return prev
+      const newOrder = [...prev]
+      ;[newOrder[currentPos], newOrder[currentPos + 1]] = [newOrder[currentPos + 1], newOrder[currentPos]]
+      return newOrder
+    })
   }, [])
 
   const validate = (): boolean => {
@@ -352,9 +378,16 @@ export function VariablesModal({
       )
     }
 
+    // Map ordered paragraphs for display
+    const orderedParagraphs = paragraphOrder.map((originalIdx, displayIdx) => ({
+      para: paragraphs[originalIdx],
+      originalIndex: originalIdx,
+      displayIndex: displayIdx
+    }))
+
     return (
       <div className="space-y-0.5">
-        {paragraphs.map((para, idx) => {
+        {orderedParagraphs.map(({ para, originalIndex: idx, displayIndex }) => {
           const isSelected = idx === selectedLineIndex
           const isClickable = !para.isHeader
           const previewContent = getPreviewContent(para, idx)
@@ -371,6 +404,30 @@ export function VariablesModal({
               
               {/* Linha principal */}
               <div className="group relative flex items-center">
+                {/* Reorder arrows - left side, only for non-headers */}
+                {!para.isHeader && (
+                  <div className="flex flex-col mr-1 opacity-0 group-hover:opacity-60 transition-opacity">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-4 w-4 hover:opacity-100"
+                      onClick={() => moveParagraphUp(idx)}
+                      disabled={displayIndex === 0}
+                    >
+                      <MoveUp className="h-2.5 w-2.5 text-muted-foreground" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-4 w-4 hover:opacity-100"
+                      onClick={() => moveParagraphDown(idx)}
+                      disabled={displayIndex === paragraphOrder.length - 1}
+                    >
+                      <MoveDown className="h-2.5 w-2.5 text-muted-foreground" />
+                    </Button>
+                  </div>
+                )}
+                
                 <div
                   className={cn(
                     "flex-1 px-2 py-1 rounded text-sm transition-all",
