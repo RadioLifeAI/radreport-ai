@@ -36,6 +36,14 @@ interface FraseModelo {
 const MODALITIES = ['US', 'TC', 'RM', 'RX', 'MM'];
 const ITEMS_PER_PAGE = 15;
 
+// Sanitize newlines: convert literal \n to actual newlines
+const sanitizeNewlines = (value: string | null | undefined): string | null => {
+  if (!value) return null;
+  return value
+    .replace(/\\n\\n/g, '\n\n')
+    .replace(/\\n/g, '\n');
+};
+
 const FrasesPage = () => {
   const [frases, setFrases] = useState<FraseModelo[]>([]);
   const [loading, setLoading] = useState(true);
@@ -178,12 +186,12 @@ const FrasesPage = () => {
 
       const fraseData = {
         codigo: formData.codigo,
-        texto: formData.texto,
+        texto: sanitizeNewlines(formData.texto) || '',
         modalidade_codigo: formData.modalidade_codigo || null,
         categoria: formData.categoria || null,
-        conclusao: formData.conclusao || null,
-        tecnica: formData.tecnica || null,
-        observacao: formData.observacao || null,
+        conclusao: sanitizeNewlines(formData.conclusao),
+        tecnica: sanitizeNewlines(formData.tecnica),
+        observacao: sanitizeNewlines(formData.observacao),
         ativa: formData.ativa,
         variaveis: parsedVariaveis,
         'sinônimos': formData.sinonimos ? formData.sinonimos.split(',').map(s => s.trim()).filter(Boolean) : null,
@@ -232,12 +240,18 @@ const FrasesPage = () => {
 
   const handleDuplicate = async (frase: FraseModelo) => {
     const newFrase = {
-      ...frase,
       codigo: `${frase.codigo}_COPY`,
+      texto: sanitizeNewlines(frase.texto) || '',
+      modalidade_codigo: frase.modalidade_codigo,
+      categoria: frase.categoria,
+      conclusao: sanitizeNewlines(frase.conclusao),
+      tecnica: sanitizeNewlines(frase.tecnica),
+      observacao: sanitizeNewlines(frase.observacao),
+      ativa: frase.ativa,
+      variaveis: frase.variaveis,
+      'sinônimos': frase['sinônimos'],
+      tags: frase.tags
     };
-    delete (newFrase as any).id;
-    delete (newFrase as any).created_at;
-    delete (newFrase as any).updated_at;
 
     try {
       const { error } = await supabase
