@@ -344,7 +344,7 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
         <strong style="color:#1e3a5f;">📚 Referência:</strong> 
         <span style="font-style:italic;">Hadlock FP et al. Estimation of fetal weight with the use of head, body, and femur measurements. Radiology 1985;150:535-540.</span>
         <br/>
-        <a href="https://fetalmedicine.org/research/assess/growth" 
+        <a href="https://fetalmedicine.org/research/assess/efwgrowth" 
            target="_blank" 
            rel="noopener noreferrer"
            style="color:#0066cc; text-decoration:none; font-weight:500;">
@@ -383,13 +383,13 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
     <tr>
       <td colspan="5" style="border:1px solid #ddd; padding:8px 12px; font-size:9pt; background:#f8f9fa; line-height:1.4;">
         <strong style="color:#1e3a5f;">📚 Referência:</strong> 
-        <span style="font-style:italic;">Phelan JP et al. Amniotic fluid index measurements during pregnancy. J Reprod Med 1987;32:601-604.</span>
+        <span style="font-style:italic;">Phelan JP et al. Amniotic fluid index measurements during pregnancy. J Reprod Med 1987;32(8):601-604.</span>
         <br/>
-        <a href="https://www.perinatology.com/Reference/glossary/A/Amniotic%20Fluid%20Index.htm" 
+        <a href="https://pubmed.ncbi.nlm.nih.gov/3309290/" 
            target="_blank" 
            rel="noopener noreferrer"
            style="color:#0066cc; text-decoration:none; font-weight:500;">
-          🔗 Perinatology Reference
+          🔗 PubMed PMID: 3309290
         </a>
       </td>
     </tr>
@@ -429,7 +429,7 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
         <strong style="color:#1e3a5f;">📚 Referência:</strong> 
         <span style="font-style:italic;">INTERGROWTH-21st Consortium. Fetal head circumference standards. Ultrasound Obstet Gynecol 2014;44:12-24.</span>
         <br/>
-        <a href="https://intergrowth21.tghn.org/" 
+        <a href="https://intergrowth21.com/" 
            target="_blank" 
            rel="noopener noreferrer"
            style="color:#0066cc; text-decoration:none; font-weight:500;">
@@ -473,7 +473,7 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
         <strong style="color:#1e3a5f;">📚 Referência:</strong> 
         <span style="font-style:italic;">INTERGROWTH-21st Consortium. Fetal head circumference standards. Ultrasound Obstet Gynecol 2014;44:12-24.</span>
         <br/>
-        <a href="https://intergrowth21.tghn.org/" 
+        <a href="https://intergrowth21.com/" 
            target="_blank" 
            rel="noopener noreferrer"
            style="color:#0066cc; text-decoration:none; font-weight:500;">
@@ -517,7 +517,7 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
         <strong style="color:#1e3a5f;">📚 Referência:</strong> 
         <span style="font-style:italic;">INTERGROWTH-21st Consortium. Fetal abdominal circumference standards. Ultrasound Obstet Gynecol 2014;44:50-56.</span>
         <br/>
-        <a href="https://intergrowth21.tghn.org/" 
+        <a href="https://intergrowth21.com/" 
            target="_blank" 
            rel="noopener noreferrer"
            style="color:#0066cc; text-decoration:none; font-weight:500;">
@@ -561,7 +561,7 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
         <strong style="color:#1e3a5f;">📚 Referência:</strong> 
         <span style="font-style:italic;">INTERGROWTH-21st Consortium. Fetal femur length standards. Ultrasound Obstet Gynecol 2014;44:57-62.</span>
         <br/>
-        <a href="https://intergrowth21.tghn.org/" 
+        <a href="https://intergrowth21.com/" 
            target="_blank" 
            rel="noopener noreferrer"
            style="color:#0066cc; text-decoration:none; font-weight:500;">
@@ -604,7 +604,7 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
         <strong style="color:#1e3a5f;">📚 Referência:</strong> 
         <span style="font-style:italic;">Robinson HP, Fleming JE. A critical evaluation of sonar crown-rump length measurements. Br J Obstet Gynaecol 1975;82:702-710.</span>
         <br/>
-        <a href="https://fetalmedicine.org/research/assess/charts" 
+        <a href="https://fetalmedicine.org/research/assess/crl" 
            target="_blank" 
            rel="noopener noreferrer"
            style="color:#0066cc; text-decoration:none; font-weight:500;">
@@ -648,7 +648,7 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
         <strong style="color:#1e3a5f;">📚 Referência:</strong> 
         <span style="font-style:italic;">Nicolaides KH et al. Fetal nuchal translucency: ultrasound screening for chromosomal defects in first trimester. BMJ 1992;304:867-869.</span>
         <br/>
-        <a href="https://fetalmedicine.org/research/assess/nuchal" 
+        <a href="https://fetalmedicine.org/research/assess/nt" 
            target="_blank" 
            rel="noopener noreferrer"
            style="color:#0066cc; text-decoration:none; font-weight:500;">
@@ -732,7 +732,7 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
         <strong style="color:#1e3a5f;">📚 Referência:</strong> 
         <span style="font-style:italic;">INTERGROWTH-21st Consortium, ISUOG Practice Guidelines 2021. Umbilical artery Doppler. Ultrasound Obstet Gynecol 2021;58:159-173.</span>
         <br/>
-        <a href="https://intergrowth21.tghn.org/" 
+        <a href="https://intergrowth21.com/" 
            target="_blank" 
            rel="noopener noreferrer"
            style="color:#0066cc; text-decoration:none; font-weight:500;">
@@ -862,7 +862,7 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
         <strong style="color:#1e3a5f;">📚 Referência:</strong> 
         <span style="font-style:italic;">Wright D et al. First-trimester screening for trisomies 21, 18 and 13 by ultrasound and biochemical testing. FMF 2019.</span>
         <br/>
-        <a href="https://fetalmedicine.org/research/assess/preeclampsia" 
+        <a href="https://fetalmedicine.org/research/assess/firsttrimester" 
            target="_blank" 
            rel="noopener noreferrer"
            style="color:#0066cc; text-decoration:none; font-weight:500;">
