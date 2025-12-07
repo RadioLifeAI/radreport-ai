@@ -119,6 +119,18 @@ export function TemplateVariablesModal({
       
       // Initialize section order with default order
       setSectionOrder(['titulo', 'tecnica', 'achados', 'impressao', 'adicionais'])
+      
+      // Sincronizar igSourceMode com valor do campo ig_source_mode no formulário
+      const igModeVar = variaveis.find(v => v.nome === 'ig_source_mode')
+      if (igModeVar?.valor_padrao) {
+        const modeValue = igModeVar.valor_padrao.toString()
+        const mode = modeValue === 'DUM conhecida' ? 'dum' 
+                   : modeValue === 'USG prévio' ? 'usg_previo' 
+                   : 'biometria'
+        setIGSourceMode(mode)
+      } else {
+        setIGSourceMode('biometria') // default
+      }
     }
   }, [open, template, variaveis])
 
@@ -229,7 +241,7 @@ export function TemplateVariablesModal({
         return prev
       })
     }
-  }, [isObstetricTemplate, values['data_dum'], values['dbp'], values['cc'], values['ca'], values['cf'], values['ig_manual_semanas'], values['ig_manual_dias']])
+  }, [isObstetricTemplate, igSourceMode, values['data_dum'], values['data_usg_previo'], values['ig_previo_semanas'], values['ig_previo_dias'], values['dbp'], values['cc'], values['ca'], values['cf']])
 
   // Generate preview HTML with removable sections
   const previewSections = useMemo(() => {
@@ -422,6 +434,25 @@ export function TemplateVariablesModal({
     const value = values[variable.nome]
     const error = errors[variable.nome]
 
+    // Lógica de renderização condicional para template obstétrico
+    if (isObstetricTemplate) {
+      // Esconder data_dum se modo não é 'dum'
+      if (variable.nome === 'data_dum' && igSourceMode !== 'dum') return null
+      
+      // Esconder campos USG prévio se modo não é 'usg_previo'
+      if (['data_usg_previo', 'ig_previo_semanas', 'ig_previo_dias', 'dum_calculada'].includes(variable.nome) 
+          && igSourceMode !== 'usg_previo') return null
+      
+      // Esconder campos de IG DUM se modo não é 'dum'
+      if (['ig_dum_semanas', 'ig_dum_dias'].includes(variable.nome) && igSourceMode !== 'dum') return null
+      
+      // Esconder biometria se modo é 'dum' (biometria aparece em biometria e usg_previo)
+      if (['dbp', 'cc', 'ca', 'cf'].includes(variable.nome) && igSourceMode === 'dum') return null
+      
+      // Esconder IG biometria se modo é 'dum'
+      if (['ig_biometria_semanas', 'ig_biometria_dias', 'ig_usg_semanas', 'ig_usg_dias'].includes(variable.nome) && igSourceMode === 'dum') return null
+    }
+
     // Check if this is a volume variable (by type or detection)
     if (variable.tipo === 'volume' || isVolumeVariable(variable)) {
       const measurement = volumeMeasurements[variable.nome] || createDefaultVolumeMeasurement()
@@ -589,6 +620,19 @@ export function TemplateVariablesModal({
         )
 
       case 'select':
+        // Handler especial para ig_source_mode - sincroniza com estado React
+        const handleSelectChange = (val: string) => {
+          handleValueChange(variable.nome, val)
+          
+          // Sincronizar estado igSourceMode se for o campo de seleção de fonte
+          if (variable.nome === 'ig_source_mode') {
+            const mode = val === 'DUM conhecida' ? 'dum' 
+                       : val === 'USG prévio' ? 'usg_previo' 
+                       : 'biometria'
+            setIGSourceMode(mode)
+          }
+        }
+        
         return (
           <div key={variable.nome} className="space-y-1">
             <Label htmlFor={variable.nome} className="text-xs">
@@ -596,7 +640,7 @@ export function TemplateVariablesModal({
             </Label>
             <Select
               value={value?.toString() || ''}
-              onValueChange={(val) => handleValueChange(variable.nome, val)}
+              onValueChange={handleSelectChange}
             >
               <SelectTrigger className="h-8 text-sm">
                 <SelectValue placeholder="Selecione..." />
@@ -774,9 +818,7 @@ export function TemplateVariablesModal({
                   </div>
                 </CollapsibleTrigger>
                 <CollapsibleContent className="mt-3">
-                  {/* ScrollArea interno para lista de variáveis com altura FIXA para scroll funcionar */}
-                  <ScrollArea className="h-[400px] pr-3 [&_[data-orientation=vertical]]:w-2 [&_[data-orientation=vertical]]:bg-muted/40 [&_[data-orientation=vertical]_>_div]:bg-cyan-500/50 [&_[data-orientation=vertical]_>_div]:hover:bg-cyan-500/70 [&_[data-orientation=vertical]_>_div]:rounded-full">
-                  {/* Render variables grouped by 'grupo' field */}
+                  {/* Render variables grouped by 'grupo' field - sem ScrollArea aninhado */}
                   {(() => {
                     // Group configuration with icons and labels
                     const groupConfig: Record<string, { label: string; icon: React.ReactNode; order: number }> = {
@@ -851,7 +893,6 @@ export function TemplateVariablesModal({
                       </div>
                     )
                   })()}
-                  </ScrollArea>
                 </CollapsibleContent>
               </Collapsible>
             )}
