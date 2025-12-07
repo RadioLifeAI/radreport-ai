@@ -453,7 +453,14 @@ export function VariablesModal({
             <div key={idx}>
               {/* Nova linha acima (modo 'above') */}
               {isSelected && insertionMode === 'above' && (
-                <div className="group relative flex items-center mb-0.5">
+                <div 
+                  className="group relative flex items-center mb-0.5"
+                  draggable
+                  onDragStart={(e) => handleParagraphDragStart(e, idx)}
+                  onDragOver={handleParagraphDragOver}
+                  onDrop={(e) => handleParagraphDrop(e, idx)}
+                  onDragEnd={handleParagraphDragEnd}
+                >
                   <div className="mr-1.5 cursor-grab active:cursor-grabbing">
                     <GripVertical className="h-4 w-4 text-muted-foreground/60" />
                   </div>
@@ -566,7 +573,14 @@ export function VariablesModal({
               
               {/* Nova linha abaixo (modo 'below') */}
               {isSelected && insertionMode === 'below' && (
-                <div className="group relative flex items-center mt-0.5">
+                <div 
+                  className="group relative flex items-center mt-0.5"
+                  draggable
+                  onDragStart={(e) => handleParagraphDragStart(e, idx)}
+                  onDragOver={handleParagraphDragOver}
+                  onDrop={(e) => handleParagraphDrop(e, idx)}
+                  onDragEnd={handleParagraphDragEnd}
+                >
                   <div className="mr-1.5 cursor-grab active:cursor-grabbing">
                     <GripVertical className="h-4 w-4 text-muted-foreground/60" />
                   </div>
