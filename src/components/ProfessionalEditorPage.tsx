@@ -559,10 +559,26 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
     processedTexto: string, 
     processedConclusao?: string,
     targetLineIndex?: number,
-    insertionMode?: 'replace' | 'append' | 'above' | 'below' | 'remove'
+    insertionMode?: 'replace' | 'append' | 'above' | 'below' | 'remove',
+    reorderedHtml?: string
   ) => {
     if (!editorInstance) return
     
+    // Se recebemos HTML reordenado do modal, usar diretamente!
+    if (reorderedHtml) {
+      editorInstance.commands.setContent(reorderedHtml)
+      
+      // Apply frase to recent
+      if (selectedFraseForVariables) {
+        hookApplyFrase(selectedFraseForVariables)
+      }
+      
+      setVariablesModalOpen(false)
+      setSelectedFraseForVariables(null)
+      return
+    }
+    
+    // Fallback: lógica original para casos sem reorderedHtml
     const wrapInParagraph = (text: string) => {
       if (text.startsWith('<p>') || text.startsWith('<h')) return text
       return `<p>${text}</p>`
