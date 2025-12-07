@@ -225,10 +225,10 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
   </tfoot>
 </table>`
       },
-      {
-        id: 'precise-v2',
-        name: 'PRECISE v2 (RM Próstata - Vigilância Ativa)',
-        category: 'rads',
+  {
+    id: 'precise-v2',
+    name: 'PRECISE v2 (RM Próstata - Vigilância Ativa)',
+    category: 'oncologia',
         type: 'informative',
         modality: ['RM'],
         htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">
@@ -265,10 +265,10 @@ export const RADIOLOGY_TABLES: TableCategory[] = [
   </tfoot>
 </table>`
       },
-      {
-        id: 'gleason-isup',
-        name: 'Gleason Score / ISUP Grade Groups (Próstata)',
-        category: 'rads',
+  {
+    id: 'gleason-isup',
+    name: 'Gleason Score / ISUP Grade Groups (Próstata)',
+    category: 'oncologia',
         type: 'informative',
         modality: ['RM', 'US'],
         htmlContent: `<table style="width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:10pt; margin:10px 0;">

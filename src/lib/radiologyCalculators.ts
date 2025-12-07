@@ -2416,7 +2416,7 @@ export const radiologyCalculators: RadiologyCalculator[] = [
   {
     id: 'precise-score-v2',
     name: 'PRECISE Score v2 (Próstata - VA)',
-    category: 'urologia',
+    category: 'oncologia',
     description: 'Avaliação de progressão radiológica em vigilância ativa de câncer de próstata por RM (PRECISE v2 2024)',
     inputs: [
       {
