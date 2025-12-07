@@ -35,7 +35,7 @@ interface TemplateVariablesModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   template: TemplateWithVariables | null
-  onSubmit: (selectedTechniques: string[], variableValues: TemplateVariableValues, removedSections?: string[]) => void
+  onSubmit: (selectedTechniques: string[], variableValues: TemplateVariableValues, removedSections?: string[], sectionOrder?: string[]) => void
 }
 
 export function TemplateVariablesModal({
@@ -281,7 +281,7 @@ export function TemplateVariablesModal({
     if (!validate()) return
     // Process conditional logic before submitting
     const processedValues = processConditionalLogic(template?.condicoes_logicas, values)
-    onSubmit(selectedTechniques, processedValues, removedSections)
+    onSubmit(selectedTechniques, processedValues, removedSections, sectionOrder)
     onOpenChange(false)
   }
 
@@ -667,26 +667,26 @@ export function TemplateVariablesModal({
                     const isRemoved = removedSections.includes(sectionId)
                     
                     return (
-                      <div key={sectionId} className="flex items-center gap-0.5 bg-muted/30 rounded-lg px-1 py-0.5">
-                        {/* Reorder arrows */}
-                        <div className="flex flex-col">
+                      <div key={sectionId} className="flex items-center gap-1 bg-muted/40 rounded-lg px-2 py-1 border border-border/50">
+                        {/* Reorder arrows - more visible */}
+                        <div className="flex flex-col gap-0.5">
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-4 w-4 hover:bg-muted"
+                            className="h-6 w-6 hover:bg-cyan-500/20 text-muted-foreground hover:text-cyan-500 disabled:opacity-30"
                             onClick={() => moveSectionUp(sectionId)}
                             disabled={orderIdx === 0 || isRemoved}
                           >
-                            <ArrowUp className="h-2.5 w-2.5" />
+                            <ArrowUp className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-4 w-4 hover:bg-muted"
+                            className="h-6 w-6 hover:bg-cyan-500/20 text-muted-foreground hover:text-cyan-500 disabled:opacity-30"
                             onClick={() => moveSectionDown(sectionId)}
                             disabled={orderIdx === sectionOrder.length - 1 || isRemoved}
                           >
-                            <ArrowDown className="h-2.5 w-2.5" />
+                            <ArrowDown className="h-4 w-4" />
                           </Button>
                         </div>
                         
@@ -695,16 +695,13 @@ export function TemplateVariablesModal({
                           variant={isRemoved ? "destructive" : "outline"}
                           size="sm"
                           onClick={() => toggleSectionRemoval(sectionId)}
-                          className="h-6 text-xs gap-1 px-2"
-                        >
-                          {isRemoved ? (
-                            <>
-                              <Trash2 className="h-3 w-3" />
-                              {section.label}
-                            </>
-                          ) : (
-                            section.label
+                          className={cn(
+                            "h-7 text-xs gap-1.5 px-3",
+                            isRemoved && "line-through opacity-60"
                           )}
+                        >
+                          {isRemoved && <Trash2 className="h-3 w-3" />}
+                          {section.label}
                         </Button>
                       </div>
                     )

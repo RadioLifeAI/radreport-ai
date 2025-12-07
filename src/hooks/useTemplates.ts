@@ -46,7 +46,7 @@ interface UseTemplatesReturn {
   setSelectedVariableFilter: (filter: VariableFilter) => void
   loadTemplates: () => Promise<void>
   applyTemplate: (template: Template) => void
-  applyTemplateWithVariables: (template: Template, selectedTechniques: string[], variableValues: Record<string, any>, removedSections?: string[]) => void
+  applyTemplateWithVariables: (template: Template, selectedTechniques: string[], variableValues: Record<string, any>, removedSections?: string[], sectionOrder?: string[]) => void
   needsVariableInput: (template: Template) => boolean
   addToFavorites: (templateId: string) => void
   removeFromFavorites: (templateId: string) => void
@@ -378,7 +378,8 @@ export function useTemplates(): UseTemplatesReturn {
     template: Template,
     selectedTechniques: string[],
     variableValues: Record<string, any>,
-    removedSections?: string[]
+    removedSections?: string[],
+    sectionOrder?: string[]
   ) => {
     setModalidade(template.modalidade)
     
@@ -401,13 +402,15 @@ export function useTemplates(): UseTemplatesReturn {
     
     const removed = removedSections || []
     
+    // Build section map with generated HTML
+    const sectionMap: Record<string, string> = {}
+    
     // Título centralizado e em maiúsculas
-    const tituloHtml = removed.includes('titulo') 
-      ? '' 
-      : `<h2 style="text-align: center; text-transform: uppercase;">${template.titulo}</h2>`
+    if (!removed.includes('titulo')) {
+      sectionMap.titulo = `<h2 style="text-align: center; text-transform: uppercase;">${template.titulo}</h2>`
+    }
     
     // Técnica - combine selected techniques
-    let tecnicaHtml = ''
     if (!removed.includes('tecnica')) {
       if (selectedTechniques.length > 0) {
         const combinedTecnica = selectedTechniques
@@ -416,40 +419,39 @@ export function useTemplates(): UseTemplatesReturn {
           .map(text => processText(text))
           .join(' ')
         if (combinedTecnica) {
-          tecnicaHtml = `<h3 style="text-transform: uppercase;">TÉCNICA</h3>${dividirEmSentencas(combinedTecnica)}`
+          sectionMap.tecnica = `<h3 style="text-transform: uppercase;">TÉCNICA</h3>${dividirEmSentencas(combinedTecnica)}`
         }
       } else {
-        tecnicaHtml = formatarTecnica(template.conteudo.tecnica)
+        sectionMap.tecnica = formatarTecnica(template.conteudo.tecnica)
       }
     }
     
     // Achados - process variables
-    let achadosHtml = ''
     if (!removed.includes('achados')) {
       const achadosProcessed = processText(template.conteudo.achados)
-      achadosHtml = `<h3 style="text-transform: uppercase;">ACHADOS</h3>${dividirEmSentencas(achadosProcessed)}`
+      sectionMap.achados = `<h3 style="text-transform: uppercase;">ACHADOS</h3>${dividirEmSentencas(achadosProcessed)}`
     }
     
     // Impressão - process variables
-    let impressaoHtml = ''
     if (!removed.includes('impressao')) {
       const impressaoProcessed = processText(template.conteudo.impressao)
-      impressaoHtml = `<h3 style="text-transform: uppercase;">IMPRESSÃO</h3>${dividirEmSentencas(impressaoProcessed)}`
+      sectionMap.impressao = `<h3 style="text-transform: uppercase;">IMPRESSÃO</h3>${dividirEmSentencas(impressaoProcessed)}`
     }
     
     // Adicionais - process variables
-    let adicionaisHtml = ''
     if (!removed.includes('adicionais') && template.conteudo.adicionais) {
-      adicionaisHtml = `<h3 style="text-transform: uppercase;">ADICIONAIS</h3>${dividirEmSentencas(processText(template.conteudo.adicionais))}`
+      sectionMap.adicionais = `<h3 style="text-transform: uppercase;">ADICIONAIS</h3>${dividirEmSentencas(processText(template.conteudo.adicionais))}`
     }
     
-    const html = [
-      tituloHtml,
-      tecnicaHtml,
-      achadosHtml,
-      impressaoHtml,
-      adicionaisHtml
-    ].filter(Boolean).join('')
+    // Use provided section order, or default order
+    const defaultOrder = ['titulo', 'tecnica', 'achados', 'impressao', 'adicionais']
+    const finalOrder = sectionOrder || defaultOrder
+    
+    // Build HTML respecting the order
+    const html = finalOrder
+      .filter(id => !removed.includes(id) && sectionMap[id])
+      .map(id => sectionMap[id])
+      .join('')
     
     setContent(html)
     

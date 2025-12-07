@@ -404,26 +404,26 @@ export function VariablesModal({
               
               {/* Linha principal */}
               <div className="group relative flex items-center">
-                {/* Reorder arrows - left side, only for non-headers */}
+                {/* Reorder arrows - left side, only for non-headers - always visible */}
                 {!para.isHeader && (
-                  <div className="flex flex-col mr-1 opacity-0 group-hover:opacity-60 transition-opacity">
+                  <div className="flex flex-col mr-1.5 gap-0.5">
                     <Button
                       size="icon"
                       variant="ghost"
-                      className="h-4 w-4 hover:opacity-100"
+                      className="h-6 w-6 text-muted-foreground hover:text-cyan-500 hover:bg-cyan-500/20 disabled:opacity-30"
                       onClick={() => moveParagraphUp(idx)}
                       disabled={displayIndex === 0}
                     >
-                      <MoveUp className="h-2.5 w-2.5 text-muted-foreground" />
+                      <MoveUp className="h-4 w-4" />
                     </Button>
                     <Button
                       size="icon"
                       variant="ghost"
-                      className="h-4 w-4 hover:opacity-100"
+                      className="h-6 w-6 text-muted-foreground hover:text-cyan-500 hover:bg-cyan-500/20 disabled:opacity-30"
                       onClick={() => moveParagraphDown(idx)}
                       disabled={displayIndex === paragraphOrder.length - 1}
                     >
-                      <MoveDown className="h-2.5 w-2.5 text-muted-foreground" />
+                      <MoveDown className="h-4 w-4" />
                     </Button>
                   </div>
                 )}
