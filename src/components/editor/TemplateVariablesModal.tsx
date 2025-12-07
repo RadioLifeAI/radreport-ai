@@ -758,8 +758,8 @@ export function TemplateVariablesModal({
                   </div>
                 </CollapsibleTrigger>
                 <CollapsibleContent className="mt-3">
-                  {/* ScrollArea interno para lista de variáveis com altura máxima */}
-                  <ScrollArea className="max-h-[400px] pr-3 [&_[data-orientation=vertical]]:w-1.5 [&_[data-orientation=vertical]]:bg-muted/30 [&_[data-orientation=vertical]_>_div]:bg-cyan-500/40 [&_[data-orientation=vertical]_>_div]:hover:bg-cyan-500/60 [&_[data-orientation=vertical]_>_div]:rounded-full">
+                  {/* ScrollArea interno para lista de variáveis com altura FIXA para scroll funcionar */}
+                  <ScrollArea className="h-[400px] pr-3 [&_[data-orientation=vertical]]:w-2 [&_[data-orientation=vertical]]:bg-muted/40 [&_[data-orientation=vertical]_>_div]:bg-cyan-500/50 [&_[data-orientation=vertical]_>_div]:hover:bg-cyan-500/70 [&_[data-orientation=vertical]_>_div]:rounded-full">
                   {/* Render variables grouped by 'grupo' field */}
                   {(() => {
                     // Group configuration with icons and labels
