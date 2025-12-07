@@ -20,7 +20,7 @@ import {
 import { FraseVariable, VariableValues } from '@/types/fraseVariables'
 import { useVariableProcessor } from '@/hooks/useVariableProcessor'
 import { splitIntoParagraphs, findAnatomicalLine, ParsedParagraph } from '@/utils/anatomicalMapping'
-import { ChevronDown, ChevronRight, MapPin, MousePointer, AlertCircle, Check, Plus, RefreshCw, TextCursorInput, ArrowUp, ArrowDown, Trash2, CalendarIcon, MoveUp, MoveDown } from 'lucide-react'
+import { ChevronDown, ChevronRight, MapPin, MousePointer, AlertCircle, Check, Plus, RefreshCw, TextCursorInput, ArrowUp, ArrowDown, Trash2, CalendarIcon, GripVertical } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { format, parse } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -69,8 +69,9 @@ export function VariablesModal({
   const [autoMapped, setAutoMapped] = useState(false)
   const [insertionMode, setInsertionMode] = useState<InsertionMode>('replace')
   
-  // Estado para ordem dos parágrafos
+  // Estado para ordem dos parágrafos e drag-and-drop
   const [paragraphOrder, setParagraphOrder] = useState<number[]>([])
+  const [draggedParagraph, setDraggedParagraph] = useState<number | null>(null)
 
   // Inicializar valores padrão e mapeamento ao abrir
   useEffect(() => {
@@ -158,25 +159,40 @@ export function VariablesModal({
     setAutoMapped(false)
   }, [])
 
-  // Functions to reorder paragraphs
-  const moveParagraphUp = useCallback((originalIndex: number) => {
-    setParagraphOrder(prev => {
-      const currentPos = prev.indexOf(originalIndex)
-      if (currentPos <= 0) return prev
-      const newOrder = [...prev]
-      ;[newOrder[currentPos - 1], newOrder[currentPos]] = [newOrder[currentPos], newOrder[currentPos - 1]]
-      return newOrder
-    })
+  // Drag and drop handlers for paragraphs
+  const handleParagraphDragStart = useCallback((e: React.DragEvent, originalIndex: number) => {
+    setDraggedParagraph(originalIndex)
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/plain', String(originalIndex))
   }, [])
 
-  const moveParagraphDown = useCallback((originalIndex: number) => {
+  const handleParagraphDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+  }, [])
+
+  const handleParagraphDrop = useCallback((e: React.DragEvent, targetOriginalIndex: number) => {
+    e.preventDefault()
+    if (draggedParagraph === null || draggedParagraph === targetOriginalIndex) {
+      setDraggedParagraph(null)
+      return
+    }
+    
     setParagraphOrder(prev => {
-      const currentPos = prev.indexOf(originalIndex)
-      if (currentPos < 0 || currentPos >= prev.length - 1) return prev
       const newOrder = [...prev]
-      ;[newOrder[currentPos], newOrder[currentPos + 1]] = [newOrder[currentPos + 1], newOrder[currentPos]]
+      const draggedOrderIndex = newOrder.indexOf(draggedParagraph)
+      const targetOrderIndex = newOrder.indexOf(targetOriginalIndex)
+      
+      newOrder.splice(draggedOrderIndex, 1)
+      newOrder.splice(targetOrderIndex, 0, draggedParagraph)
+      
       return newOrder
     })
+    setDraggedParagraph(null)
+  }, [draggedParagraph])
+
+  const handleParagraphDragEnd = useCallback(() => {
+    setDraggedParagraph(null)
   }, [])
 
   const validate = (): boolean => {
@@ -403,28 +419,21 @@ export function VariablesModal({
               )}
               
               {/* Linha principal */}
-              <div className="group relative flex items-center">
-                {/* Reorder arrows - left side, only for non-headers - always visible */}
+              <div 
+                className="group relative flex items-center"
+                draggable={!para.isHeader}
+                onDragStart={(e) => handleParagraphDragStart(e, idx)}
+                onDragOver={handleParagraphDragOver}
+                onDrop={(e) => handleParagraphDrop(e, idx)}
+                onDragEnd={handleParagraphDragEnd}
+              >
+                {/* Drag handle - left side, only for non-headers */}
                 {!para.isHeader && (
-                  <div className="flex flex-col mr-1.5 gap-0.5">
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-6 w-6 text-muted-foreground hover:text-cyan-500 hover:bg-cyan-500/20 disabled:opacity-30"
-                      onClick={() => moveParagraphUp(idx)}
-                      disabled={displayIndex === 0}
-                    >
-                      <MoveUp className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-6 w-6 text-muted-foreground hover:text-cyan-500 hover:bg-cyan-500/20 disabled:opacity-30"
-                      onClick={() => moveParagraphDown(idx)}
-                      disabled={displayIndex === paragraphOrder.length - 1}
-                    >
-                      <MoveDown className="h-4 w-4" />
-                    </Button>
+                  <div className="mr-1.5 cursor-grab active:cursor-grabbing">
+                    <GripVertical className={cn(
+                      "h-4 w-4 text-muted-foreground/60 transition-all",
+                      draggedParagraph === idx && "text-cyan-500"
+                    )} />
                   </div>
                 )}
                 
@@ -432,9 +441,10 @@ export function VariablesModal({
                   className={cn(
                     "flex-1 px-2 py-1 rounded text-sm transition-all",
                     para.isHeader && "font-semibold text-foreground bg-muted/20 cursor-default",
-                    !para.isHeader && "hover:bg-muted/30",
+                    !para.isHeader && "hover:bg-muted/30 cursor-grab active:cursor-grabbing",
                     isSelected && insertionMode !== 'remove' && "bg-cyan-500/20 border-l-4 border-cyan-500 pl-3",
-                    isSelected && insertionMode === 'remove' && "line-through opacity-50 bg-destructive/10 border-l-4 border-destructive/50 pl-3"
+                    isSelected && insertionMode === 'remove' && "line-through opacity-50 bg-destructive/10 border-l-4 border-destructive/50 pl-3",
+                    draggedParagraph === idx && "opacity-50 scale-95 border border-cyan-500 bg-cyan-500/10"
                   )}
                 >
                   {isSelected && previewContent ? (

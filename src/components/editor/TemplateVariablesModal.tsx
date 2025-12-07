@@ -13,7 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Calendar } from '@/components/ui/calendar'
-import { ChevronDown, FileText, Calculator, Ruler, Settings2, CalendarIcon, Trash2, ArrowUp, ArrowDown, GripVertical } from 'lucide-react'
+import { ChevronDown, FileText, Calculator, Ruler, Settings2, CalendarIcon, Trash2, GripVertical } from 'lucide-react'
 import { format, parse } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
@@ -52,6 +52,7 @@ export function TemplateVariablesModal({
   const [previewOpen, setPreviewOpen] = useState(true)
   const [removedSections, setRemovedSections] = useState<string[]>([])
   const [sectionOrder, setSectionOrder] = useState<string[]>([])
+  const [draggedSection, setDraggedSection] = useState<string | null>(null)
 
   const availableTechniques = template ? getAvailableTechniques(template) : []
   const hasMultipleTechniques = availableTechniques.length > 1
@@ -201,25 +202,40 @@ export function TemplateVariablesModal({
     )
   }
 
-  // Functions to reorder sections
-  const moveSectionUp = (sectionId: string) => {
-    setSectionOrder(prev => {
-      const idx = prev.indexOf(sectionId)
-      if (idx <= 0) return prev
-      const newOrder = [...prev]
-      ;[newOrder[idx - 1], newOrder[idx]] = [newOrder[idx], newOrder[idx - 1]]
-      return newOrder
-    })
+  // Drag and drop handlers for sections
+  const handleDragStart = (e: React.DragEvent, sectionId: string) => {
+    setDraggedSection(sectionId)
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/plain', sectionId)
   }
 
-  const moveSectionDown = (sectionId: string) => {
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+  }
+
+  const handleDrop = (e: React.DragEvent, targetSectionId: string) => {
+    e.preventDefault()
+    if (!draggedSection || draggedSection === targetSectionId) {
+      setDraggedSection(null)
+      return
+    }
+    
     setSectionOrder(prev => {
-      const idx = prev.indexOf(sectionId)
-      if (idx < 0 || idx >= prev.length - 1) return prev
       const newOrder = [...prev]
-      ;[newOrder[idx], newOrder[idx + 1]] = [newOrder[idx + 1], newOrder[idx]]
+      const draggedIndex = newOrder.indexOf(draggedSection)
+      const targetIndex = newOrder.indexOf(targetSectionId)
+      
+      newOrder.splice(draggedIndex, 1)
+      newOrder.splice(targetIndex, 0, draggedSection)
+      
       return newOrder
     })
+    setDraggedSection(null)
+  }
+
+  const handleDragEnd = () => {
+    setDraggedSection(null)
   }
 
   const handleValueChange = (nome: string, value: string | number | boolean) => {
@@ -665,30 +681,26 @@ export function TemplateVariablesModal({
                     const section = previewSections.find(s => s.id === sectionId)
                     if (!section) return null
                     const isRemoved = removedSections.includes(sectionId)
+                    const isDragging = draggedSection === sectionId
                     
                     return (
-                      <div key={sectionId} className="flex items-center gap-1 bg-muted/40 rounded-lg px-2 py-1 border border-border/50">
-                        {/* Reorder arrows - more visible */}
-                        <div className="flex flex-col gap-0.5">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6 hover:bg-cyan-500/20 text-muted-foreground hover:text-cyan-500 disabled:opacity-30"
-                            onClick={() => moveSectionUp(sectionId)}
-                            disabled={orderIdx === 0 || isRemoved}
-                          >
-                            <ArrowUp className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6 hover:bg-cyan-500/20 text-muted-foreground hover:text-cyan-500 disabled:opacity-30"
-                            onClick={() => moveSectionDown(sectionId)}
-                            disabled={orderIdx === sectionOrder.length - 1 || isRemoved}
-                          >
-                            <ArrowDown className="h-4 w-4" />
-                          </Button>
-                        </div>
+                      <div 
+                        key={sectionId} 
+                        draggable={!isRemoved}
+                        onDragStart={(e) => handleDragStart(e, sectionId)}
+                        onDragOver={handleDragOver}
+                        onDrop={(e) => handleDrop(e, sectionId)}
+                        onDragEnd={handleDragEnd}
+                        className={cn(
+                          "flex items-center gap-2 bg-muted/40 rounded-lg px-2 py-1.5 border border-border/50 cursor-grab active:cursor-grabbing transition-all",
+                          isDragging && "opacity-50 scale-95 border-cyan-500",
+                          isRemoved && "cursor-default"
+                        )}
+                      >
+                        {/* Drag handle */}
+                        {!isRemoved && (
+                          <GripVertical className="h-4 w-4 text-muted-foreground/60" />
+                        )}
                         
                         {/* Section name + remove button */}
                         <Button
