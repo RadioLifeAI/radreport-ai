@@ -6,7 +6,7 @@
 
 // ==================== TYPES ====================
 
-export type AIProvider = 'openai' | 'anthropic' | 'google' | 'groq' | 'lovable';
+export type AIProvider = 'openai' | 'anthropic' | 'google' | 'groq' | 'lovable' | 'openrouter';
 
 export interface AIModelCapabilities {
   supports_temperature: boolean;
@@ -448,6 +448,10 @@ export function buildMultiProviderPayload(
     case 'groq':
       return buildGroqPayload(config, messages, options);
     
+    case 'openrouter':
+      // OpenRouter uses OpenAI-compatible format
+      return buildOpenAIPayload(config, messages, options);
+    
     case 'openai':
     case 'lovable':
     default:
@@ -498,6 +502,14 @@ export function getProviderEndpoint(provider: AIProvider, modelName?: string): P
     case 'lovable':
       return {
         url: 'https://ai.gateway.lovable.dev/v1/chat/completions',
+        authHeader: 'Authorization',
+        authPrefix: 'Bearer ',
+        contentType: 'application/json',
+      };
+    
+    case 'openrouter':
+      return {
+        url: 'https://openrouter.ai/api/v1/chat/completions',
         authHeader: 'Authorization',
         authPrefix: 'Bearer ',
         contentType: 'application/json',
@@ -602,6 +614,22 @@ export function getDefaultCapabilities(provider: AIProvider): Partial<AIModelCap
         is_legacy: false,
       };
     
+    case 'openrouter':
+      // OpenRouter supports all major capabilities via OpenAI-compatible API
+      return {
+        supports_temperature: true,
+        supports_top_p: true,
+        supports_frequency_penalty: true,
+        supports_presence_penalty: true,
+        supports_stop_sequences: true,
+        supports_seed: true,
+        supports_json_mode: true,
+        supports_tools: true,
+        supports_streaming: true,
+        supports_vision: true,
+        is_legacy: false,
+      };
+    
     case 'openai':
     case 'lovable':
     default:
@@ -633,6 +661,7 @@ export function normalizeProvider(provider: string): AIProvider {
     'gemini': 'google',
     'groq': 'groq',
     'lovable': 'lovable',
+    'openrouter': 'openrouter',
   };
   return providerMap[normalized] || 'openai';
 }

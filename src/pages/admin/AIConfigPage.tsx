@@ -170,6 +170,15 @@ const MODEL_INFO: Record<string, { icon: string; label: string; color: string }>
   'gemini-2.5-flash-lite': { icon: '🌟', label: 'Google Lite', color: 'text-sky-200' },
   'llama-3.3-70b-versatile': { icon: '🦙', label: 'Groq Llama', color: 'text-rose-400' },
   'whisper-large-v3-turbo': { icon: '🎤', label: 'Transcrição', color: 'text-rose-400' },
+  // OpenRouter models
+  'openrouter/openai/gpt-5': { icon: '🌐', label: 'OR GPT-5', color: 'text-teal-400' },
+  'openrouter/anthropic/claude-sonnet-4': { icon: '🌐', label: 'OR Claude 4', color: 'text-teal-400' },
+  'openrouter/google/gemini-2.5-flash': { icon: '🌐', label: 'OR Gemini Flash', color: 'text-teal-300' },
+  'openrouter/google/gemini-2.5-pro': { icon: '🌐', label: 'OR Gemini Pro', color: 'text-teal-400' },
+  'openrouter/meta-llama/llama-3.3-70b-instruct': { icon: '🌐', label: 'OR Llama 70B', color: 'text-teal-300' },
+  'openrouter/mistralai/mistral-large-2411': { icon: '🌐', label: 'OR Mistral', color: 'text-teal-400' },
+  'openrouter/qwen/qwen-2.5-72b-instruct': { icon: '🌐', label: 'OR Qwen 72B', color: 'text-teal-300' },
+  'openrouter/deepseek/deepseek-chat-v3-0324': { icon: '🌐', label: 'OR DeepSeek V3', color: 'text-teal-400' },
 };
 
 const PROVIDER_ICONS: Record<string, string> = {
@@ -178,6 +187,7 @@ const PROVIDER_ICONS: Record<string, string> = {
   'google': '🔵',
   'groq': '🔴',
   'lovable': '💜',
+  'openrouter': '🌐',
 };
 
 // Provider defaults for API connection auto-population (BASE URLs only - RPC appends paths)
@@ -228,6 +238,14 @@ const PROVIDER_DEFAULTS: Record<string, {
     auth_prefix: 'Bearer ',
     api_version: '',
     extra_headers: '{}'
+  },
+  openrouter: {
+    api_base_url: 'https://openrouter.ai/api/v1',
+    api_key_secret_name: 'OPENROUTER_API_KEY',
+    auth_header: 'Authorization',
+    auth_prefix: 'Bearer ',
+    api_version: '',
+    extra_headers: '{"HTTP-Referer": "https://radreport.app", "X-Title": "RadReport"}'
   }
 };
 
