@@ -3715,6 +3715,16 @@ export type Database = {
       tecnica_rm_orbitas:
         | {
             Args: {
+              contraste?: boolean
+              difusao?: boolean
+              fat_sat?: boolean
+              planos?: string[]
+              sequencias?: string[]
+            }
+            Returns: string
+          }
+        | {
+            Args: {
               campo_visao?: string
               dose_contraste?: string
               espessura_corte?: number
@@ -3725,16 +3735,6 @@ export type Database = {
               sequencias?: string
               tipo_contraste?: string
               uso_contraste?: boolean
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              contraste?: boolean
-              difusao?: boolean
-              fat_sat?: boolean
-              planos?: string[]
-              sequencias?: string[]
             }
             Returns: string
           }
