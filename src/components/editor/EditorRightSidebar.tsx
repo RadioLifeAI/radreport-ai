@@ -89,6 +89,9 @@ interface EditorRightSidebarProps {
   toggleAICorrector?: () => void
   isMobile?: boolean
   onUpgrade?: () => void
+  onMobileStreamReceived?: (stream: MediaStream) => void
+  onMobileDisconnected?: () => void
+  isMobileConnected?: boolean
 }
 
 export function EditorRightSidebar({
@@ -109,6 +112,9 @@ export function EditorRightSidebar({
   toggleAICorrector,
   isMobile = false,
   onUpgrade,
+  onMobileStreamReceived,
+  onMobileDisconnected,
+  isMobileConnected = false,
 }: EditorRightSidebarProps) {
   const [frasesOpen, setFrasesOpen] = useState(false)
   const { recentFrases, favoriteFrases } = useFrasesModelo()
@@ -382,13 +388,22 @@ export function EditorRightSidebar({
             <div className="flex items-center gap-2">
               <Smartphone size={16} className="text-blue-500" />
               <span className="text-sm font-medium">Microfone Externo</span>
+              {isMobileConnected && (
+                <Badge variant="outline" className="text-[10px] bg-green-500/10 text-green-600 border-green-500/30">
+                  Conectado
+                </Badge>
+              )}
             </div>
             
             <p className="text-[11px] text-muted-foreground leading-relaxed">
               Use seu celular como microfone para melhor captação de áudio
             </p>
             
-            <MobileAudioButton className="w-full" />
+            <MobileAudioButton 
+              className="w-full" 
+              isConnected={isMobileConnected}
+              onStreamReceived={onMobileStreamReceived}
+            />
             
             <div className="text-[10px] text-muted-foreground leading-relaxed space-y-1">
               <p>✓ Conexão via QR Code</p>

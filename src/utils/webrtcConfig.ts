@@ -29,7 +29,10 @@ export type SignalingMessage =
   | { type: 'mode-change'; mode: 'webspeech' | 'whisper' | 'corrector' }
   | { type: 'status'; status: string }
   | { type: 'heartbeat'; timestamp: number }
-  | { type: 'disconnect' };
+  | { type: 'disconnect' }
+  | { type: 'pause' }
+  | { type: 'resume' }
+  | { type: 'renew'; newExpiresAt: string };
 
 export type ConnectionState = 'disconnected' | 'connecting' | 'connected' | 'error';
 
