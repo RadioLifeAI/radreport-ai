@@ -8,6 +8,7 @@ import {
   type MobileSession 
 } from '@/utils/webrtcConfig';
 import { useToast } from '@/hooks/use-toast';
+import { getAppUrl } from '@/utils/appConfig';
 
 interface UseMobileAudioSessionReturn {
   session: MobileSession | null;
@@ -199,10 +200,10 @@ export function useMobileAudioSession(): UseMobileAudioSessionReturn {
     });
   }, [session, cleanup, toast]);
 
-  // Generate connection URL
+  // Generate connection URL - usa URL de produção quando disponível
   const getConnectionUrl = useCallback(() => {
     if (!session) return '';
-    const baseUrl = window.location.origin;
+    const baseUrl = getAppUrl();
     return `${baseUrl}/mobile-mic?session=${session.sessionToken}`;
   }, [session]);
 
