@@ -29,6 +29,10 @@ function containsVoiceCommand(text: string): boolean {
   return AUDIO_MUTE_COMMANDS.some(cmd => lower.includes(cmd))
 }
 
+interface UseDictationOptions {
+  remoteStream?: MediaStream | null;
+}
+
 interface UseDictationReturn {
   isActive: boolean
   status: 'idle' | 'waiting' | 'listening'
@@ -40,13 +44,14 @@ interface UseDictationReturn {
   whisperStats: { total: number; success: number; failed: number }
   isAICorrectorEnabled: boolean
   toggleAICorrector: () => void
+  setRemoteStream: (stream: MediaStream | null) => void
 }
 
 // Constantes para controle de reinício
 const MAX_RESTARTS = 15  // Máximo de reinícios em sequência sem fala
 const MAX_DICTATION_TIME_MS = 5 * 60 * 1000  // 5 minutos
 
-export function useDictation(editor: Editor | null): UseDictationReturn {
+export function useDictation(editor: Editor | null, options?: UseDictationOptions): UseDictationReturn {
   const [isActive, setIsActive] = useState(false)
   const [status, setStatus] = useState<'idle' | 'waiting' | 'listening'>('idle')
   const [isWhisperEnabled, setIsWhisperEnabled] = useState(false)
@@ -56,6 +61,16 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
 
   const { balance, hasEnoughCredits, checkQuota } = useWhisperCredits()
   const { hasEnoughCredits: hasEnoughAICredits, refreshBalance: refreshAIBalance } = useAICredits()
+
+  // Remote stream from mobile mic
+  const [remoteStreamState, setRemoteStreamState] = useState<MediaStream | null>(options?.remoteStream || null)
+  const remoteStreamRef = useRef<MediaStream | null>(options?.remoteStream || null)
+
+  // Sync remote stream ref
+  const setRemoteStream = useCallback((stream: MediaStream | null) => {
+    remoteStreamRef.current = stream
+    setRemoteStreamState(stream)
+  }, [])
 
   // Refs
   const editorRef = useRef<Editor | null>(null)
@@ -287,7 +302,8 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
 
       // Start MediaRecorder para Whisper (SEM timeslice)
       if (isWhisperEnabled) {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+        // Use remote stream from mobile if available, otherwise get local mic
+        const stream = remoteStreamRef.current || await navigator.mediaDevices.getUserMedia({ audio: true })
         streamRef.current = stream
 
         // Salvar audioTrack para controle de silenciamento
@@ -310,6 +326,8 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
         // ondataavailable será configurado em stopDictation
         mediaRecorder.start()  // ← SEM timeslice = blob ÚNICO ao parar
         mediaRecorderRef.current = mediaRecorder
+        
+        console.log('🎙️ MediaRecorder started with', remoteStreamRef.current ? 'REMOTE stream' : 'LOCAL mic')
       }
 
       setIsActive(true)
@@ -537,6 +555,7 @@ export function useDictation(editor: Editor | null): UseDictationReturn {
     whisperStats: stats,
     isAICorrectorEnabled,
     toggleAICorrector,
+    setRemoteStream,
   }
 }
 
