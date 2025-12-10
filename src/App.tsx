@@ -33,6 +33,7 @@ import UsersPage from "./pages/admin/UsersPage";
 import SettingsPage from "./pages/admin/SettingsPage";
 import RADSOptionsPage from "./pages/admin/RADSOptionsPage";
 import Precos from "./pages/Precos";
+import MobileMic from "./pages/MobileMic";
 
 const queryClient = new QueryClient();
 
@@ -66,6 +67,8 @@ const App = () => (
             <Route path="/termos" element={<Termos />} />
             <Route path="/lgpd" element={<LGPD />} />
             <Route path="/cookies" element={<Cookies />} />
+            {/* Mobile Mic Route */}
+            <Route path="/mobile-mic" element={<MobileMic />} />
             {/* Admin Routes */}
             <Route path="/admin" element={<AdminProtectedRoute><AdminDashboard /></AdminProtectedRoute>} />
             <Route path="/admin/ai-config" element={<AdminProtectedRoute><AIConfigPage /></AdminProtectedRoute>} />
