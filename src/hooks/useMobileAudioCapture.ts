@@ -3,20 +3,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { 
   RTC_CONFIG, 
   AUDIO_CONSTRAINTS,
+  HEARTBEAT_INTERVAL,
   type ConnectionState,
-  type SignalingMessage 
+  type SignalingMessage,
+  type SessionValidationResult 
 } from '@/utils/webrtcConfig';
 import { useToast } from '@/hooks/use-toast';
-
-interface SessionInfo {
-  valid: boolean;
-  session_id?: string;
-  user_id?: string;
-  mode?: 'webspeech' | 'whisper' | 'corrector';
-  status?: string;
-  expires_at?: string;
-  reason?: string;
-}
 
 interface UseMobileAudioCaptureReturn {
   connectionState: ConnectionState;
@@ -24,7 +16,10 @@ interface UseMobileAudioCaptureReturn {
   audioLevel: number;
   currentMode: 'webspeech' | 'whisper' | 'corrector';
   sessionValid: boolean;
-  validateSession: (token: string) => Promise<boolean>;
+  userEmail: string | null;
+  sameNetwork: boolean;
+  remainingSeconds: number;
+  validateSession: (token: string, authToken?: string) => Promise<boolean>;
   startCapture: (token: string) => Promise<void>;
   stopCapture: () => void;
   changeMode: (mode: 'webspeech' | 'whisper' | 'corrector') => void;
@@ -37,6 +32,9 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
   const [audioLevel, setAudioLevel] = useState(0);
   const [currentMode, setCurrentMode] = useState<'webspeech' | 'whisper' | 'corrector'>('webspeech');
   const [sessionValid, setSessionValid] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [sameNetwork, setSameNetwork] = useState(false);
+  const [remainingSeconds, setRemainingSeconds] = useState(0);
 
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
@@ -45,9 +43,14 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
   const audioContextRef = useRef<AudioContext | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const sessionTokenRef = useRef<string>('');
+  const heartbeatIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Cleanup function
   const cleanup = useCallback(() => {
+    if (heartbeatIntervalRef.current) {
+      clearInterval(heartbeatIntervalRef.current);
+      heartbeatIntervalRef.current = null;
+    }
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = null;
@@ -74,27 +77,63 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
     setConnectionState('disconnected');
   }, []);
 
-  // Validate session token
-  const validateSession = useCallback(async (token: string): Promise<boolean> => {
+  // Validate session token with secure auth
+  const validateSession = useCallback(async (token: string, authToken?: string): Promise<boolean> => {
     try {
-      const { data, error } = await supabase.rpc('validate_mobile_session', {
+      console.log('[MobileCapture] Validating session with auth:', !!authToken);
+      
+      // Call secure validation RPC
+      const { data, error } = await supabase.rpc('validate_mobile_session_secure', {
         p_session_token: token,
+        p_temp_jwt: authToken || null,
+        p_mobile_ip: null, // IP is captured server-side
       });
 
       if (error) throw error;
 
-      const sessionInfo = data as unknown as SessionInfo;
+      const sessionInfo = data as unknown as SessionValidationResult;
+      
       if (sessionInfo.valid) {
         setSessionValid(true);
         setCurrentMode(sessionInfo.mode || 'webspeech');
+        setUserEmail(sessionInfo.user_email || null);
+        setSameNetwork(sessionInfo.same_network || false);
         sessionTokenRef.current = token;
+        
+        // Calculate remaining time
+        if (sessionInfo.expires_at) {
+          const expiresAt = new Date(sessionInfo.expires_at);
+          const remaining = Math.max(0, Math.floor((expiresAt.getTime() - Date.now()) / 1000));
+          setRemainingSeconds(remaining);
+        }
+        
+        console.log('[MobileCapture] Session validated:', {
+          email: sessionInfo.user_email,
+          sameNetwork: sessionInfo.same_network,
+        });
+        
         return true;
       } else {
-        toast({
-          title: 'Sessão inválida',
-          description: sessionInfo.reason || 'Token de sessão inválido ou expirado.',
-          variant: 'destructive',
-        });
+        // Handle specific error cases
+        if (sessionInfo.reason === 'rate_limited') {
+          toast({
+            title: 'Muitas tentativas',
+            description: sessionInfo.message || 'Aguarde alguns minutos antes de tentar novamente.',
+            variant: 'destructive',
+          });
+        } else if (sessionInfo.reason === 'pairing_expired') {
+          toast({
+            title: 'Tempo expirado',
+            description: 'O QR Code expirou. Gere um novo no desktop.',
+            variant: 'destructive',
+          });
+        } else {
+          toast({
+            title: 'Sessão inválida',
+            description: sessionInfo.message || 'Token de sessão inválido ou expirado.',
+            variant: 'destructive',
+          });
+        }
         return false;
       }
     } catch (error) {
@@ -107,6 +146,27 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
       return false;
     }
   }, [toast]);
+
+  // Send heartbeat
+  const sendHeartbeat = useCallback(() => {
+    if (channelRef.current && sessionTokenRef.current) {
+      channelRef.current.send({
+        type: 'broadcast',
+        event: 'signaling',
+        payload: { type: 'heartbeat', timestamp: Date.now() } as SignalingMessage,
+      });
+      
+      // Also update heartbeat in database
+      supabase.rpc('update_mobile_heartbeat', {
+        p_session_token: sessionTokenRef.current,
+      }).then(({ data }) => {
+        const result = data as { success?: boolean; remaining_seconds?: number } | null;
+        if (result?.remaining_seconds) {
+          setRemainingSeconds(result.remaining_seconds);
+        }
+      });
+    }
+  }, []);
 
   // Analyze audio level
   const analyzeAudio = useCallback(() => {
@@ -166,6 +226,10 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
         if (pc.connectionState === 'connected') {
           setConnectionState('connected');
           setIsCapturing(true);
+          
+          // Start heartbeat
+          heartbeatIntervalRef.current = setInterval(sendHeartbeat, HEARTBEAT_INTERVAL);
+          
           toast({
             title: 'Conectado!',
             description: 'Áudio sendo enviado para o desktop.',
@@ -242,7 +306,7 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
         variant: 'destructive',
       });
     }
-  }, [toast, cleanup, analyzeAudio]);
+  }, [toast, cleanup, analyzeAudio, sendHeartbeat]);
 
   // Stop capture
   const stopCapture = useCallback(() => {
@@ -281,6 +345,9 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
     audioLevel,
     currentMode,
     sessionValid,
+    userEmail,
+    sameNetwork,
+    remainingSeconds,
     validateSession,
     startCapture,
     stopCapture,

@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Smartphone, Copy, Check, X, Wifi, WifiOff, Loader2 } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { Smartphone, Copy, Check, X, Wifi, WifiOff, Loader2, Shield, Clock } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useMobileAudioSession } from '@/hooks/useMobileAudioSession';
-import { formatRemainingTime } from '@/utils/webrtcConfig';
+import { formatRemainingTime, getExpirationProgress, EXPIRATION_WARNING_THRESHOLD, getRemainingTime } from '@/utils/webrtcConfig';
 import { useToast } from '@/hooks/use-toast';
 
 interface MobileConnectionModalProps {
@@ -23,11 +24,14 @@ export function MobileConnectionModal({ open, onOpenChange, onConnected }: Mobil
     currentMode,
     createSession, 
     endSession, 
-    getConnectionUrl 
+    getConnectionUrl,
+    isGeneratingToken,
   } = useMobileAudioSession();
   
   const [copied, setCopied] = useState(false);
   const [remainingTime, setRemainingTime] = useState('60:00');
+  const [progress, setProgress] = useState(100);
+  const [isLowTime, setIsLowTime] = useState(false);
 
   // Create session when modal opens
   useEffect(() => {
@@ -36,16 +40,31 @@ export function MobileConnectionModal({ open, onOpenChange, onConnected }: Mobil
     }
   }, [open, session, createSession]);
 
-  // Update remaining time
+  // Update remaining time and progress
   useEffect(() => {
     if (!session) return;
     
-    const interval = setInterval(() => {
+    const updateTimer = () => {
+      const { totalSeconds } = getRemainingTime(session.expiresAt);
       setRemainingTime(formatRemainingTime(session.expiresAt));
-    }, 1000);
+      setProgress(getExpirationProgress(session.expiresAt));
+      setIsLowTime(totalSeconds < EXPIRATION_WARNING_THRESHOLD);
+      
+      // Show warning toast when time is low
+      if (totalSeconds === EXPIRATION_WARNING_THRESHOLD) {
+        toast({
+          title: 'Sessão expirando',
+          description: 'A sessão expira em 5 minutos.',
+          variant: 'destructive',
+        });
+      }
+    };
+    
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
 
     return () => clearInterval(interval);
-  }, [session]);
+  }, [session, toast]);
 
   // Notify parent when connected
   useEffect(() => {
@@ -72,6 +91,15 @@ export function MobileConnectionModal({ open, onOpenChange, onConnected }: Mobil
   const connectionUrl = getConnectionUrl();
 
   const getStatusBadge = () => {
+    if (isGeneratingToken) {
+      return (
+        <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/30">
+          <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+          Gerando token seguro...
+        </Badge>
+      );
+    }
+    
     switch (connectionState) {
       case 'connecting':
         return (
@@ -140,6 +168,12 @@ export function MobileConnectionModal({ open, onOpenChange, onConnected }: Mobil
               </ol>
             </div>
 
+            {/* Security Badge */}
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-green-500/5 border border-green-500/20">
+              <Shield className="w-4 h-4 text-green-600" />
+              <span className="text-sm text-green-700">Conexão autenticada e segura</span>
+            </div>
+
             <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
               <span className="text-sm text-muted-foreground">Status:</span>
               {getStatusBadge()}
@@ -152,15 +186,27 @@ export function MobileConnectionModal({ open, onOpenChange, onConnected }: Mobil
               </div>
             )}
 
-            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-              <span className="text-sm text-muted-foreground">Expira em:</span>
-              <Badge variant="outline" className="font-mono">{remainingTime}</Badge>
+            {/* Timer with Progress */}
+            <div className="space-y-2 p-3 rounded-lg bg-muted/50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Clock className="w-4 h-4" />
+                  <span>Expira em:</span>
+                </div>
+                <Badge 
+                  variant="outline" 
+                  className={`font-mono ${isLowTime ? 'bg-orange-500/10 text-orange-600 border-orange-500/30' : ''}`}
+                >
+                  {remainingTime}
+                </Badge>
+              </div>
+              <Progress value={progress} className={`h-1.5 ${isLowTime ? '[&>div]:bg-orange-500' : ''}`} />
             </div>
           </div>
 
           {/* Right: QR Code */}
           <div className="flex flex-col items-center justify-center space-y-4">
-            {session ? (
+            {session && !isGeneratingToken ? (
               <>
                 <div className="p-4 bg-white rounded-xl shadow-sm">
                   <QRCodeSVG 
@@ -191,8 +237,11 @@ export function MobileConnectionModal({ open, onOpenChange, onConnected }: Mobil
                 </Button>
               </>
             ) : (
-              <div className="flex items-center justify-center h-[180px]">
+              <div className="flex flex-col items-center justify-center h-[180px] gap-3">
                 <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">
+                  {isGeneratingToken ? 'Gerando token seguro...' : 'Criando sessão...'}
+                </p>
               </div>
             )}
           </div>

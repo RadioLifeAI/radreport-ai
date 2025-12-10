@@ -18,6 +18,7 @@ interface UseMobileAudioSessionReturn {
   createSession: () => Promise<MobileSession | null>;
   endSession: () => Promise<void>;
   getConnectionUrl: () => string;
+  isGeneratingToken: boolean;
 }
 
 export function useMobileAudioSession(): UseMobileAudioSessionReturn {
@@ -26,6 +27,7 @@ export function useMobileAudioSession(): UseMobileAudioSessionReturn {
   const [connectionState, setConnectionState] = useState<ConnectionState>('disconnected');
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   const [currentMode, setCurrentMode] = useState<'webspeech' | 'whisper' | 'corrector'>('webspeech');
+  const [isGeneratingToken, setIsGeneratingToken] = useState(false);
   
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
@@ -44,9 +46,11 @@ export function useMobileAudioSession(): UseMobileAudioSessionReturn {
     setConnectionState('disconnected');
   }, []);
 
-  // Create a new session
+  // Create a new session with secure token
   const createSession = useCallback(async (): Promise<MobileSession | null> => {
     try {
+      setIsGeneratingToken(true);
+      
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast({
@@ -60,6 +64,7 @@ export function useMobileAudioSession(): UseMobileAudioSessionReturn {
       const sessionToken = generateSessionToken();
       const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 60 minutes
 
+      // Create session in database
       const { data, error } = await supabase
         .from('mobile_audio_sessions')
         .insert({
@@ -74,12 +79,33 @@ export function useMobileAudioSession(): UseMobileAudioSessionReturn {
 
       if (error) throw error;
 
+      console.log('[MobileAudio] Session created:', data.id);
+
+      // Generate secure temporary token via Edge Function
+      const { data: tokenData, error: tokenError } = await supabase.functions.invoke('generate-mobile-token', {
+        body: { session_id: data.id },
+      });
+
+      if (tokenError || !tokenData?.temp_jwt) {
+        console.error('[MobileAudio] Failed to generate token:', tokenError);
+        toast({
+          title: 'Erro ao gerar token',
+          description: 'Não foi possível criar a sessão segura.',
+          variant: 'destructive',
+        });
+        return null;
+      }
+
+      console.log('[MobileAudio] Secure token generated');
+
       const newSession: MobileSession = {
         id: data.id,
         sessionToken: data.session_token,
         status: data.status,
         mode: data.mode as 'webspeech' | 'whisper' | 'corrector',
         expiresAt: new Date(data.expires_at),
+        tempJwt: tokenData.temp_jwt,
+        userEmail: tokenData.user_email,
       };
 
       setSession(newSession);
@@ -146,6 +172,8 @@ export function useMobileAudioSession(): UseMobileAudioSessionReturn {
               await pc.addIceCandidate(new RTCIceCandidate(message.candidate));
             } else if (message.type === 'mode-change') {
               setCurrentMode(message.mode);
+            } else if (message.type === 'heartbeat') {
+              console.log('[MobileAudio] Heartbeat received from mobile');
             } else if (message.type === 'disconnect') {
               cleanup();
               setSession(null);
@@ -169,6 +197,8 @@ export function useMobileAudioSession(): UseMobileAudioSessionReturn {
         variant: 'destructive',
       });
       return null;
+    } finally {
+      setIsGeneratingToken(false);
     }
   }, [toast, cleanup]);
 
@@ -200,11 +230,13 @@ export function useMobileAudioSession(): UseMobileAudioSessionReturn {
     });
   }, [session, cleanup, toast]);
 
-  // Generate connection URL - usa URL de produção quando disponível
+  // Generate connection URL with auth token
   const getConnectionUrl = useCallback(() => {
     if (!session) return '';
     const baseUrl = getAppUrl();
-    return `${baseUrl}/mobile-mic?session=${session.sessionToken}`;
+    // Include auth token in URL for secure pairing
+    const authParam = session.tempJwt ? `&auth=${encodeURIComponent(session.tempJwt)}` : '';
+    return `${baseUrl}/mobile-mic?session=${session.sessionToken}${authParam}`;
   }, [session]);
 
   // Cleanup on unmount
@@ -222,5 +254,6 @@ export function useMobileAudioSession(): UseMobileAudioSessionReturn {
     createSession,
     endSession,
     getConnectionUrl,
+    isGeneratingToken,
   };
 }
