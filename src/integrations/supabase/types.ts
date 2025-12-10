@@ -3402,16 +3402,10 @@ export type Database = {
         Args: { p_content: string; p_report_id: string; p_user_id: string }
         Returns: undefined
       }
-      build_ai_request:
-        | { Args: { fn_name: string; user_data: Json }; Returns: Json }
-        | {
-            Args: {
-              p_function_name: string
-              p_user_content: string
-              p_user_id?: string
-            }
-            Returns: Json
-          }
+      build_ai_request: {
+        Args: { fn_name: string; user_data: Json }
+        Returns: Json
+      }
       check_ai_credits: {
         Args: { p_user_id: string }
         Returns: {
