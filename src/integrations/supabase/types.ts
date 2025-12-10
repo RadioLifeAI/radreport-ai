@@ -1588,6 +1588,45 @@ export type Database = {
           },
         ]
       }
+      mobile_audio_sessions: {
+        Row: {
+          connected_at: string | null
+          created_at: string | null
+          device_info: Json | null
+          ended_at: string | null
+          expires_at: string | null
+          id: string
+          mode: string | null
+          session_token: string
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          connected_at?: string | null
+          created_at?: string | null
+          device_info?: Json | null
+          ended_at?: string | null
+          expires_at?: string | null
+          id?: string
+          mode?: string | null
+          session_token: string
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          connected_at?: string | null
+          created_at?: string | null
+          device_info?: Json | null
+          ended_at?: string | null
+          expires_at?: string | null
+          id?: string
+          mode?: string | null
+          session_token?: string
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       modalidades: {
         Row: {
           ativa: boolean | null
@@ -4076,6 +4115,14 @@ export type Database = {
         }
         Returns: string
       }
+      update_mobile_session_status: {
+        Args: {
+          p_device_info?: Json
+          p_session_token: string
+          p_status: string
+        }
+        Returns: Json
+      }
       validar_medida_contra_referencia: {
         Args: {
           p_estrutura: string
@@ -4083,6 +4130,10 @@ export type Database = {
           p_sexo?: string
           p_valor: number
         }
+        Returns: Json
+      }
+      validate_mobile_session: {
+        Args: { p_session_token: string }
         Returns: Json
       }
       verificar_duplicacao_frase: {

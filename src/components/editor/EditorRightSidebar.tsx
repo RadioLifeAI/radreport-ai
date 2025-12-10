@@ -1,10 +1,11 @@
-import { MessageSquare, History, ChevronLeft, Sparkles, TrendingUp, Wand2, HelpCircle } from 'lucide-react'
+import { MessageSquare, History, ChevronLeft, Sparkles, TrendingUp, Wand2, HelpCircle, Smartphone } from 'lucide-react'
 import { Editor } from '@tiptap/react'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import VoiceButton from '@/components/voice/VoiceButton'
 import SpeechStatusPanel from '@/components/voice/SpeechStatusPanel'
 import { VoiceCommandsSheet } from '@/components/voice/VoiceCommandsSheet'
+import { MobileAudioButton } from '@/components/voice/MobileAudioButton'
 import EditorAIButton from '@/components/editor/EditorAIButton'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { useFrasesModelo, FraseModelo } from '@/hooks/useFrasesModelo'
@@ -375,6 +376,26 @@ export function EditorRightSidebar({
             isTranscribing={isTranscribing}
             mediaStream={mediaStream}
           />
+
+          {/* Mobile Microphone Section */}
+          <div className="p-3 bg-gradient-to-br from-blue-500/5 to-cyan-500/5 border border-blue-500/20 rounded-lg space-y-3">
+            <div className="flex items-center gap-2">
+              <Smartphone size={16} className="text-blue-500" />
+              <span className="text-sm font-medium">Microfone Externo</span>
+            </div>
+            
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              Use seu celular como microfone para melhor captação de áudio
+            </p>
+            
+            <MobileAudioButton className="w-full" />
+            
+            <div className="text-[10px] text-muted-foreground leading-relaxed space-y-1">
+              <p>✓ Conexão via QR Code</p>
+              <p>✓ Sem instalação de app</p>
+              <p>✓ Zero custo adicional</p>
+            </div>
+          </div>
 
           {/* AI Assistant Section */}
           <div>

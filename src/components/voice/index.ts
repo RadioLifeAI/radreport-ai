@@ -1,3 +1,5 @@
 export { default as VoiceButton } from './VoiceButton'
 export { default as SpeechStatusPanel } from './SpeechStatusPanel'
 export { VoiceCommandsSheet } from './VoiceCommandsSheet'
+export { MobileConnectionModal } from './MobileConnectionModal'
+export { MobileAudioButton } from './MobileAudioButton'
