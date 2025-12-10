@@ -1590,40 +1590,91 @@ export type Database = {
       }
       mobile_audio_sessions: {
         Row: {
+          bytes_transferred: number | null
           connected_at: string | null
           created_at: string | null
+          desktop_ip: unknown
+          device_fingerprint: string | null
           device_info: Json | null
           ended_at: string | null
+          error_count: number | null
           expires_at: string | null
           id: string
+          last_heartbeat: string | null
+          mobile_ip: unknown
           mode: string | null
+          paired_at: string | null
+          pairing_expires_at: string | null
           session_token: string
           status: string | null
+          temp_jwt: string | null
+          user_email: string | null
           user_id: string
         }
         Insert: {
+          bytes_transferred?: number | null
           connected_at?: string | null
           created_at?: string | null
+          desktop_ip?: unknown
+          device_fingerprint?: string | null
           device_info?: Json | null
           ended_at?: string | null
+          error_count?: number | null
           expires_at?: string | null
           id?: string
+          last_heartbeat?: string | null
+          mobile_ip?: unknown
           mode?: string | null
+          paired_at?: string | null
+          pairing_expires_at?: string | null
           session_token: string
           status?: string | null
+          temp_jwt?: string | null
+          user_email?: string | null
           user_id: string
         }
         Update: {
+          bytes_transferred?: number | null
           connected_at?: string | null
           created_at?: string | null
+          desktop_ip?: unknown
+          device_fingerprint?: string | null
           device_info?: Json | null
           ended_at?: string | null
+          error_count?: number | null
           expires_at?: string | null
           id?: string
+          last_heartbeat?: string | null
+          mobile_ip?: unknown
           mode?: string | null
+          paired_at?: string | null
+          pairing_expires_at?: string | null
           session_token?: string
           status?: string | null
+          temp_jwt?: string | null
+          user_email?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      mobile_session_rate_limit: {
+        Row: {
+          attempts: number | null
+          blocked_until: string | null
+          ip: unknown
+          last_attempt: string | null
+        }
+        Insert: {
+          attempts?: number | null
+          blocked_until?: string | null
+          ip: unknown
+          last_attempt?: string | null
+        }
+        Update: {
+          attempts?: number | null
+          blocked_until?: string | null
+          ip?: unknown
+          last_attempt?: string | null
         }
         Relationships: []
       }
@@ -3453,6 +3504,7 @@ export type Database = {
           plan_type: string
         }[]
       }
+      cleanup_orphan_mobile_sessions: { Args: never; Returns: number }
       conclusao_angio_rm_cervical: {
         Args: {
           achados_adicionais?: string
@@ -3692,6 +3744,15 @@ export type Database = {
       obter_referencias_doppler_carotidas: {
         Args: { idade_paciente?: number; sexo?: string }
         Returns: Json
+      }
+      prepare_mobile_session_auth: {
+        Args: {
+          p_desktop_ip?: unknown
+          p_session_id: string
+          p_temp_jwt: string
+          p_user_email?: string
+        }
+        Returns: boolean
       }
       probabilidade_passagem_calculo: {
         Args: { p_diametro_mm: number; p_localizacao?: string }
@@ -4115,6 +4176,10 @@ export type Database = {
         }
         Returns: string
       }
+      update_mobile_heartbeat: {
+        Args: { p_session_token: string }
+        Returns: Json
+      }
       update_mobile_session_status: {
         Args: {
           p_device_info?: Json
@@ -4134,6 +4199,14 @@ export type Database = {
       }
       validate_mobile_session: {
         Args: { p_session_token: string }
+        Returns: Json
+      }
+      validate_mobile_session_secure: {
+        Args: {
+          p_mobile_ip?: unknown
+          p_session_token: string
+          p_temp_jwt?: string
+        }
         Returns: Json
       }
       verificar_duplicacao_frase: {

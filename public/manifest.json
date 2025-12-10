@@ -1,0 +1,20 @@
+{
+  "name": "RadReport Mobile Mic",
+  "short_name": "RadReport Mic",
+  "description": "Use seu celular como microfone para ditado de laudos radiológicos",
+  "start_url": "/mobile-mic",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#06b6d4",
+  "scope": "/mobile-mic",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    }
+  ],
+  "categories": ["medical", "productivity"],
+  "lang": "pt-BR"
+}
