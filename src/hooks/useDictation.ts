@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Editor } from '@tiptap/react'
-import { processVoiceInput } from '@/services/dictation/voiceCommandProcessor'
+import { processVoiceInputWithEngine } from '@/services/dictation/voiceCommandProcessor'
 import { blobToBase64, convertNewlinesToHTML } from '@/utils/textFormatter'
 import { useWhisperCredits } from './useWhisperCredits'
 import { useAICredits } from './useAICredits'
@@ -211,7 +211,8 @@ export function useDictation(editor: Editor | null, options?: UseDictationOption
           // Acumular RAW transcript para Corretor AI (ANTES de processVoiceInput)
           rawTranscriptRef.current += (rawTranscriptRef.current ? ' ' : '') + transcript
 
-          processVoiceInput(transcript, editorRef.current)
+          // Usar engine de comandos avançados com safety guard
+          processVoiceInputWithEngine(transcript, editorRef.current)
 
           // Reset anchor
           anchorRef.current = null
@@ -617,8 +618,8 @@ export function useDictation(editor: Editor | null, options?: UseDictationOption
       // Acumular RAW transcript para Corretor AI
       rawTranscriptRef.current += (rawTranscriptRef.current ? ' ' : '') + transcript
 
-      // Processar comandos de voz
-      processVoiceInput(transcript, editorRef.current)
+      // Processar comandos de voz com engine avançado
+      processVoiceInputWithEngine(transcript, editorRef.current)
 
       // Reset anchor
       anchorRef.current = null

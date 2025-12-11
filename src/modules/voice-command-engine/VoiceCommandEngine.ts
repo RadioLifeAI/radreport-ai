@@ -246,8 +246,19 @@ export class VoiceCommandEngine implements IVoiceCommandEngine {
     try {
       switch (command.actionType) {
         case 'insert_content':
-          this.insertContent(command.payload as string);
-          result.insertedContent = command.payload as string;
+          // FASE 4: Suporte a payload com conclusão
+          if (typeof command.payload === 'object' && command.payload !== null && 'texto' in command.payload) {
+            const { texto, conclusao } = command.payload as { texto: string; conclusao?: string };
+            this.insertContent(texto);
+            // Se tem conclusão, inserir na seção IMPRESSÃO
+            if (conclusao) {
+              this.insertConclusionToImpressao(conclusao);
+            }
+            result.insertedContent = texto;
+          } else {
+            this.insertContent(command.payload as string);
+            result.insertedContent = command.payload as string;
+          }
           result.success = true;
           break;
 
@@ -533,6 +544,55 @@ export class VoiceCommandEngine implements IVoiceCommandEngine {
       // Posicionar no final da linha do título da seção
       const afterTitle = match.index + match[0].length;
       this.editor.chain().focus().setTextSelection(afterTitle).run();
+    }
+  }
+
+  /**
+   * FASE 4: Inserir conclusão automaticamente na seção IMPRESSÃO
+   */
+  private insertConclusionToImpressao(conclusao: string): void {
+    if (!this.editor) return;
+    
+    const doc = this.editor.state.doc;
+    const text = doc.textContent;
+    
+    // Buscar seção IMPRESSÃO ou CONCLUSÃO
+    const patterns = [
+      /\n\s*(IMPRESSÃO|Impressão)[:\s]*/i,
+      /\n\s*(CONCLUSÃO|Conclusão)[:\s]*/i,
+    ];
+    
+    let insertPos = -1;
+    
+    for (const pattern of patterns) {
+      const match = text.match(pattern);
+      if (match && match.index !== undefined) {
+        // Encontrar fim da seção (próximo título ou fim do documento)
+        const afterTitle = match.index + match[0].length;
+        const restOfDoc = text.slice(afterTitle);
+        const nextSection = restOfDoc.match(/\n\s*[A-Z]{2,}[:\s]/);
+        
+        if (nextSection && nextSection.index !== undefined) {
+          insertPos = afterTitle + nextSection.index;
+        } else {
+          // Inserir no fim do documento
+          insertPos = doc.content.size - 1;
+        }
+        break;
+      }
+    }
+    
+    if (insertPos > 0) {
+      // Inserir conclusão com quebra de linha
+      const formattedConclusion = `\n- ${conclusao}`;
+      this.editor.chain()
+        .focus()
+        .insertContentAt(insertPos, formattedConclusion)
+        .run();
+      
+      this.log(`📝 Conclusão inserida na IMPRESSÃO: "${conclusao.substring(0, 50)}..."`);
+    } else {
+      this.log(`⚠️ Seção IMPRESSÃO não encontrada, conclusão não inserida`);
     }
   }
 
