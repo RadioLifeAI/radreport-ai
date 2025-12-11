@@ -14,7 +14,9 @@ export interface FraseModelo {
   sinônimos: string[]
   ativa: boolean
   modalidade_id?: string
+  modalidade_codigo?: string  // Código normalizado (USG, TC, RM, RX, MG)
   regiao_anatomica_id?: string
+  regiao_codigo?: string      // Código da região (abdome, torax, etc.)
   estrutura_anatomica_id?: string
   tipo_template_id?: string
   variaveis?: FraseVariable[]
@@ -236,6 +238,21 @@ export function useFrasesModelo() {
     try {
       const data = await supabaseService.getFrasesModelo()
       
+      // Normalizar códigos de modalidade
+      const normalizeModalidadeCodigo = (code: string | null | undefined): string => {
+        if (!code) return ''
+        const codeUpper = code.toUpperCase()
+        const modalityMap: Record<string, string> = {
+          'US': 'USG', 'USG': 'USG',
+          'TC': 'TC', 'CT': 'TC',
+          'RM': 'RM', 'MR': 'RM', 'MRI': 'RM',
+          'RX': 'RX', 'CR': 'RX', 'DR': 'RX',
+          'MM': 'MG', 'MG': 'MG',
+          'MN': 'MN', 'NM': 'MN'
+        }
+        return modalityMap[codeUpper] || codeUpper
+      }
+
       // Transform data to match FraseModelo interface
       const transformedFrases: FraseModelo[] = data.map((item: any) => ({
         id: item.id,
@@ -247,8 +264,10 @@ export function useFrasesModelo() {
         tags: item.tags || [],
         sinônimos: item.sinônimos || [],
         ativa: item.ativa !== false,
-        modalidade_id: item.modalidade_codigo || '',
+        modalidade_id: item.modalidade_id || item.modalidade_codigo || '',
+        modalidade_codigo: normalizeModalidadeCodigo(item.modalidade_codigo),
         regiao_anatomica_id: item.regiao_anatomica_id || null,
+        regiao_codigo: item.regiao_codigo || null,
         estrutura_anatomica_id: item.estrutura_anatomica_id || null,
         tipo_template_id: item.tipo_template_id || null,
         variaveis: normalizeVariables(item.variaveis, item.texto, item.conclusao),
@@ -332,6 +351,21 @@ export function useFrasesModelo() {
     const h = setTimeout(async () => {
       try {
         const raw = await supabaseService.searchFrasesModelo(term)
+        // Normalizar códigos de modalidade (mesma lógica do fetchFrases)
+        const normalizeModalidadeCodigo = (code: string | null | undefined): string => {
+          if (!code) return ''
+          const codeUpper = code.toUpperCase()
+          const modalityMap: Record<string, string> = {
+            'US': 'USG', 'USG': 'USG',
+            'TC': 'TC', 'CT': 'TC',
+            'RM': 'RM', 'MR': 'RM', 'MRI': 'RM',
+            'RX': 'RX', 'CR': 'RX', 'DR': 'RX',
+            'MM': 'MG', 'MG': 'MG',
+            'MN': 'MN', 'NM': 'MN'
+          }
+          return modalityMap[codeUpper] || codeUpper
+        }
+
         const mapped: FraseModelo[] = raw.map((item: any) => ({
           id: item.id,
           codigo: item.codigo,
@@ -342,8 +376,10 @@ export function useFrasesModelo() {
           tags: item.tags || [],
           sinônimos: item.sinônimos || [],
           ativa: item.ativa !== false,
-          modalidade_id: item.modalidade_codigo || '',
+          modalidade_id: item.modalidade_id || item.modalidade_codigo || '',
+          modalidade_codigo: normalizeModalidadeCodigo(item.modalidade_codigo),
           regiao_anatomica_id: item.regiao_anatomica_id || null,
+          regiao_codigo: item.regiao_codigo || null,
           estrutura_anatomica_id: item.estrutura_anatomica_id || null,
           tipo_template_id: item.tipo_template_id || null,
           variaveis: normalizeVariables(item.variaveis, item.texto, item.conclusao),

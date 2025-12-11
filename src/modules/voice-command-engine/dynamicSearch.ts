@@ -34,7 +34,8 @@ export interface FraseSearchItem {
   texto?: string;
   frase?: string;
   categoria?: string;
-  modalidade_id?: string;     // Campo real do useFrasesModelo
+  modalidade_id?: string;
+  modalidade_codigo?: string;  // Código normalizado (USG, TC, RM, RX, MG)
   regiao_codigo?: string;
   tags?: string[];
   sinônimos?: string[];
@@ -211,7 +212,7 @@ const FRASE_FUSE_OPTIONS = {
     { name: 'codigo', weight: 0.25 },
     { name: 'categoria', weight: 0.20 },
     { name: 'sinônimos', weight: 0.20 },
-    { name: 'modalidade_id', weight: 0.15 },  // ✅ Campo real
+    { name: 'modalidade_codigo', weight: 0.15 },  // ✅ Código normalizado
     { name: 'tags', weight: 0.10 },
     { name: 'texto', weight: 0.05 },
     { name: 'conclusao', weight: 0.05 },
@@ -231,18 +232,24 @@ const FRASE_FUSE_OPTIONS = {
  * Aplica boost contextual ao score baseado em modalidade/região atuais
  * Menor score = melhor match no Fuse.js
  */
-function applyContextBoost<T extends { modalidade?: string; regiao?: string; modalidade_id?: string; regiao_codigo?: string }>(
+function applyContextBoost<T extends { modalidade?: string; regiao?: string; modalidade_id?: string; modalidade_codigo?: string; regiao_codigo?: string }>(
   item: T,
   baseScore: number,
   context: SearchContext
 ): number {
   let boostedScore = baseScore;
   
-  // Suportar ambos campos (template usa 'modalidade'/'regiao', frase usa 'modalidade_id'/'regiao_codigo')
-  const itemMod = (item.modalidade || item.modalidade_id || '').toUpperCase();
+  // Priorizar modalidade_codigo para frases (já normalizado)
+  // Templates usam 'modalidade', frases usam 'modalidade_codigo'
+  const itemMod = (item.modalidade_codigo || item.modalidade || '').toUpperCase();
   const itemReg = (item.regiao || item.regiao_codigo || '').toLowerCase();
   const contextMod = context.modalidade?.toUpperCase();
   const contextReg = context.regiao?.toLowerCase();
+  
+  // Debug log para verificar matching
+  if (contextMod || contextReg) {
+    console.log(`[ContextBoost] Item mod="${itemMod}", reg="${itemReg}" | Context mod="${contextMod}", reg="${contextReg}"`);
+  }
   
   // Boost combinado (modalidade + região): 60% reduction
   if (contextMod && contextReg && itemMod === contextMod && itemReg === contextReg) {
