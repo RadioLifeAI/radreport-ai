@@ -1,6 +1,11 @@
 /**
  * Voice Command Engine - Main Class
  * Motor principal de comandos de voz para RadReport
+ * 
+ * ARQUITETURA INTENT DETECTION:
+ * - Comandos de SISTEMA (~47) pré-carregados no Fuse.js
+ * - Templates/Frases buscados DINAMICAMENTE via callbacks
+ * - Zero comandos estáticos para templates/frases
  */
 
 import type { Editor } from '@tiptap/react';
@@ -15,7 +20,9 @@ import type {
 } from './types';
 import { DEFAULT_ENGINE_CONFIG } from './types';
 import { FuzzyMatcher } from './fuzzyMatcher';
-import { buildCommandsFromData, getSystemCommands, loadCacheStats, type CommandStats } from './commandLoader';
+import { getSystemCommands, buildStatsFromData, loadCacheStats, type CommandStats } from './commandLoader';
+import { detectIntent, type DetectedIntent } from './intentDetector';
+import { validateSystemCommand } from './safetyGuard';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -29,7 +36,7 @@ export class VoiceCommandEngine implements IVoiceCommandEngine {
   private reloadTimer: ReturnType<typeof setInterval> | null = null;
   private stats: CommandStats = { system: 0, frases: 0, templates: 0, total: 0 };
   
-  // ✨ FASE 5: Contexto atual (modalidade + região do template)
+  // Contexto atual (modalidade + região do template)
   private currentModalidade: string | null = null;
   private currentRegiao: string | null = null;
 
@@ -39,28 +46,28 @@ export class VoiceCommandEngine implements IVoiceCommandEngine {
     this.fuzzyMatcher.setDebug(this.config.debug);
     
     this.state = {
-      isReady: false,
+      isReady: true, // Pronto imediatamente com comandos de sistema
       isActive: false,
       totalCommands: 0,
       lastMatch: null,
       lastExecution: null,
-      loadedAt: null,
+      loadedAt: new Date(),
     };
 
-    // Carregar comandos do sistema imediatamente (sempre disponíveis)
+    // Carregar APENAS comandos do sistema (~47)
     this.commands = getSystemCommands();
     this.fuzzyMatcher.updateCommands(this.commands);
     this.stats.system = this.commands.length;
     this.stats.total = this.commands.length;
     
-    // Tentar carregar stats do cache para exibição rápida
+    // Cache stats
     const cachedStats = loadCacheStats();
     if (cachedStats) {
       this.stats = cachedStats;
-      this.log(`Stats do cache: ${cachedStats.total} comandos (Sistema: ${cachedStats.system}, Frases: ${cachedStats.frases}, Templates: ${cachedStats.templates})`);
     }
 
-    this.log('Engine inicializado');
+    this.state.totalCommands = this.commands.length;
+    this.log(`Engine inicializado com ${this.commands.length} comandos de sistema`);
   }
 
   // ==================== ✨ FASE 5: Contexto ====================
@@ -148,45 +155,40 @@ export class VoiceCommandEngine implements IVoiceCommandEngine {
     }
   }
 
-  // ==================== Comandos ====================
+// ==================== Comandos ====================
 
   /**
-   * Recarregar comandos (deprecado - use buildFromExistingData)
+   * Atualizar contagem de templates/frases para estatísticas
+   * NÃO cria comandos - apenas atualiza stats
+   */
+  updateDataCounts(templatesCount: number, frasesCount: number): void {
+    this.stats = buildStatsFromData(templatesCount, frasesCount);
+    this.log(`Stats atualizados: ${this.stats.system} sistema, ${templatesCount} templates, ${frasesCount} frases (dinâmico)`);
+  }
+
+  /**
+   * @deprecated Use updateDataCounts() - Intent Detection não precisa de comandos estáticos
+   */
+  buildFromExistingData(templates: any[], frases: any[]): void {
+    console.warn('[VoiceEngine] buildFromExistingData() deprecado. Templates/frases são buscados dinamicamente.');
+    this.updateDataCounts(templates.length, frases.length);
+  }
+
+  /**
+   * @deprecated Não mais necessário
    */
   async reloadCommands(): Promise<void> {
-    console.warn('[VoiceEngine] reloadCommands() deprecado. Use buildFromExistingData() com dados dos hooks.');
-    // Mantém apenas comandos do sistema
+    // Apenas comandos de sistema
     this.commands = getSystemCommands();
     this.fuzzyMatcher.updateCommands(this.commands);
     this.state.totalCommands = this.commands.length;
-    this.state.isReady = true;
-    this.state.loadedAt = new Date();
   }
 
   /**
-   * @deprecated Use buildFromExistingData()
+   * @deprecated Não mais usado
    */
   async loadSupabaseCommands(): Promise<void> {
-    console.warn('[VoiceEngine] loadSupabaseCommands() deprecado. Use buildFromExistingData().');
     await this.reloadCommands();
-  }
-
-  /**
-   * Construir comandos a partir de dados já carregados (RECOMENDADO)
-   * Usa dados dos hooks useTemplates/useFrasesModelo - zero queries adicionais
-   */
-  buildFromExistingData(templates: any[], frases: any[]): void {
-    const { commands, stats } = buildCommandsFromData(templates, frases);
-    
-    this.commands = commands;
-    this.stats = stats;
-    this.fuzzyMatcher.updateCommands(commands);
-    
-    this.state.totalCommands = commands.length;
-    this.state.isReady = true;
-    this.state.loadedAt = new Date();
-
-    this.log(`Comandos construídos: ${stats.total} (Sistema: ${stats.system}, Frases: ${stats.frases}, Templates: ${stats.templates})`);
   }
 
   /**
@@ -197,7 +199,6 @@ export class VoiceCommandEngine implements IVoiceCommandEngine {
   }
 
   addCommand(command: VoiceCommand): void {
-    // Verificar se já existe
     const existingIndex = this.commands.findIndex(c => c.id === command.id);
     if (existingIndex >= 0) {
       this.commands[existingIndex] = command;
@@ -205,7 +206,6 @@ export class VoiceCommandEngine implements IVoiceCommandEngine {
       this.commands.push(command);
     }
     
-    // Re-ordenar e atualizar matcher
     this.commands.sort((a, b) => b.priority - a.priority);
     this.fuzzyMatcher.updateCommands(this.commands);
     this.state.totalCommands = this.commands.length;
@@ -221,10 +221,16 @@ export class VoiceCommandEngine implements IVoiceCommandEngine {
     return [...this.commands];
   }
 
-  // ==================== Execução ====================
+// ==================== Execução (Intent Detection) ====================
 
-  // ==================== Execução ====================
-
+  /**
+   * Processa transcript usando Intent Detection
+   * 
+   * Fluxo:
+   * 1. Detectar intent (TEMPLATE, FRASE, SYSTEM, TEXT)
+   * 2. TEMPLATE/FRASE → delegar para callbacks de busca dinâmica
+   * 3. SYSTEM/TEXT → tentar matching de comandos de sistema
+   */
   async processTranscript(transcript: string): Promise<CommandMatchResult | null> {
     if (!transcript.trim()) {
       return null;
@@ -232,24 +238,53 @@ export class VoiceCommandEngine implements IVoiceCommandEngine {
 
     this.log(`🎤 Processando: "${transcript}"`);
 
-    // ✨ FASE 5: Buscar match COM contexto (modalidade + região)
+    // 1. Detectar intenção via prefixos
+    const intent = detectIntent(transcript);
+    this.log(`🎯 Intent: ${intent.type} (confidence: ${intent.confidence.toFixed(2)})`);
+
+    // 2. TEMPLATE intent → busca dinâmica
+    if (intent.type === 'TEMPLATE' && intent.query) {
+      this.log(`📄 Delegando busca de template: "${intent.query}"`);
+      this.callbacks.onSearchTemplate?.(intent.query, {
+        modalidade: this.currentModalidade,
+        regiao: this.currentRegiao,
+      });
+      return null; // Callback cuida da execução
+    }
+
+    // 3. FRASE intent → busca dinâmica
+    if (intent.type === 'FRASE' && intent.query) {
+      this.log(`📝 Delegando busca de frase: "${intent.query}"`);
+      this.callbacks.onSearchFrase?.(intent.query, {
+        modalidade: this.currentModalidade,
+        regiao: this.currentRegiao,
+      });
+      return null; // Callback cuida da execução
+    }
+
+    // 4. SYSTEM ou TEXT → tentar matching de comandos de sistema
     const match = this.fuzzyMatcher.findBestMatch(transcript, {
       modalidade: this.currentModalidade,
       regiao: this.currentRegiao,
-      combinedBoost: 0.6,      // 60% boost quando ambos combinam
-      modalidadeBoost: 0.3,    // 30% boost apenas modalidade
-      regiaoBoost: 0.15,       // 15% boost apenas região
     });
 
     if (!match) {
-      this.log(`❌ Nenhum comando encontrado`);
+      this.log(`❌ Nenhum comando de sistema encontrado`);
       this.callbacks.onCommandReject?.(transcript, null);
       return null;
     }
 
-    // Verificar se score é aceitável
+    // Validar segurança do comando de sistema
+    const safety = validateSystemCommand(match, transcript);
+    if (!safety.safe) {
+      this.log(`⚠️ Comando rejeitado: ${safety.reason}`);
+      this.callbacks.onCommandReject?.(transcript, match);
+      return null;
+    }
+
+    // Verificar score
     if (match.score > this.config.minMatchScore && !match.isExact) {
-      this.log(`❌ Score muito alto: ${match.score.toFixed(3)} > ${this.config.minMatchScore}`);
+      this.log(`❌ Score muito alto: ${match.score.toFixed(3)}`);
       this.callbacks.onCommandReject?.(transcript, match);
       return null;
     }
@@ -257,9 +292,9 @@ export class VoiceCommandEngine implements IVoiceCommandEngine {
     this.state.lastMatch = match;
     this.callbacks.onCommandMatch?.(match);
 
-    this.log(`✅ Match: "${match.command.name}" (score: ${match.score.toFixed(3)}, exact: ${match.isExact})`);
+    this.log(`✅ Comando de sistema: "${match.command.name}" (score: ${match.score.toFixed(3)})`);
 
-    // Executar automaticamente
+    // Executar comando de sistema
     await this.executeCommand(match.command);
 
     return match;
