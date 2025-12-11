@@ -246,23 +246,34 @@ export class VoiceCommandEngine implements IVoiceCommandEngine {
     try {
       switch (command.actionType) {
         case 'insert_content':
-          // FASE 4: Suporte a payload com conclusão
-          if (typeof command.payload === 'object' && command.payload !== null && 'texto' in command.payload) {
-            const { texto, conclusao } = command.payload as { texto: string; conclusao?: string };
-            this.insertContent(texto);
-            // Se tem conclusão, inserir na seção IMPRESSÃO
-            if (conclusao) {
-              this.insertConclusionToImpressao(conclusao);
-            }
-            result.insertedContent = texto;
-          } else {
-            this.insertContent(command.payload as string);
-            result.insertedContent = command.payload as string;
+          // FASE 1: Se é frase, delegar para UI via callback
+          if (command.id.startsWith('frase_') && this.callbacks.onFraseDetected) {
+            const fraseId = command.id.replace('frase_', '');
+            this.callbacks.onFraseDetected(fraseId);
+            result.success = true;
+            result.message = 'Frase detectada, delegando para UI';
+            this.log(`🎯 Delegando frase para UI: ${fraseId}`);
+            break;
+          }
+          // Fallback: inserir diretamente (pontuação, texto simples)
+          if (typeof command.payload === 'string') {
+            this.insertContent(command.payload);
+            result.insertedContent = command.payload;
           }
           result.success = true;
           break;
 
         case 'apply_template':
+          // FASE 1: Delegar para UI via callback (permite processar variáveis)
+          if (this.callbacks.onTemplateDetected) {
+            const templateId = command.id.replace('template_', '');
+            this.callbacks.onTemplateDetected(templateId);
+            result.success = true;
+            result.message = 'Template detectado, delegando para UI';
+            this.log(`🎯 Delegando template para UI: ${templateId}`);
+            break;
+          }
+          // Fallback: aplicar diretamente (sem processamento de variáveis)
           this.applyTemplate(command.payload as string);
           result.insertedContent = '[Template aplicado]';
           result.success = true;

@@ -80,6 +80,9 @@ export interface VoiceEngineCallbacks {
   onCommandExecute?: (result: CommandExecutionResult) => void;
   onCommandReject?: (transcript: string, bestMatch: CommandMatchResult | null) => void;
   onError?: (error: Error) => void;
+  // FASE 1: Callbacks de delegação para UI existente
+  onTemplateDetected?: (templateId: string) => void;
+  onFraseDetected?: (fraseId: string) => void;
 }
 
 // Interface do Engine completo
