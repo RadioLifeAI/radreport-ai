@@ -3745,15 +3745,6 @@ export type Database = {
         Args: { idade_paciente?: number; sexo?: string }
         Returns: Json
       }
-      prepare_mobile_session_auth: {
-        Args: {
-          p_desktop_ip?: unknown
-          p_session_id: string
-          p_temp_jwt: string
-          p_user_email?: string
-        }
-        Returns: boolean
-      }
       probabilidade_passagem_calculo: {
         Args: { p_diametro_mm: number; p_localizacao?: string }
         Returns: number
