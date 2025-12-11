@@ -381,11 +381,14 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
       // Disable tracks initially - dictation will enable them
       stream.getTracks().forEach(track => { track.enabled = false; });
 
-      // Setup audio level analysis
-      audioContextRef.current = new AudioContext();
+      // Setup audio level analysis with optimized settings for mobile
+      audioContextRef.current = new AudioContext({ sampleRate: 48000 });
       const source = audioContextRef.current.createMediaStreamSource(stream);
       analyserRef.current = audioContextRef.current.createAnalyser();
       analyserRef.current.fftSize = 256;
+      analyserRef.current.smoothingTimeConstant = 0.8;
+      analyserRef.current.minDecibels = -90;
+      analyserRef.current.maxDecibels = -10;
       source.connect(analyserRef.current);
 
       // Setup WebRTC peer connection
@@ -499,6 +502,15 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
     streamRef.current.getTracks().forEach(track => {
       track.enabled = true;
     });
+
+    // Resume AudioContext (required on mobile browsers after user interaction)
+    if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
+      audioContextRef.current.resume().then(() => {
+        console.log('[MobileCapture] AudioContext resumed');
+      }).catch(err => {
+        console.warn('[MobileCapture] Failed to resume AudioContext:', err);
+      });
+    }
 
     // Start audio analysis
     analyzeAudio();
