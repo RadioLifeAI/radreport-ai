@@ -55,6 +55,7 @@ interface UseDictationReturn {
   isRemoteDictationActive: boolean
   setRemoteDictationActive: (active: boolean) => void
   handleRemoteStop: () => Promise<void>
+  handleRemoteDisconnect: () => void
 }
 
 // Constantes para controle de reinício
@@ -620,7 +621,7 @@ export function useDictation(editor: Editor | null, options?: UseDictationOption
   }, [isRemoteDictationActive])
 
   /**
-   * Handle remote stop - trigger Corretor AI if enabled
+   * Handle remote stop - trigger Corretor AI if enabled, but KEEP session active
    */
   const handleRemoteStop = useCallback(async (): Promise<void> => {
     console.log('[Dictation] Remote stop received - raw transcript:', rawTranscriptRef.current.substring(0, 100))
@@ -675,14 +676,33 @@ export function useDictation(editor: Editor | null, options?: UseDictationOption
       }
     }
     
-    // Reset states for next dictation
+    // Reset states for next dictation - BUT KEEP SESSION ACTIVE
     anchorRef.current = null
     interimLengthRef.current = 0
     dictationStartRef.current = null
     rawTranscriptRef.current = ''
     
-    console.log('[Dictation] Remote dictation session ended')
+    // ✅ NÃO desconecta isRemoteDictationActive - sessão continua!
+    console.log('[Dictation] Remote dictation stopped - session still active, ready for next line')
   }, [isAICorrectorEnabled, refreshAIBalance])
+
+  /**
+   * Handle remote disconnect - ends the session completely
+   */
+  const handleRemoteDisconnect = useCallback(() => {
+    console.log('[Dictation] Remote disconnect - ending session')
+    
+    // Reset all states
+    anchorRef.current = null
+    interimLengthRef.current = 0
+    dictationStartRef.current = null
+    rawTranscriptRef.current = ''
+    
+    // End the remote session
+    setIsRemoteDictationActive(false)
+    
+    toast.info('Sessão mobile encerrada')
+  }, [])
 
   return {
     isActive,
@@ -700,6 +720,7 @@ export function useDictation(editor: Editor | null, options?: UseDictationOption
     isRemoteDictationActive,
     setRemoteDictationActive: setIsRemoteDictationActive,
     handleRemoteStop,
+    handleRemoteDisconnect,
   }
 }
 

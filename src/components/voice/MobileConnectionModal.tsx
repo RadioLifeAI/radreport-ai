@@ -21,9 +21,10 @@ interface MobileConnectionModalProps {
   onConnected?: (stream: MediaStream) => void;
   onTranscript?: (data: TranscriptData) => void;
   onRemoteStop?: () => void;
+  onRemoteDisconnect?: () => void;
 }
 
-export function MobileConnectionModal({ open, onOpenChange, onConnected, onTranscript, onRemoteStop }: MobileConnectionModalProps) {
+export function MobileConnectionModal({ open, onOpenChange, onConnected, onTranscript, onRemoteStop, onRemoteDisconnect }: MobileConnectionModalProps) {
   const { toast } = useToast();
   const { 
     session, 
@@ -36,6 +37,7 @@ export function MobileConnectionModal({ open, onOpenChange, onConnected, onTrans
     isGeneratingToken,
     onRemoteTranscript,
     onRemoteStop: registerRemoteStop,
+    onRemoteDisconnect: registerRemoteDisconnect,
   } = useMobileAudioSession();
   
   const [copied, setCopied] = useState(false);
@@ -90,12 +92,19 @@ export function MobileConnectionModal({ open, onOpenChange, onConnected, onTrans
     }
   }, [onTranscript, onRemoteTranscript]);
 
-  // Register stop callback (triggers Corretor AI)
+  // Register stop callback (triggers Corretor AI, session continues)
   useEffect(() => {
     if (onRemoteStop) {
       registerRemoteStop(onRemoteStop);
     }
   }, [onRemoteStop, registerRemoteStop]);
+
+  // Register disconnect callback (ends session)
+  useEffect(() => {
+    if (onRemoteDisconnect) {
+      registerRemoteDisconnect(onRemoteDisconnect);
+    }
+  }, [onRemoteDisconnect, registerRemoteDisconnect]);
 
   const handleCopyLink = async () => {
     const url = getConnectionUrl();

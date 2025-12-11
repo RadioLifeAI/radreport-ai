@@ -425,6 +425,7 @@ export function EditorRightSidebar({
               onStreamReceived={onMobileStreamReceived}
               onTranscript={onMobileTranscript}
               onRemoteStop={onMobileStop}
+              onRemoteDisconnect={onMobileDisconnected}
             />
             
             <div className="text-[10px] text-muted-foreground leading-relaxed space-y-1">
