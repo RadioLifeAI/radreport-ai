@@ -4193,19 +4193,10 @@ export type Database = {
         Args: { p_session_token: string }
         Returns: Json
       }
-      validate_mobile_session_secure:
-        | {
-            Args: { p_session_token: string; p_temp_jwt: string }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_mobile_ip?: unknown
-              p_session_token: string
-              p_temp_jwt?: string
-            }
-            Returns: Json
-          }
+      validate_mobile_session_secure: {
+        Args: { p_session_token: string; p_temp_jwt: string }
+        Returns: Json
+      }
       verificar_duplicacao_frase: {
         Args: {
           p_estrutura_anatomica_id: string
