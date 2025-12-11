@@ -334,7 +334,7 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
     }
   }, [toast]);
 
-  // Toggle Corretor AI
+  // Toggle Corretor AI (mutually exclusive with Whisper)
   const toggleCorrector = useCallback(() => {
     const newValue = !isCorrectorEnabled;
     
@@ -347,8 +347,14 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
       return;
     }
     
+    // Mutual exclusivity: disable Whisper when enabling Corrector
+    if (newValue && isWhisperEnabled) {
+      setIsWhisperEnabled(false);
+      console.log('[MobileCapture] Corretor enabled - disabling Whisper (mutual exclusivity)');
+    }
+    
     setIsCorrectorEnabled(newValue);
-    const newMode = isWhisperEnabled ? 'whisper' : (newValue ? 'corrector' : 'webspeech');
+    const newMode = newValue ? 'corrector' : 'webspeech';
     setCurrentMode(newMode);
     
     if (channelRef.current) {
@@ -511,7 +517,7 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
     }
   }, [toast]);
 
-  // Toggle Whisper - will connect WebRTC when enabled (defined after connectWebRTC)
+  // Toggle Whisper - will connect WebRTC when enabled (mutually exclusive with Corrector)
   const toggleWhisper = useCallback(async () => {
     const newValue = !isWhisperEnabled;
     
@@ -524,8 +530,14 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
       return;
     }
     
+    // Mutual exclusivity: disable Corrector when enabling Whisper
+    if (newValue && isCorrectorEnabled) {
+      setIsCorrectorEnabled(false);
+      console.log('[MobileCapture] Whisper enabled - disabling Corretor (mutual exclusivity)');
+    }
+    
     setIsWhisperEnabled(newValue);
-    const newMode = newValue ? 'whisper' : (isCorrectorEnabled ? 'corrector' : 'webspeech');
+    const newMode = newValue ? 'whisper' : 'webspeech';
     setCurrentMode(newMode);
     
     if (channelRef.current) {
