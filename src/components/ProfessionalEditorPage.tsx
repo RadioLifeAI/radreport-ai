@@ -250,6 +250,7 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
     } else {
       // Aplicar diretamente usando hookApplyFrase (sem modal)
       if (editorInstance) {
+        // Campo correto é 'frase' (não 'texto') conforme interface FraseModelo
         const texto = frase.frase || ''
         const conclusao = frase.conclusao
         
@@ -258,15 +259,33 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
         if (texto) {
           editorInstance.commands.insertContent(wrapInParagraph(texto))
         }
+        
+        // FASE 3: Inserção correta de conclusão na seção IMPRESSÃO
         if (conclusao) {
-          // Adicionar conclusão - buscar seção IMPRESSÃO inline
           const html = editorInstance.getHTML()
-          if (html.toLowerCase().includes('impressão') || html.toLowerCase().includes('conclusão')) {
-            // Inserir no final do documento como fallback simples
-            editorInstance.commands.insertContent(`<p>${conclusao}</p>`)
+          
+          // Buscar posição exata da seção IMPRESSÃO
+          const impressaoMatch = html.match(/<h[1-6][^>]*>\s*(IMPRESSÃO|CONCLUSÃO|Impressão|Conclusão)\s*<\/h[1-6]>/i)
+          
+          if (impressaoMatch) {
+            // Encontrar próximo heading ou fim do documento
+            const impressaoIndex = html.indexOf(impressaoMatch[0])
+            const afterImpressao = html.substring(impressaoIndex + impressaoMatch[0].length)
+            const nextHeadingMatch = afterImpressao.match(/<h[1-6][^>]*>/)
+            
+            if (nextHeadingMatch) {
+              // Inserir antes do próximo heading
+              const insertPos = impressaoIndex + impressaoMatch[0].length + afterImpressao.indexOf(nextHeadingMatch[0])
+              const newHtml = html.slice(0, insertPos) + `<p>- ${conclusao}</p>` + html.slice(insertPos)
+              editorInstance.commands.setContent(newHtml)
+            } else {
+              // Sem próximo heading, adicionar ao final da seção
+              editorInstance.commands.insertContent(`<p>- ${conclusao}</p>`)
+            }
           } else {
+            // Criar seção IMPRESSÃO se não existir
             editorInstance.commands.insertContent(`<h3>IMPRESSÃO</h3>`)
-            editorInstance.commands.insertContent(`<p>${conclusao}</p>`)
+            editorInstance.commands.insertContent(`<p>- ${conclusao}</p>`)
           }
         }
         hookApplyFrase(frase) // Registrar uso

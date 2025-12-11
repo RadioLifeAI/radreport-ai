@@ -44,8 +44,8 @@ const PHONETIC_CORRECTIONS: Record<string, string> = {
 // Configuração otimizada do Fuse.js para voz médica em português
 const FUSE_OPTIONS: IFuseOptions<VoiceCommand> = {
   // Threshold: 0 = match exato, 1 = aceita qualquer coisa
-  // Mais estrito para voz médica (reduzir falsos positivos)
-  threshold: 0.25,
+  // FASE 1 FIX: Relaxado de 0.25 → 0.35 para melhor matching de templates/frases
+  threshold: 0.35,
   
   // Distância máxima entre caracteres para considerar match
   distance: 80,
@@ -81,7 +81,7 @@ export class FuzzyMatcher {
   private debug: boolean = false;
   private exactMatchMap: Map<string, VoiceCommand> = new Map();
 
-  constructor(threshold: number = 0.25) {
+  constructor(threshold: number = 0.35) {
     this.threshold = threshold;
   }
 
