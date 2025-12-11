@@ -559,6 +559,9 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
     // Full cleanup
     cleanup();
     
+    // Reset session validity
+    setSessionValid(false);
+    
     toast({ title: 'Desconectado', description: 'Sessão encerrada.' });
     console.log('[MobileCapture] Session disconnected');
   }, [isDictating, stopDictation, cleanup, toast]);
