@@ -1,0 +1,50 @@
+/**
+ * Voice Command Engine - Main Export
+ * Sistema avançado de comandos de voz para RadReport
+ */
+
+// Classe principal
+export { VoiceCommandEngine } from './VoiceCommandEngine';
+
+// Tipos
+export type {
+  VoiceCommand,
+  CommandMatchResult,
+  CommandExecutionResult,
+  VoiceEngineConfig,
+  VoiceEngineState,
+  VoiceEngineCallbacks,
+  IVoiceCommandEngine,
+  CommandActionType,
+  CommandCategory,
+  SupabaseFrase,
+  SupabaseTemplate,
+} from './types';
+
+export { DEFAULT_ENGINE_CONFIG } from './types';
+
+// Fuzzy Matcher
+export { FuzzyMatcher, fuzzyMatcher } from './fuzzyMatcher';
+
+// System Commands
+export {
+  PUNCTUATION_COMMANDS,
+  STRUCTURAL_COMMANDS,
+  EDITING_COMMANDS,
+  FORMATTING_COMMANDS,
+  NAVIGATION_COMMANDS,
+  SYSTEM_ACTION_COMMANDS,
+  MEDICAL_SPECIAL_COMMANDS,
+  ALL_SYSTEM_COMMANDS,
+  SYSTEM_COMMANDS_MAP,
+  getSystemCommandsCount,
+} from './systemCommands';
+
+// Command Loader
+export {
+  loadFrasesFromSupabase,
+  loadTemplatesFromSupabase,
+  loadAllCommands,
+  filterCommandsByCategory,
+  filterCommandsByModalidade,
+} from './commandLoader';
