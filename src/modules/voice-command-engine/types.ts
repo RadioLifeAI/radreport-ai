@@ -74,15 +74,26 @@ export interface VoiceEngineState {
   loadedAt: Date | null;
 }
 
+// Contexto para busca dinâmica
+export interface SearchContext {
+  modalidade?: string | null;
+  regiao?: string | null;
+}
+
 // Callbacks do engine
 export interface VoiceEngineCallbacks {
   onCommandMatch?: (result: CommandMatchResult) => void;
   onCommandExecute?: (result: CommandExecutionResult) => void;
   onCommandReject?: (transcript: string, bestMatch: CommandMatchResult | null) => void;
   onError?: (error: Error) => void;
-  // FASE 1: Callbacks de delegação para UI existente
+  
+  // Callbacks de delegação para UI (legado)
   onTemplateDetected?: (templateId: string) => void;
   onFraseDetected?: (fraseId: string) => void;
+  
+  // Callbacks Intent Detection - busca dinâmica
+  onSearchTemplate?: (query: string, context: SearchContext) => void;
+  onSearchFrase?: (query: string, context: SearchContext) => void;
 }
 
 // Interface do Engine completo

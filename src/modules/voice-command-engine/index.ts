@@ -1,6 +1,6 @@
 /**
  * Voice Command Engine - Main Export
- * Sistema avançado de comandos de voz para RadReport
+ * Sistema de comandos de voz com Intent Detection para RadReport
  */
 
 // Classe principal
@@ -19,12 +19,35 @@ export type {
   CommandCategory,
   SupabaseFrase,
   SupabaseTemplate,
+  SearchContext,
 } from './types';
 
 export { DEFAULT_ENGINE_CONFIG } from './types';
 
 // Fuzzy Matcher
 export { FuzzyMatcher, fuzzyMatcher } from './fuzzyMatcher';
+
+// Intent Detector (nova arquitetura)
+export {
+  detectIntent,
+  hasCommandPrefix,
+  getIntentType,
+  TEMPLATE_PREFIXES,
+  FRASE_PREFIXES,
+  type DetectedIntent,
+  type IntentType,
+} from './intentDetector';
+
+// Dynamic Search (nova arquitetura)
+export {
+  searchTemplates,
+  searchFrases,
+  searchTemplatesMultiple,
+  searchFrasesMultiple,
+  type TemplateSearchItem,
+  type FraseSearchItem,
+  type SearchResult,
+} from './dynamicSearch';
 
 // System Commands
 export {
@@ -40,23 +63,26 @@ export {
   getSystemCommandsCount,
 } from './systemCommands';
 
-// Command Loader (otimizado - sem queries duplicadas)
+// Command Loader (simplificado)
 export {
-  buildCommandsFromData,
-  convertTemplatesToCommands,
-  convertFrasesToCommands,
   getSystemCommands,
+  buildStatsFromData,
   loadCacheStats,
   clearCommandCache,
   filterCommandsByCategory,
-  filterCommandsByModalidade,
-  loadAllCommands, // Legacy - deprecado
   type CommandStats,
+  // Legacy exports (deprecados)
+  buildCommandsFromData,
+  convertTemplatesToCommands,
+  convertFrasesToCommands,
+  loadAllCommands,
+  filterCommandsByModalidade,
 } from './commandLoader';
 
-// Safety Guard (proteção anti-colisão)
+// Safety Guard (simplificado)
 export {
-  validateCommandSafety,
+  validateSystemCommand,
+  validateCommandSafety, // deprecated alias
   getRecommendedAction,
   hasSafeCommandPrefix,
   isProtectedMedicalPhrase,

@@ -1,8 +1,10 @@
 /**
- * useVoiceEngine - React Hook (Optimized)
+ * useVoiceEngine - React Hook (Intent Detection)
  * Hook para integrar o VoiceCommandEngine com componentes React
- * Usa dados dos hooks useTemplates/useFrasesModelo para evitar queries duplicadas
- * ✨ FASE 6: Sincroniza contexto (modalidade + região) via store
+ * 
+ * ARQUITETURA: Intent Detection + Dynamic Search
+ * - Comandos de sistema pré-carregados
+ * - Templates/frases buscados dinamicamente via callbacks
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -15,17 +17,21 @@ import type {
   CommandExecutionResult,
   VoiceCommand,
   CommandStats,
+  SearchContext,
 } from '@/modules/voice-command-engine';
 
 export interface UseVoiceEngineOptions {
-  autoInit?: boolean;        // Inicializar automaticamente
-  debug?: boolean;           // Modo debug
-  editor?: Editor | null;    // Editor TipTap para vincular
-  templates?: any[];         // Templates já carregados (do useTemplates)
-  frases?: any[];            // Frases já carregadas (do useFrasesModelo)
-  // FASE 2: Callbacks de delegação para UI existente
+  autoInit?: boolean;
+  debug?: boolean;
+  editor?: Editor | null;
+  templates?: any[];
+  frases?: any[];
+  // Callbacks legado
   onTemplateDetected?: (templateId: string) => void;
   onFraseDetected?: (fraseId: string) => void;
+  // Callbacks Intent Detection
+  onSearchTemplate?: (query: string, context: SearchContext) => void;
+  onSearchFrase?: (query: string, context: SearchContext) => void;
 }
 
 export interface UseVoiceEngineReturn {
@@ -56,7 +62,7 @@ export interface UseVoiceEngineReturn {
 }
 
 export function useVoiceEngine(options: UseVoiceEngineOptions = {}): UseVoiceEngineReturn {
-  const { autoInit = true, debug = false, editor, templates, frases, onTemplateDetected, onFraseDetected } = options;
+  const { autoInit = true, debug = false, editor, templates, frases, onTemplateDetected, onFraseDetected, onSearchTemplate, onSearchFrase } = options;
   
   // ✨ FASE 6: Obter modalidade e região do store
   const { modalidade, regiao } = useReportStore();
@@ -104,13 +110,15 @@ export function useVoiceEngine(options: UseVoiceEngineOptions = {}): UseVoiceEng
           // Configurar debug
           engine.setDebug(debug);
           
-          // Configurar callbacks para atualizar estado + delegação para UI
+          // Configurar callbacks
           engine.setCallbacks({
             onCommandMatch: () => updateState(),
             onCommandExecute: () => updateState(),
             onCommandReject: () => updateState(),
             onTemplateDetected,
             onFraseDetected,
+            onSearchTemplate,
+            onSearchFrase,
           });
           
           isInitializedRef.current = true;
@@ -124,7 +132,7 @@ export function useVoiceEngine(options: UseVoiceEngineOptions = {}): UseVoiceEng
     };
     
     init();
-  }, [autoInit, debug, updateState, onTemplateDetected, onFraseDetected]);
+  }, [autoInit, debug, updateState, onTemplateDetected, onFraseDetected, onSearchTemplate, onSearchFrase]);
 
   // Atualizar callbacks quando mudam
   useEffect(() => {
@@ -137,20 +145,18 @@ export function useVoiceEngine(options: UseVoiceEngineOptions = {}): UseVoiceEng
       onCommandReject: () => updateState(),
       onTemplateDetected,
       onFraseDetected,
+      onSearchTemplate,
+      onSearchFrase,
     });
-  }, [onTemplateDetected, onFraseDetected, updateState]);
+  }, [onTemplateDetected, onFraseDetected, onSearchTemplate, onSearchFrase, updateState]);
 
-  // FASE 3: Rebuild dinâmico quando templates/frases mudam
+  // Atualizar contagens quando templates/frases mudam
   useEffect(() => {
     if (!isInitializedRef.current) return;
-    if (!templates?.length || !frases?.length) return;
     
     const engine = getVoiceEngine();
-    engine.buildFromExistingData(templates, frases);
-    updateState();
-    
-    console.log('[useVoiceEngine] Comandos reconstruídos:', templates.length, 'templates,', frases.length, 'frases');
-  }, [templates, frases, updateState]);
+    engine.updateDataCounts(templates?.length || 0, frases?.length || 0);
+  }, [templates?.length, frases?.length]);
 
   // ✨ FASE 6: Sincronizar contexto (modalidade + região) quando mudam
   useEffect(() => {
