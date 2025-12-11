@@ -206,16 +206,8 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
     needsFraseVariableInput,
   } = useFrasesModelo()
 
-  // Voice Command Engine - integra com templates e frases para comandos avançados
-  const { isReady: voiceEngineReady, stats: voiceStats } = useVoiceEngine({
-    editor: editorInstance,
-    templates: templates,
-    frases: frases,
-    debug: false,
-  })
-
-  // Convert FraseModelo to Macro
-  const convertFraseToMacro = (frase: any): Macro => ({
+  // Convert FraseModelo to Macro - moved before voice callbacks
+  const convertFraseToMacro = useCallback((frase: any): Macro => ({
     id: frase.id,
     codigo: frase.codigo,
     titulo: frase.titulo || frase.codigo,
@@ -224,6 +216,73 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
     categoria: frase.categoria,
     modalidade_id: frase.modalidade_id,
     ativo: frase.ativa
+  }), [])
+
+  // FASE 2: Callbacks para Voice Command Engine delegar para UI existente
+  const handleVoiceTemplateDetected = useCallback((templateId: string) => {
+    const template = templates.find(t => t.id === templateId)
+    if (!template) {
+      console.warn('[VoiceEngine] Template não encontrado:', templateId)
+      return
+    }
+    
+    // Usar mesma lógica de handleTemplateSelect
+    if (needsVariableInput(template)) {
+      setSelectedTemplateForVariables(template as TemplateWithVariables)
+      setTemplateVariablesModalOpen(true)
+    } else {
+      hookApplyTemplate(template)
+    }
+    toast.success(`Template "${template.titulo}" aplicado por voz`)
+  }, [templates, needsVariableInput, hookApplyTemplate])
+
+  const handleVoiceFraseDetected = useCallback((fraseId: string) => {
+    const frase = frases.find(f => f.id === fraseId)
+    if (!frase) {
+      console.warn('[VoiceEngine] Frase não encontrada:', fraseId)
+      return
+    }
+    
+    // Usar mesma lógica de handleFraseSelect
+    if (needsFraseVariableInput(frase)) {
+      setSelectedFraseForVariables(frase)
+      setVariablesModalOpen(true)
+    } else {
+      // Aplicar diretamente usando hookApplyFrase (sem modal)
+      if (editorInstance) {
+        const texto = frase.frase || ''
+        const conclusao = frase.conclusao
+        
+        const wrapInParagraph = (t: string) => t.startsWith('<p>') || t.startsWith('<h') ? t : `<p>${t}</p>`
+        
+        if (texto) {
+          editorInstance.commands.insertContent(wrapInParagraph(texto))
+        }
+        if (conclusao) {
+          // Adicionar conclusão - buscar seção IMPRESSÃO inline
+          const html = editorInstance.getHTML()
+          if (html.toLowerCase().includes('impressão') || html.toLowerCase().includes('conclusão')) {
+            // Inserir no final do documento como fallback simples
+            editorInstance.commands.insertContent(`<p>${conclusao}</p>`)
+          } else {
+            editorInstance.commands.insertContent(`<h3>IMPRESSÃO</h3>`)
+            editorInstance.commands.insertContent(`<p>${conclusao}</p>`)
+          }
+        }
+        hookApplyFrase(frase) // Registrar uso
+      }
+    }
+    toast.success(`Frase "${frase.codigo}" inserida por voz`)
+  }, [frases, needsFraseVariableInput, editorInstance, hookApplyFrase])
+
+  // Voice Command Engine - integra com templates e frases para comandos avançados
+  const { isReady: voiceEngineReady, stats: voiceStats } = useVoiceEngine({
+    editor: editorInstance,
+    templates: templates,
+    frases: frases,
+    debug: false,
+    onTemplateDetected: handleVoiceTemplateDetected,
+    onFraseDetected: handleVoiceFraseDetected,
   })
 
   const frasesAsMacros = frases.map(convertFraseToMacro)

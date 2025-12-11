@@ -21,6 +21,9 @@ export interface UseVoiceEngineOptions {
   editor?: Editor | null;    // Editor TipTap para vincular
   templates?: any[];         // Templates já carregados (do useTemplates)
   frases?: any[];            // Frases já carregadas (do useFrasesModelo)
+  // FASE 2: Callbacks de delegação para UI existente
+  onTemplateDetected?: (templateId: string) => void;
+  onFraseDetected?: (fraseId: string) => void;
 }
 
 export interface UseVoiceEngineReturn {
@@ -51,7 +54,7 @@ export interface UseVoiceEngineReturn {
 }
 
 export function useVoiceEngine(options: UseVoiceEngineOptions = {}): UseVoiceEngineReturn {
-  const { autoInit = true, debug = false, editor, templates, frases } = options;
+  const { autoInit = true, debug = false, editor, templates, frases, onTemplateDetected, onFraseDetected } = options;
   
   const [state, setState] = useState<VoiceEngineState>({
     isReady: false,
@@ -71,7 +74,6 @@ export function useVoiceEngine(options: UseVoiceEngineOptions = {}): UseVoiceEng
   
   const initPromiseRef = useRef<Promise<void> | null>(null);
   const isInitializedRef = useRef(false);
-  const dataBuiltRef = useRef(false);
 
   // Atualizar estado do engine
   const updateState = useCallback(() => {
@@ -97,11 +99,13 @@ export function useVoiceEngine(options: UseVoiceEngineOptions = {}): UseVoiceEng
           // Configurar debug
           engine.setDebug(debug);
           
-          // Configurar callbacks para atualizar estado
+          // Configurar callbacks para atualizar estado + delegação para UI
           engine.setCallbacks({
             onCommandMatch: () => updateState(),
             onCommandExecute: () => updateState(),
             onCommandReject: () => updateState(),
+            onTemplateDetected,
+            onFraseDetected,
           });
           
           isInitializedRef.current = true;
@@ -115,19 +119,32 @@ export function useVoiceEngine(options: UseVoiceEngineOptions = {}): UseVoiceEng
     };
     
     init();
-  }, [autoInit, debug, updateState]);
+  }, [autoInit, debug, updateState, onTemplateDetected, onFraseDetected]);
 
-  // Construir comandos quando templates/frases estão disponíveis
+  // Atualizar callbacks quando mudam
   useEffect(() => {
-    if (!isInitializedRef.current || dataBuiltRef.current) return;
-    if (!templates || !frases || templates.length === 0) return;
+    if (!isInitializedRef.current) return;
+    
+    const engine = getVoiceEngine();
+    engine.setCallbacks({
+      onCommandMatch: () => updateState(),
+      onCommandExecute: () => updateState(),
+      onCommandReject: () => updateState(),
+      onTemplateDetected,
+      onFraseDetected,
+    });
+  }, [onTemplateDetected, onFraseDetected, updateState]);
+
+  // FASE 3: Rebuild dinâmico quando templates/frases mudam
+  useEffect(() => {
+    if (!isInitializedRef.current) return;
+    if (!templates?.length || !frases?.length) return;
     
     const engine = getVoiceEngine();
     engine.buildFromExistingData(templates, frases);
-    dataBuiltRef.current = true;
     updateState();
     
-    console.log('[useVoiceEngine] Comandos construídos a partir dos dados existentes');
+    console.log('[useVoiceEngine] Comandos reconstruídos:', templates.length, 'templates,', frases.length, 'frases');
   }, [templates, frases, updateState]);
 
   // Vincular editor quando disponível
@@ -159,7 +176,6 @@ export function useVoiceEngine(options: UseVoiceEngineOptions = {}): UseVoiceEng
   const buildFromData = useCallback((templates: any[], frases: any[]) => {
     const engine = getVoiceEngine();
     engine.buildFromExistingData(templates, frases);
-    dataBuiltRef.current = true;
     updateState();
   }, [updateState]);
 
