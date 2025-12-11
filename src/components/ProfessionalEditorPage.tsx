@@ -118,6 +118,12 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
     toast.success('Microfone mobile conectado!')
   }, [setRemoteStream, setRemoteDictationActive])
 
+  // Handle mobile start-dictation (activates isRemoteDictationActive for text modes)
+  const handleMobileStart = useCallback((mode: string) => {
+    console.log('[Editor] Mobile dictation started, mode:', mode)
+    setRemoteDictationActive(true)
+  }, [setRemoteDictationActive])
+
   const handleMobileDisconnected = useCallback(() => {
     setRemoteStream(null)
     setMobileAudioConnected(false)
@@ -910,6 +916,7 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
           onMobileTranscript={processRemoteTranscript}
           onMobileDisconnected={handleMobileDisconnected}
           onMobileStop={handleRemoteStop}
+          onMobileStart={handleMobileStart}
           isMobileConnected={mobileAudioConnected}
           isRemoteDictating={isRemoteDictationActive}
         />

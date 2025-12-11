@@ -22,9 +22,10 @@ interface MobileConnectionModalProps {
   onTranscript?: (data: TranscriptData) => void;
   onRemoteStop?: () => void;
   onRemoteDisconnect?: () => void;
+  onRemoteStart?: (mode: string) => void;
 }
 
-export function MobileConnectionModal({ open, onOpenChange, onConnected, onTranscript, onRemoteStop, onRemoteDisconnect }: MobileConnectionModalProps) {
+export function MobileConnectionModal({ open, onOpenChange, onConnected, onTranscript, onRemoteStop, onRemoteDisconnect, onRemoteStart }: MobileConnectionModalProps) {
   const { toast } = useToast();
   const { 
     session, 
@@ -38,6 +39,7 @@ export function MobileConnectionModal({ open, onOpenChange, onConnected, onTrans
     onRemoteTranscript,
     onRemoteStop: registerRemoteStop,
     onRemoteDisconnect: registerRemoteDisconnect,
+    onRemoteStart: registerRemoteStart,
   } = useMobileAudioSession();
   
   const [copied, setCopied] = useState(false);
@@ -105,6 +107,13 @@ export function MobileConnectionModal({ open, onOpenChange, onConnected, onTrans
       registerRemoteDisconnect(onRemoteDisconnect);
     }
   }, [onRemoteDisconnect, registerRemoteDisconnect]);
+
+  // Register start callback (activates remote dictation)
+  useEffect(() => {
+    if (onRemoteStart) {
+      registerRemoteStart(onRemoteStart);
+    }
+  }, [onRemoteStart, registerRemoteStart]);
 
   const handleCopyLink = async () => {
     const url = getConnectionUrl();

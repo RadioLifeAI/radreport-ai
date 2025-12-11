@@ -16,6 +16,7 @@ interface MobileAudioButtonProps {
   onTranscript?: (data: TranscriptData) => void;
   onRemoteStop?: () => void;
   onRemoteDisconnect?: () => void;
+  onRemoteStart?: (mode: string) => void;
   className?: string;
 }
 
@@ -25,6 +26,7 @@ export function MobileAudioButton({
   onTranscript,
   onRemoteStop,
   onRemoteDisconnect,
+  onRemoteStart,
   className 
 }: MobileAudioButtonProps) {
   const [modalOpen, setModalOpen] = useState(false);
@@ -57,6 +59,7 @@ export function MobileAudioButton({
         onTranscript={onTranscript}
         onRemoteStop={onRemoteStop}
         onRemoteDisconnect={onRemoteDisconnect}
+        onRemoteStart={onRemoteStart}
       />
     </>
   );
