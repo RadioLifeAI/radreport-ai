@@ -34,7 +34,8 @@ export type SignalingMessage =
   | { type: 'resume' }
   | { type: 'renew'; newExpiresAt: string }
   | { type: 'transcript'; text: string; isFinal: boolean; confidence?: number }
-  | { type: 'stop-dictation' };
+  | { type: 'stop-dictation' }
+  | { type: 'start-dictation'; mode: 'webspeech' | 'whisper' | 'corrector' };
 
 export type ConnectionState = 'disconnected' | 'connecting' | 'connected' | 'error';
 

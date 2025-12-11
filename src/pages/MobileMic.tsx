@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { 
   Mic, MicOff, Wifi, WifiOff, Loader2, AlertCircle, Volume2, Clock, 
   User, Shield, Pause, Play, RefreshCw, Sparkles, Wand2, Coins, Unplug
@@ -28,7 +29,8 @@ export default function MobileMic() {
   
   const {
     connectionState,
-    isConnected,
+    isRealtimeConnected,
+    isWebRTCConnected,
     isDictating,
     isPaused,
     audioLevel,
@@ -41,7 +43,7 @@ export default function MobileMic() {
     isCorrectorEnabled,
     currentMode,
     validateSession,
-    connectSession,
+    connectRealtime,
     disconnectSession,
     startDictation,
     stopDictation,
@@ -51,6 +53,7 @@ export default function MobileMic() {
     toggleWhisper,
     toggleCorrector,
     sendTranscript,
+    setSimulatedAudioLevel,
   } = useMobileAudioCapture();
 
   const [validating, setValidating] = useState(true);
@@ -61,23 +64,24 @@ export default function MobileMic() {
   // Web Speech API refs
   const recognitionRef = useRef<any>(null);
   const isActiveRef = useRef(false);
+  const lastTranscriptTimeRef = useRef(0);
 
-  // Validate session on mount and auto-connect
+  // Validate session on mount and auto-connect ONLY Realtime (not WebRTC)
   useEffect(() => {
     const validateAndConnect = async () => {
       if (sessionToken) {
         const valid = await validateSession(sessionToken, authToken || undefined);
         if (valid) {
-          // Auto-connect session after validation
-          await connectSession(sessionToken);
+          // Auto-connect Realtime channel only (for text-based modes)
+          await connectRealtime(sessionToken);
         }
       }
       setValidating(false);
     };
     validateAndConnect();
-  }, [sessionToken, authToken, validateSession, connectSession]);
+  }, [sessionToken, authToken, validateSession, connectRealtime]);
 
-  // Web Speech Recognition for webspeech mode
+  // Web Speech Recognition for webspeech/corrector modes
   const startWebSpeech = useCallback(() => {
     if (currentMode !== 'webspeech' && currentMode !== 'corrector') return;
     
@@ -92,18 +96,42 @@ export default function MobileMic() {
     recognition.interimResults = true;
     recognition.lang = 'pt-BR';
 
-    recognition.onresult = (event) => {
+    recognition.onresult = (event: any) => {
       const result = event.results[event.results.length - 1];
       const transcript = result[0].transcript;
       const confidence = result[0].confidence;
       const isFinal = result.isFinal;
+
+      // Throttle interim transcripts (100ms minimum between sends)
+      const now = Date.now();
+      if (!isFinal && now - lastTranscriptTimeRef.current < 100) {
+        // Update visual audio level even if we skip sending
+        setSimulatedAudioLevel(60 + Math.random() * 30);
+        return;
+      }
+      lastTranscriptTimeRef.current = now;
+
+      // Simulate audio level based on speech activity
+      if (isFinal) {
+        setSimulatedAudioLevel(0);
+      } else {
+        setSimulatedAudioLevel(60 + Math.random() * 30);
+      }
 
       // Send transcript to desktop via Realtime
       sendTranscript(transcript, isFinal, confidence);
       console.log('[MobileMic] Transcript:', isFinal ? 'FINAL' : 'interim', transcript.substring(0, 50));
     };
 
-    recognition.onerror = (event) => {
+    recognition.onspeechstart = () => {
+      setSimulatedAudioLevel(70);
+    };
+
+    recognition.onspeechend = () => {
+      setSimulatedAudioLevel(0);
+    };
+
+    recognition.onerror = (event: any) => {
       console.warn('[MobileMic] Speech error:', event.error);
       if (event.error === 'no-speech' && isActiveRef.current) {
         setTimeout(() => {
@@ -115,6 +143,7 @@ export default function MobileMic() {
     };
 
     recognition.onend = () => {
+      setSimulatedAudioLevel(0);
       if (isActiveRef.current) {
         setTimeout(() => {
           if (isActiveRef.current && recognitionRef.current) {
@@ -129,7 +158,7 @@ export default function MobileMic() {
     isActiveRef.current = true;
     setIsListening(true);
     console.log('[MobileMic] Web Speech started');
-  }, [currentMode, sendTranscript]);
+  }, [currentMode, sendTranscript, setSimulatedAudioLevel]);
 
   const stopWebSpeech = useCallback(() => {
     isActiveRef.current = false;
@@ -138,8 +167,9 @@ export default function MobileMic() {
       recognitionRef.current = null;
     }
     setIsListening(false);
+    setSimulatedAudioLevel(0);
     console.log('[MobileMic] Web Speech stopped');
-  }, []);
+  }, [setSimulatedAudioLevel]);
 
   // Update display time
   useEffect(() => {
@@ -164,15 +194,15 @@ export default function MobileMic() {
     return () => clearInterval(interval);
   }, [remainingSeconds]);
 
-  // Start/stop Web Speech when dictating starts/stops
+  // Start/stop Web Speech when dictating starts/stops (only for text-based modes)
   useEffect(() => {
-    if (isDictating && isConnected && !isPaused && (currentMode === 'webspeech' || currentMode === 'corrector')) {
+    if (isDictating && isRealtimeConnected && !isPaused && (currentMode === 'webspeech' || currentMode === 'corrector')) {
       startWebSpeech();
     } else {
       stopWebSpeech();
     }
     return () => stopWebSpeech();
-  }, [isDictating, isConnected, currentMode, isPaused, startWebSpeech, stopWebSpeech]);
+  }, [isDictating, isRealtimeConnected, currentMode, isPaused, startWebSpeech, stopWebSpeech]);
 
   const handleStartDictation = () => {
     startDictation();
@@ -190,6 +220,11 @@ export default function MobileMic() {
 
   const progressValue = (remainingSeconds / 3600) * 100;
   const isLowTime = remainingSeconds < 300;
+
+  // Can start dictation? For text modes, only need Realtime
+  const canStartDictation = currentMode === 'whisper' 
+    ? isWebRTCConnected 
+    : isRealtimeConnected;
 
   // Loading state
   if (validating) {
@@ -276,14 +311,14 @@ export default function MobileMic() {
               <Badge 
                 variant="outline" 
                 className={
-                  connectionState === 'connected' 
+                  isRealtimeConnected 
                     ? 'bg-green-500/10 text-green-600 border-green-500/30'
                     : connectionState === 'connecting'
                     ? 'bg-yellow-500/10 text-yellow-600 border-yellow-500/30'
                     : 'bg-muted text-muted-foreground'
                 }
               >
-                {connectionState === 'connected' ? (
+                {isRealtimeConnected ? (
                   <><Wifi className="w-3 h-3 mr-1" /> Conectado</>
                 ) : connectionState === 'connecting' ? (
                   <><Loader2 className="w-3 h-3 mr-1 animate-spin" /> Conectando</>
@@ -292,11 +327,11 @@ export default function MobileMic() {
                 )}
               </Badge>
             </div>
-            {/* Feedback visual: conectando WebRTC */}
-            {sessionValid && !isConnected && connectionState === 'connecting' && (
+            {/* Feedback visual: conectando */}
+            {sessionValid && !isRealtimeConnected && connectionState === 'connecting' && (
               <div className="mt-2 text-xs text-muted-foreground flex items-center gap-1">
                 <Loader2 className="w-3 h-3 animate-spin" />
-                Estabelecendo conexão WebRTC...
+                Estabelecendo conexão...
               </div>
             )}
           </CardHeader>
@@ -341,6 +376,7 @@ export default function MobileMic() {
         {/* Mode Toggles */}
         <Card>
           <CardContent className="py-3 px-4 space-y-3">
+            {/* Whisper Toggle - Disabled until WebRTC audio streaming is implemented */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-amber-500" />
@@ -349,14 +385,26 @@ export default function MobileMic() {
                 </Label>
                 <Badge variant="outline" className="text-xs py-0">{whisperCredits} créditos</Badge>
               </div>
-              <Switch 
-                id="whisper-toggle"
-                checked={isWhisperEnabled}
-                onCheckedChange={toggleWhisper}
-                disabled={whisperCredits < 1 || isDictating}
-              />
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div>
+                      <Switch 
+                        id="whisper-toggle"
+                        checked={isWhisperEnabled}
+                        onCheckedChange={toggleWhisper}
+                        disabled={true} // Whisper requires WebRTC audio - not yet implemented on mobile
+                      />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="max-w-[200px]">
+                    <p className="text-xs">Whisper requer transmissão de áudio. Use Web Speech gratuito ou ative Whisper no desktop.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
             
+            {/* Corretor AI Toggle - Works with text-based modes */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Wand2 className="w-4 h-4 text-cyan-500" />
@@ -369,7 +417,7 @@ export default function MobileMic() {
                 id="corrector-toggle"
                 checked={isCorrectorEnabled}
                 onCheckedChange={toggleCorrector}
-                disabled={aiCredits < 1 || isWhisperEnabled || isDictating}
+                disabled={aiCredits < 1 || isDictating}
               />
             </div>
           </CardContent>
@@ -383,7 +431,7 @@ export default function MobileMic() {
               size="lg"
               className="w-full h-14"
               onClick={handleStartDictation}
-              disabled={!isConnected}
+              disabled={!canStartDictation}
             >
               <Mic className="w-5 h-5 mr-2" />
               Iniciar Ditado
@@ -442,7 +490,7 @@ export default function MobileMic() {
               onClick={disconnectSession}
             >
               <Unplug className="w-4 h-4 mr-2" />
-              {isConnected ? 'Desconectar' : 'Cancelar Sessão'}
+              {isRealtimeConnected ? 'Desconectar' : 'Cancelar Sessão'}
             </Button>
           )}
         </div>
