@@ -119,16 +119,38 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
   }, [setRemoteStream, setRemoteDictationActive])
 
   // Handle mobile start-dictation (activates isRemoteDictationActive for text modes)
+  // For Whisper mode, also start the desktop dictation to process audio via existing flow
   const handleMobileStart = useCallback((mode: string) => {
     console.log('[Editor] Mobile dictation started, mode:', mode)
     setRemoteDictationActive(true)
-  }, [setRemoteDictationActive])
+    
+    // For Whisper mode, start desktop dictation to use existing MediaRecorder flow
+    if (mode === 'whisper' && mobileAudioConnected) {
+      console.log('[Editor] Starting desktop dictation for Whisper mode')
+      startDictation()
+    }
+  }, [setRemoteDictationActive, startDictation, mobileAudioConnected])
 
   const handleMobileDisconnected = useCallback(() => {
     setRemoteStream(null)
     setMobileAudioConnected(false)
     handleRemoteDisconnect() // Use the hook's disconnect handler
   }, [setRemoteStream, handleRemoteDisconnect])
+
+  // Handle mobile stop - for Whisper mode, use stopDictation to process audio blob
+  // For text modes (webspeech/corrector), use handleRemoteStop for Corretor AI
+  const handleMobileStopDictation = useCallback(async () => {
+    console.log('[Editor] Mobile stop received, isWhisperEnabled:', isWhisperEnabled)
+    
+    if (isWhisperEnabled) {
+      // Whisper mode: stop desktop dictation to process audio blob
+      console.log('[Editor] Stopping Whisper dictation')
+      await stopDictation()
+    } else {
+      // Text modes: apply Corretor AI
+      handleRemoteStop()
+    }
+  }, [isWhisperEnabled, stopDictation, handleRemoteStop])
 
   // Template hook
   const {
@@ -915,7 +937,7 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
           onMobileStreamReceived={handleMobileStreamReceived}
           onMobileTranscript={processRemoteTranscript}
           onMobileDisconnected={handleMobileDisconnected}
-          onMobileStop={handleRemoteStop}
+          onMobileStop={handleMobileStopDictation}
           onMobileStart={handleMobileStart}
           isMobileConnected={mobileAudioConnected}
           isRemoteDictating={isRemoteDictationActive}
