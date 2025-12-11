@@ -164,7 +164,7 @@ export function convertTemplatesToCommands(templates: TemplateData[]): VoiceComm
 
 /**
  * Converter frases modelo para comandos de voz
- * FASE 3: Prioridade mais baixa para frases (exigir prefixo ou match exato)
+ * FASE 3+4: Prioridade baixa para frases + payload com conclusão
  */
 export function convertFrasesToCommands(frases: FraseData[]): VoiceCommand[] {
   if (!frases || frases.length === 0) return [];
@@ -178,7 +178,7 @@ export function convertFrasesToCommands(frases: FraseData[]): VoiceCommand[] {
       baseName,
       frase.tags || undefined,
       frase.sinônimos || undefined,
-      frase.conclusao || undefined  // ← NOVO: usar conclusão como trigger
+      frase.conclusao || undefined  // ← usar conclusão como trigger
     );
     
     // Adicionar categoria como variação
@@ -186,13 +186,18 @@ export function convertFrasesToCommands(frases: FraseData[]): VoiceCommand[] {
       phrases.push(frase.categoria.toLowerCase());
     }
 
+    // FASE 4: Payload inclui texto E conclusão (para inserção inteligente)
+    const payload = frase.conclusao 
+      ? { texto: frase.texto, conclusao: frase.conclusao }
+      : frase.texto;
+
     return {
       id: `frase_${frase.id}`,
       name: baseName,
       phrases,
       category: 'frase' as const,
       actionType: 'insert_content' as const,
-      payload: frase.texto,
+      payload,
       priority: 40,  // ← BAIXA: exige prefixo ou match muito alto
       modalidade: frase.modalidade_codigo || undefined,
     };

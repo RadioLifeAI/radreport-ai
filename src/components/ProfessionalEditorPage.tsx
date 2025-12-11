@@ -3,6 +3,7 @@ import { useReportStore } from '@/store'
 import { useTemplates } from '@/hooks/useTemplates'
 import { useFrasesModelo, FraseModelo } from '@/hooks/useFrasesModelo'
 import { useDictation } from '@/hooks/useDictation'
+import { useVoiceEngine } from '@/hooks/useVoiceEngine'
 import { useNavigate } from 'react-router-dom'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { SimpleEditor } from '@/components/tiptap-templates/simple/simple-editor'
@@ -204,6 +205,14 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
     modalities: fraseModalities,
     needsFraseVariableInput,
   } = useFrasesModelo()
+
+  // Voice Command Engine - integra com templates e frases para comandos avançados
+  const { isReady: voiceEngineReady, stats: voiceStats } = useVoiceEngine({
+    editor: editorInstance,
+    templates: templates,
+    frases: frases,
+    debug: false,
+  })
 
   // Convert FraseModelo to Macro
   const convertFraseToMacro = (frase: any): Macro => ({
