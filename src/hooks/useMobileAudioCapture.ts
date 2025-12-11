@@ -483,16 +483,30 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
     }
   }, [toast, cleanup, analyzeAudio, sendHeartbeat]);
 
-  // Stop capture
+  // Stop capture - send stop-dictation first, then disconnect
   const stopCapture = useCallback(() => {
     if (channelRef.current) {
+      // Send stop-dictation to trigger Corretor AI on desktop
       channelRef.current.send({
         type: 'broadcast',
         event: 'signaling',
-        payload: { type: 'disconnect' } as SignalingMessage,
+        payload: { type: 'stop-dictation' } as SignalingMessage,
       });
+      
+      // Then send disconnect
+      setTimeout(() => {
+        if (channelRef.current) {
+          channelRef.current.send({
+            type: 'broadcast',
+            event: 'signaling',
+            payload: { type: 'disconnect' } as SignalingMessage,
+          });
+        }
+        cleanup();
+      }, 100);
+    } else {
+      cleanup();
     }
-    cleanup();
   }, [cleanup]);
 
   // Send transcript to desktop via Realtime

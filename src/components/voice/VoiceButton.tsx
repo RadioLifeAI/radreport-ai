@@ -1,4 +1,4 @@
-import { Mic, Square } from 'lucide-react'
+import { Mic, Square, Smartphone } from 'lucide-react'
 
 interface VoiceButtonProps {
   isActive: boolean
@@ -7,6 +7,7 @@ interface VoiceButtonProps {
   onStop: () => void
   disabled?: boolean
   isTranscribing?: boolean
+  isRemoteDictating?: boolean
 }
 
 export default function VoiceButton({ 
@@ -15,9 +16,14 @@ export default function VoiceButton({
   onStart, 
   onStop, 
   disabled = false,
-  isTranscribing = false
+  isTranscribing = false,
+  isRemoteDictating = false
 }: VoiceButtonProps) {
   const toggle = () => {
+    // Block local dictation when mobile is active
+    if (isRemoteDictating) {
+      return
+    }
     if (isActive) {
       onStop()
     } else {
@@ -25,22 +31,37 @@ export default function VoiceButton({
     }
   }
 
+  const isListening = isActive || isRemoteDictating
+
   return (
     <button 
-      className={`voice-button btn-toolbar ${isActive ? 'recording' : ''}`} 
+      className={`voice-button btn-toolbar ${isListening ? 'recording' : ''}`} 
       onClick={toggle} 
-      aria-pressed={isActive} 
+      aria-pressed={isListening} 
       title={
-        isActive 
-          ? (status === 'listening' ? 'Ditando…' : 'Aguardando fala…')
-          : 'Iniciar ditado por voz'
+        isRemoteDictating
+          ? 'Ditando via celular'
+          : isActive 
+            ? (status === 'listening' ? 'Ditando…' : 'Aguardando fala…')
+            : 'Iniciar ditado por voz'
       }
-      disabled={disabled}
+      disabled={disabled || isRemoteDictating}
     >
-      {isActive ? <Square size={16} /> : <Mic size={16} />}
-      {isActive && (
+      {isRemoteDictating ? (
+        <Smartphone size={16} className="text-cyan-500 animate-pulse" />
+      ) : isActive ? (
+        <Square size={16} />
+      ) : (
+        <Mic size={16} />
+      )}
+      {isListening && (
         <span className="voice-status" style={{ marginLeft: 6, fontSize: 12 }}>
-          {isTranscribing ? '🎯 Refinando...' : (status === 'listening' ? 'Ditando…' : 'Aguardando fala…')}
+          {isTranscribing 
+            ? '🎯 Refinando...' 
+            : isRemoteDictating 
+              ? '📱 Mobile' 
+              : (status === 'listening' ? 'Ditando…' : 'Aguardando fala…')
+          }
         </span>
       )}
     </button>

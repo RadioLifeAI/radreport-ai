@@ -14,6 +14,7 @@ interface MobileAudioButtonProps {
   isConnected?: boolean;
   onStreamReceived?: (stream: MediaStream) => void;
   onTranscript?: (data: TranscriptData) => void;
+  onRemoteStop?: () => void;
   className?: string;
 }
 
@@ -21,6 +22,7 @@ export function MobileAudioButton({
   isConnected = false, 
   onStreamReceived,
   onTranscript,
+  onRemoteStop,
   className 
 }: MobileAudioButtonProps) {
   const [modalOpen, setModalOpen] = useState(false);
@@ -51,6 +53,7 @@ export function MobileAudioButton({
         onOpenChange={setModalOpen}
         onConnected={onStreamReceived}
         onTranscript={onTranscript}
+        onRemoteStop={onRemoteStop}
       />
     </>
   );
