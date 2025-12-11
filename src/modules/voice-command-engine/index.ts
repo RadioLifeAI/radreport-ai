@@ -40,11 +40,16 @@ export {
   getSystemCommandsCount,
 } from './systemCommands';
 
-// Command Loader
+// Command Loader (otimizado - sem queries duplicadas)
 export {
-  loadFrasesFromSupabase,
-  loadTemplatesFromSupabase,
-  loadAllCommands,
+  buildCommandsFromData,
+  convertTemplatesToCommands,
+  convertFrasesToCommands,
+  getSystemCommands,
+  loadCacheStats,
+  clearCommandCache,
   filterCommandsByCategory,
   filterCommandsByModalidade,
+  loadAllCommands, // Legacy - deprecado
+  type CommandStats,
 } from './commandLoader';

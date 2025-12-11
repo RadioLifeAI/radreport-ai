@@ -1,22 +1,26 @@
 /**
- * useVoiceEngine - React Hook
+ * useVoiceEngine - React Hook (Optimized)
  * Hook para integrar o VoiceCommandEngine com componentes React
+ * Usa dados dos hooks useTemplates/useFrasesModelo para evitar queries duplicadas
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Editor } from '@tiptap/react';
-import { getVoiceEngine, initVoiceEngine, destroyVoiceEngine } from '@/lib/voiceEngine';
+import { getVoiceEngine, initVoiceEngine } from '@/lib/voiceEngine';
 import type { 
   VoiceEngineState, 
   CommandMatchResult, 
   CommandExecutionResult,
   VoiceCommand,
+  CommandStats,
 } from '@/modules/voice-command-engine';
 
 export interface UseVoiceEngineOptions {
   autoInit?: boolean;        // Inicializar automaticamente
   debug?: boolean;           // Modo debug
   editor?: Editor | null;    // Editor TipTap para vincular
+  templates?: any[];         // Templates já carregados (do useTemplates)
+  frases?: any[];            // Frases já carregadas (do useFrasesModelo)
 }
 
 export interface UseVoiceEngineReturn {
@@ -27,15 +31,15 @@ export interface UseVoiceEngineReturn {
   lastMatch: CommandMatchResult | null;
   lastExecution: CommandExecutionResult | null;
   
-  // Stats
-  stats: { system: number; frases: number; templates: number };
+  // Stats precisas
+  stats: CommandStats;
   
   // Controle
   start: () => void;
   stop: () => void;
   
   // Comandos
-  reloadCommands: () => Promise<void>;
+  buildFromData: (templates: any[], frases: any[]) => void;
   processTranscript: (text: string) => Promise<CommandMatchResult | null>;
   getCommands: () => VoiceCommand[];
   filterByModalidade: (modalidade: string) => VoiceCommand[];
@@ -47,7 +51,7 @@ export interface UseVoiceEngineReturn {
 }
 
 export function useVoiceEngine(options: UseVoiceEngineOptions = {}): UseVoiceEngineReturn {
-  const { autoInit = true, debug = false, editor } = options;
+  const { autoInit = true, debug = false, editor, templates, frases } = options;
   
   const [state, setState] = useState<VoiceEngineState>({
     isReady: false,
@@ -58,13 +62,22 @@ export function useVoiceEngine(options: UseVoiceEngineOptions = {}): UseVoiceEng
     loadedAt: null,
   });
   
+  const [stats, setStats] = useState<CommandStats>({
+    system: 0,
+    frases: 0,
+    templates: 0,
+    total: 0,
+  });
+  
   const initPromiseRef = useRef<Promise<void> | null>(null);
   const isInitializedRef = useRef(false);
+  const dataBuiltRef = useRef(false);
 
   // Atualizar estado do engine
   const updateState = useCallback(() => {
     const engine = getVoiceEngine();
     setState(engine.getState());
+    setStats(engine.getStats());
   }, []);
 
   // Inicialização
@@ -102,11 +115,20 @@ export function useVoiceEngine(options: UseVoiceEngineOptions = {}): UseVoiceEng
     };
     
     init();
-    
-    return () => {
-      // Cleanup apenas se necessário
-    };
   }, [autoInit, debug, updateState]);
+
+  // Construir comandos quando templates/frases estão disponíveis
+  useEffect(() => {
+    if (!isInitializedRef.current || dataBuiltRef.current) return;
+    if (!templates || !frases || templates.length === 0) return;
+    
+    const engine = getVoiceEngine();
+    engine.buildFromExistingData(templates, frases);
+    dataBuiltRef.current = true;
+    updateState();
+    
+    console.log('[useVoiceEngine] Comandos construídos a partir dos dados existentes');
+  }, [templates, frases, updateState]);
 
   // Vincular editor quando disponível
   useEffect(() => {
@@ -133,9 +155,11 @@ export function useVoiceEngine(options: UseVoiceEngineOptions = {}): UseVoiceEng
     updateState();
   }, [updateState]);
 
-  const reloadCommands = useCallback(async () => {
+  // Construir comandos manualmente
+  const buildFromData = useCallback((templates: any[], frases: any[]) => {
     const engine = getVoiceEngine();
-    await engine.reloadCommands();
+    engine.buildFromExistingData(templates, frases);
+    dataBuiltRef.current = true;
     updateState();
   }, [updateState]);
 
@@ -182,19 +206,15 @@ export function useVoiceEngine(options: UseVoiceEngineOptions = {}): UseVoiceEng
     lastMatch: state.lastMatch,
     lastExecution: state.lastExecution,
     
-    // Stats
-    stats: {
-      system: state.totalCommands - (state.lastMatch ? 1 : 0), // Aproximado
-      frases: 0,
-      templates: 0,
-    },
+    // Stats precisas
+    stats,
     
     // Controle
     start,
     stop,
     
     // Comandos
-    reloadCommands,
+    buildFromData,
     processTranscript,
     getCommands,
     filterByModalidade,
@@ -207,4 +227,4 @@ export function useVoiceEngine(options: UseVoiceEngineOptions = {}): UseVoiceEng
 }
 
 // Re-export types
-export type { VoiceCommand, CommandMatchResult, CommandExecutionResult };
+export type { VoiceCommand, CommandMatchResult, CommandExecutionResult, CommandStats };

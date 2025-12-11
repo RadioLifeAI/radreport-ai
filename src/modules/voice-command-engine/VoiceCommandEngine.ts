@@ -15,7 +15,7 @@ import type {
 } from './types';
 import { DEFAULT_ENGINE_CONFIG } from './types';
 import { FuzzyMatcher } from './fuzzyMatcher';
-import { loadAllCommands } from './commandLoader';
+import { buildCommandsFromData, getSystemCommands, loadCacheStats, type CommandStats } from './commandLoader';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -27,6 +27,7 @@ export class VoiceCommandEngine implements IVoiceCommandEngine {
   private callbacks: VoiceEngineCallbacks = {};
   private fuzzyMatcher: FuzzyMatcher;
   private reloadTimer: ReturnType<typeof setInterval> | null = null;
+  private stats: CommandStats = { system: 0, frases: 0, templates: 0, total: 0 };
 
   constructor(config: Partial<VoiceEngineConfig> = {}) {
     this.config = { ...DEFAULT_ENGINE_CONFIG, ...config };
@@ -41,6 +42,19 @@ export class VoiceCommandEngine implements IVoiceCommandEngine {
       lastExecution: null,
       loadedAt: null,
     };
+
+    // Carregar comandos do sistema imediatamente (sempre disponíveis)
+    this.commands = getSystemCommands();
+    this.fuzzyMatcher.updateCommands(this.commands);
+    this.stats.system = this.commands.length;
+    this.stats.total = this.commands.length;
+    
+    // Tentar carregar stats do cache para exibição rápida
+    const cachedStats = loadCacheStats();
+    if (cachedStats) {
+      this.stats = cachedStats;
+      this.log(`Stats do cache: ${cachedStats.total} comandos (Sistema: ${cachedStats.system}, Frases: ${cachedStats.frases}, Templates: ${cachedStats.templates})`);
+    }
 
     this.log('Engine inicializado');
   }
@@ -110,26 +124,50 @@ export class VoiceCommandEngine implements IVoiceCommandEngine {
 
   // ==================== Comandos ====================
 
+  /**
+   * Recarregar comandos (deprecado - use buildFromExistingData)
+   */
   async reloadCommands(): Promise<void> {
-    this.log('Recarregando comandos...');
-    await this.loadSupabaseCommands();
+    console.warn('[VoiceEngine] reloadCommands() deprecado. Use buildFromExistingData() com dados dos hooks.');
+    // Mantém apenas comandos do sistema
+    this.commands = getSystemCommands();
+    this.fuzzyMatcher.updateCommands(this.commands);
+    this.state.totalCommands = this.commands.length;
+    this.state.isReady = true;
+    this.state.loadedAt = new Date();
   }
 
+  /**
+   * @deprecated Use buildFromExistingData()
+   */
   async loadSupabaseCommands(): Promise<void> {
-    try {
-      const commands = await loadAllCommands();
-      this.commands = commands;
-      this.fuzzyMatcher.updateCommands(commands);
-      
-      this.state.totalCommands = commands.length;
-      this.state.isReady = true;
-      this.state.loadedAt = new Date();
+    console.warn('[VoiceEngine] loadSupabaseCommands() deprecado. Use buildFromExistingData().');
+    await this.reloadCommands();
+  }
 
-      this.log(`${commands.length} comandos carregados com sucesso`);
-    } catch (error) {
-      console.error('[VoiceEngine] Erro ao carregar comandos:', error);
-      this.callbacks.onError?.(error as Error);
-    }
+  /**
+   * Construir comandos a partir de dados já carregados (RECOMENDADO)
+   * Usa dados dos hooks useTemplates/useFrasesModelo - zero queries adicionais
+   */
+  buildFromExistingData(templates: any[], frases: any[]): void {
+    const { commands, stats } = buildCommandsFromData(templates, frases);
+    
+    this.commands = commands;
+    this.stats = stats;
+    this.fuzzyMatcher.updateCommands(commands);
+    
+    this.state.totalCommands = commands.length;
+    this.state.isReady = true;
+    this.state.loadedAt = new Date();
+
+    this.log(`Comandos construídos: ${stats.total} (Sistema: ${stats.system}, Frases: ${stats.frases}, Templates: ${stats.templates})`);
+  }
+
+  /**
+   * Obter estatísticas de comandos
+   */
+  getStats(): CommandStats {
+    return { ...this.stats };
   }
 
   addCommand(command: VoiceCommand): void {

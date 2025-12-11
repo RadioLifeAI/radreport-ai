@@ -1,18 +1,54 @@
 /**
- * Voice Command Engine - Fuzzy Matcher
- * Motor de matching com Fuse.js otimizado para reconhecimento de voz
+ * Voice Command Engine - Fuzzy Matcher (Optimized)
+ * Motor de matching com Fuse.js otimizado para reconhecimento de voz médica
  */
 
 import Fuse, { IFuseOptions } from 'fuse.js';
 import type { VoiceCommand, CommandMatchResult } from './types';
 
-// Configuração otimizada do Fuse.js para voz em português
+// Mapa de correções fonéticas comuns em radiologia PT-BR
+const PHONETIC_CORRECTIONS: Record<string, string> = {
+  // Erros comuns de pronúncia/transcrição
+  'estiatose': 'esteatose',
+  'esthetose': 'esteatose',
+  'estiatose hepatica': 'esteatose hepática',
+  'hepatomeglia': 'hepatomegalia',
+  'hepatomegelia': 'hepatomegalia',
+  'esplenomeglia': 'esplenomegalia',
+  'colecistiti': 'colecistite',
+  'colescistite': 'colecistite',
+  'colicistite': 'colecistite',
+  'hipoecogenico': 'hipoecogênico',
+  'hipoecogenica': 'hipoecogênica',
+  'hiperecogenico': 'hiperecogênico',
+  'hiperecogenica': 'hiperecogênica',
+  'birads': 'bi-rads',
+  'bi rads': 'bi-rads',
+  'tirads': 'ti-rads',
+  'ti rads': 'ti-rads',
+  'pirads': 'pi-rads',
+  'pi rads': 'pi-rads',
+  'lirads': 'li-rads',
+  'li rads': 'li-rads',
+  'orads': 'o-rads',
+  'o rads': 'o-rads',
+  'lung rads': 'lung-rads',
+  'lungrads': 'lung-rads',
+  // Comandos estruturais
+  'virgula': 'vírgula',
+  'paragrafo': 'parágrafo',
+  'proxima linha': 'próxima linha',
+  'proximo campo': 'próximo campo',
+};
+
+// Configuração otimizada do Fuse.js para voz médica em português
 const FUSE_OPTIONS: IFuseOptions<VoiceCommand> = {
   // Threshold: 0 = match exato, 1 = aceita qualquer coisa
-  threshold: 0.35,
+  // Mais estrito para voz médica (reduzir falsos positivos)
+  threshold: 0.25,
   
   // Distância máxima entre caracteres para considerar match
-  distance: 100,
+  distance: 80,
   
   // Incluir score para validação posterior
   includeScore: true,
@@ -20,17 +56,20 @@ const FUSE_OPTIONS: IFuseOptions<VoiceCommand> = {
   // Ignorar posição - buscar em qualquer lugar da string
   ignoreLocation: true,
   
-  // Mínimo de caracteres para considerar match
-  minMatchCharLength: 3,
+  // Mínimo de caracteres para considerar match (aceitar "TC", "RM")
+  minMatchCharLength: 2,
   
-  // Usar operador OR estendido para múltiplas palavras
-  useExtendedSearch: false,
+  // Ordenar por score (melhor match primeiro)
+  shouldSort: true,
   
-  // Campos para busca com pesos
+  // Parar no primeiro match bom (performance)
+  findAllMatches: false,
+  
+  // Campos para busca com pesos otimizados
   keys: [
-    { name: 'name', weight: 2.0 },           // Nome principal tem peso maior
-    { name: 'phrases', weight: 1.5 },        // Sinônimos
-    { name: 'modalidade', weight: 0.8 },     // Modalidade
+    { name: 'name', weight: 3.0 },           // Nome principal tem peso muito maior
+    { name: 'phrases', weight: 2.0 },        // Sinônimos
+    { name: 'modalidade', weight: 1.0 },     // Modalidade médica
     { name: 'category', weight: 0.5 },       // Categoria
   ],
 };
@@ -40,8 +79,9 @@ export class FuzzyMatcher {
   private commands: VoiceCommand[] = [];
   private threshold: number;
   private debug: boolean = false;
+  private exactMatchMap: Map<string, VoiceCommand> = new Map();
 
-  constructor(threshold: number = 0.35) {
+  constructor(threshold: number = 0.25) {
     this.threshold = threshold;
   }
 
@@ -55,8 +95,23 @@ export class FuzzyMatcher {
       threshold: this.threshold,
     });
     
+    // Construir mapa de match exato para performance
+    this.exactMatchMap.clear();
+    for (const command of commands) {
+      const normalizedName = this.normalizeText(command.name);
+      this.exactMatchMap.set(normalizedName, command);
+      
+      // Adicionar frases também
+      for (const phrase of command.phrases) {
+        const normalizedPhrase = this.normalizeText(phrase);
+        if (!this.exactMatchMap.has(normalizedPhrase)) {
+          this.exactMatchMap.set(normalizedPhrase, command);
+        }
+      }
+    }
+    
     if (this.debug) {
-      console.log(`[FuzzyMatcher] Índice atualizado com ${commands.length} comandos`);
+      console.log(`[FuzzyMatcher] Índice atualizado: ${commands.length} comandos, ${this.exactMatchMap.size} entradas de match exato`);
     }
   }
 
@@ -68,15 +123,22 @@ export class FuzzyMatcher {
       return null;
     }
 
-    const normalizedTranscript = this.normalizeText(transcript);
+    // Aplicar correção fonética
+    let normalizedTranscript = this.normalizeText(transcript);
+    normalizedTranscript = this.applyPhoneticCorrections(normalizedTranscript);
     
-    // 1. Tentar match exato primeiro
-    const exactMatch = this.findExactMatch(normalizedTranscript);
+    // 1. Tentar match exato primeiro (O(1) via Map)
+    const exactMatch = this.exactMatchMap.get(normalizedTranscript);
     if (exactMatch) {
       if (this.debug) {
-        console.log(`[FuzzyMatcher] ✅ Match exato: "${exactMatch.command.name}"`);
+        console.log(`[FuzzyMatcher] ✅ Match exato (Map): "${exactMatch.name}"`);
       }
-      return exactMatch;
+      return {
+        command: exactMatch,
+        score: 0,
+        matchedPhrase: exactMatch.name,
+        isExact: true,
+      };
     }
 
     // 2. Fuzzy match com Fuse.js
@@ -114,34 +176,18 @@ export class FuzzyMatcher {
   }
 
   /**
-   * Buscar match exato (score = 0)
+   * Aplicar correções fonéticas PT-BR
    */
-  private findExactMatch(normalizedTranscript: string): CommandMatchResult | null {
-    for (const command of this.commands) {
-      // Checar nome
-      if (this.normalizeText(command.name) === normalizedTranscript) {
-        return {
-          command,
-          score: 0,
-          matchedPhrase: command.name,
-          isExact: true,
-        };
-      }
-      
-      // Checar frases/sinônimos
-      for (const phrase of command.phrases) {
-        if (this.normalizeText(phrase) === normalizedTranscript) {
-          return {
-            command,
-            score: 0,
-            matchedPhrase: phrase,
-            isExact: true,
-          };
-        }
-      }
+  private applyPhoneticCorrections(text: string): string {
+    let corrected = text;
+    
+    for (const [wrong, correct] of Object.entries(PHONETIC_CORRECTIONS)) {
+      // Substituir palavras completas
+      const regex = new RegExp(`\\b${wrong}\\b`, 'gi');
+      corrected = corrected.replace(regex, correct);
     }
     
-    return null;
+    return corrected;
   }
 
   /**
@@ -219,10 +265,11 @@ export class FuzzyMatcher {
   /**
    * Obter estatísticas
    */
-  getStats(): { totalCommands: number; threshold: number } {
+  getStats(): { totalCommands: number; threshold: number; exactEntries: number } {
     return {
       totalCommands: this.commands.length,
       threshold: this.threshold,
+      exactEntries: this.exactMatchMap.size,
     };
   }
 }
