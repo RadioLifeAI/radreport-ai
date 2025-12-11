@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,6 +11,15 @@ import {
   User, Shield, Pause, Play, RefreshCw, Sparkles, Wand2, Coins
 } from 'lucide-react';
 import { useMobileAudioCapture } from '@/hooks/useMobileAudioCapture';
+
+// Type for Web Speech API
+interface SpeechRecognitionEvent extends Event {
+  results: SpeechRecognitionResultList;
+}
+
+interface SpeechRecognitionErrorEvent extends Event {
+  error: string;
+}
 
 export default function MobileMic() {
   const [searchParams] = useSearchParams();
@@ -29,6 +38,7 @@ export default function MobileMic() {
     whisperCredits,
     isWhisperEnabled,
     isCorrectorEnabled,
+    currentMode,
     validateSession,
     startCapture,
     stopCapture,
@@ -37,11 +47,17 @@ export default function MobileMic() {
     renewSession,
     toggleWhisper,
     toggleCorrector,
+    sendTranscript,
   } = useMobileAudioCapture();
 
   const [validating, setValidating] = useState(true);
   const [displayTime, setDisplayTime] = useState('');
   const [isRenewing, setIsRenewing] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  
+  // Web Speech API refs
+  const recognitionRef = useRef<any>(null);
+  const isActiveRef = useRef(false);
 
   // Validate session on mount
   useEffect(() => {
@@ -53,6 +69,71 @@ export default function MobileMic() {
     };
     validate();
   }, [sessionToken, authToken, validateSession]);
+
+  // Web Speech Recognition for webspeech mode
+  const startWebSpeech = useCallback(() => {
+    if (currentMode !== 'webspeech') return;
+    
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      console.warn('[MobileMic] Web Speech API not supported');
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'pt-BR';
+
+    recognition.onresult = (event) => {
+      const result = event.results[event.results.length - 1];
+      const transcript = result[0].transcript;
+      const confidence = result[0].confidence;
+      const isFinal = result.isFinal;
+
+      // Send transcript to desktop via Realtime
+      sendTranscript(transcript, isFinal, confidence);
+      console.log('[MobileMic] Transcript:', isFinal ? 'FINAL' : 'interim', transcript.substring(0, 50));
+    };
+
+    recognition.onerror = (event) => {
+      console.warn('[MobileMic] Speech error:', event.error);
+      if (event.error === 'no-speech' && isActiveRef.current) {
+        // Restart on silence
+        setTimeout(() => {
+          if (isActiveRef.current && recognitionRef.current) {
+            try { recognitionRef.current.start(); } catch (e) { /* ignore */ }
+          }
+        }, 150);
+      }
+    };
+
+    recognition.onend = () => {
+      if (isActiveRef.current) {
+        setTimeout(() => {
+          if (isActiveRef.current && recognitionRef.current) {
+            try { recognitionRef.current.start(); } catch (e) { /* ignore */ }
+          }
+        }, 100);
+      }
+    };
+
+    recognition.start();
+    recognitionRef.current = recognition;
+    isActiveRef.current = true;
+    setIsListening(true);
+    console.log('[MobileMic] Web Speech started');
+  }, [currentMode, sendTranscript]);
+
+  const stopWebSpeech = useCallback(() => {
+    isActiveRef.current = false;
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      recognitionRef.current = null;
+    }
+    setIsListening(false);
+    console.log('[MobileMic] Web Speech stopped');
+  }, []);
 
   // Update display time
   useEffect(() => {
@@ -76,6 +157,16 @@ export default function MobileMic() {
 
     return () => clearInterval(interval);
   }, [remainingSeconds]);
+
+  // Start/stop Web Speech when capturing starts/stops (only in webspeech mode)
+  useEffect(() => {
+    if (isCapturing && connectionState === 'connected' && currentMode === 'webspeech' && !isPaused) {
+      startWebSpeech();
+    } else {
+      stopWebSpeech();
+    }
+    return () => stopWebSpeech();
+  }, [isCapturing, connectionState, currentMode, isPaused, startWebSpeech, stopWebSpeech]);
 
   const handleStartCapture = () => startCapture(sessionToken);
   

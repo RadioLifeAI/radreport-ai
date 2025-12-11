@@ -67,6 +67,12 @@ function VoiceControlsSection({
   )
 }
 
+interface TranscriptData {
+  text: string;
+  isFinal: boolean;
+  confidence?: number;
+}
+
 interface EditorRightSidebarProps {
   collapsed: boolean
   onToggleCollapse: () => void
@@ -90,6 +96,7 @@ interface EditorRightSidebarProps {
   isMobile?: boolean
   onUpgrade?: () => void
   onMobileStreamReceived?: (stream: MediaStream) => void
+  onMobileTranscript?: (data: TranscriptData) => void
   onMobileDisconnected?: () => void
   isMobileConnected?: boolean
 }
@@ -113,6 +120,7 @@ export function EditorRightSidebar({
   isMobile = false,
   onUpgrade,
   onMobileStreamReceived,
+  onMobileTranscript,
   onMobileDisconnected,
   isMobileConnected = false,
 }: EditorRightSidebarProps) {
@@ -403,6 +411,7 @@ export function EditorRightSidebar({
               className="w-full" 
               isConnected={isMobileConnected}
               onStreamReceived={onMobileStreamReceived}
+              onTranscript={onMobileTranscript}
             />
             
             <div className="text-[10px] text-muted-foreground leading-relaxed space-y-1">

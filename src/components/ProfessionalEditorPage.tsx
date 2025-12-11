@@ -101,6 +101,8 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
     isAICorrectorEnabled,
     toggleAICorrector,
     setRemoteStream,
+    processRemoteTranscript,
+    setRemoteDictationActive,
   } = useDictation(editorInstance)
 
   // Mobile audio connection state
@@ -109,13 +111,15 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
   const handleMobileStreamReceived = useCallback((stream: MediaStream) => {
     setRemoteStream(stream)
     setMobileAudioConnected(true)
+    setRemoteDictationActive(true)
     toast.success('Microfone mobile conectado!')
-  }, [setRemoteStream])
+  }, [setRemoteStream, setRemoteDictationActive])
 
   const handleMobileDisconnected = useCallback(() => {
     setRemoteStream(null)
     setMobileAudioConnected(false)
-  }, [setRemoteStream])
+    setRemoteDictationActive(false)
+  }, [setRemoteStream, setRemoteDictationActive])
 
   // Template hook
   const {
@@ -900,6 +904,7 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
           isMobile={isMobile}
           onUpgrade={openPlansSheet}
           onMobileStreamReceived={handleMobileStreamReceived}
+          onMobileTranscript={processRemoteTranscript}
           onMobileDisconnected={handleMobileDisconnected}
           isMobileConnected={mobileAudioConnected}
         />

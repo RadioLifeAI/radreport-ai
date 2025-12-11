@@ -32,6 +32,7 @@ interface UseMobileAudioCaptureReturn {
   renewSession: () => Promise<boolean>;
   toggleWhisper: () => void;
   toggleCorrector: () => void;
+  sendTranscript: (text: string, isFinal: boolean, confidence?: number) => void;
 }
 
 export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
@@ -494,6 +495,22 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
     cleanup();
   }, [cleanup]);
 
+  // Send transcript to desktop via Realtime
+  const sendTranscript = useCallback((text: string, isFinal: boolean, confidence?: number) => {
+    if (channelRef.current && text.trim()) {
+      channelRef.current.send({
+        type: 'broadcast',
+        event: 'signaling',
+        payload: { 
+          type: 'transcript', 
+          text, 
+          isFinal, 
+          confidence 
+        } as SignalingMessage,
+      });
+    }
+  }, []);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -523,5 +540,6 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
     renewSession,
     toggleWhisper,
     toggleCorrector,
+    sendTranscript,
   };
 }
