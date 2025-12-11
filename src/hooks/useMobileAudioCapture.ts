@@ -334,35 +334,6 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
     }
   }, [toast]);
 
-  // Toggle Whisper - will connect WebRTC when enabled
-  const toggleWhisper = useCallback(async () => {
-    const newValue = !isWhisperEnabled;
-    
-    if (newValue && whisperCredits < 1) {
-      toast({
-        title: 'Créditos insuficientes',
-        description: 'Você não tem créditos Whisper suficientes.',
-        variant: 'destructive',
-      });
-      return;
-    }
-    
-    setIsWhisperEnabled(newValue);
-    const newMode = newValue ? 'whisper' : (isCorrectorEnabled ? 'corrector' : 'webspeech');
-    setCurrentMode(newMode);
-    
-    if (channelRef.current) {
-      channelRef.current.send({
-        type: 'broadcast',
-        event: 'signaling',
-        payload: { type: 'mode-change', mode: newMode } as SignalingMessage,
-      });
-    }
-    
-    // Note: WebRTC connection for Whisper would be initiated here when implemented
-    // For now, Whisper mode is disabled on mobile
-  }, [isWhisperEnabled, isCorrectorEnabled, whisperCredits, toast]);
-
   // Toggle Corretor AI
   const toggleCorrector = useCallback(() => {
     const newValue = !isCorrectorEnabled;
@@ -539,6 +510,38 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
       });
     }
   }, [toast]);
+
+  // Toggle Whisper - will connect WebRTC when enabled (defined after connectWebRTC)
+  const toggleWhisper = useCallback(async () => {
+    const newValue = !isWhisperEnabled;
+    
+    if (newValue && whisperCredits < 1) {
+      toast({
+        title: 'Créditos insuficientes',
+        description: 'Você não tem créditos Whisper suficientes.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    setIsWhisperEnabled(newValue);
+    const newMode = newValue ? 'whisper' : (isCorrectorEnabled ? 'corrector' : 'webspeech');
+    setCurrentMode(newMode);
+    
+    if (channelRef.current) {
+      channelRef.current.send({
+        type: 'broadcast',
+        event: 'signaling',
+        payload: { type: 'mode-change', mode: newMode } as SignalingMessage,
+      });
+    }
+    
+    // Auto-connect WebRTC when Whisper is enabled
+    if (newValue && !isWebRTCConnected) {
+      console.log('[MobileCapture] Whisper enabled - auto-connecting WebRTC');
+      await connectWebRTC();
+    }
+  }, [isWhisperEnabled, isCorrectorEnabled, whisperCredits, isWebRTCConnected, connectWebRTC, toast]);
 
   // Start dictation - checks Realtime for text modes, WebRTC for Whisper
   const startDictation = useCallback(() => {

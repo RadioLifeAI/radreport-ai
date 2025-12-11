@@ -393,12 +393,16 @@ export default function MobileMic() {
                         id="whisper-toggle"
                         checked={isWhisperEnabled}
                         onCheckedChange={toggleWhisper}
-                        disabled={true} // Whisper requires WebRTC audio - not yet implemented on mobile
+                        disabled={whisperCredits < 1 || isDictating}
                       />
                     </div>
                   </TooltipTrigger>
                   <TooltipContent side="top" className="max-w-[200px]">
-                    <p className="text-xs">Whisper requer transmissão de áudio. Use Web Speech gratuito ou ative Whisper no desktop.</p>
+                    <p className="text-xs">
+                      {whisperCredits < 1 
+                        ? 'Sem créditos Whisper disponíveis.' 
+                        : 'Transcrição premium via IA. Consome 1 crédito/minuto.'}
+                    </p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
