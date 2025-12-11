@@ -93,36 +93,12 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
     setConnectionState('disconnected');
   }, []);
 
-  // Fetch credits after session validation
-  const fetchCredits = useCallback(async () => {
-    try {
-      // Fetch AI credits
-      const { data: aiData } = await supabase.rpc('check_ai_credits', {
-        p_user_id: sessionIdRef.current
-      });
-      if (aiData?.[0]?.balance !== undefined) {
-        setAiCredits(aiData[0].balance);
-      }
-
-      // Fetch Whisper credits
-      const { data: whisperData } = await supabase
-        .from('user_whisper_balance')
-        .select('balance')
-        .single();
-      if (whisperData?.balance !== undefined) {
-        setWhisperCredits(whisperData.balance);
-      }
-    } catch (error) {
-      console.warn('[MobileCapture] Error fetching credits:', error);
-    }
-  }, []);
-
   // Validate session token with secure auth
   const validateSession = useCallback(async (token: string, authToken?: string): Promise<boolean> => {
     try {
       console.log('[MobileCapture] Validating session with auth:', !!authToken);
       
-      // Call secure validation RPC
+      // Call secure validation RPC - returns credits directly
       const { data, error } = await supabase.rpc('validate_mobile_session_secure', {
         p_session_token: token,
         p_temp_jwt: authToken || null,
@@ -141,6 +117,10 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
         sessionTokenRef.current = token;
         sessionIdRef.current = sessionInfo.user_id || '';
         
+        // Use credits from validation response
+        setAiCredits(sessionInfo.ai_credits ?? 0);
+        setWhisperCredits(sessionInfo.whisper_credits ?? 0);
+        
         // Calculate remaining time
         if (sessionInfo.expires_at) {
           const expiresAt = new Date(sessionInfo.expires_at);
@@ -148,12 +128,11 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
           setRemainingSeconds(remaining);
         }
         
-        // Fetch credits after successful validation
-        await fetchCredits();
-        
         console.log('[MobileCapture] Session validated:', {
           email: sessionInfo.user_email,
           sameNetwork: sessionInfo.same_network,
+          aiCredits: sessionInfo.ai_credits,
+          whisperCredits: sessionInfo.whisper_credits,
         });
         
         return true;
@@ -188,9 +167,9 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
       });
       return false;
     }
-  }, [toast, fetchCredits]);
+  }, [toast]);
 
-  // Send heartbeat
+  // Send heartbeat - also updates credits from server
   const sendHeartbeat = useCallback(() => {
     if (channelRef.current && sessionTokenRef.current) {
       channelRef.current.send({
@@ -202,9 +181,22 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
       supabase.rpc('update_mobile_heartbeat', {
         p_session_token: sessionTokenRef.current,
       }).then(({ data }) => {
-        const result = data as { success?: boolean; remaining_seconds?: number } | null;
-        if (result?.remaining_seconds) {
-          setRemainingSeconds(result.remaining_seconds);
+        const result = data as { 
+          success?: boolean; 
+          remaining_seconds?: number;
+          ai_credits?: number;
+          whisper_credits?: number;
+        } | null;
+        if (result?.success) {
+          if (result.remaining_seconds !== undefined) {
+            setRemainingSeconds(result.remaining_seconds);
+          }
+          if (result.ai_credits !== undefined) {
+            setAiCredits(result.ai_credits);
+          }
+          if (result.whisper_credits !== undefined) {
+            setWhisperCredits(result.whisper_credits);
+          }
         }
       });
     }
@@ -265,37 +257,53 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
     }
   }, [toast]);
 
-  // Renew session
+  // Renew session using secure RPC
   const renewSession = useCallback(async (): Promise<boolean> => {
     try {
-      const { data, error } = await supabase
-        .from('mobile_audio_sessions')
-        .update({ 
-          expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString() 
-        })
-        .eq('session_token', sessionTokenRef.current)
-        .select('expires_at')
-        .single();
+      const { data, error } = await supabase.rpc('renew_mobile_session', {
+        p_session_token: sessionTokenRef.current,
+      });
 
       if (error) throw error;
 
-      if (data?.expires_at) {
-        const expiresAt = new Date(data.expires_at);
-        const remaining = Math.max(0, Math.floor((expiresAt.getTime() - Date.now()) / 1000));
-        setRemainingSeconds(remaining);
+      const result = data as { 
+        success: boolean; 
+        expires_at?: string; 
+        remaining_seconds?: number;
+        ai_credits?: number;
+        whisper_credits?: number;
+        message?: string;
+      } | null;
+
+      if (result?.success) {
+        if (result.remaining_seconds !== undefined) {
+          setRemainingSeconds(result.remaining_seconds);
+        }
+        if (result.ai_credits !== undefined) {
+          setAiCredits(result.ai_credits);
+        }
+        if (result.whisper_credits !== undefined) {
+          setWhisperCredits(result.whisper_credits);
+        }
         
-        if (channelRef.current) {
+        if (channelRef.current && result.expires_at) {
           channelRef.current.send({
             type: 'broadcast',
             event: 'signaling',
-            payload: { type: 'renew', newExpiresAt: data.expires_at } as SignalingMessage,
+            payload: { type: 'renew', newExpiresAt: result.expires_at } as SignalingMessage,
           });
         }
         
         toast({ title: 'Sessão renovada', description: '+60 minutos adicionados' });
         return true;
+      } else {
+        toast({
+          title: 'Erro ao renovar',
+          description: result?.message || 'Não foi possível renovar a sessão.',
+          variant: 'destructive',
+        });
+        return false;
       }
-      return false;
     } catch (error) {
       console.error('[MobileCapture] Renew error:', error);
       toast({

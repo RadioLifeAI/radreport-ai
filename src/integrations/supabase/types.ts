@@ -3767,6 +3767,7 @@ export type Database = {
         }
         Returns: Json
       }
+      renew_mobile_session: { Args: { p_session_token: string }; Returns: Json }
       renew_monthly_credits:
         | {
             Args: { p_plan_code: string; p_user_id: string }
