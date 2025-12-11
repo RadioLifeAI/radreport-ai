@@ -101,8 +101,7 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
       // Call secure validation RPC - returns credits directly
       const { data, error } = await supabase.rpc('validate_mobile_session_secure', {
         p_session_token: token,
-        p_temp_jwt: authToken || null,
-        p_mobile_ip: null,
+        p_temp_jwt: authToken || '',
       });
 
       if (error) throw error;
