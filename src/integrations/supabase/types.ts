@@ -1335,6 +1335,7 @@ export type Database = {
           modalidade_id: string | null
           observacao: string | null
           regiao_anatomica_id: string | null
+          regiao_codigo: string | null
           sinônimos: string[] | null
           tags: string[] | null
           tecnica: string | null
@@ -1358,6 +1359,7 @@ export type Database = {
           modalidade_id?: string | null
           observacao?: string | null
           regiao_anatomica_id?: string | null
+          regiao_codigo?: string | null
           sinônimos?: string[] | null
           tags?: string[] | null
           tecnica?: string | null
@@ -1381,6 +1383,7 @@ export type Database = {
           modalidade_id?: string | null
           observacao?: string | null
           regiao_anatomica_id?: string | null
+          regiao_codigo?: string | null
           sinônimos?: string[] | null
           tags?: string[] | null
           tecnica?: string | null

@@ -106,10 +106,36 @@ interface FraseData {
   texto: string;
   categoria?: string;
   modalidade_codigo?: string;
+  regiao_codigo?: string;  // ✅ Campo desnormalizado para matching contextual
+  regiao_anatomica_id?: string;
   tags?: string[];
   sinônimos?: string[];
   conclusao?: string;
 }
+
+/**
+ * Mapa de IDs de região para códigos normalizados
+ * Usado quando regiao_codigo não está disponível
+ */
+const REGIAO_ID_MAP: Record<string, string> = {
+  // Regiões originais
+  '88f1d5c0-825b-4e9c-8660-eed1e542a3b2': 'abdome',
+  '554f0d0b-360d-4513-92a2-e31231091c1c': 'pelve',
+  '5c71a86b-c8a2-4db5-9d7e-bc90e6efc843': 'mama',
+  'd5a6af0a-fb8e-46b5-b350-99906cd49689': 'torax',
+  'c9017f1b-e0cf-4a36-b093-b51a69f849e5': 'coluna',
+  '4c79d8eb-af68-418b-83fc-c3b80cc57ac6': 'cranio',
+  '6b01a549-7805-4fed-9421-860186953c9a': 'ext_superior',
+  '5ddca035-4b4f-44d2-921a-f8e1b67ad234': 'ext_inferior',
+  '16e96d2c-6165-4da6-a517-f8e4ebefcdca': 'articulacoes',
+  // Novas regiões adicionadas
+  'a1b2c3d4-1111-4444-8888-111111111111': 'cervical',
+  'a1b2c3d4-2222-4444-8888-222222222222': 'vascular',
+  'a1b2c3d4-3333-4444-8888-333333333333': 'obstetrico',
+  'a1b2c3d4-4444-4444-8888-444444444444': 'partes_moles',
+  'a1b2c3d4-5555-4444-8888-555555555555': 'escroto',
+  'a1b2c3d4-6666-4444-8888-666666666666': 'gastrointestinal',
+};
 
 /**
  * Converter templates para comandos de voz
@@ -234,6 +260,10 @@ export function convertFrasesToCommands(frases: FraseData[]): VoiceCommand[] {
       ? { texto: frase.texto, conclusao: frase.conclusao }
       : frase.texto;
 
+    // Resolver região: preferir regiao_codigo desnormalizado, senão usar mapa
+    const regiaoAnatomica = frase.regiao_codigo?.toLowerCase() 
+      || (frase.regiao_anatomica_id ? REGIAO_ID_MAP[frase.regiao_anatomica_id] : undefined);
+
     return {
       id: `frase_${frase.id}`,
       name: baseName,
@@ -243,6 +273,7 @@ export function convertFrasesToCommands(frases: FraseData[]): VoiceCommand[] {
       payload,
       priority: 40,
       modalidade: frase.modalidade_codigo || undefined,
+      regiaoAnatomica,  // ✅ Agora incluindo região para matching contextual
     };
   });
 }
