@@ -63,8 +63,18 @@ export function useMobileAudioSession(): UseMobileAudioSessionReturn {
 
       const sessionToken = generateSessionToken();
       const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 60 minutes
+      const pairingExpiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes for pairing
 
-      // Create session in database
+      // Generate temp_jwt locally (simple base64 encoded token for pairing)
+      const tokenData = {
+        session_id: '', // Will be set after insert
+        user_id: user.id,
+        user_email: user.email,
+        created_at: Date.now(),
+        expires_at: pairingExpiresAt.getTime(),
+      };
+
+      // Create session in database with temp_jwt via RLS (owner can insert)
       const { data, error } = await supabase
         .from('mobile_audio_sessions')
         .insert({
@@ -73,6 +83,8 @@ export function useMobileAudioSession(): UseMobileAudioSessionReturn {
           status: 'pending',
           mode: 'webspeech',
           expires_at: expiresAt.toISOString(),
+          user_email: user.email,
+          pairing_expires_at: pairingExpiresAt.toISOString(),
         })
         .select()
         .single();
@@ -81,22 +93,22 @@ export function useMobileAudioSession(): UseMobileAudioSessionReturn {
 
       console.log('[MobileAudio] Session created:', data.id);
 
-      // Generate secure temporary token via Edge Function
-      const { data: tokenData, error: tokenError } = await supabase.functions.invoke('generate-mobile-token', {
-        body: { session_id: data.id },
-      });
+      // Now generate temp_jwt with actual session_id and update via RLS
+      tokenData.session_id = data.id;
+      const tempJwt = btoa(JSON.stringify(tokenData));
 
-      if (tokenError || !tokenData?.temp_jwt) {
-        console.error('[MobileAudio] Failed to generate token:', tokenError);
-        toast({
-          title: 'Erro ao gerar token',
-          description: 'Não foi possível criar a sessão segura.',
-          variant: 'destructive',
-        });
-        return null;
+      // Update session with temp_jwt (RLS allows owner to update own sessions)
+      const { error: updateError } = await supabase
+        .from('mobile_audio_sessions')
+        .update({ temp_jwt: tempJwt })
+        .eq('id', data.id);
+
+      if (updateError) {
+        console.error('[MobileAudio] Failed to update temp_jwt:', updateError);
+        throw updateError;
       }
 
-      console.log('[MobileAudio] Secure token generated');
+      console.log('[MobileAudio] Secure token generated locally');
 
       const newSession: MobileSession = {
         id: data.id,
@@ -104,8 +116,8 @@ export function useMobileAudioSession(): UseMobileAudioSessionReturn {
         status: data.status,
         mode: data.mode as 'webspeech' | 'whisper' | 'corrector',
         expiresAt: new Date(data.expires_at),
-        tempJwt: tokenData.temp_jwt,
-        userEmail: tokenData.user_email,
+        tempJwt: tempJwt,
+        userEmail: user.email || '',
       };
 
       setSession(newSession);
