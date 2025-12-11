@@ -1,5 +1,5 @@
 /**
- * Voice Engine - Singleton Instance
+ * Voice Engine - Singleton Instance (Optimized)
  * Instância global do VoiceCommandEngine para uso em todo o app
  */
 
@@ -15,8 +15,8 @@ export function getVoiceEngine(): VoiceCommandEngine {
   if (!engineInstance) {
     engineInstance = new VoiceCommandEngine({
       debug: import.meta.env.DEV, // Debug ativo em desenvolvimento
-      fuzzyThreshold: 0.35,
-      minMatchScore: 0.5,
+      fuzzyThreshold: 0.25,       // Otimizado: mais estrito
+      minMatchScore: 0.4,         // Otimizado: mais estrito
       autoReload: false,
     });
   }
@@ -24,11 +24,11 @@ export function getVoiceEngine(): VoiceCommandEngine {
 }
 
 /**
- * Inicializar o engine (carregar comandos do Supabase)
+ * Inicializar o engine (comandos do sistema apenas - frases/templates vêm dos hooks)
  */
 export async function initVoiceEngine(): Promise<VoiceCommandEngine> {
   const engine = getVoiceEngine();
-  await engine.loadSupabaseCommands();
+  // Não carrega do Supabase - usa dados dos hooks
   engine.start();
   return engine;
 }
