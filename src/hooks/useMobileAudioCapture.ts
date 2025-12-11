@@ -12,7 +12,8 @@ import { useToast } from '@/hooks/use-toast';
 
 interface UseMobileAudioCaptureReturn {
   connectionState: ConnectionState;
-  isConnected: boolean;
+  isRealtimeConnected: boolean;
+  isWebRTCConnected: boolean;
   isDictating: boolean;
   isPaused: boolean;
   audioLevel: number;
@@ -26,7 +27,8 @@ interface UseMobileAudioCaptureReturn {
   isWhisperEnabled: boolean;
   isCorrectorEnabled: boolean;
   validateSession: (token: string, authToken?: string) => Promise<boolean>;
-  connectSession: (token: string) => Promise<void>;
+  connectRealtime: (token: string) => Promise<void>;
+  connectWebRTC: () => Promise<void>;
   disconnectSession: () => void;
   startDictation: () => void;
   stopDictation: () => void;
@@ -36,12 +38,14 @@ interface UseMobileAudioCaptureReturn {
   toggleWhisper: () => void;
   toggleCorrector: () => void;
   sendTranscript: (text: string, isFinal: boolean, confidence?: number) => void;
+  setSimulatedAudioLevel: (level: number) => void;
 }
 
 export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
   const { toast } = useToast();
   const [connectionState, setConnectionState] = useState<ConnectionState>('disconnected');
-  const [isConnected, setIsConnected] = useState(false);
+  const [isRealtimeConnected, setIsRealtimeConnected] = useState(false);
+  const [isWebRTCConnected, setIsWebRTCConnected] = useState(false);
   const [isDictating, setIsDictating] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [audioLevel, setAudioLevel] = useState(0);
@@ -65,12 +69,8 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
   const heartbeatIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const sessionIdRef = useRef<string>('');
 
-  // Cleanup function - only for disconnecting session
-  const cleanup = useCallback(() => {
-    if (heartbeatIntervalRef.current) {
-      clearInterval(heartbeatIntervalRef.current);
-      heartbeatIntervalRef.current = null;
-    }
+  // Cleanup WebRTC only (keep Realtime)
+  const cleanupWebRTC = useCallback(() => {
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = null;
@@ -83,21 +83,31 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
       peerConnectionRef.current.close();
       peerConnectionRef.current = null;
     }
-    if (channelRef.current) {
-      supabase.removeChannel(channelRef.current);
-      channelRef.current = null;
-    }
     if (audioContextRef.current) {
       audioContextRef.current.close();
       audioContextRef.current = null;
     }
     analyserRef.current = null;
-    setIsConnected(false);
+    setIsWebRTCConnected(false);
+    setAudioLevel(0);
+  }, []);
+
+  // Full cleanup - session disconnect
+  const cleanup = useCallback(() => {
+    if (heartbeatIntervalRef.current) {
+      clearInterval(heartbeatIntervalRef.current);
+      heartbeatIntervalRef.current = null;
+    }
+    cleanupWebRTC();
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+    }
+    setIsRealtimeConnected(false);
     setIsDictating(false);
     setIsPaused(false);
-    setAudioLevel(0);
     setConnectionState('disconnected');
-  }, []);
+  }, [cleanupWebRTC]);
 
   // Validate session token with secure auth
   const validateSession = useCallback(async (token: string, authToken?: string): Promise<boolean> => {
@@ -204,7 +214,7 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
     }
   }, []);
 
-  // Analyze audio level
+  // Analyze audio level (WebRTC only)
   const analyzeAudio = useCallback(() => {
     if (!analyserRef.current) return;
 
@@ -218,45 +228,52 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
     animationFrameRef.current = requestAnimationFrame(analyzeAudio);
   }, []);
 
+  // Set simulated audio level (for Web Speech mode without WebRTC)
+  const setSimulatedAudioLevel = useCallback((level: number) => {
+    setAudioLevel(level);
+  }, []);
+
   // Pause dictation (keeps session active)
   const pauseDictation = useCallback(() => {
+    // For WebRTC mode
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => {
         track.enabled = false;
       });
-      setIsPaused(true);
-      setAudioLevel(0);
-      
-      if (channelRef.current) {
-        channelRef.current.send({
-          type: 'broadcast',
-          event: 'signaling',
-          payload: { type: 'pause' } as SignalingMessage,
-        });
-      }
-      
-      toast({ title: 'Pausado', description: 'Ditado pausado' });
     }
+    setIsPaused(true);
+    setAudioLevel(0);
+    
+    if (channelRef.current) {
+      channelRef.current.send({
+        type: 'broadcast',
+        event: 'signaling',
+        payload: { type: 'pause' } as SignalingMessage,
+      });
+    }
+    
+    toast({ title: 'Pausado', description: 'Ditado pausado' });
   }, [toast]);
 
   // Resume dictation
   const resumeDictation = useCallback(() => {
+    // For WebRTC mode
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => {
         track.enabled = true;
       });
-      setIsPaused(false);
-      
-      if (channelRef.current) {
-        channelRef.current.send({
-          type: 'broadcast',
-          event: 'signaling',
-          payload: { type: 'resume' } as SignalingMessage,
-        });
-      }
-      
-      toast({ title: 'Retomado', description: 'Ditado retomado' });
     }
+    setIsPaused(false);
+    
+    if (channelRef.current) {
+      channelRef.current.send({
+        type: 'broadcast',
+        event: 'signaling',
+        payload: { type: 'resume' } as SignalingMessage,
+      });
+    }
+    
+    toast({ title: 'Retomado', description: 'Ditado retomado' });
   }, [toast]);
 
   // Renew session
@@ -317,10 +334,9 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
     }
   }, [toast]);
 
-  // Toggle Whisper
-  const toggleWhisper = useCallback(() => {
+  // Toggle Whisper - will connect WebRTC when enabled
+  const toggleWhisper = useCallback(async () => {
     const newValue = !isWhisperEnabled;
-    setIsWhisperEnabled(newValue);
     
     if (newValue && whisperCredits < 1) {
       toast({
@@ -328,10 +344,10 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
         description: 'Você não tem créditos Whisper suficientes.',
         variant: 'destructive',
       });
-      setIsWhisperEnabled(false);
       return;
     }
     
+    setIsWhisperEnabled(newValue);
     const newMode = newValue ? 'whisper' : (isCorrectorEnabled ? 'corrector' : 'webspeech');
     setCurrentMode(newMode);
     
@@ -342,12 +358,14 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
         payload: { type: 'mode-change', mode: newMode } as SignalingMessage,
       });
     }
+    
+    // Note: WebRTC connection for Whisper would be initiated here when implemented
+    // For now, Whisper mode is disabled on mobile
   }, [isWhisperEnabled, isCorrectorEnabled, whisperCredits, toast]);
 
   // Toggle Corretor AI
   const toggleCorrector = useCallback(() => {
     const newValue = !isCorrectorEnabled;
-    setIsCorrectorEnabled(newValue);
     
     if (newValue && aiCredits < 1) {
       toast({
@@ -355,10 +373,10 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
         description: 'Você não tem créditos AI suficientes.',
         variant: 'destructive',
       });
-      setIsCorrectorEnabled(false);
       return;
     }
     
+    setIsCorrectorEnabled(newValue);
     const newMode = isWhisperEnabled ? 'whisper' : (newValue ? 'corrector' : 'webspeech');
     setCurrentMode(newMode);
     
@@ -371,17 +389,92 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
     }
   }, [isCorrectorEnabled, isWhisperEnabled, aiCredits, toast]);
 
-  // Connect session (WebRTC only, no Web Speech)
-  const connectSession = useCallback(async (token: string) => {
+  // Connect Realtime Channel ONLY (for text-based modes: Web Speech, Corretor AI)
+  const connectRealtime = useCallback(async (token: string) => {
     try {
       setConnectionState('connecting');
+      console.log('[MobileCapture] Connecting Realtime channel only...');
+
+      const channel = supabase.channel(`mobile-audio-${token}`, {
+        config: { broadcast: { self: false } },
+      });
+
+      channel
+        .on('broadcast', { event: 'signaling' }, async ({ payload }) => {
+          const message = payload as SignalingMessage;
+          console.log('[MobileCapture] Received signaling:', message.type);
+
+          try {
+            if (message.type === 'disconnect') {
+              cleanup();
+              toast({ title: 'Sessão encerrada', description: 'O desktop encerrou a sessão.' });
+            } else if (message.type === 'answer' && peerConnectionRef.current) {
+              // Handle WebRTC answer if WebRTC is connected
+              await peerConnectionRef.current.setRemoteDescription(
+                new RTCSessionDescription({ type: 'answer', sdp: message.sdp })
+              );
+            } else if (message.type === 'ice-candidate' && message.candidate && peerConnectionRef.current) {
+              await peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(message.candidate));
+            }
+          } catch (err) {
+            console.error('[MobileCapture] Signaling error:', err);
+          }
+        })
+        .subscribe((status) => {
+          console.log('[MobileCapture] Realtime channel status:', status);
+          if (status === 'SUBSCRIBED') {
+            setIsRealtimeConnected(true);
+            setConnectionState('connected');
+            
+            // Start heartbeat
+            heartbeatIntervalRef.current = setInterval(sendHeartbeat, HEARTBEAT_INTERVAL);
+            
+            toast({ title: 'Conectado!', description: 'Pronto para iniciar ditado.' });
+          }
+        });
+
+      channelRef.current = channel;
+
+      await supabase.rpc('update_mobile_session_status', {
+        p_session_token: token,
+        p_status: 'connected',
+        p_device_info: {
+          userAgent: navigator.userAgent,
+          platform: navigator.platform,
+        },
+      });
+
+    } catch (error) {
+      console.error('[MobileCapture] Error connecting Realtime:', error);
+      setConnectionState('error');
+      toast({
+        title: 'Erro ao conectar',
+        description: 'Não foi possível conectar ao canal de comunicação.',
+        variant: 'destructive',
+      });
+    }
+  }, [toast, cleanup, sendHeartbeat]);
+
+  // Connect WebRTC (for Whisper mode - audio streaming)
+  const connectWebRTC = useCallback(async () => {
+    if (!channelRef.current) {
+      toast({
+        title: 'Não conectado',
+        description: 'Conecte primeiro ao canal de comunicação.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      console.log('[MobileCapture] Connecting WebRTC for audio streaming...');
 
       const stream = await navigator.mediaDevices.getUserMedia(AUDIO_CONSTRAINTS);
       streamRef.current = stream;
       // Disable tracks initially - dictation will enable them
       stream.getTracks().forEach(track => { track.enabled = false; });
 
-      // Setup audio level analysis with optimized settings for mobile
+      // Setup audio level analysis
       audioContextRef.current = new AudioContext({ sampleRate: 48000 });
       const source = audioContextRef.current.createMediaStreamSource(stream);
       analyserRef.current = audioContextRef.current.createAnalyser();
@@ -413,113 +506,93 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
       };
 
       pc.onconnectionstatechange = () => {
-        console.log('[MobileCapture] Connection state:', pc.connectionState);
+        console.log('[MobileCapture] WebRTC connection state:', pc.connectionState);
         if (pc.connectionState === 'connected') {
-          setConnectionState('connected');
-          setIsConnected(true);
-          heartbeatIntervalRef.current = setInterval(sendHeartbeat, HEARTBEAT_INTERVAL);
-          toast({ title: 'Conectado!', description: 'Pronto para iniciar ditado.' });
+          setIsWebRTCConnected(true);
+          toast({ title: 'WebRTC conectado!', description: 'Áudio pronto para Whisper.' });
         } else if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') {
-          setConnectionState('error');
+          setIsWebRTCConnected(false);
           toast({
-            title: 'Conexão perdida',
-            description: 'A conexão com o desktop foi perdida.',
+            title: 'Conexão WebRTC perdida',
+            description: 'A conexão de áudio foi perdida.',
             variant: 'destructive',
           });
         }
       };
 
-      const channel = supabase.channel(`mobile-audio-${token}`, {
-        config: { broadcast: { self: false } },
-      });
-
-      channel
-        .on('broadcast', { event: 'signaling' }, async ({ payload }) => {
-          const message = payload as SignalingMessage;
-          console.log('[MobileCapture] Received signaling:', message.type);
-
-          try {
-            if (message.type === 'answer') {
-              await pc.setRemoteDescription(new RTCSessionDescription({ type: 'answer', sdp: message.sdp }));
-            } else if (message.type === 'ice-candidate' && message.candidate) {
-              await pc.addIceCandidate(new RTCIceCandidate(message.candidate));
-            } else if (message.type === 'disconnect') {
-              cleanup();
-              toast({ title: 'Sessão encerrada', description: 'O desktop encerrou a sessão.' });
-            }
-          } catch (err) {
-            console.error('[MobileCapture] Signaling error:', err);
-          }
-        })
-        .subscribe(async (status) => {
-          console.log('[MobileCapture] Channel status:', status);
-          if (status === 'SUBSCRIBED') {
-            const offer = await pc.createOffer();
-            await pc.setLocalDescription(offer);
-            
-            channel.send({
-              type: 'broadcast',
-              event: 'signaling',
-              payload: { type: 'offer', sdp: offer.sdp } as SignalingMessage,
-            });
-          }
-        });
-
-      channelRef.current = channel;
-
-      await supabase.rpc('update_mobile_session_status', {
-        p_session_token: token,
-        p_status: 'connecting',
-        p_device_info: {
-          userAgent: navigator.userAgent,
-          platform: navigator.platform,
-        },
+      // Create and send offer
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      
+      channelRef.current.send({
+        type: 'broadcast',
+        event: 'signaling',
+        payload: { type: 'offer', sdp: offer.sdp } as SignalingMessage,
       });
 
     } catch (error) {
-      console.error('[MobileCapture] Error connecting session:', error);
-      setConnectionState('error');
+      console.error('[MobileCapture] Error connecting WebRTC:', error);
       toast({
-        title: 'Erro ao conectar',
+        title: 'Erro ao conectar WebRTC',
         description: 'Não foi possível acessar o microfone. Verifique as permissões.',
         variant: 'destructive',
       });
     }
-  }, [toast, cleanup, sendHeartbeat]);
+  }, [toast]);
 
-  // Start dictation (enables audio, starts analysis)
+  // Start dictation - checks Realtime for text modes, WebRTC for Whisper
   const startDictation = useCallback(() => {
-    if (!isConnected || !streamRef.current) {
-      toast({
-        title: 'Não conectado',
-        description: 'Aguarde a conexão ser estabelecida.',
-        variant: 'destructive',
+    // For text-based modes (webspeech, corrector), only need Realtime
+    if (currentMode === 'webspeech' || currentMode === 'corrector') {
+      if (!channelRef.current || !isRealtimeConnected) {
+        toast({
+          title: 'Não conectado',
+          description: 'Aguarde a conexão ser estabelecida.',
+          variant: 'destructive',
+        });
+        return;
+      }
+    } else if (currentMode === 'whisper') {
+      // Whisper mode requires WebRTC for audio streaming
+      if (!streamRef.current || !isWebRTCConnected) {
+        toast({
+          title: 'WebRTC não conectado',
+          description: 'Whisper requer conexão de áudio. Aguarde...',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      // Enable audio tracks for Whisper
+      streamRef.current.getTracks().forEach(track => {
+        track.enabled = true;
       });
-      return;
+
+      // Resume AudioContext
+      if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
+        audioContextRef.current.resume().catch(err => {
+          console.warn('[MobileCapture] Failed to resume AudioContext:', err);
+        });
+      }
+
+      // Start audio analysis
+      analyzeAudio();
     }
-
-    // Enable audio tracks
-    streamRef.current.getTracks().forEach(track => {
-      track.enabled = true;
-    });
-
-    // Resume AudioContext (required on mobile browsers after user interaction)
-    if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
-      audioContextRef.current.resume().then(() => {
-        console.log('[MobileCapture] AudioContext resumed');
-      }).catch(err => {
-        console.warn('[MobileCapture] Failed to resume AudioContext:', err);
-      });
-    }
-
-    // Start audio analysis
-    analyzeAudio();
 
     setIsDictating(true);
     setIsPaused(false);
     
-    console.log('[MobileCapture] Dictation started');
-  }, [isConnected, analyzeAudio, toast]);
+    // Notify desktop
+    if (channelRef.current) {
+      channelRef.current.send({
+        type: 'broadcast',
+        event: 'signaling',
+        payload: { type: 'start-dictation', mode: currentMode } as SignalingMessage,
+      });
+    }
+    
+    console.log('[MobileCapture] Dictation started in mode:', currentMode);
+  }, [currentMode, isRealtimeConnected, isWebRTCConnected, analyzeAudio, toast]);
 
   // Stop dictation (sends stop-dictation, keeps session alive)
   const stopDictation = useCallback(() => {
@@ -532,7 +605,7 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
       });
     }
 
-    // Disable audio tracks but keep stream
+    // Disable audio tracks for Whisper mode
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => {
         track.enabled = false;
@@ -603,7 +676,8 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
 
   return {
     connectionState,
-    isConnected,
+    isRealtimeConnected,
+    isWebRTCConnected,
     isDictating,
     isPaused,
     audioLevel,
@@ -617,7 +691,8 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
     isWhisperEnabled,
     isCorrectorEnabled,
     validateSession,
-    connectSession,
+    connectRealtime,
+    connectWebRTC,
     disconnectSession,
     startDictation,
     stopDictation,
@@ -627,5 +702,6 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
     toggleWhisper,
     toggleCorrector,
     sendTranscript,
+    setSimulatedAudioLevel,
   };
 }
