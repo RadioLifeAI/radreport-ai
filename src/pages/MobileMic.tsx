@@ -292,6 +292,13 @@ export default function MobileMic() {
                 )}
               </Badge>
             </div>
+            {/* Feedback visual: conectando WebRTC */}
+            {sessionValid && !isConnected && connectionState === 'connecting' && (
+              <div className="mt-2 text-xs text-muted-foreground flex items-center gap-1">
+                <Loader2 className="w-3 h-3 animate-spin" />
+                Estabelecendo conexão WebRTC...
+              </div>
+            )}
           </CardHeader>
           
           <CardContent className="space-y-3 px-4 pb-3">
@@ -427,15 +434,15 @@ export default function MobileMic() {
             </Button>
           )}
 
-          {/* Disconnect Button - Always visible when connected */}
-          {isConnected && (
+          {/* Disconnect Button - Always visible when session is valid */}
+          {sessionValid && (
             <Button
               variant="outline"
               className="w-full text-muted-foreground hover:text-destructive hover:border-destructive"
               onClick={disconnectSession}
             >
               <Unplug className="w-4 h-4 mr-2" />
-              Desconectar
+              {isConnected ? 'Desconectar' : 'Cancelar Sessão'}
             </Button>
           )}
         </div>
