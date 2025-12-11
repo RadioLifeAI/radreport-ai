@@ -112,22 +112,28 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
   const [mobileAudioConnected, setMobileAudioConnected] = useState(false)
   
   const handleMobileStreamReceived = useCallback((stream: MediaStream) => {
+    console.log('[Editor] Mobile stream received:', stream.id)
     setRemoteStream(stream)
     setMobileAudioConnected(true)
-    setRemoteDictationActive(true)
+    // Don't set remoteDictationActive here - wait for explicit start-dictation
     toast.success('Microfone mobile conectado!')
-  }, [setRemoteStream, setRemoteDictationActive])
+  }, [setRemoteStream])
 
   // Handle mobile start-dictation (activates isRemoteDictationActive for text modes)
   // For Whisper mode, also start the desktop dictation to process audio via existing flow
-  const handleMobileStart = useCallback((mode: string) => {
+  const handleMobileStart = useCallback(async (mode: string) => {
     console.log('[Editor] Mobile dictation started, mode:', mode)
     setRemoteDictationActive(true)
     
     // For Whisper mode, start desktop dictation to use existing MediaRecorder flow
-    if (mode === 'whisper' && mobileAudioConnected) {
-      console.log('[Editor] Starting desktop dictation for Whisper mode')
-      startDictation()
+    if (mode === 'whisper') {
+      console.log('[Editor] Starting desktop dictation for Whisper mode, stream available:', !!mobileAudioConnected)
+      // Start desktop dictation - it will use remoteStreamRef.current automatically
+      const result = await startDictation()
+      if (!result) {
+        console.log('[Editor] Whisper start failed (likely no credits), reverting to text mode')
+        setRemoteDictationActive(false)
+      }
     }
   }, [setRemoteDictationActive, startDictation, mobileAudioConnected])
 

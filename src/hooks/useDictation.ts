@@ -124,8 +124,9 @@ export function useDictation(editor: Editor | null, options?: UseDictationOption
   const startDictation = useCallback(async (): Promise<MediaStream | null> => {
     if (!editorRef.current) return null
 
-    // Block local dictation when mobile is active
-    if (isRemoteDictationActive) {
+    // Block local dictation when mobile is active (only for local mic)
+    // Allow if it's remote Whisper mode (remoteStreamRef has content)
+    if (isRemoteDictationActive && !remoteStreamRef.current) {
       toast.info('Ditado via celular ativo. Pare o celular para usar localmente.')
       return null
     }
@@ -133,10 +134,11 @@ export function useDictation(editor: Editor | null, options?: UseDictationOption
     try {
       setStatus('waiting')
 
-      // Check credits for Whisper
+      // Check credits for Whisper (local or remote)
       if (isWhisperEnabled && !checkQuota(1)) {
         setIsWhisperEnabled(false)
-        toast.warning('Créditos insuficientes. Usando transcrição básica.')
+        toast.warning('Créditos Whisper insuficientes. Usando transcrição básica.')
+        return null // ← Fail start if using remote stream and no credits
       }
 
       // Initialize SpeechRecognition

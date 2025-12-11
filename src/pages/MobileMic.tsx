@@ -376,7 +376,35 @@ export default function MobileMic() {
         {/* Mode Toggles */}
         <Card>
           <CardContent className="py-3 px-4 space-y-3">
-            {/* Whisper Toggle - Disabled until WebRTC audio streaming is implemented */}
+            {/* Active Mode Indicator */}
+            <div className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
+              <span className="text-xs text-muted-foreground">Modo ativo:</span>
+              <Badge 
+                variant="outline" 
+                className={
+                  currentMode === 'whisper' 
+                    ? 'bg-amber-500/10 text-amber-600 border-amber-500/30'
+                    : currentMode === 'corrector'
+                    ? 'bg-cyan-500/10 text-cyan-600 border-cyan-500/30'
+                    : 'bg-green-500/10 text-green-600 border-green-500/30'
+                }
+              >
+                {currentMode === 'whisper' && <Sparkles className="w-3 h-3 mr-1" />}
+                {currentMode === 'corrector' && <Wand2 className="w-3 h-3 mr-1" />}
+                {currentMode === 'webspeech' && <Mic className="w-3 h-3 mr-1" />}
+                {currentMode === 'whisper' ? 'Whisper AI' : currentMode === 'corrector' ? 'Corretor AI' : 'Gratuito'}
+              </Badge>
+            </div>
+            
+            {/* WebRTC Status for Whisper */}
+            {isWhisperEnabled && !isWebRTCConnected && (
+              <div className="flex items-center gap-2 text-xs text-amber-600 bg-amber-500/10 p-2 rounded-lg">
+                <Loader2 className="w-3 h-3 animate-spin" />
+                <span>Conectando áudio WebRTC...</span>
+              </div>
+            )}
+
+            {/* Whisper Toggle */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-amber-500" />
@@ -408,7 +436,7 @@ export default function MobileMic() {
               </TooltipProvider>
             </div>
             
-            {/* Corretor AI Toggle - Works with text-based modes */}
+            {/* Corretor AI Toggle */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Wand2 className="w-4 h-4 text-cyan-500" />
@@ -421,7 +449,7 @@ export default function MobileMic() {
                 id="corrector-toggle"
                 checked={isCorrectorEnabled}
                 onCheckedChange={toggleCorrector}
-                disabled={aiCredits < 1 || isDictating}
+                disabled={aiCredits < 1 || isDictating || isWhisperEnabled}
               />
             </div>
           </CardContent>
