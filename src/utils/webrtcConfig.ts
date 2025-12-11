@@ -59,6 +59,8 @@ export interface SessionValidationResult {
   reason?: string;
   message?: string;
   blocked_until?: string;
+  ai_credits?: number;
+  whisper_credits?: number;
 }
 
 // Generate unique session token
