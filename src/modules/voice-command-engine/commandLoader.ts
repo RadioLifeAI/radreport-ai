@@ -19,9 +19,15 @@ interface CacheData {
 }
 
 /**
- * Gerar variações de um nome para melhorar matching
+ * Prefixos SEGUROS para comandos de voz (exigidos para frases/templates)
  */
-function generatePhraseVariations(name: string, tags?: string[], synonyms?: string[]): string[] {
+const SAFE_PREFIXES = ['modelo', 'template', 'frase', 'inserir', 'aplicar', 'usar'];
+
+/**
+ * Gerar variações de um nome para melhorar matching
+ * FASE 3: Incluir trigger phrases com prefixos seguros
+ */
+function generatePhraseVariations(name: string, tags?: string[], synonyms?: string[], conclusao?: string): string[] {
   const variations: string[] = [];
   
   // Adicionar sinônimos se existirem
@@ -34,6 +40,11 @@ function generatePhraseVariations(name: string, tags?: string[], synonyms?: stri
     variations.push(...tags);
   }
   
+  // Adicionar conclusão como trigger (comum falar a conclusão para inserir)
+  if (conclusao && conclusao.length > 5 && conclusao.length < 100) {
+    variations.push(conclusao.toLowerCase());
+  }
+  
   // Gerar variações do nome
   const normalizedName = name.toLowerCase();
   
@@ -43,11 +54,30 @@ function generatePhraseVariations(name: string, tags?: string[], synonyms?: stri
     variations.push(withoutArticles);
   }
   
-  // Variação com prefixos comuns de voz
-  const prefixes = ['modelo', 'template', 'inserir', 'adicionar', 'frase', 'usar'];
-  for (const prefix of prefixes) {
+  // IMPORTANTE: Adicionar variações COM prefixos seguros
+  // Estas terão prioridade no matching
+  for (const prefix of SAFE_PREFIXES) {
     if (!normalizedName.startsWith(prefix)) {
       variations.push(`${prefix} ${normalizedName}`);
+      // Também sem artigos
+      if (withoutArticles !== normalizedName && withoutArticles.length > 3) {
+        variations.push(`${prefix} ${withoutArticles}`);
+      }
+    }
+  }
+  
+  // Extrair palavras-chave do código (ex: US_CERV_TIREOIDE → tireoide)
+  const keywords = normalizedName
+    .replace(/_/g, ' ')
+    .split(/\s+/)
+    .filter(word => word.length > 3 && !['modelo', 'frase', 'normal', 'alterado'].includes(word));
+  
+  if (keywords.length > 0) {
+    // Adicionar keywords como variações
+    variations.push(...keywords);
+    // E com prefixos
+    for (const prefix of SAFE_PREFIXES) {
+      variations.push(`${prefix} ${keywords.join(' ')}`);
     }
   }
   
@@ -83,6 +113,7 @@ interface FraseData {
 
 /**
  * Converter templates para comandos de voz
+ * FASE 3: Prioridade baixa para templates (exigir prefixo ou match exato)
  */
 export function convertTemplatesToCommands(templates: TemplateData[]): VoiceCommand[] {
   if (!templates || templates.length === 0) return [];
@@ -90,22 +121,31 @@ export function convertTemplatesToCommands(templates: TemplateData[]): VoiceComm
   return templates.map((template) => {
     const baseName = template.titulo || 'template';
     
-    // Gerar variações
+    // Gerar variações com prefixos seguros
     const phrases = generatePhraseVariations(
       baseName,
       template.tags as string[] | undefined
     );
     
-    // Adicionar modalidade e região como variações
+    // Adicionar modalidade + título como trigger comum
+    // Ex: "modelo tc tórax", "template rm crânio"
     if (template.modalidade_codigo) {
-      phrases.push(`${template.modalidade_codigo} ${baseName}`.toLowerCase());
-      phrases.push(template.modalidade_codigo.toLowerCase());
+      const mod = template.modalidade_codigo.toLowerCase();
+      phrases.push(`modelo ${mod} ${baseName}`.toLowerCase());
+      phrases.push(`template ${mod} ${baseName}`.toLowerCase());
+      phrases.push(`${mod} ${baseName}`.toLowerCase());
     }
+    
+    // Adicionar região como parte do trigger
     if (template.regiao_codigo) {
-      phrases.push(template.regiao_codigo.toLowerCase());
+      const reg = template.regiao_codigo.toLowerCase();
+      phrases.push(`modelo ${reg}`.toLowerCase());
+      phrases.push(`template ${reg}`.toLowerCase());
     }
+    
+    // Categoria como variação
     if (template.categoria) {
-      phrases.push(template.categoria.toLowerCase());
+      phrases.push(`modelo ${template.categoria}`.toLowerCase());
     }
 
     return {
@@ -115,7 +155,7 @@ export function convertTemplatesToCommands(templates: TemplateData[]): VoiceComm
       category: 'template' as const,
       actionType: 'apply_template' as const,
       payload: template.conteudo_template || '',
-      priority: 60,
+      priority: 45,  // ← BAIXA: exige prefixo ou match muito alto
       modalidade: template.modalidade_codigo || undefined,
       regiaoAnatomica: template.regiao_codigo || undefined,
     };
@@ -124,6 +164,7 @@ export function convertTemplatesToCommands(templates: TemplateData[]): VoiceComm
 
 /**
  * Converter frases modelo para comandos de voz
+ * FASE 3: Prioridade mais baixa para frases (exigir prefixo ou match exato)
  */
 export function convertFrasesToCommands(frases: FraseData[]): VoiceCommand[] {
   if (!frases || frases.length === 0) return [];
@@ -132,11 +173,12 @@ export function convertFrasesToCommands(frases: FraseData[]): VoiceCommand[] {
     // Nome base é o código ou categoria
     const baseName = frase.codigo || frase.categoria || 'frase';
     
-    // Gerar variações para matching - incluir sinônimos do banco
+    // Gerar variações para matching - incluir sinônimos e conclusão
     const phrases = generatePhraseVariations(
       baseName,
       frase.tags || undefined,
-      frase.sinônimos || undefined
+      frase.sinônimos || undefined,
+      frase.conclusao || undefined  // ← NOVO: usar conclusão como trigger
     );
     
     // Adicionar categoria como variação
@@ -151,7 +193,7 @@ export function convertFrasesToCommands(frases: FraseData[]): VoiceCommand[] {
       category: 'frase' as const,
       actionType: 'insert_content' as const,
       payload: frase.texto,
-      priority: 50,
+      priority: 40,  // ← BAIXA: exige prefixo ou match muito alto
       modalidade: frase.modalidade_codigo || undefined,
     };
   });
