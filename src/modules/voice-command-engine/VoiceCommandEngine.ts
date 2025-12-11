@@ -28,6 +28,10 @@ export class VoiceCommandEngine implements IVoiceCommandEngine {
   private fuzzyMatcher: FuzzyMatcher;
   private reloadTimer: ReturnType<typeof setInterval> | null = null;
   private stats: CommandStats = { system: 0, frases: 0, templates: 0, total: 0 };
+  
+  // ✨ FASE 5: Contexto atual (modalidade + região do template)
+  private currentModalidade: string | null = null;
+  private currentRegiao: string | null = null;
 
   constructor(config: Partial<VoiceEngineConfig> = {}) {
     this.config = { ...DEFAULT_ENGINE_CONFIG, ...config };
@@ -57,6 +61,28 @@ export class VoiceCommandEngine implements IVoiceCommandEngine {
     }
 
     this.log('Engine inicializado');
+  }
+
+  // ==================== ✨ FASE 5: Contexto ====================
+
+  /**
+   * Definir contexto atual (modalidade + região do template ativo)
+   * Usado para priorizar frases do mesmo contexto
+   */
+  setCurrentContext(modalidade: string | null, regiao: string | null): void {
+    this.currentModalidade = modalidade;
+    this.currentRegiao = regiao;
+    this.log(`📍 Contexto atualizado: mod=${modalidade}, reg=${regiao}`);
+  }
+
+  /**
+   * Obter contexto atual
+   */
+  getCurrentContext(): { modalidade: string | null; regiao: string | null } {
+    return {
+      modalidade: this.currentModalidade,
+      regiao: this.currentRegiao,
+    };
   }
 
   // ==================== Controle ====================
@@ -197,6 +223,8 @@ export class VoiceCommandEngine implements IVoiceCommandEngine {
 
   // ==================== Execução ====================
 
+  // ==================== Execução ====================
+
   async processTranscript(transcript: string): Promise<CommandMatchResult | null> {
     if (!transcript.trim()) {
       return null;
@@ -204,8 +232,14 @@ export class VoiceCommandEngine implements IVoiceCommandEngine {
 
     this.log(`🎤 Processando: "${transcript}"`);
 
-    // Buscar match
-    const match = this.fuzzyMatcher.findBestMatch(transcript);
+    // ✨ FASE 5: Buscar match COM contexto (modalidade + região)
+    const match = this.fuzzyMatcher.findBestMatch(transcript, {
+      modalidade: this.currentModalidade,
+      regiao: this.currentRegiao,
+      combinedBoost: 0.6,      // 60% boost quando ambos combinam
+      modalidadeBoost: 0.3,    // 30% boost apenas modalidade
+      regiaoBoost: 0.15,       // 15% boost apenas região
+    });
 
     if (!match) {
       this.log(`❌ Nenhum comando encontrado`);
