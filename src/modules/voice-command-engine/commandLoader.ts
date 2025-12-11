@@ -113,7 +113,7 @@ interface FraseData {
 
 /**
  * Converter templates para comandos de voz
- * FASE 3: Prioridade baixa para templates (exigir prefixo ou match exato)
+ * FASE 4: Matching otimizado com variações inteligentes
  */
 export function convertTemplatesToCommands(templates: TemplateData[]): VoiceCommand[] {
   if (!templates || templates.length === 0) return [];
@@ -127,26 +127,41 @@ export function convertTemplatesToCommands(templates: TemplateData[]): VoiceComm
       template.tags as string[] | undefined
     );
     
-    // Adicionar modalidade + título como trigger comum
-    // Ex: "modelo tc tórax", "template rm crânio"
+    // FASE 4: Adicionar modalidade + título como triggers comuns
+    // Ex: "modelo tc tórax", "template rm crânio", "tc de tórax"
     if (template.modalidade_codigo) {
       const mod = template.modalidade_codigo.toLowerCase();
       phrases.push(`modelo ${mod} ${baseName}`.toLowerCase());
       phrases.push(`template ${mod} ${baseName}`.toLowerCase());
       phrases.push(`${mod} ${baseName}`.toLowerCase());
+      phrases.push(`${mod} de ${baseName}`.toLowerCase());
+      
+      // Modalidade + região se disponível
+      if (template.regiao_codigo) {
+        const reg = template.regiao_codigo.toLowerCase();
+        phrases.push(`${mod} ${reg}`.toLowerCase());
+        phrases.push(`${mod} de ${reg}`.toLowerCase());
+        phrases.push(`modelo ${mod} ${reg}`.toLowerCase());
+      }
     }
     
-    // Adicionar região como parte do trigger
+    // Adicionar região como triggers independentes
     if (template.regiao_codigo) {
       const reg = template.regiao_codigo.toLowerCase();
       phrases.push(`modelo ${reg}`.toLowerCase());
       phrases.push(`template ${reg}`.toLowerCase());
+      phrases.push(`laudo ${reg}`.toLowerCase());
     }
     
     // Categoria como variação
     if (template.categoria) {
       phrases.push(`modelo ${template.categoria}`.toLowerCase());
+      phrases.push(`template ${template.categoria}`.toLowerCase());
     }
+    
+    // FASE 4: Adicionar título completo com "laudo de"
+    phrases.push(`laudo ${baseName}`.toLowerCase());
+    phrases.push(`laudo de ${baseName}`.toLowerCase());
 
     return {
       id: `template_${template.id}`,
@@ -155,7 +170,7 @@ export function convertTemplatesToCommands(templates: TemplateData[]): VoiceComm
       category: 'template' as const,
       actionType: 'apply_template' as const,
       payload: template.conteudo_template || '',
-      priority: 45,  // ← BAIXA: exige prefixo ou match muito alto
+      priority: 45,
       modalidade: template.modalidade_codigo || undefined,
       regiaoAnatomica: template.regiao_codigo || undefined,
     };
@@ -164,7 +179,7 @@ export function convertTemplatesToCommands(templates: TemplateData[]): VoiceComm
 
 /**
  * Converter frases modelo para comandos de voz
- * FASE 3+4: Prioridade baixa para frases + payload com conclusão
+ * FASE 4: Matching otimizado com triggers inteligentes
  */
 export function convertFrasesToCommands(frases: FraseData[]): VoiceCommand[] {
   if (!frases || frases.length === 0) return [];
@@ -178,15 +193,43 @@ export function convertFrasesToCommands(frases: FraseData[]): VoiceCommand[] {
       baseName,
       frase.tags || undefined,
       frase.sinônimos || undefined,
-      frase.conclusao || undefined  // ← usar conclusão como trigger
+      frase.conclusao || undefined
     );
     
-    // Adicionar categoria como variação
+    // FASE 4: Adicionar código com prefixos
+    phrases.push(`frase ${baseName}`.toLowerCase());
+    phrases.push(`inserir ${baseName}`.toLowerCase());
+    phrases.push(`adicionar ${baseName}`.toLowerCase());
+    
+    // Adicionar categoria como variação com prefixos
     if (frase.categoria) {
       phrases.push(frase.categoria.toLowerCase());
+      phrases.push(`frase ${frase.categoria}`.toLowerCase());
+    }
+    
+    // FASE 4: Modalidade + código como trigger
+    if (frase.modalidade_codigo) {
+      const mod = frase.modalidade_codigo.toLowerCase();
+      phrases.push(`${mod} ${baseName}`.toLowerCase());
+      phrases.push(`frase ${mod} ${baseName}`.toLowerCase());
+    }
+    
+    // FASE 4: Primeiras palavras do texto como trigger natural
+    // Ex: "esteatose hepática" → insere frase de esteatose
+    if (frase.texto && frase.texto.length > 10) {
+      const firstWords = frase.texto
+        .replace(/<[^>]*>/g, '') // Remove HTML
+        .split(/\s+/)
+        .slice(0, 4)
+        .join(' ')
+        .toLowerCase()
+        .trim();
+      if (firstWords.length > 5) {
+        phrases.push(firstWords);
+      }
     }
 
-    // FASE 4: Payload inclui texto E conclusão (para inserção inteligente)
+    // Payload inclui texto E conclusão
     const payload = frase.conclusao 
       ? { texto: frase.texto, conclusao: frase.conclusao }
       : frase.texto;
@@ -198,7 +241,7 @@ export function convertFrasesToCommands(frases: FraseData[]): VoiceCommand[] {
       category: 'frase' as const,
       actionType: 'insert_content' as const,
       payload,
-      priority: 40,  // ← BAIXA: exige prefixo ou match muito alto
+      priority: 40,
       modalidade: frase.modalidade_codigo || undefined,
     };
   });

@@ -90,22 +90,20 @@ export function validateCommandSafety(
   if (command.category === 'frase' || command.category === 'template') {
     const hasPrefix = hasSafeCommandPrefix(originalText);
     
-    // Com prefixo: aceitar com score razoável
-    if (hasPrefix && score < 0.35) {
+    // FASE 2 FIX: Match exato (score = 0) sempre seguro
+    if (score === 0) {
       return { safe: true };
     }
     
-    // Sem prefixo: exigir match quase exato
-    if (!hasPrefix && score > 0.15) {
-      return { 
-        safe: false, 
-        reason: `Sem prefixo seguro e score ${score.toFixed(2)} > 0.15` 
-      };
+    // Com prefixo: aceitar com score razoável (relaxado de 0.35 → 0.45)
+    if (hasPrefix && score < 0.45) {
+      return { safe: true };
     }
     
-    // Score muito alto sem prefixo = match exato acidental
-    if (!hasPrefix && score <= 0.15) {
-      // Verificar se não é apenas palavras médicas
+    // FASE 2 FIX: Sem prefixo mas com score muito bom (< 0.25), aceitar
+    // Isso permite matches naturais como "esteatose hepática" → frase esteatose
+    if (!hasPrefix && score < 0.25) {
+      // Verificar se não é apenas palavras médicas protegidas
       if (isProtectedMedicalPhrase(originalText)) {
         return { 
           safe: false, 
@@ -113,6 +111,14 @@ export function validateCommandSafety(
         };
       }
       return { safe: true };
+    }
+    
+    // Sem prefixo e score > 0.25: rejeitar
+    if (!hasPrefix && score >= 0.25) {
+      return { 
+        safe: false, 
+        reason: `Sem prefixo seguro e score ${score.toFixed(2)} >= 0.25` 
+      };
     }
     
     return { safe: false, reason: 'Não passou validação de segurança' };
