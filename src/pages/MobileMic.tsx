@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { 
   Mic, MicOff, Wifi, WifiOff, Loader2, AlertCircle, Volume2, Clock, 
-  User, Shield, Pause, Play, RefreshCw, Sparkles, Wand2, Coins
+  User, Shield, Pause, Play, RefreshCw, Sparkles, Wand2, Coins, Unplug
 } from 'lucide-react';
 import { useMobileAudioCapture } from '@/hooks/useMobileAudioCapture';
 
@@ -28,7 +28,8 @@ export default function MobileMic() {
   
   const {
     connectionState,
-    isCapturing,
+    isConnected,
+    isDictating,
     isPaused,
     audioLevel,
     sessionValid,
@@ -40,10 +41,12 @@ export default function MobileMic() {
     isCorrectorEnabled,
     currentMode,
     validateSession,
-    startCapture,
-    stopCapture,
-    pauseCapture,
-    resumeCapture,
+    connectSession,
+    disconnectSession,
+    startDictation,
+    stopDictation,
+    pauseDictation,
+    resumeDictation,
     renewSession,
     toggleWhisper,
     toggleCorrector,
@@ -59,20 +62,24 @@ export default function MobileMic() {
   const recognitionRef = useRef<any>(null);
   const isActiveRef = useRef(false);
 
-  // Validate session on mount
+  // Validate session on mount and auto-connect
   useEffect(() => {
-    const validate = async () => {
+    const validateAndConnect = async () => {
       if (sessionToken) {
-        await validateSession(sessionToken, authToken || undefined);
+        const valid = await validateSession(sessionToken, authToken || undefined);
+        if (valid) {
+          // Auto-connect session after validation
+          await connectSession(sessionToken);
+        }
       }
       setValidating(false);
     };
-    validate();
-  }, [sessionToken, authToken, validateSession]);
+    validateAndConnect();
+  }, [sessionToken, authToken, validateSession, connectSession]);
 
   // Web Speech Recognition for webspeech mode
   const startWebSpeech = useCallback(() => {
-    if (currentMode !== 'webspeech') return;
+    if (currentMode !== 'webspeech' && currentMode !== 'corrector') return;
     
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
@@ -99,7 +106,6 @@ export default function MobileMic() {
     recognition.onerror = (event) => {
       console.warn('[MobileMic] Speech error:', event.error);
       if (event.error === 'no-speech' && isActiveRef.current) {
-        // Restart on silence
         setTimeout(() => {
           if (isActiveRef.current && recognitionRef.current) {
             try { recognitionRef.current.start(); } catch (e) { /* ignore */ }
@@ -158,17 +164,23 @@ export default function MobileMic() {
     return () => clearInterval(interval);
   }, [remainingSeconds]);
 
-  // Start/stop Web Speech when capturing starts/stops (only in webspeech mode)
+  // Start/stop Web Speech when dictating starts/stops
   useEffect(() => {
-    if (isCapturing && connectionState === 'connected' && currentMode === 'webspeech' && !isPaused) {
+    if (isDictating && isConnected && !isPaused && (currentMode === 'webspeech' || currentMode === 'corrector')) {
       startWebSpeech();
     } else {
       stopWebSpeech();
     }
     return () => stopWebSpeech();
-  }, [isCapturing, connectionState, currentMode, isPaused, startWebSpeech, stopWebSpeech]);
+  }, [isDictating, isConnected, currentMode, isPaused, startWebSpeech, stopWebSpeech]);
 
-  const handleStartCapture = () => startCapture(sessionToken);
+  const handleStartDictation = () => {
+    startDictation();
+  };
+
+  const handleStopDictation = () => {
+    stopDictation();
+  };
   
   const handleRenewSession = async () => {
     setIsRenewing(true);
@@ -186,7 +198,7 @@ export default function MobileMic() {
         <Card className="w-full max-w-md">
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Loader2 className="w-12 h-12 animate-spin text-primary mb-4" />
-            <p className="text-muted-foreground">Validando sessão segura...</p>
+            <p className="text-muted-foreground">Validando e conectando...</p>
           </CardContent>
         </Card>
       </div>
@@ -284,7 +296,7 @@ export default function MobileMic() {
           
           <CardContent className="space-y-3 px-4 pb-3">
             {/* Audio Level */}
-            {isCapturing && (
+            {isDictating && (
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Volume2 className="w-3.5 h-3.5" />
@@ -334,7 +346,7 @@ export default function MobileMic() {
                 id="whisper-toggle"
                 checked={isWhisperEnabled}
                 onCheckedChange={toggleWhisper}
-                disabled={whisperCredits < 1}
+                disabled={whisperCredits < 1 || isDictating}
               />
             </div>
             
@@ -350,7 +362,7 @@ export default function MobileMic() {
                 id="corrector-toggle"
                 checked={isCorrectorEnabled}
                 onCheckedChange={toggleCorrector}
-                disabled={aiCredits < 1 || isWhisperEnabled}
+                disabled={aiCredits < 1 || isWhisperEnabled || isDictating}
               />
             </div>
           </CardContent>
@@ -358,15 +370,16 @@ export default function MobileMic() {
 
         {/* Control Buttons */}
         <div className="space-y-2">
-          {/* Main Action Button */}
-          {!isCapturing ? (
+          {/* Main Action Button - Iniciar/Parar Ditado */}
+          {!isDictating ? (
             <Button
               size="lg"
               className="w-full h-14"
-              onClick={handleStartCapture}
+              onClick={handleStartDictation}
+              disabled={!isConnected}
             >
               <Mic className="w-5 h-5 mr-2" />
-              Iniciar Gravação
+              Iniciar Ditado
             </Button>
           ) : (
             <div className="grid grid-cols-2 gap-2">
@@ -375,7 +388,7 @@ export default function MobileMic() {
                 variant="secondary"
                 size="lg"
                 className="h-12"
-                onClick={isPaused ? resumeCapture : pauseCapture}
+                onClick={isPaused ? resumeDictation : pauseDictation}
               >
                 {isPaused ? (
                   <><Play className="w-4 h-4 mr-2" /> Retomar</>
@@ -384,15 +397,15 @@ export default function MobileMic() {
                 )}
               </Button>
               
-              {/* Stop */}
+              {/* Stop Dictation */}
               <Button
                 variant="destructive"
                 size="lg"
                 className="h-12"
-                onClick={stopCapture}
+                onClick={handleStopDictation}
               >
                 <MicOff className="w-4 h-4 mr-2" />
-                Parar
+                Parar Ditado
               </Button>
             </div>
           )}
@@ -411,6 +424,18 @@ export default function MobileMic() {
                 <RefreshCw className="w-4 h-4 mr-2" />
               )}
               Renovar Sessão (+60 min)
+            </Button>
+          )}
+
+          {/* Disconnect Button - Always visible when connected */}
+          {isConnected && (
+            <Button
+              variant="outline"
+              className="w-full text-muted-foreground hover:text-destructive hover:border-destructive"
+              onClick={disconnectSession}
+            >
+              <Unplug className="w-4 h-4 mr-2" />
+              Desconectar
             </Button>
           )}
         </div>

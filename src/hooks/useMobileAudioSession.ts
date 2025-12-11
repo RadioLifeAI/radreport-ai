@@ -27,6 +27,7 @@ interface UseMobileAudioSessionReturn {
   isGeneratingToken: boolean;
   onRemoteTranscript: (callback: (data: TranscriptData) => void) => void;
   onRemoteStop: (callback: () => void) => void;
+  onRemoteDisconnect: (callback: () => void) => void;
 }
 
 export function useMobileAudioSession(): UseMobileAudioSessionReturn {
@@ -41,15 +42,21 @@ export function useMobileAudioSession(): UseMobileAudioSessionReturn {
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const transcriptCallbackRef = useRef<((data: TranscriptData) => void) | null>(null);
   const stopCallbackRef = useRef<(() => void) | null>(null);
+  const disconnectCallbackRef = useRef<(() => void) | null>(null);
 
   // Register callback for remote transcripts
   const onRemoteTranscript = useCallback((callback: (data: TranscriptData) => void) => {
     transcriptCallbackRef.current = callback;
   }, []);
 
-  // Register callback for remote stop (triggers Corretor AI)
+  // Register callback for remote stop (triggers Corretor AI, session continues)
   const onRemoteStop = useCallback((callback: () => void) => {
     stopCallbackRef.current = callback;
+  }, []);
+
+  // Register callback for remote disconnect (ends session)
+  const onRemoteDisconnect = useCallback((callback: () => void) => {
+    disconnectCallbackRef.current = callback;
   }, []);
 
   // Cleanup function
@@ -217,12 +224,17 @@ export function useMobileAudioSession(): UseMobileAudioSessionReturn {
                 });
               }
             } else if (message.type === 'stop-dictation') {
-              // Mobile stopped dictation - trigger Corretor AI on desktop
+              // Mobile stopped dictation - trigger Corretor AI on desktop, session continues
               console.log('[MobileAudio] Stop-dictation received - triggering Corretor AI');
               if (stopCallbackRef.current) {
                 stopCallbackRef.current();
               }
             } else if (message.type === 'disconnect') {
+              // Mobile disconnected - end session completely
+              console.log('[MobileAudio] Disconnect received - ending session');
+              if (disconnectCallbackRef.current) {
+                disconnectCallbackRef.current();
+              }
               cleanup();
               setSession(null);
             }
@@ -305,5 +317,6 @@ export function useMobileAudioSession(): UseMobileAudioSessionReturn {
     isGeneratingToken,
     onRemoteTranscript,
     onRemoteStop,
+    onRemoteDisconnect,
   };
 }

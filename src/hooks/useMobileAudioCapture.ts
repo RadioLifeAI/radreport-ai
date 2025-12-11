@@ -12,7 +12,8 @@ import { useToast } from '@/hooks/use-toast';
 
 interface UseMobileAudioCaptureReturn {
   connectionState: ConnectionState;
-  isCapturing: boolean;
+  isConnected: boolean;
+  isDictating: boolean;
   isPaused: boolean;
   audioLevel: number;
   currentMode: 'webspeech' | 'whisper' | 'corrector';
@@ -25,10 +26,12 @@ interface UseMobileAudioCaptureReturn {
   isWhisperEnabled: boolean;
   isCorrectorEnabled: boolean;
   validateSession: (token: string, authToken?: string) => Promise<boolean>;
-  startCapture: (token: string) => Promise<void>;
-  stopCapture: () => void;
-  pauseCapture: () => void;
-  resumeCapture: () => void;
+  connectSession: (token: string) => Promise<void>;
+  disconnectSession: () => void;
+  startDictation: () => void;
+  stopDictation: () => void;
+  pauseDictation: () => void;
+  resumeDictation: () => void;
   renewSession: () => Promise<boolean>;
   toggleWhisper: () => void;
   toggleCorrector: () => void;
@@ -38,7 +41,8 @@ interface UseMobileAudioCaptureReturn {
 export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
   const { toast } = useToast();
   const [connectionState, setConnectionState] = useState<ConnectionState>('disconnected');
-  const [isCapturing, setIsCapturing] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
+  const [isDictating, setIsDictating] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [audioLevel, setAudioLevel] = useState(0);
   const [currentMode, setCurrentMode] = useState<'webspeech' | 'whisper' | 'corrector'>('webspeech');
@@ -61,7 +65,7 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
   const heartbeatIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const sessionIdRef = useRef<string>('');
 
-  // Cleanup function
+  // Cleanup function - only for disconnecting session
   const cleanup = useCallback(() => {
     if (heartbeatIntervalRef.current) {
       clearInterval(heartbeatIntervalRef.current);
@@ -88,7 +92,8 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
       audioContextRef.current = null;
     }
     analyserRef.current = null;
-    setIsCapturing(false);
+    setIsConnected(false);
+    setIsDictating(false);
     setIsPaused(false);
     setAudioLevel(0);
     setConnectionState('disconnected');
@@ -99,7 +104,6 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
     try {
       console.log('[MobileCapture] Validating session with auth:', !!authToken);
       
-      // Call secure validation RPC - returns credits directly
       const { data, error } = await supabase.rpc('validate_mobile_session_secure', {
         p_session_token: token,
         p_temp_jwt: authToken || '',
@@ -117,11 +121,9 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
         sessionTokenRef.current = token;
         sessionIdRef.current = sessionInfo.user_id || '';
         
-        // Use credits from validation response
         setAiCredits(sessionInfo.ai_credits ?? 0);
         setWhisperCredits(sessionInfo.whisper_credits ?? 0);
         
-        // Calculate remaining time
         if (sessionInfo.expires_at) {
           const expiresAt = new Date(sessionInfo.expires_at);
           const remaining = Math.max(0, Math.floor((expiresAt.getTime() - Date.now()) / 1000));
@@ -169,7 +171,7 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
     }
   }, [toast]);
 
-  // Send heartbeat - also updates credits from server
+  // Send heartbeat
   const sendHeartbeat = useCallback(() => {
     if (channelRef.current && sessionTokenRef.current) {
       channelRef.current.send({
@@ -216,8 +218,8 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
     animationFrameRef.current = requestAnimationFrame(analyzeAudio);
   }, []);
 
-  // Pause capture
-  const pauseCapture = useCallback(() => {
+  // Pause dictation (keeps session active)
+  const pauseDictation = useCallback(() => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => {
         track.enabled = false;
@@ -233,12 +235,12 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
         });
       }
       
-      toast({ title: 'Pausado', description: 'Captura de áudio pausada' });
+      toast({ title: 'Pausado', description: 'Ditado pausado' });
     }
   }, [toast]);
 
-  // Resume capture
-  const resumeCapture = useCallback(() => {
+  // Resume dictation
+  const resumeDictation = useCallback(() => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => {
         track.enabled = true;
@@ -253,11 +255,11 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
         });
       }
       
-      toast({ title: 'Retomado', description: 'Captura de áudio retomada' });
+      toast({ title: 'Retomado', description: 'Ditado retomado' });
     }
   }, [toast]);
 
-  // Renew session using secure RPC
+  // Renew session
   const renewSession = useCallback(async (): Promise<boolean> => {
     try {
       const { data, error } = await supabase.rpc('renew_mobile_session', {
@@ -330,7 +332,6 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
       return;
     }
     
-    // Update mode based on toggles
     const newMode = newValue ? 'whisper' : (isCorrectorEnabled ? 'corrector' : 'webspeech');
     setCurrentMode(newMode);
     
@@ -358,7 +359,6 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
       return;
     }
     
-    // Whisper takes priority over corrector
     const newMode = isWhisperEnabled ? 'whisper' : (newValue ? 'corrector' : 'webspeech');
     setCurrentMode(newMode);
     
@@ -371,13 +371,15 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
     }
   }, [isCorrectorEnabled, isWhisperEnabled, aiCredits, toast]);
 
-  // Start audio capture
-  const startCapture = useCallback(async (token: string) => {
+  // Connect session (WebRTC only, no Web Speech)
+  const connectSession = useCallback(async (token: string) => {
     try {
       setConnectionState('connecting');
 
       const stream = await navigator.mediaDevices.getUserMedia(AUDIO_CONSTRAINTS);
       streamRef.current = stream;
+      // Disable tracks initially - dictation will enable them
+      stream.getTracks().forEach(track => { track.enabled = false; });
 
       // Setup audio level analysis
       audioContextRef.current = new AudioContext();
@@ -385,7 +387,6 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
       analyserRef.current = audioContextRef.current.createAnalyser();
       analyserRef.current.fftSize = 256;
       source.connect(analyserRef.current);
-      analyzeAudio();
 
       // Setup WebRTC peer connection
       const pc = new RTCPeerConnection(RTC_CONFIG);
@@ -412,9 +413,9 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
         console.log('[MobileCapture] Connection state:', pc.connectionState);
         if (pc.connectionState === 'connected') {
           setConnectionState('connected');
-          setIsCapturing(true);
+          setIsConnected(true);
           heartbeatIntervalRef.current = setInterval(sendHeartbeat, HEARTBEAT_INTERVAL);
-          toast({ title: 'Conectado!', description: 'Áudio sendo enviado para o desktop.' });
+          toast({ title: 'Conectado!', description: 'Pronto para iniciar ditado.' });
         } else if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') {
           setConnectionState('error');
           toast({
@@ -473,18 +474,43 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
       });
 
     } catch (error) {
-      console.error('[MobileCapture] Error starting capture:', error);
+      console.error('[MobileCapture] Error connecting session:', error);
       setConnectionState('error');
       toast({
-        title: 'Erro ao iniciar captura',
+        title: 'Erro ao conectar',
         description: 'Não foi possível acessar o microfone. Verifique as permissões.',
         variant: 'destructive',
       });
     }
-  }, [toast, cleanup, analyzeAudio, sendHeartbeat]);
+  }, [toast, cleanup, sendHeartbeat]);
 
-  // Stop capture - send stop-dictation first, then disconnect
-  const stopCapture = useCallback(() => {
+  // Start dictation (enables audio, starts analysis)
+  const startDictation = useCallback(() => {
+    if (!isConnected || !streamRef.current) {
+      toast({
+        title: 'Não conectado',
+        description: 'Aguarde a conexão ser estabelecida.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Enable audio tracks
+    streamRef.current.getTracks().forEach(track => {
+      track.enabled = true;
+    });
+
+    // Start audio analysis
+    analyzeAudio();
+
+    setIsDictating(true);
+    setIsPaused(false);
+    
+    console.log('[MobileCapture] Dictation started');
+  }, [isConnected, analyzeAudio, toast]);
+
+  // Stop dictation (sends stop-dictation, keeps session alive)
+  const stopDictation = useCallback(() => {
     if (channelRef.current) {
       // Send stop-dictation to trigger Corretor AI on desktop
       channelRef.current.send({
@@ -492,22 +518,50 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
         event: 'signaling',
         payload: { type: 'stop-dictation' } as SignalingMessage,
       });
-      
-      // Then send disconnect
-      setTimeout(() => {
-        if (channelRef.current) {
-          channelRef.current.send({
-            type: 'broadcast',
-            event: 'signaling',
-            payload: { type: 'disconnect' } as SignalingMessage,
-          });
-        }
-        cleanup();
-      }, 100);
-    } else {
-      cleanup();
     }
-  }, [cleanup]);
+
+    // Disable audio tracks but keep stream
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => {
+        track.enabled = false;
+      });
+    }
+
+    // Stop audio analysis
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+
+    setIsDictating(false);
+    setIsPaused(false);
+    setAudioLevel(0);
+    
+    console.log('[MobileCapture] Dictation stopped - session still active');
+  }, []);
+
+  // Disconnect session completely
+  const disconnectSession = useCallback(() => {
+    // Stop dictation first if active
+    if (isDictating) {
+      stopDictation();
+    }
+
+    // Send disconnect message
+    if (channelRef.current) {
+      channelRef.current.send({
+        type: 'broadcast',
+        event: 'signaling',
+        payload: { type: 'disconnect' } as SignalingMessage,
+      });
+    }
+
+    // Full cleanup
+    cleanup();
+    
+    toast({ title: 'Desconectado', description: 'Sessão encerrada.' });
+    console.log('[MobileCapture] Session disconnected');
+  }, [isDictating, stopDictation, cleanup, toast]);
 
   // Send transcript to desktop via Realtime
   const sendTranscript = useCallback((text: string, isFinal: boolean, confidence?: number) => {
@@ -534,7 +588,8 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
 
   return {
     connectionState,
-    isCapturing,
+    isConnected,
+    isDictating,
     isPaused,
     audioLevel,
     currentMode,
@@ -547,10 +602,12 @@ export function useMobileAudioCapture(): UseMobileAudioCaptureReturn {
     isWhisperEnabled,
     isCorrectorEnabled,
     validateSession,
-    startCapture,
-    stopCapture,
-    pauseCapture,
-    resumeCapture,
+    connectSession,
+    disconnectSession,
+    startDictation,
+    stopDictation,
+    pauseDictation,
+    resumeDictation,
     renewSession,
     toggleWhisper,
     toggleCorrector,

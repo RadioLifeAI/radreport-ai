@@ -105,6 +105,7 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
     setRemoteDictationActive,
     isRemoteDictationActive,
     handleRemoteStop,
+    handleRemoteDisconnect,
   } = useDictation(editorInstance)
 
   // Mobile audio connection state
@@ -120,8 +121,8 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
   const handleMobileDisconnected = useCallback(() => {
     setRemoteStream(null)
     setMobileAudioConnected(false)
-    setRemoteDictationActive(false)
-  }, [setRemoteStream, setRemoteDictationActive])
+    handleRemoteDisconnect() // Use the hook's disconnect handler
+  }, [setRemoteStream, handleRemoteDisconnect])
 
   // Template hook
   const {
