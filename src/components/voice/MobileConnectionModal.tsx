@@ -9,13 +9,20 @@ import { useMobileAudioSession } from '@/hooks/useMobileAudioSession';
 import { formatRemainingTime, getExpirationProgress, EXPIRATION_WARNING_THRESHOLD, getRemainingTime } from '@/utils/webrtcConfig';
 import { useToast } from '@/hooks/use-toast';
 
+interface TranscriptData {
+  text: string;
+  isFinal: boolean;
+  confidence?: number;
+}
+
 interface MobileConnectionModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConnected?: (stream: MediaStream) => void;
+  onTranscript?: (data: TranscriptData) => void;
 }
 
-export function MobileConnectionModal({ open, onOpenChange, onConnected }: MobileConnectionModalProps) {
+export function MobileConnectionModal({ open, onOpenChange, onConnected, onTranscript }: MobileConnectionModalProps) {
   const { toast } = useToast();
   const { 
     session, 
@@ -26,6 +33,7 @@ export function MobileConnectionModal({ open, onOpenChange, onConnected }: Mobil
     endSession, 
     getConnectionUrl,
     isGeneratingToken,
+    onRemoteTranscript,
   } = useMobileAudioSession();
   
   const [copied, setCopied] = useState(false);
@@ -72,6 +80,13 @@ export function MobileConnectionModal({ open, onOpenChange, onConnected }: Mobil
       onConnected(remoteStream);
     }
   }, [remoteStream, onConnected]);
+
+  // Register transcript callback
+  useEffect(() => {
+    if (onTranscript) {
+      onRemoteTranscript(onTranscript);
+    }
+  }, [onTranscript, onRemoteTranscript]);
 
   const handleCopyLink = async () => {
     const url = getConnectionUrl();

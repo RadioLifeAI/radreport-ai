@@ -10,6 +10,12 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { getAppUrl } from '@/utils/appConfig';
 
+interface TranscriptData {
+  text: string;
+  isFinal: boolean;
+  confidence?: number;
+}
+
 interface UseMobileAudioSessionReturn {
   session: MobileSession | null;
   connectionState: ConnectionState;
@@ -19,6 +25,7 @@ interface UseMobileAudioSessionReturn {
   endSession: () => Promise<void>;
   getConnectionUrl: () => string;
   isGeneratingToken: boolean;
+  onRemoteTranscript: (callback: (data: TranscriptData) => void) => void;
 }
 
 export function useMobileAudioSession(): UseMobileAudioSessionReturn {
@@ -31,6 +38,12 @@ export function useMobileAudioSession(): UseMobileAudioSessionReturn {
   
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const transcriptCallbackRef = useRef<((data: TranscriptData) => void) | null>(null);
+
+  // Register callback for remote transcripts
+  const onRemoteTranscript = useCallback((callback: (data: TranscriptData) => void) => {
+    transcriptCallbackRef.current = callback;
+  }, []);
 
   // Cleanup function
   const cleanup = useCallback(() => {
@@ -182,10 +195,20 @@ export function useMobileAudioSession(): UseMobileAudioSessionReturn {
               });
             } else if (message.type === 'ice-candidate' && message.candidate) {
               await pc.addIceCandidate(new RTCIceCandidate(message.candidate));
-            } else if (message.type === 'mode-change') {
+          } else if (message.type === 'mode-change') {
               setCurrentMode(message.mode);
             } else if (message.type === 'heartbeat') {
               console.log('[MobileAudio] Heartbeat received from mobile');
+            } else if (message.type === 'transcript') {
+              // Forward transcript to registered callback
+              console.log('[MobileAudio] Transcript received:', message.isFinal ? 'FINAL' : 'interim', message.text.substring(0, 50));
+              if (transcriptCallbackRef.current) {
+                transcriptCallbackRef.current({
+                  text: message.text,
+                  isFinal: message.isFinal,
+                  confidence: message.confidence,
+                });
+              }
             } else if (message.type === 'disconnect') {
               cleanup();
               setSession(null);
@@ -267,5 +290,6 @@ export function useMobileAudioSession(): UseMobileAudioSessionReturn {
     endSession,
     getConnectionUrl,
     isGeneratingToken,
+    onRemoteTranscript,
   };
 }

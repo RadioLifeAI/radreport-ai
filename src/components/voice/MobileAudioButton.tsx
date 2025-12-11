@@ -4,15 +4,23 @@ import { Badge } from '@/components/ui/badge';
 import { Smartphone, Wifi } from 'lucide-react';
 import { MobileConnectionModal } from './MobileConnectionModal';
 
+interface TranscriptData {
+  text: string;
+  isFinal: boolean;
+  confidence?: number;
+}
+
 interface MobileAudioButtonProps {
   isConnected?: boolean;
   onStreamReceived?: (stream: MediaStream) => void;
+  onTranscript?: (data: TranscriptData) => void;
   className?: string;
 }
 
 export function MobileAudioButton({ 
   isConnected = false, 
   onStreamReceived,
+  onTranscript,
   className 
 }: MobileAudioButtonProps) {
   const [modalOpen, setModalOpen] = useState(false);
@@ -42,6 +50,7 @@ export function MobileAudioButton({
         open={modalOpen}
         onOpenChange={setModalOpen}
         onConnected={onStreamReceived}
+        onTranscript={onTranscript}
       />
     </>
   );

@@ -33,6 +33,12 @@ interface UseDictationOptions {
   remoteStream?: MediaStream | null;
 }
 
+interface RemoteTranscriptData {
+  text: string;
+  isFinal: boolean;
+  confidence?: number;
+}
+
 interface UseDictationReturn {
   isActive: boolean
   status: 'idle' | 'waiting' | 'listening'
@@ -45,6 +51,9 @@ interface UseDictationReturn {
   isAICorrectorEnabled: boolean
   toggleAICorrector: () => void
   setRemoteStream: (stream: MediaStream | null) => void
+  processRemoteTranscript: (data: RemoteTranscriptData) => void
+  isRemoteDictationActive: boolean
+  setRemoteDictationActive: (active: boolean) => void
 }
 
 // Constantes para controle de reinício
@@ -58,6 +67,7 @@ export function useDictation(editor: Editor | null, options?: UseDictationOption
   const [isTranscribing, setIsTranscribing] = useState(false)
   const [stats, setStats] = useState({ total: 0, success: 0, failed: 0 })
   const [isAICorrectorEnabled, setIsAICorrectorEnabled] = useState(false)
+  const [isRemoteDictationActive, setIsRemoteDictationActive] = useState(false)
 
   const { balance, hasEnoughCredits, checkQuota } = useWhisperCredits()
   const { hasEnoughCredits: hasEnoughAICredits, refreshBalance: refreshAIBalance } = useAICredits()
@@ -544,6 +554,64 @@ export function useDictation(editor: Editor | null, options?: UseDictationOption
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
   }, [isActive, stopDictation])
 
+  /**
+   * Process remote transcript from mobile (WebSpeech via Realtime)
+   */
+  const processRemoteTranscript = useCallback((data: RemoteTranscriptData) => {
+    if (!editorRef.current || !isRemoteDictationActive) return
+
+    const { text: transcript, isFinal, confidence } = data
+
+    // Inicializar âncora se necessário
+    if (anchorRef.current === null) {
+      anchorRef.current = editorRef.current.state.selection.from
+      // Salvar posição inicial para Corretor AI
+      if (dictationStartRef.current === null) {
+        dictationStartRef.current = anchorRef.current
+      }
+    }
+
+    if (!isFinal) {
+      // INTERIM: preview em tempo real
+      const anchor = anchorRef.current
+      const prevLength = interimLengthRef.current
+
+      if (prevLength > 0) {
+        editorRef.current.view.dispatch(
+          editorRef.current.state.tr.delete(anchor, anchor + prevLength)
+        )
+      }
+
+      editorRef.current.view.dispatch(
+        editorRef.current.state.tr.insertText(transcript, anchor)
+      )
+
+      interimLengthRef.current = transcript.length
+    } else {
+      // FINAL: processar e inserir
+      if (anchorRef.current !== null && interimLengthRef.current > 0) {
+        editorRef.current.view.dispatch(
+          editorRef.current.state.tr.delete(
+            anchorRef.current,
+            anchorRef.current + interimLengthRef.current
+          )
+        )
+      }
+
+      // Acumular RAW transcript para Corretor AI
+      rawTranscriptRef.current += (rawTranscriptRef.current ? ' ' : '') + transcript
+
+      // Processar comandos de voz
+      processVoiceInput(transcript, editorRef.current)
+
+      // Reset anchor
+      anchorRef.current = null
+      interimLengthRef.current = 0
+      
+      console.log('[Dictation] Remote transcript processed:', transcript.substring(0, 50))
+    }
+  }, [isRemoteDictationActive])
+
   return {
     isActive,
     status,
@@ -556,6 +624,9 @@ export function useDictation(editor: Editor | null, options?: UseDictationOption
     isAICorrectorEnabled,
     toggleAICorrector,
     setRemoteStream,
+    processRemoteTranscript,
+    isRemoteDictationActive,
+    setRemoteDictationActive: setIsRemoteDictationActive,
   }
 }
 
