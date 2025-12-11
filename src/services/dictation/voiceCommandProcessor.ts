@@ -24,76 +24,77 @@ const PUNCTUATION_COMMANDS: Array<{ pattern: string; replacement: string }> = [
   { pattern: 'hífen', replacement: '-' },
   { pattern: 'travessão', replacement: '—' },
   { pattern: 'a crase', replacement: 'à' },
-  { pattern: 'crase', replacement: 'à' },
-  { pattern: 'barra', replacement: '/' },
-  { pattern: 'aspas', replacement: '"' },
-  { pattern: 'interrogação', replacement: '?' },
-  { pattern: 'exclamação', replacement: '!' },
+  { pattern: 'barra normal', replacement: '/' },
+  { pattern: 'abre aspas', replacement: '"' },
+  { pattern: 'fecha aspas', replacement: '"' },
 ]
 
 /**
- * Comandos estruturais (não devem ser processados como texto)
+ * Comandos estruturais - SEGUROS (2+ palavras)
  */
 const STRUCTURAL_COMMANDS = [
   'nova linha',
   'próxima linha',
-  'linha',
+  'quebra de linha',
   'novo parágrafo',
   'próximo parágrafo',
-  'parágrafo',
+  'pular parágrafo',
 ]
 
 /**
- * Comandos de edição
+ * Comandos de edição - SEGUROS (2+ palavras)
  */
 const EDITING_COMMANDS = [
   'apagar isso',
   'apagar palavra',
-  'apagar',
   'apagar linha',
   'apagar tudo',
   'desfazer',
   'desfaz',
   'refazer',
-  'cancelar',
+  'cancelar ditado',
 ]
 
 /**
- * Comandos de formatação
+ * Comandos de formatação - SEGUROS (exigir 2+ palavras)
  */
 const FORMATTING_COMMANDS = [
-  'negrito',
-  'itálico',
-  'sublinhado',
+  'texto negrito',
+  'texto itálico',
+  'texto sublinhado',
   'remover formatação',
   'limpar formatação',
+  'alinhar à esquerda',
   'alinhar esquerda',
   'alinhar centro',
-  'centralizar',
+  'centralizar texto',
+  'alinhar à direita',
   'alinhar direita',
-  'alinhar justificado',
-  'justificar',
+  'texto justificado',
+  'justificar texto',
   'tudo maiúsculo',
-  'maiúsculas',
+  'letras maiúsculas',
   'caixa alta',
   'tudo minúsculo',
-  'minúsculas',
+  'letras minúsculas',
   'caixa baixa',
-  'lista',
+  'criar lista',
   'lista numerada',
 ]
 
 /**
- * Comandos de navegação
+ * Comandos de navegação - SEGUROS (exigir 2+ palavras)
  */
 const NAVIGATION_COMMANDS = [
   'próximo campo',
+  'campo anterior',
   'ir para início',
-  'início',
   'ir para fim',
-  'fim',
+  'ir para conclusão',
+  'ir para impressão',
+  'ir para técnica',
+  'ir para relatório',
   'selecionar tudo',
-  'procurar',
 ]
 
 /**
@@ -102,8 +103,9 @@ const NAVIGATION_COMMANDS = [
 const SPECIAL_COMMANDS = [
   'inserir data',
   'data atual',
-  'hoje',
+  'data de hoje',
   'inserir hora',
+  'hora atual',
 ]
 
 /**
@@ -267,25 +269,25 @@ export function transformToLowercase(editor: Editor): void {
 }
 
 /**
- * Processa comandos de formatação
+ * Processa comandos de formatação - exigir frases completas
  */
 export function processFormattingCommand(text: string, editor: Editor): boolean {
   const lower = text.toLowerCase().trim()
   
   // Negrito
-  if (lower === 'negrito') {
+  if (lower === 'texto negrito' || lower === 'formatação negrito' || lower === 'aplicar negrito') {
     editor.chain().focus().toggleBold().run()
     return true
   }
   
   // Itálico
-  if (lower === 'itálico') {
+  if (lower === 'texto itálico' || lower === 'formatação itálico' || lower === 'aplicar itálico') {
     editor.chain().focus().toggleItalic().run()
     return true
   }
   
   // Sublinhado
-  if (lower === 'sublinhado') {
+  if (lower === 'texto sublinhado' || lower === 'sublinhar texto' || lower === 'aplicar sublinhado') {
     editor.chain().focus().toggleUnderline().run()
     return true
   }
@@ -296,40 +298,40 @@ export function processFormattingCommand(text: string, editor: Editor): boolean 
     return true
   }
   
-  // Alinhamentos
-  if (lower === 'alinhar esquerda') {
+  // Alinhamentos - exigir frases completas
+  if (lower === 'alinhar à esquerda' || lower === 'alinhar esquerda' || lower === 'texto à esquerda') {
     editor.chain().focus().setTextAlign('left').run()
     return true
   }
-  if (lower === 'alinhar centro' || lower === 'centralizar') {
+  if (lower === 'alinhar centro' || lower === 'centralizar texto' || lower === 'texto centralizado') {
     editor.chain().focus().setTextAlign('center').run()
     return true
   }
-  if (lower === 'alinhar direita') {
+  if (lower === 'alinhar à direita' || lower === 'alinhar direita' || lower === 'texto à direita') {
     editor.chain().focus().setTextAlign('right').run()
     return true
   }
-  if (lower === 'alinhar justificado' || lower === 'justificar') {
+  if (lower === 'texto justificado' || lower === 'justificar texto' || lower === 'alinhar justificado') {
     editor.chain().focus().setTextAlign('justify').run()
     return true
   }
   
   // Maiúsculas/Minúsculas
-  if (lower === 'tudo maiúsculo' || lower === 'maiúsculas' || lower === 'caixa alta') {
+  if (lower === 'tudo maiúsculo' || lower === 'letras maiúsculas' || lower === 'caixa alta') {
     transformToUppercase(editor)
     return true
   }
-  if (lower === 'tudo minúsculo' || lower === 'minúsculas' || lower === 'caixa baixa') {
+  if (lower === 'tudo minúsculo' || lower === 'letras minúsculas' || lower === 'caixa baixa') {
     transformToLowercase(editor)
     return true
   }
   
   // Listas
-  if (lower === 'lista') {
+  if (lower === 'criar lista' || lower === 'lista com marcadores' || lower === 'inserir lista') {
     editor.chain().focus().toggleBulletList().run()
     return true
   }
-  if (lower === 'lista numerada') {
+  if (lower === 'lista numerada' || lower === 'lista ordenada' || lower === 'criar lista numerada') {
     editor.chain().focus().toggleOrderedList().run()
     return true
   }
@@ -338,22 +340,27 @@ export function processFormattingCommand(text: string, editor: Editor): boolean 
 }
 
 /**
- * Processa comandos de navegação
+ * Processa comandos de navegação - exigir frases completas
  */
 export function processNavigationCommand(text: string, editor: Editor): boolean {
   const lower = text.toLowerCase().trim()
   
-  if (lower === 'próximo campo') {
+  if (lower === 'próximo campo' || lower === 'campo seguinte') {
     goToNextField(editor)
     return true
   }
   
-  if (lower === 'ir para início' || lower === 'início') {
+  if (lower === 'campo anterior' || lower === 'voltar campo') {
+    // TODO: Implementar navegação reversa
+    return true
+  }
+  
+  if (lower === 'ir para início' || lower === 'ir para o início' || lower === 'início do documento') {
     editor.chain().focus().setTextSelection(0).run()
     return true
   }
   
-  if (lower === 'ir para fim' || lower === 'fim') {
+  if (lower === 'ir para fim' || lower === 'ir para o fim' || lower === 'fim do documento' || lower === 'ir para final') {
     const endPos = editor.state.doc.content.size
     editor.chain().focus().setTextSelection(endPos).run()
     return true
@@ -383,14 +390,14 @@ export function processSpecialCommand(text: string, editor: Editor): boolean {
   const lower = text.toLowerCase().trim()
   
   // Inserir data
-  if (lower === 'inserir data' || lower === 'data atual' || lower === 'hoje') {
+  if (lower === 'inserir data' || lower === 'data atual' || lower === 'data de hoje') {
     const today = new Date().toLocaleDateString('pt-BR')
     editor.chain().focus().insertContent(today + ' ').run()
     return true
   }
   
   // Inserir hora
-  if (lower === 'inserir hora') {
+  if (lower === 'inserir hora' || lower === 'hora atual') {
     const now = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
     editor.chain().focus().insertContent(now + ' ').run()
     return true
@@ -408,7 +415,7 @@ export function isPureCommand(text: string): boolean {
   const allCommands = [
     ...EDITING_COMMANDS,
     ...FORMATTING_COMMANDS,
-    ...NAVIGATION_COMMANDS.filter(c => c !== 'procurar'),
+    ...NAVIGATION_COMMANDS,
     ...SPECIAL_COMMANDS,
   ]
   
@@ -416,23 +423,33 @@ export function isPureCommand(text: string): boolean {
 }
 
 /**
- * Processa entrada de voz com Voice Command Engine + fallback
- * FASE 2: Integração com novo engine
+ * Processa entrada de voz com Voice Command Engine + validação de segurança
+ * FASE 2+4: Integração com engine + proteção anti-colisão
  */
 export async function processVoiceInputWithEngine(text: string, editor: Editor): Promise<boolean> {
   if (!text.trim()) return false
 
   try {
-    // Tentar processar via Voice Command Engine primeiro
+    // Importar módulos de segurança
     const { getVoiceEngine } = await import('@/lib/voiceEngine')
+    const { getRecommendedAction } = await import('@/modules/voice-command-engine/safetyGuard')
+    
     const engine = getVoiceEngine()
     
     if (engine.getState().isReady) {
       const result = await engine.processTranscript(text)
-      if (result && result.score < 0.5) {
-        // Comando encontrado com boa confiança
-        console.log('🎯 Voice Engine executou:', result.command.name, `(score: ${result.score.toFixed(2)})`)
+      
+      // Usar sistema de segurança para decidir ação
+      const action = getRecommendedAction(result, text)
+      
+      if (action === 'execute' && result) {
+        console.log(`✅ Comando seguro: "${result.command.name}" (score: ${result.score.toFixed(2)})`)
         return true
+      } else if (action === 'insert_text') {
+        console.log(`📝 Inserindo como texto: "${text.substring(0, 50)}..."`)
+        // Fallback para processamento de texto
+        processVoiceInput(text, editor)
+        return false
       }
     }
   } catch (err) {
@@ -452,8 +469,8 @@ export function processVoiceInput(text: string, editor: Editor): void {
 
   const lower = text.toLowerCase().trim()
 
-  // 1. Comandos de edição (alta prioridade)
-  if (lower.includes('apagar isso') || lower === 'apagar' || lower === 'apagar palavra') {
+  // 1. Comandos de edição (alta prioridade) - exigir frases completas
+  if (lower === 'apagar isso' || lower === 'apagar palavra') {
     deleteLastWord(editor)
     return
   }
@@ -461,15 +478,15 @@ export function processVoiceInput(text: string, editor: Editor): void {
     deleteCurrentLine(editor)
     return
   }
-  if (lower === 'apagar tudo') {
+  if (lower === 'apagar tudo' || lower === 'limpar tudo') {
     editor.chain().focus().clearContent().run()
     return
   }
-  if (lower.includes('desfazer') || lower.includes('desfaz')) {
+  if (lower === 'desfazer' || lower === 'desfaz') {
     editor.commands.undo()
     return
   }
-  if (lower.includes('refazer')) {
+  if (lower === 'refazer') {
     editor.commands.redo()
     return
   }
@@ -496,55 +513,31 @@ export function processVoiceInput(text: string, editor: Editor): void {
     if (segment.type === 'command') {
       // Executar comando estrutural
       const cmd = segment.content.toLowerCase()
-      if (cmd === 'nova linha' || cmd === 'próxima linha' || cmd === 'linha') {
+      if (cmd === 'nova linha' || cmd === 'próxima linha' || cmd === 'quebra de linha') {
         editor.commands.setHardBreak()
-      } else if (cmd === 'novo parágrafo' || cmd === 'próximo parágrafo' || cmd === 'parágrafo') {
-        editor.chain().focus().insertContent('.</p><p>').run()
+      } else if (cmd === 'novo parágrafo' || cmd === 'próximo parágrafo' || cmd === 'pular parágrafo') {
+        editor.commands.splitBlock()
       }
     } else {
-      // 6. Processar texto com pontuação
-      let processedText = replacePunctuationCommands(segment.content)
+      // Inserir texto com pontuação processada
+      let processedText = segment.content
       
-      // Aplicar correções médicas
+      // Aplicar substituição de pontuação
+      processedText = replacePunctuationCommands(processedText)
+      
+      // Processar texto médico
       processedText = processMedicalText(processedText)
       
-      // Aplicar capitalização se necessário
-      const currentPos = editor.state.selection.from
-      const docText = editor.state.doc.textBetween(0, currentPos, ' ', ' ')
-      if (shouldCapitalizeNext(docText, currentPos)) {
+      // Aplicar capitalização
+      const docContent = editor.state.doc.textContent
+      if (docContent.length === 0 || /[.!?]\s*$/.test(docContent)) {
         processedText = applyCapitalization(processedText)
       }
       
-      // Inserir texto com cor de ditado
-      const insertPos = editor.state.selection.from
-      const textWithSpace = processedText + ' '
-      
-      editor.chain()
-        .focus()
-        .insertContent(textWithSpace)
-        .setTextSelection({ from: insertPos, to: insertPos + textWithSpace.length })
-        .setColor('var(--highlight-dictation)')
-        .setTextSelection(insertPos + textWithSpace.length)
-        .run()
+      // Inserir no editor
+      if (processedText.trim()) {
+        editor.chain().focus().insertContent(processedText + ' ').run()
+      }
     }
   }
-}
-
-/**
- * Extrai comandos de voz do texto para processamento separado
- */
-export function extractVoiceCommands(text: string): { text: string; commands: string[] } {
-  const commands: string[] = []
-  let processedText = text
-  
-  // Extrair comandos de formatação
-  for (const cmd of FORMATTING_COMMANDS) {
-    const regex = new RegExp(`\\b${cmd}\\b`, 'gi')
-    if (regex.test(processedText)) {
-      commands.push(cmd)
-      processedText = processedText.replace(regex, '').trim()
-    }
-  }
-  
-  return { text: processedText, commands }
 }

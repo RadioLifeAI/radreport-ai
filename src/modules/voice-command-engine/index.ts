@@ -53,3 +53,13 @@ export {
   loadAllCommands, // Legacy - deprecado
   type CommandStats,
 } from './commandLoader';
+
+// Safety Guard (proteção anti-colisão)
+export {
+  validateCommandSafety,
+  getRecommendedAction,
+  hasSafeCommandPrefix,
+  isProtectedMedicalPhrase,
+  PROTECTED_MEDICAL_WORDS,
+  SAFE_COMMAND_PREFIXES,
+} from './safetyGuard';
