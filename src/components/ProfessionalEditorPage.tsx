@@ -4,6 +4,7 @@ import { useTemplates } from '@/hooks/useTemplates'
 import { useFrasesModelo, FraseModelo } from '@/hooks/useFrasesModelo'
 import { useDictation } from '@/hooks/useDictation'
 import { useVoiceEngine } from '@/hooks/useVoiceEngine'
+import { searchTemplates, searchFrases, SearchContext } from '@/modules/voice-command-engine/dynamicSearch'
 import { useNavigate } from 'react-router-dom'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { SimpleEditor } from '@/components/tiptap-templates/simple/simple-editor'
@@ -294,14 +295,99 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
     toast.success(`Frase "${frase.codigo}" inserida por voz`)
   }, [frases, needsFraseVariableInput, editorInstance, hookApplyFrase])
 
+  // Intent Detection: Callback para busca dinâmica de templates por query
+  const handleSearchTemplate = useCallback((query: string, context: SearchContext) => {
+    console.log('[VoiceEngine] Buscando template:', query, context)
+    
+    // Busca dinâmica com boost contextual
+    const match = searchTemplates(query, templates as any, context)
+    
+    if (match) {
+      // Encontrar template completo para verificar variáveis
+      const fullTemplate = templates.find(t => t.id === match.id)
+      if (fullTemplate) {
+        if (needsVariableInput(fullTemplate)) {
+          setSelectedTemplateForVariables(fullTemplate as TemplateWithVariables)
+          setTemplateVariablesModalOpen(true)
+        } else {
+          hookApplyTemplate(fullTemplate)
+        }
+        toast.success(`Template "${fullTemplate.titulo}" aplicado por voz`)
+      }
+    } else {
+      toast.info(`Nenhum template encontrado para: "${query}"`)
+    }
+  }, [templates, needsVariableInput, hookApplyTemplate])
+
+  // Intent Detection: Callback para busca dinâmica de frases por query
+  const handleSearchFrase = useCallback((query: string, context: SearchContext) => {
+    console.log('[VoiceEngine] Buscando frase:', query, context)
+    
+    // Busca dinâmica com boost contextual
+    const match = searchFrases(query, frases as any, context)
+    
+    if (match) {
+      // Encontrar frase completa
+      const fullFrase = frases.find(f => f.id === match.id)
+      if (fullFrase) {
+        if (needsFraseVariableInput(fullFrase)) {
+          setSelectedFraseForVariables(fullFrase)
+          setVariablesModalOpen(true)
+        } else {
+          // Aplicar diretamente
+          if (editorInstance) {
+            const texto = fullFrase.frase || ''
+            const conclusao = fullFrase.conclusao
+            
+            const wrapInParagraph = (t: string) => t.startsWith('<p>') || t.startsWith('<h') ? t : `<p>${t}</p>`
+            
+            if (texto) {
+              editorInstance.commands.insertContent(wrapInParagraph(texto))
+            }
+            
+            if (conclusao) {
+              const html = editorInstance.getHTML()
+              const impressaoMatch = html.match(/<h[1-6][^>]*>\s*(IMPRESSÃO|CONCLUSÃO|Impressão|Conclusão)\s*<\/h[1-6]>/i)
+              
+              if (impressaoMatch) {
+                const impressaoIndex = html.indexOf(impressaoMatch[0])
+                const afterImpressao = html.substring(impressaoIndex + impressaoMatch[0].length)
+                const nextHeadingMatch = afterImpressao.match(/<h[1-6][^>]*>/)
+                
+                if (nextHeadingMatch) {
+                  const insertPos = impressaoIndex + impressaoMatch[0].length + afterImpressao.indexOf(nextHeadingMatch[0])
+                  const newHtml = html.slice(0, insertPos) + `<p>- ${conclusao}</p>` + html.slice(insertPos)
+                  editorInstance.commands.setContent(newHtml)
+                } else {
+                  editorInstance.commands.insertContent(`<p>- ${conclusao}</p>`)
+                }
+              } else {
+                editorInstance.commands.insertContent(`<h3>IMPRESSÃO</h3>`)
+                editorInstance.commands.insertContent(`<p>- ${conclusao}</p>`)
+              }
+            }
+            hookApplyFrase(fullFrase)
+          }
+        }
+        toast.success(`Frase "${fullFrase.codigo}" inserida por voz`)
+      }
+    } else {
+      toast.info(`Nenhuma frase encontrada para: "${query}"`)
+    }
+  }, [frases, needsFraseVariableInput, editorInstance, hookApplyFrase])
+
   // Voice Command Engine - integra com templates e frases para comandos avançados
   const { isReady: voiceEngineReady, stats: voiceStats } = useVoiceEngine({
     editor: editorInstance,
     templates: templates,
     frases: frases,
     debug: false,
+    // Callbacks legados (por ID)
     onTemplateDetected: handleVoiceTemplateDetected,
     onFraseDetected: handleVoiceFraseDetected,
+    // Intent Detection: Callbacks de busca dinâmica (por query)
+    onSearchTemplate: handleSearchTemplate,
+    onSearchFrase: handleSearchFrase,
   })
 
   const frasesAsMacros = frases.map(convertFraseToMacro)
