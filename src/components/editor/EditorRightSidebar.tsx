@@ -106,6 +106,7 @@ interface EditorRightSidebarProps {
   onMobileTranscript?: (data: TranscriptData) => void
   onMobileDisconnected?: () => void
   onMobileStop?: () => void
+  onMobileStart?: (mode: string) => void
   isMobileConnected?: boolean
   isRemoteDictating?: boolean
 }
@@ -132,6 +133,7 @@ export function EditorRightSidebar({
   onMobileTranscript,
   onMobileDisconnected,
   onMobileStop,
+  onMobileStart,
   isMobileConnected = false,
   isRemoteDictating = false,
 }: EditorRightSidebarProps) {
@@ -426,6 +428,7 @@ export function EditorRightSidebar({
               onTranscript={onMobileTranscript}
               onRemoteStop={onMobileStop}
               onRemoteDisconnect={onMobileDisconnected}
+              onRemoteStart={onMobileStart}
             />
             
             <div className="text-[10px] text-muted-foreground leading-relaxed space-y-1">

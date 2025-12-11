@@ -28,6 +28,7 @@ interface UseMobileAudioSessionReturn {
   onRemoteTranscript: (callback: (data: TranscriptData) => void) => void;
   onRemoteStop: (callback: () => void) => void;
   onRemoteDisconnect: (callback: () => void) => void;
+  onRemoteStart: (callback: (mode: string) => void) => void;
 }
 
 export function useMobileAudioSession(): UseMobileAudioSessionReturn {
@@ -43,6 +44,7 @@ export function useMobileAudioSession(): UseMobileAudioSessionReturn {
   const transcriptCallbackRef = useRef<((data: TranscriptData) => void) | null>(null);
   const stopCallbackRef = useRef<(() => void) | null>(null);
   const disconnectCallbackRef = useRef<(() => void) | null>(null);
+  const startCallbackRef = useRef<((mode: string) => void) | null>(null);
 
   // Register callback for remote transcripts
   const onRemoteTranscript = useCallback((callback: (data: TranscriptData) => void) => {
@@ -57,6 +59,11 @@ export function useMobileAudioSession(): UseMobileAudioSessionReturn {
   // Register callback for remote disconnect (ends session)
   const onRemoteDisconnect = useCallback((callback: () => void) => {
     disconnectCallbackRef.current = callback;
+  }, []);
+
+  // Register callback for remote start (activates remote dictation)
+  const onRemoteStart = useCallback((callback: (mode: string) => void) => {
+    startCallbackRef.current = callback;
   }, []);
 
   // Cleanup function
@@ -211,6 +218,13 @@ export function useMobileAudioSession(): UseMobileAudioSessionReturn {
               await pc.addIceCandidate(new RTCIceCandidate(message.candidate));
           } else if (message.type === 'mode-change') {
               setCurrentMode(message.mode);
+            } else if (message.type === 'start-dictation') {
+              // Mobile started dictation - activate remote dictation on desktop
+              console.log('[MobileAudio] Start-dictation received, mode:', message.mode);
+              setCurrentMode(message.mode);
+              if (startCallbackRef.current) {
+                startCallbackRef.current(message.mode);
+              }
             } else if (message.type === 'heartbeat') {
               console.log('[MobileAudio] Heartbeat received from mobile');
             } else if (message.type === 'transcript') {
@@ -318,5 +332,6 @@ export function useMobileAudioSession(): UseMobileAudioSessionReturn {
     onRemoteTranscript,
     onRemoteStop,
     onRemoteDisconnect,
+    onRemoteStart,
   };
 }

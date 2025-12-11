@@ -566,7 +566,13 @@ export function useDictation(editor: Editor | null, options?: UseDictationOption
    * Process remote transcript from mobile (WebSpeech via Realtime)
    */
   const processRemoteTranscript = useCallback((data: RemoteTranscriptData) => {
-    if (!editorRef.current || !isRemoteDictationActive) return
+    if (!editorRef.current) return
+
+    // Auto-activate if receiving transcripts (fallback safety)
+    if (!isRemoteDictationActive) {
+      console.log('[Dictation] Auto-activating remote dictation from incoming transcript')
+      setIsRemoteDictationActive(true)
+    }
 
     const { text: transcript, isFinal, confidence } = data
 
