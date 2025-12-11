@@ -54,6 +54,7 @@ interface UseDictationReturn {
   processRemoteTranscript: (data: RemoteTranscriptData) => void
   isRemoteDictationActive: boolean
   setRemoteDictationActive: (active: boolean) => void
+  handleRemoteStop: () => Promise<void>
 }
 
 // Constantes para controle de reinício
@@ -121,6 +122,12 @@ export function useDictation(editor: Editor | null, options?: UseDictationOption
    */
   const startDictation = useCallback(async (): Promise<MediaStream | null> => {
     if (!editorRef.current) return null
+
+    // Block local dictation when mobile is active
+    if (isRemoteDictationActive) {
+      toast.info('Ditado via celular ativo. Pare o celular para usar localmente.')
+      return null
+    }
 
     try {
       setStatus('waiting')
@@ -351,7 +358,7 @@ export function useDictation(editor: Editor | null, options?: UseDictationOption
       setStatus('idle')
       return null
     }
-  }, [isWhisperEnabled, checkQuota])
+  }, [isWhisperEnabled, checkQuota, isRemoteDictationActive])
 
   /**
    * Stop dictation
@@ -612,6 +619,71 @@ export function useDictation(editor: Editor | null, options?: UseDictationOption
     }
   }, [isRemoteDictationActive])
 
+  /**
+   * Handle remote stop - trigger Corretor AI if enabled
+   */
+  const handleRemoteStop = useCallback(async (): Promise<void> => {
+    console.log('[Dictation] Remote stop received - raw transcript:', rawTranscriptRef.current.substring(0, 100))
+    
+    // Apply Corretor AI if enabled and we have transcript
+    if (isAICorrectorEnabled && editorRef.current && dictationStartRef.current !== null) {
+      const startPos = dictationStartRef.current
+      const endPos = editorRef.current.state.selection.from
+      const rawText = rawTranscriptRef.current.trim()
+      
+      if (rawText.length > 10) {
+        console.log('🪄 [Remote] Aplicando Corretor AI:', rawText.substring(0, 100))
+        setIsTranscribing(true)
+        
+        try {
+          const { data: { user } } = await supabase.auth.getUser()
+          
+          const data = await invokeEdgeFunction<{ corrected: string; fallback?: boolean; reason?: string }>(
+            'ai-dictation-polish',
+            { text: rawText, user_id: user?.id }
+          )
+          
+          if (data?.corrected !== undefined && !data.fallback) {
+            const htmlContent = convertNewlinesToHTML(data.corrected)
+            const textLength = data.corrected.length
+            
+            editorRef.current.chain()
+              .deleteRange({ from: startPos, to: endPos })
+              .insertContent(htmlContent)
+              .setTextSelection({ from: startPos, to: startPos + textLength })
+              .setColor('var(--highlight-ai-corrector)')
+              .setTextSelection(startPos + textLength)
+              .run()
+            
+            console.log('✅ [Remote] Corretor AI aplicado:', htmlContent.substring(0, 80))
+            toast.success('Texto corrigido com IA')
+          } else if (data?.fallback) {
+            toast.info('Texto mantido (sem alterações necessárias)')
+          }
+        } catch (err: any) {
+          console.error('❌ [Remote] Erro no Corretor AI:', err)
+          if (err?.message?.includes('INSUFFICIENT_CREDITS') || err?.status === 402) {
+            toast.error('Créditos AI insuficientes')
+            setIsAICorrectorEnabled(false)
+          } else {
+            toast.error('Erro ao corrigir texto')
+          }
+        } finally {
+          setIsTranscribing(false)
+          refreshAIBalance()
+        }
+      }
+    }
+    
+    // Reset states for next dictation
+    anchorRef.current = null
+    interimLengthRef.current = 0
+    dictationStartRef.current = null
+    rawTranscriptRef.current = ''
+    
+    console.log('[Dictation] Remote dictation session ended')
+  }, [isAICorrectorEnabled, refreshAIBalance])
+
   return {
     isActive,
     status,
@@ -627,6 +699,7 @@ export function useDictation(editor: Editor | null, options?: UseDictationOption
     processRemoteTranscript,
     isRemoteDictationActive,
     setRemoteDictationActive: setIsRemoteDictationActive,
+    handleRemoteStop,
   }
 }
 

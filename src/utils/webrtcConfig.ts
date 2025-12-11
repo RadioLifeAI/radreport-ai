@@ -33,7 +33,8 @@ export type SignalingMessage =
   | { type: 'pause' }
   | { type: 'resume' }
   | { type: 'renew'; newExpiresAt: string }
-  | { type: 'transcript'; text: string; isFinal: boolean; confidence?: number };
+  | { type: 'transcript'; text: string; isFinal: boolean; confidence?: number }
+  | { type: 'stop-dictation' };
 
 export type ConnectionState = 'disconnected' | 'connecting' | 'connected' | 'error';
 

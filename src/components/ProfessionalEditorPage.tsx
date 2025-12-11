@@ -103,6 +103,8 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
     setRemoteStream,
     processRemoteTranscript,
     setRemoteDictationActive,
+    isRemoteDictationActive,
+    handleRemoteStop,
   } = useDictation(editorInstance)
 
   // Mobile audio connection state
@@ -906,7 +908,9 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
           onMobileStreamReceived={handleMobileStreamReceived}
           onMobileTranscript={processRemoteTranscript}
           onMobileDisconnected={handleMobileDisconnected}
+          onMobileStop={handleRemoteStop}
           isMobileConnected={mobileAudioConnected}
+          isRemoteDictating={isRemoteDictationActive}
         />
       </div>
       

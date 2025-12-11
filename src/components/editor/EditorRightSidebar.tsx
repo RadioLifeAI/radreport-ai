@@ -25,7 +25,8 @@ function VoiceControlsSection({
   onVoiceStart,
   onVoiceStop,
   isTranscribing,
-  mediaStream
+  mediaStream,
+  isRemoteDictating
 }: {
   isVoiceActive: boolean
   voiceStatus: 'idle' | 'listening' | 'waiting'
@@ -33,6 +34,7 @@ function VoiceControlsSection({
   onVoiceStop: () => void
   isTranscribing?: boolean
   mediaStream?: MediaStream | null
+  isRemoteDictating?: boolean
 }) {
   const [voiceCommandsOpen, setVoiceCommandsOpen] = useState(false)
 
@@ -55,9 +57,14 @@ function VoiceControlsSection({
         onStart={onVoiceStart}
         onStop={onVoiceStop}
         isTranscribing={isTranscribing}
+        isRemoteDictating={isRemoteDictating}
       />
 
-      <SpeechStatusPanel mediaStream={mediaStream} />
+      <SpeechStatusPanel 
+        mediaStream={mediaStream} 
+        isActive={isVoiceActive}
+        isRemoteDictating={isRemoteDictating}
+      />
 
       <VoiceCommandsSheet 
         open={voiceCommandsOpen} 
@@ -98,7 +105,9 @@ interface EditorRightSidebarProps {
   onMobileStreamReceived?: (stream: MediaStream) => void
   onMobileTranscript?: (data: TranscriptData) => void
   onMobileDisconnected?: () => void
+  onMobileStop?: () => void
   isMobileConnected?: boolean
+  isRemoteDictating?: boolean
 }
 
 export function EditorRightSidebar({
@@ -122,7 +131,9 @@ export function EditorRightSidebar({
   onMobileStreamReceived,
   onMobileTranscript,
   onMobileDisconnected,
+  onMobileStop,
   isMobileConnected = false,
+  isRemoteDictating = false,
 }: EditorRightSidebarProps) {
   const [frasesOpen, setFrasesOpen] = useState(false)
   const { recentFrases, favoriteFrases } = useFrasesModelo()
@@ -389,6 +400,7 @@ export function EditorRightSidebar({
             onVoiceStop={onVoiceStop}
             isTranscribing={isTranscribing}
             mediaStream={mediaStream}
+            isRemoteDictating={isRemoteDictating}
           />
 
           {/* Mobile Microphone Section */}
@@ -412,6 +424,7 @@ export function EditorRightSidebar({
               isConnected={isMobileConnected}
               onStreamReceived={onMobileStreamReceived}
               onTranscript={onMobileTranscript}
+              onRemoteStop={onMobileStop}
             />
             
             <div className="text-[10px] text-muted-foreground leading-relaxed space-y-1">
