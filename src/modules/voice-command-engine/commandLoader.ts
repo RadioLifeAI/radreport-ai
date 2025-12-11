@@ -60,7 +60,7 @@ export async function loadFrasesFromSupabase(): Promise<VoiceCommand[]> {
   try {
     const { data, error } = await supabase
       .from('frases_modelo')
-      .select('id, codigo, texto, categoria, modalidade_codigo, tags')
+      .select('id, codigo, texto, categoria, modalidade_codigo, tags, sinônimos, conclusao')
       .eq('ativa', true)
       .limit(1000);
 
@@ -74,14 +74,15 @@ export async function loadFrasesFromSupabase(): Promise<VoiceCommand[]> {
       return [];
     }
 
-    const commands: VoiceCommand[] = (data as FraseRow[]).map((frase) => {
+    const commands: VoiceCommand[] = (data as any[]).map((frase) => {
       // Nome base é o código ou categoria
       const baseName = frase.codigo || frase.categoria || 'frase';
       
-      // Gerar variações para matching
+      // Gerar variações para matching - incluir sinônimos do banco
       const phrases = generatePhraseVariations(
         baseName,
-        frase.tags || undefined
+        frase.tags || undefined,
+        frase.sinônimos || undefined  // Sinônimos do Supabase
       );
       
       // Adicionar categoria como variação
@@ -116,7 +117,7 @@ export async function loadTemplatesFromSupabase(): Promise<VoiceCommand[]> {
   try {
     const { data, error } = await supabase
       .from('system_templates')
-      .select('id, titulo, html_content, modalidade_codigo, regiao_anatomica_codigo, tags, categoria')
+      .select('id, titulo, conteudo_template, modalidade_codigo, regiao_codigo, tags, categoria')
       .eq('ativo', true)
       .limit(500);
 
@@ -144,8 +145,8 @@ export async function loadTemplatesFromSupabase(): Promise<VoiceCommand[]> {
         phrases.push(`${template.modalidade_codigo} ${baseName}`.toLowerCase());
         phrases.push(template.modalidade_codigo.toLowerCase());
       }
-      if (template.regiao_anatomica_codigo) {
-        phrases.push(template.regiao_anatomica_codigo.toLowerCase());
+      if (template.regiao_codigo) {
+        phrases.push(template.regiao_codigo.toLowerCase());
       }
       if (template.categoria) {
         phrases.push(template.categoria.toLowerCase());
@@ -157,10 +158,10 @@ export async function loadTemplatesFromSupabase(): Promise<VoiceCommand[]> {
         phrases,
         category: 'template' as const,
         actionType: 'apply_template' as const,
-        payload: template.html_content || '',
+        payload: template.conteudo_template || '',  // Campo correto
         priority: 60,
         modalidade: template.modalidade_codigo || undefined,
-        regiaoAnatomica: template.regiao_anatomica_codigo || undefined,
+        regiaoAnatomica: template.regiao_codigo || undefined,  // Campo correto
       };
     });
 

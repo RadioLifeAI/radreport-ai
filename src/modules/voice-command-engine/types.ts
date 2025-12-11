@@ -113,7 +113,7 @@ export interface IVoiceCommandEngine {
   setCallbacks(callbacks: VoiceEngineCallbacks): void;
 }
 
-// Dados do Supabase
+// Dados do Supabase (campos reais da database)
 export interface SupabaseFrase {
   id: string;
   codigo: string;
@@ -123,14 +123,17 @@ export interface SupabaseFrase {
   sinônimos?: string[];
   tags?: string[];
   conclusao?: string;
+  indicacao_clinica?: string;
+  tecnica?: string;
+  observacao?: string;
 }
 
 export interface SupabaseTemplate {
   id: string;
   titulo: string;
-  conteudo: string;
+  conteudo_template: string;  // Campo real do banco
   modalidade_codigo?: string;
-  regiao_anatomica_codigo?: string;
+  regiao_codigo?: string;     // Campo real do banco
   tags?: string[];
   categoria?: string;
 }
