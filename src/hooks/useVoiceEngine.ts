@@ -2,11 +2,13 @@
  * useVoiceEngine - React Hook (Optimized)
  * Hook para integrar o VoiceCommandEngine com componentes React
  * Usa dados dos hooks useTemplates/useFrasesModelo para evitar queries duplicadas
+ * ✨ FASE 6: Sincroniza contexto (modalidade + região) via store
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Editor } from '@tiptap/react';
 import { getVoiceEngine, initVoiceEngine } from '@/lib/voiceEngine';
+import { useReportStore } from '@/store';
 import type { 
   VoiceEngineState, 
   CommandMatchResult, 
@@ -55,6 +57,9 @@ export interface UseVoiceEngineReturn {
 
 export function useVoiceEngine(options: UseVoiceEngineOptions = {}): UseVoiceEngineReturn {
   const { autoInit = true, debug = false, editor, templates, frases, onTemplateDetected, onFraseDetected } = options;
+  
+  // ✨ FASE 6: Obter modalidade e região do store
+  const { modalidade, regiao } = useReportStore();
   
   const [state, setState] = useState<VoiceEngineState>({
     isReady: false,
@@ -146,6 +151,16 @@ export function useVoiceEngine(options: UseVoiceEngineOptions = {}): UseVoiceEng
     
     console.log('[useVoiceEngine] Comandos reconstruídos:', templates.length, 'templates,', frases.length, 'frases');
   }, [templates, frases, updateState]);
+
+  // ✨ FASE 6: Sincronizar contexto (modalidade + região) quando mudam
+  useEffect(() => {
+    if (!isInitializedRef.current) return;
+    
+    const engine = getVoiceEngine();
+    engine.setCurrentContext(modalidade || null, regiao || null);
+    
+    console.log(`[useVoiceEngine] 📍 Contexto sincronizado: mod=${modalidade}, reg=${regiao}`);
+  }, [modalidade, regiao]);
 
   // Vincular editor quando disponível
   useEffect(() => {

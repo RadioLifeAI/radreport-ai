@@ -1,10 +1,20 @@
 /**
  * Voice Command Engine - Fuzzy Matcher (Optimized)
  * Motor de matching com Fuse.js otimizado para reconhecimento de voz médica
+ * FASE 4: Matching contextual por modalidade e região
  */
 
-import Fuse, { IFuseOptions } from 'fuse.js';
+import Fuse, { IFuseOptions, FuseResult } from 'fuse.js';
 import type { VoiceCommand, CommandMatchResult } from './types';
+
+// ✨ FASE 4: Interface de contexto para matching
+export interface MatchContext {
+  modalidade?: string | null;
+  regiao?: string | null;
+  combinedBoost?: number;      // Boost quando ambos combinam (default 0.6 = 60%)
+  modalidadeBoost?: number;    // Boost apenas modalidade (default 0.3 = 30%)
+  regiaoBoost?: number;        // Boost apenas região (default 0.15 = 15%)
+}
 
 // Mapa de correções fonéticas comuns em radiologia PT-BR
 const PHONETIC_CORRECTIONS: Record<string, string> = {
@@ -116,9 +126,9 @@ export class FuzzyMatcher {
   }
 
   /**
-   * Buscar melhor match para uma transcrição
+   * ✨ FASE 4: Buscar melhor match para uma transcrição com contexto
    */
-  findBestMatch(transcript: string): CommandMatchResult | null {
+  findBestMatch(transcript: string, context?: MatchContext): CommandMatchResult | null {
     if (!this.fuse || !transcript.trim()) {
       return null;
     }
@@ -151,7 +161,12 @@ export class FuzzyMatcher {
       return null;
     }
 
-    // Pegar o melhor resultado
+    // ✨ FASE 4: Se temos contexto, aplicar boost contextual
+    if (context?.modalidade || context?.regiao) {
+      return this.applyContextBoost(results, normalizedTranscript, context);
+    }
+
+    // Pegar o melhor resultado (sem contexto)
     const best = results[0];
     const score = best.score ?? 1;
     
@@ -173,6 +188,79 @@ export class FuzzyMatcher {
     }
 
     return result;
+  }
+
+  /**
+   * ✨ FASE 4: Aplicar boost contextual baseado em modalidade e região
+   * TC+Tórax = 60% boost, TC-only = 30% boost, Tórax-only = 15% boost
+   */
+  private applyContextBoost(
+    results: FuseResult<VoiceCommand>[],
+    transcript: string,
+    context: MatchContext
+  ): CommandMatchResult | null {
+    const combinedBoost = context.combinedBoost ?? 0.6;     // 60% boost
+    const modalidadeBoost = context.modalidadeBoost ?? 0.3; // 30% boost
+    const regiaoBoost = context.regiaoBoost ?? 0.15;        // 15% boost
+
+    // Normalizar contexto para comparação
+    const ctxMod = context.modalidade?.toUpperCase() || '';
+    const ctxReg = context.regiao?.toLowerCase() || '';
+
+    // Recalcular scores com boost contextual
+    const boostedResults = results.map(result => {
+      const cmd = result.item;
+      const cmdMod = (cmd.modalidade || '').toUpperCase();
+      const cmdReg = (cmd.regiaoAnatomica || '').toLowerCase();
+      
+      const matchMod = ctxMod && cmdMod && cmdMod === ctxMod;
+      const matchReg = ctxReg && cmdReg && cmdReg === ctxReg;
+      
+      let multiplier = 1.0;
+      
+      if (matchMod && matchReg) {
+        // Ambos combinam: boost máximo (score menor = melhor)
+        multiplier = 1.0 - combinedBoost;  // 0.4
+      } else if (matchMod) {
+        // Apenas modalidade
+        multiplier = 1.0 - modalidadeBoost; // 0.7
+      } else if (matchReg) {
+        // Apenas região
+        multiplier = 1.0 - regiaoBoost;     // 0.85
+      }
+      
+      return {
+        item: result.item,
+        originalScore: result.score ?? 1,
+        boostedScore: (result.score ?? 1) * multiplier,
+        matchMod,
+        matchReg,
+        multiplier,
+      };
+    });
+
+    // Ordenar por score ajustado (menor = melhor)
+    boostedResults.sort((a, b) => a.boostedScore - b.boostedScore);
+    
+    const best = boostedResults[0];
+    const matchedPhrase = this.findMatchedPhrase(best.item, transcript);
+
+    if (this.debug) {
+      console.log(`[FuzzyMatcher] 🎯 Contexto: mod=${ctxMod}, reg=${ctxReg}`);
+      console.log(`[FuzzyMatcher] ✅ Best: "${best.item.name}" (original: ${best.originalScore.toFixed(3)}, boosted: ${best.boostedScore.toFixed(3)}, mult: ${best.multiplier.toFixed(2)})`);
+      if (boostedResults.length > 1) {
+        console.log(`[FuzzyMatcher] Alternativas: ${boostedResults.slice(1, 4).map(r => 
+          `${r.item.name}(${r.boostedScore.toFixed(3)} mod:${r.matchMod} reg:${r.matchReg})`
+        ).join(', ')}`);
+      }
+    }
+
+    return {
+      command: best.item,
+      score: best.boostedScore,
+      matchedPhrase,
+      isExact: false,
+    };
   }
 
   /**

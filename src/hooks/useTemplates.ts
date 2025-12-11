@@ -66,7 +66,7 @@ export function useTemplates(): UseTemplatesReturn {
   const [recentUsageData, setRecentUsageData] = useState<Array<{template_id: string, used_at: string, usage_count: number}>>([])
   
   // Report store integration
-  const { setContent, setModalidade, currentReportId } = useReportStore()
+  const { setContent, setModalidade, setRegiao, currentReportId } = useReportStore()
 
   // Carregar favoritos do Supabase
   useEffect(() => {
@@ -335,6 +335,7 @@ export function useTemplates(): UseTemplatesReturn {
   // Aplicar template no editor e registrar uso
   const applyTemplate = useCallback(async (template: Template) => {
     setModalidade(template.modalidade)
+    setRegiao(template.regiao || '')  // ✨ FASE 3: Salvar região ao aplicar template
     
     // Título centralizado e em maiúsculas
     const tituloHtml = `<h2 style="text-align: center; text-transform: uppercase;">${template.titulo}</h2>`
@@ -382,6 +383,7 @@ export function useTemplates(): UseTemplatesReturn {
     sectionOrder?: string[]
   ) => {
     setModalidade(template.modalidade)
+    setRegiao(template.regiao || '')  // ✨ FASE 3: Salvar região ao aplicar template com variáveis
     
     // Process variable substitution
     const processText = (text: string) => {
