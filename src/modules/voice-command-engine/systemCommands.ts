@@ -1,72 +1,81 @@
 /**
  * Voice Command Engine - System Commands
- * Comandos fixos do sistema (pontuação, navegação, formatação, ações)
+ * FASE 3: Fonte única de verdade - Unificado com voiceCommandsConfig.ts
  */
 
 import type { VoiceCommand } from './types';
 
 /**
- * Comandos de pontuação
+ * Comandos de pontuação - incluindo todos sinônimos do voiceCommandsConfig
  */
 export const PUNCTUATION_COMMANDS: VoiceCommand[] = [
   {
-    id: 'punct_period',
-    name: 'ponto',
-    phrases: ['ponto final', 'ponto.'],
-    category: 'punctuation',
-    actionType: 'punctuation',
-    payload: '.',
-    priority: 100,
-  },
-  {
-    id: 'punct_comma',
+    id: 'punct_virgula',
     name: 'vírgula',
-    phrases: ['virgula'],
+    phrases: ['virgula', 'vírgula'],
     category: 'punctuation',
     actionType: 'punctuation',
     payload: ',',
     priority: 100,
   },
   {
-    id: 'punct_question',
-    name: 'ponto de interrogação',
-    phrases: ['interrogação', 'pergunta'],
+    id: 'punct_ponto',
+    name: 'ponto',
+    phrases: ['ponto final', 'ponto'],
     category: 'punctuation',
     actionType: 'punctuation',
-    payload: '?',
+    payload: '.',
     priority: 100,
   },
   {
-    id: 'punct_exclamation',
-    name: 'ponto de exclamação',
-    phrases: ['exclamação'],
-    category: 'punctuation',
-    actionType: 'punctuation',
-    payload: '!',
-    priority: 100,
-  },
-  {
-    id: 'punct_colon',
-    name: 'dois pontos',
-    phrases: ['dois-pontos'],
-    category: 'punctuation',
-    actionType: 'punctuation',
-    payload: ':',
-    priority: 100,
-  },
-  {
-    id: 'punct_semicolon',
+    id: 'punct_ponto_virgula',
     name: 'ponto e vírgula',
-    phrases: ['ponto-e-vírgula', 'ponto virgula'],
+    phrases: ['ponto e vírgula', 'ponto e virgula', 'ponto vírgula', 'ponto-e-vírgula'],
     category: 'punctuation',
     actionType: 'punctuation',
     payload: ';',
     priority: 100,
   },
   {
+    id: 'punct_dois_pontos',
+    name: 'dois pontos',
+    phrases: ['dois pontos', 'dois-pontos', '2 pontos'],
+    category: 'punctuation',
+    actionType: 'punctuation',
+    payload: ':',
+    priority: 100,
+  },
+  {
+    id: 'punct_interrogacao',
+    name: 'ponto de interrogação',
+    phrases: ['ponto de interrogação', 'ponto de interrogacao', 'interrogação', 'interrogacao', 'ponto interrogação'],
+    category: 'punctuation',
+    actionType: 'punctuation',
+    payload: '?',
+    priority: 100,
+  },
+  {
+    id: 'punct_exclamacao',
+    name: 'ponto de exclamação',
+    phrases: ['ponto de exclamação', 'ponto de exclamacao', 'exclamação', 'exclamacao'],
+    category: 'punctuation',
+    actionType: 'punctuation',
+    payload: '!',
+    priority: 100,
+  },
+  {
+    id: 'punct_reticencias',
+    name: 'reticências',
+    phrases: ['reticências', 'reticencias', 'tres pontos'],
+    category: 'punctuation',
+    actionType: 'punctuation',
+    payload: '...',
+    priority: 100,
+  },
+  {
     id: 'punct_open_paren',
-    name: 'abrir parênteses',
-    phrases: ['abre parênteses', 'parênteses'],
+    name: 'abre parênteses',
+    phrases: ['abre parênteses', 'abrir parênteses', 'parênteses abre', 'abre parenteses'],
     category: 'punctuation',
     actionType: 'punctuation',
     payload: '(',
@@ -74,8 +83,8 @@ export const PUNCTUATION_COMMANDS: VoiceCommand[] = [
   },
   {
     id: 'punct_close_paren',
-    name: 'fechar parênteses',
-    phrases: ['fecha parênteses', 'fim parênteses'],
+    name: 'fecha parênteses',
+    phrases: ['fecha parênteses', 'fechar parênteses', 'parênteses fecha', 'fecha parenteses'],
     category: 'punctuation',
     actionType: 'punctuation',
     payload: ')',
@@ -84,19 +93,55 @@ export const PUNCTUATION_COMMANDS: VoiceCommand[] = [
   {
     id: 'punct_hyphen',
     name: 'hífen',
-    phrases: ['traço', 'travessão'],
+    phrases: ['hífen', 'hifen', 'traço'],
     category: 'punctuation',
     actionType: 'punctuation',
     payload: '-',
     priority: 100,
   },
   {
-    id: 'punct_slash',
+    id: 'punct_travessao',
+    name: 'travessão',
+    phrases: ['travessão', 'travessao'],
+    category: 'punctuation',
+    actionType: 'punctuation',
+    payload: '—',
+    priority: 100,
+  },
+  {
+    id: 'punct_barra',
     name: 'barra',
-    phrases: ['barra normal'],
+    phrases: ['barra', 'barra normal'],
     category: 'punctuation',
     actionType: 'punctuation',
     payload: '/',
+    priority: 100,
+  },
+  {
+    id: 'punct_aspas',
+    name: 'aspas',
+    phrases: ['aspas', 'abre aspas', 'fecha aspas'],
+    category: 'punctuation',
+    actionType: 'punctuation',
+    payload: '"',
+    priority: 100,
+  },
+  {
+    id: 'punct_crase',
+    name: 'crase',
+    phrases: ['a crase', 'crase'],
+    category: 'punctuation',
+    actionType: 'punctuation',
+    payload: 'à',
+    priority: 100,
+  },
+  {
+    id: 'punct_ponto_paragrafo',
+    name: 'ponto parágrafo',
+    phrases: ['ponto parágrafo', 'ponto paragrafo'],
+    category: 'punctuation',
+    actionType: 'punctuation',
+    payload: '.\n\n',
     priority: 100,
   },
 ];
@@ -135,13 +180,13 @@ export const STRUCTURAL_COMMANDS: VoiceCommand[] = [
 ];
 
 /**
- * Comandos de edição
+ * Comandos de edição - incluindo sinônimos do voiceCommandsConfig
  */
 export const EDITING_COMMANDS: VoiceCommand[] = [
   {
     id: 'edit_delete_word',
-    name: 'apagar palavra',
-    phrases: ['deletar palavra', 'remover palavra', 'apagar isso'],
+    name: 'apagar isso',
+    phrases: ['apagar palavra', 'deletar palavra', 'remover palavra', 'apagar'],
     category: 'system',
     actionType: 'system',
     payload: 'delete_word',
@@ -157,9 +202,18 @@ export const EDITING_COMMANDS: VoiceCommand[] = [
     priority: 90,
   },
   {
+    id: 'edit_delete_all',
+    name: 'apagar tudo',
+    phrases: ['deletar tudo', 'remover tudo', 'limpar tudo'],
+    category: 'system',
+    actionType: 'system',
+    payload: 'delete_all',
+    priority: 90,
+  },
+  {
     id: 'edit_undo',
     name: 'desfazer',
-    phrases: ['undo', 'voltar', 'ctrl z'],
+    phrases: ['desfaz', 'undo', 'voltar', 'ctrl z'],
     category: 'system',
     actionType: 'system',
     payload: 'undo',
@@ -175,6 +229,15 @@ export const EDITING_COMMANDS: VoiceCommand[] = [
     priority: 90,
   },
   {
+    id: 'edit_cancel',
+    name: 'cancelar',
+    phrases: ['cancelar ditado', 'parar'],
+    category: 'system',
+    actionType: 'system',
+    payload: 'cancel',
+    priority: 90,
+  },
+  {
     id: 'edit_select_all',
     name: 'selecionar tudo',
     phrases: ['selecionar todo', 'ctrl a'],
@@ -186,7 +249,7 @@ export const EDITING_COMMANDS: VoiceCommand[] = [
 ];
 
 /**
- * Comandos de formatação
+ * Comandos de formatação - incluindo sinônimos do voiceCommandsConfig
  */
 export const FORMATTING_COMMANDS: VoiceCommand[] = [
   {
@@ -201,7 +264,7 @@ export const FORMATTING_COMMANDS: VoiceCommand[] = [
   {
     id: 'format_italic',
     name: 'itálico',
-    phrases: ['italic', 'texto itálico'],
+    phrases: ['italic', 'texto itálico', 'italico'],
     category: 'formatting',
     actionType: 'format',
     payload: 'italic',
@@ -217,9 +280,54 @@ export const FORMATTING_COMMANDS: VoiceCommand[] = [
     priority: 85,
   },
   {
+    id: 'format_clear',
+    name: 'remover formatação',
+    phrases: ['limpar formatação', 'limpar formato'],
+    category: 'formatting',
+    actionType: 'format',
+    payload: 'clear_format',
+    priority: 85,
+  },
+  {
+    id: 'format_align_left',
+    name: 'alinhar esquerda',
+    phrases: ['alinhar à esquerda', 'esquerda'],
+    category: 'formatting',
+    actionType: 'format',
+    payload: 'align_left',
+    priority: 85,
+  },
+  {
+    id: 'format_align_center',
+    name: 'alinhar centro',
+    phrases: ['centralizar', 'centro'],
+    category: 'formatting',
+    actionType: 'format',
+    payload: 'align_center',
+    priority: 85,
+  },
+  {
+    id: 'format_align_right',
+    name: 'alinhar direita',
+    phrases: ['alinhar à direita', 'direita'],
+    category: 'formatting',
+    actionType: 'format',
+    payload: 'align_right',
+    priority: 85,
+  },
+  {
+    id: 'format_align_justify',
+    name: 'alinhar justificado',
+    phrases: ['justificar', 'justificado'],
+    category: 'formatting',
+    actionType: 'format',
+    payload: 'align_justify',
+    priority: 85,
+  },
+  {
     id: 'format_uppercase',
-    name: 'maiúsculas',
-    phrases: ['caixa alta', 'uppercase', 'letras maiúsculas'],
+    name: 'tudo maiúsculo',
+    phrases: ['maiúsculas', 'maiusculas', 'caixa alta', 'uppercase', 'letras maiúsculas'],
     category: 'formatting',
     actionType: 'format',
     payload: 'uppercase',
@@ -227,17 +335,35 @@ export const FORMATTING_COMMANDS: VoiceCommand[] = [
   },
   {
     id: 'format_lowercase',
-    name: 'minúsculas',
-    phrases: ['caixa baixa', 'lowercase', 'letras minúsculas'],
+    name: 'tudo minúsculo',
+    phrases: ['minúsculas', 'minusculas', 'caixa baixa', 'lowercase', 'letras minúsculas'],
     category: 'formatting',
     actionType: 'format',
     payload: 'lowercase',
     priority: 85,
   },
+  {
+    id: 'format_list',
+    name: 'lista',
+    phrases: ['lista com marcadores', 'bullet list'],
+    category: 'formatting',
+    actionType: 'format',
+    payload: 'bullet_list',
+    priority: 85,
+  },
+  {
+    id: 'format_list_numbered',
+    name: 'lista numerada',
+    phrases: ['lista ordenada', 'numbered list'],
+    category: 'formatting',
+    actionType: 'format',
+    payload: 'ordered_list',
+    priority: 85,
+  },
 ];
 
 /**
- * Comandos de navegação
+ * Comandos de navegação - incluindo sinônimos do voiceCommandsConfig
  */
 export const NAVIGATION_COMMANDS: VoiceCommand[] = [
   {
@@ -260,8 +386,8 @@ export const NAVIGATION_COMMANDS: VoiceCommand[] = [
   },
   {
     id: 'nav_start',
-    name: 'início do documento',
-    phrases: ['ir para início', 'começo'],
+    name: 'ir para início',
+    phrases: ['início do documento', 'começo', 'início'],
     category: 'navigation',
     actionType: 'navigate',
     payload: 'start',
@@ -269,8 +395,8 @@ export const NAVIGATION_COMMANDS: VoiceCommand[] = [
   },
   {
     id: 'nav_end',
-    name: 'fim do documento',
-    phrases: ['ir para fim', 'final'],
+    name: 'ir para fim',
+    phrases: ['fim do documento', 'final', 'fim'],
     category: 'navigation',
     actionType: 'navigate',
     payload: 'end',
@@ -279,7 +405,7 @@ export const NAVIGATION_COMMANDS: VoiceCommand[] = [
   {
     id: 'nav_impressao',
     name: 'ir para impressão',
-    phrases: ['seção impressão', 'conclusão', 'ir para conclusão'],
+    phrases: ['seção impressão', 'conclusão', 'ir para conclusão', 'impressão'],
     category: 'navigation',
     actionType: 'navigate',
     payload: 'section_impressao',
@@ -288,7 +414,7 @@ export const NAVIGATION_COMMANDS: VoiceCommand[] = [
   {
     id: 'nav_tecnica',
     name: 'ir para técnica',
-    phrases: ['seção técnica'],
+    phrases: ['seção técnica', 'técnica'],
     category: 'navigation',
     actionType: 'navigate',
     payload: 'section_tecnica',
@@ -297,11 +423,20 @@ export const NAVIGATION_COMMANDS: VoiceCommand[] = [
   {
     id: 'nav_relatorio',
     name: 'ir para relatório',
-    phrases: ['seção relatório', 'achados'],
+    phrases: ['seção relatório', 'achados', 'relatório'],
     category: 'navigation',
     actionType: 'navigate',
     payload: 'section_relatorio',
     priority: 85,
+  },
+  {
+    id: 'nav_procurar',
+    name: 'procurar',
+    phrases: ['buscar', 'encontrar'],
+    category: 'navigation',
+    actionType: 'navigate',
+    payload: 'search',
+    priority: 80,
   },
 ];
 

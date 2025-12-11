@@ -251,13 +251,24 @@ export function SimpleEditor({
         onCharacterCount(editor.storage.characterCount.characters())
       }
     },
-    onCreate: ({ editor }) => {
+    onCreate: async ({ editor }) => {
       if (onEditorReady) {
         onEditorReady(editor)
       }
       // Reportar contagem inicial
       if (onCharacterCount) {
         onCharacterCount(editor.storage.characterCount.characters())
+      }
+      
+      // FASE 2: Vincular Voice Command Engine automaticamente
+      try {
+        const { getVoiceEngine, initVoiceEngine } = await import('@/lib/voiceEngine')
+        const engine = getVoiceEngine()
+        engine.attachToTipTap(editor)
+        await initVoiceEngine()
+        console.log('🎤 Voice Command Engine vinculado ao TipTap')
+      } catch (err) {
+        console.warn('⚠️ Falha ao inicializar Voice Engine:', err)
       }
     },
   })

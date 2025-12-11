@@ -416,7 +416,36 @@ export function isPureCommand(text: string): boolean {
 }
 
 /**
- * Processa entrada de voz com comandos estruturais e pontuação
+ * Processa entrada de voz com Voice Command Engine + fallback
+ * FASE 2: Integração com novo engine
+ */
+export async function processVoiceInputWithEngine(text: string, editor: Editor): Promise<boolean> {
+  if (!text.trim()) return false
+
+  try {
+    // Tentar processar via Voice Command Engine primeiro
+    const { getVoiceEngine } = await import('@/lib/voiceEngine')
+    const engine = getVoiceEngine()
+    
+    if (engine.getState().isReady) {
+      const result = await engine.processTranscript(text)
+      if (result && result.score < 0.5) {
+        // Comando encontrado com boa confiança
+        console.log('🎯 Voice Engine executou:', result.command.name, `(score: ${result.score.toFixed(2)})`)
+        return true
+      }
+    }
+  } catch (err) {
+    console.warn('⚠️ Voice Engine falhou, usando fallback:', err)
+  }
+  
+  // Fallback: processamento tradicional
+  processVoiceInput(text, editor)
+  return false
+}
+
+/**
+ * Processa entrada de voz com comandos estruturais e pontuação (fallback)
  */
 export function processVoiceInput(text: string, editor: Editor): void {
   if (!text.trim()) return

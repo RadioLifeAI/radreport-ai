@@ -27,6 +27,9 @@ export interface UseVoiceEngineReturn {
   lastMatch: CommandMatchResult | null;
   lastExecution: CommandExecutionResult | null;
   
+  // Stats
+  stats: { system: number; frases: number; templates: number };
+  
   // Controle
   start: () => void;
   stop: () => void;
@@ -35,6 +38,7 @@ export interface UseVoiceEngineReturn {
   reloadCommands: () => Promise<void>;
   processTranscript: (text: string) => Promise<CommandMatchResult | null>;
   getCommands: () => VoiceCommand[];
+  filterByModalidade: (modalidade: string) => VoiceCommand[];
   
   // Configuração
   setDebug: (enabled: boolean) => void;
@@ -162,6 +166,14 @@ export function useVoiceEngine(options: UseVoiceEngineOptions = {}): UseVoiceEng
     engine.detachFromTipTap();
   }, []);
 
+  // Filtrar comandos por modalidade
+  const filterByModalidade = useCallback((mod: string) => {
+    const engine = getVoiceEngine();
+    return engine.getCommands().filter(c => 
+      !c.modalidade || c.modalidade.toUpperCase() === mod.toUpperCase()
+    );
+  }, []);
+
   return {
     // Estado
     isReady: state.isReady,
@@ -169,6 +181,13 @@ export function useVoiceEngine(options: UseVoiceEngineOptions = {}): UseVoiceEng
     totalCommands: state.totalCommands,
     lastMatch: state.lastMatch,
     lastExecution: state.lastExecution,
+    
+    // Stats
+    stats: {
+      system: state.totalCommands - (state.lastMatch ? 1 : 0), // Aproximado
+      frases: 0,
+      templates: 0,
+    },
     
     // Controle
     start,
@@ -178,6 +197,7 @@ export function useVoiceEngine(options: UseVoiceEngineOptions = {}): UseVoiceEng
     reloadCommands,
     processTranscript,
     getCommands,
+    filterByModalidade,
     
     // Configuração
     setDebug,
