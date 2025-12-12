@@ -61,6 +61,7 @@ interface UseDictationReturn {
 // Constantes para controle de reinício
 const MAX_RESTARTS = 15  // Máximo de reinícios em sequência sem fala
 const MAX_DICTATION_TIME_MS = 5 * 60 * 1000  // 5 minutos
+const MAX_PREVIOUS_CONTEXT_CHARS = 500  // Contexto para próxima transcrição
 
 export function useDictation(editor: Editor | null, options?: UseDictationOptions): UseDictationReturn {
   const [isActive, setIsActive] = useState(false)
@@ -94,6 +95,7 @@ export function useDictation(editor: Editor | null, options?: UseDictationOption
   const interimLengthRef = useRef<number>(0)
   const dictationStartRef = useRef<number | null>(null)
   const rawTranscriptRef = useRef<string>('')  // ← RAW transcript para Corretor AI
+  const previousContextRef = useRef<string>('')  // ← Contexto para próxima transcrição Whisper
   
   // Refs para controle de reinício robusto
   const isActiveRef = useRef(false)  // ← CRÍTICO: ref para callback closures
@@ -385,14 +387,23 @@ export function useDictation(editor: Editor | null, options?: UseDictationOption
           if (e.data.size > 0 && isWhisperEnabled && editorRef.current) {
             console.log('📦 Audio blob:', Math.round(e.data.size / 1024), 'KB')
             
-            // Enviar para Whisper
+            // Enviar para Whisper com contexto anterior
             setIsTranscribing(true)
             try {
               const base64 = await blobToBase64(e.data)
               
-              const data = await invokeEdgeFunction<{ text: string; language?: string; duration?: number }>(
+              const data = await invokeEdgeFunction<{ 
+                text: string; 
+                language?: string; 
+                duration?: number;
+                has_context?: boolean;
+              }>(
                 'transcribe-audio',
-                { audio: base64, language: 'pt' }
+                { 
+                  audio: base64, 
+                  language: 'pt',
+                  previous_context: previousContextRef.current || undefined 
+                }
               )
               
               if (data?.text && dictationStartRef.current !== null) {
@@ -409,7 +420,11 @@ export function useDictation(editor: Editor | null, options?: UseDictationOption
                   .setTextSelection(startPos + textLength)
                   .run()
                 
-                console.log('✅ Whisper text applied with highlight:', data.text.substring(0, 80) + '...')
+                // Salvar contexto para próxima transcrição
+                previousContextRef.current = data.text.slice(-MAX_PREVIOUS_CONTEXT_CHARS)
+                
+                console.log('✅ Whisper text applied with highlight:', data.text.substring(0, 80) + '...', 
+                  data.has_context ? '(with context)' : '')
                 setStats(prev => ({ ...prev, total: prev.total + 1, success: prev.success + 1 }))
               } else {
                 console.warn('⚠️ Whisper returned empty text')

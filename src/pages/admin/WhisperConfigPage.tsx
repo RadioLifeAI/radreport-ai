@@ -49,6 +49,9 @@ interface WhisperConfig {
   is_active: boolean;
   version: number;
   updated_at: string;
+  use_previous_context: boolean;
+  previous_context_chars: number;
+  enable_streaming: boolean;
 }
 
 const PROVIDERS = [
@@ -80,6 +83,9 @@ export default function WhisperConfigPage() {
   const [providerProfissional, setProviderProfissional] = useState('openai');
   const [providerPremium, setProviderPremium] = useState('openai');
   const [isActive, setIsActive] = useState(true);
+  const [usePreviousContext, setUsePreviousContext] = useState(true);
+  const [previousContextChars, setPreviousContextChars] = useState(200);
+  const [enableStreaming, setEnableStreaming] = useState(false);
 
   const fetchConfig = async () => {
     setLoading(true);
@@ -112,6 +118,9 @@ export default function WhisperConfigPage() {
       setProviderProfissional(data.provider_profissional || 'openai');
       setProviderPremium(data.provider_premium || 'openai');
       setIsActive(data.is_active ?? true);
+      setUsePreviousContext(data.use_previous_context ?? true);
+      setPreviousContextChars(data.previous_context_chars || 200);
+      setEnableStreaming(data.enable_streaming ?? false);
     }
 
     setLoading(false);
@@ -146,6 +155,9 @@ export default function WhisperConfigPage() {
         provider_profissional: providerProfissional,
         provider_premium: providerPremium,
         is_active: isActive,
+        use_previous_context: usePreviousContext,
+        previous_context_chars: previousContextChars,
+        enable_streaming: enableStreaming,
       })
       .eq('id', config.id);
 
@@ -479,6 +491,64 @@ export default function WhisperConfigPage() {
                 <Switch
                   checked={normalizeMeasurements}
                   onCheckedChange={setNormalizeMeasurements}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Context & Streaming Settings */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="h-5 w-5 text-orange-500" />
+                Contexto & Streaming
+              </CardTitle>
+              <CardDescription>
+                Configurações avançadas para continuidade e latência
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label>Usar Contexto Anterior</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Envia últimos caracteres da transcrição anterior para melhor continuidade
+                  </p>
+                </div>
+                <Switch
+                  checked={usePreviousContext}
+                  onCheckedChange={setUsePreviousContext}
+                />
+              </div>
+
+              {usePreviousContext && (
+                <div className="space-y-2">
+                  <Label>Tamanho do Contexto: {previousContextChars} caracteres</Label>
+                  <Slider
+                    value={[previousContextChars]}
+                    onValueChange={([v]) => setPreviousContextChars(v)}
+                    min={100}
+                    max={500}
+                    step={50}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Groq: contexto será truncado junto com prompt (~850 chars total)
+                  </p>
+                </div>
+              )}
+
+              <Separator />
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label>Habilitar Streaming (Experimental)</Label>
+                  <p className="text-xs text-muted-foreground">
+                    SSE para OpenAI gpt-4o-transcribe. Reduz latência percebida.
+                  </p>
+                </div>
+                <Switch
+                  checked={enableStreaming}
+                  onCheckedChange={setEnableStreaming}
                 />
               </div>
 

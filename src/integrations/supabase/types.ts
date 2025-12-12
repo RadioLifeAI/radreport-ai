@@ -3377,6 +3377,7 @@ export type Database = {
           created_at: string | null
           credit_cost_per_minute: number | null
           display_name: string
+          enable_streaming: boolean | null
           id: string
           is_active: boolean | null
           language: string | null
@@ -3385,6 +3386,7 @@ export type Database = {
           model: string
           no_speech_prob_threshold: number | null
           normalize_measurements: boolean | null
+          previous_context_chars: number | null
           provider: string
           provider_basico: string | null
           provider_gratuito: string | null
@@ -3395,6 +3397,7 @@ export type Database = {
           system_prompt: string
           temperature: number | null
           updated_at: string | null
+          use_previous_context: boolean | null
           version: number | null
         }
         Insert: {
@@ -3403,6 +3406,7 @@ export type Database = {
           created_at?: string | null
           credit_cost_per_minute?: number | null
           display_name?: string
+          enable_streaming?: boolean | null
           id?: string
           is_active?: boolean | null
           language?: string | null
@@ -3411,6 +3415,7 @@ export type Database = {
           model?: string
           no_speech_prob_threshold?: number | null
           normalize_measurements?: boolean | null
+          previous_context_chars?: number | null
           provider?: string
           provider_basico?: string | null
           provider_gratuito?: string | null
@@ -3421,6 +3426,7 @@ export type Database = {
           system_prompt: string
           temperature?: number | null
           updated_at?: string | null
+          use_previous_context?: boolean | null
           version?: number | null
         }
         Update: {
@@ -3429,6 +3435,7 @@ export type Database = {
           created_at?: string | null
           credit_cost_per_minute?: number | null
           display_name?: string
+          enable_streaming?: boolean | null
           id?: string
           is_active?: boolean | null
           language?: string | null
@@ -3437,6 +3444,7 @@ export type Database = {
           model?: string
           no_speech_prob_threshold?: number | null
           normalize_measurements?: boolean | null
+          previous_context_chars?: number | null
           provider?: string
           provider_basico?: string | null
           provider_gratuito?: string | null
@@ -3447,6 +3455,7 @@ export type Database = {
           system_prompt?: string
           temperature?: number | null
           updated_at?: string | null
+          use_previous_context?: boolean | null
           version?: number | null
         }
         Relationships: []
@@ -3495,9 +3504,12 @@ export type Database = {
           created_at: string
           credits_consumed: number
           error_message: string | null
+          has_previous_context: boolean | null
           id: string
           metadata: Json | null
           provider: string | null
+          response_format: string | null
+          streaming_used: boolean | null
           transcription_status: string
           user_id: string
         }
@@ -3508,9 +3520,12 @@ export type Database = {
           created_at?: string
           credits_consumed: number
           error_message?: string | null
+          has_previous_context?: boolean | null
           id?: string
           metadata?: Json | null
           provider?: string | null
+          response_format?: string | null
+          streaming_used?: boolean | null
           transcription_status: string
           user_id: string
         }
@@ -3521,9 +3536,12 @@ export type Database = {
           created_at?: string
           credits_consumed?: number
           error_message?: string | null
+          has_previous_context?: boolean | null
           id?: string
           metadata?: Json | null
           provider?: string | null
+          response_format?: string | null
+          streaming_used?: boolean | null
           transcription_status?: string
           user_id?: string
         }
