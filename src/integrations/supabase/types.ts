@@ -3387,6 +3387,9 @@ export type Database = {
           no_speech_prob_threshold: number | null
           normalize_measurements: boolean | null
           previous_context_chars: number | null
+          prompt_groq: string | null
+          prompt_openai: string | null
+          prompt_openai_mini: string | null
           provider: string
           provider_basico: string | null
           provider_gratuito: string | null
@@ -3416,6 +3419,9 @@ export type Database = {
           no_speech_prob_threshold?: number | null
           normalize_measurements?: boolean | null
           previous_context_chars?: number | null
+          prompt_groq?: string | null
+          prompt_openai?: string | null
+          prompt_openai_mini?: string | null
           provider?: string
           provider_basico?: string | null
           provider_gratuito?: string | null
@@ -3445,6 +3451,9 @@ export type Database = {
           no_speech_prob_threshold?: number | null
           normalize_measurements?: boolean | null
           previous_context_chars?: number | null
+          prompt_groq?: string | null
+          prompt_openai?: string | null
+          prompt_openai_mini?: string | null
           provider?: string
           provider_basico?: string | null
           provider_gratuito?: string | null

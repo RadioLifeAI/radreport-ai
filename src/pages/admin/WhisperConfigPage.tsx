@@ -11,6 +11,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { 
@@ -22,7 +23,8 @@ import {
   DollarSign,
   Filter,
   Sparkles,
-  Activity
+  Activity,
+  MessageSquare
 } from 'lucide-react';
 
 interface WhisperConfig {
@@ -32,6 +34,9 @@ interface WhisperConfig {
   provider: string;
   model: string;
   system_prompt: string;
+  prompt_groq: string | null;
+  prompt_openai: string | null;
+  prompt_openai_mini: string | null;
   language: string;
   temperature: number;
   response_format: string;
@@ -86,6 +91,9 @@ export default function WhisperConfigPage() {
   const [usePreviousContext, setUsePreviousContext] = useState(true);
   const [previousContextChars, setPreviousContextChars] = useState(200);
   const [enableStreaming, setEnableStreaming] = useState(false);
+  const [promptGroq, setPromptGroq] = useState('');
+  const [promptOpenai, setPromptOpenai] = useState('');
+  const [promptOpenaiMini, setPromptOpenaiMini] = useState('');
 
   const fetchConfig = async () => {
     setLoading(true);
@@ -121,6 +129,9 @@ export default function WhisperConfigPage() {
       setUsePreviousContext(data.use_previous_context ?? true);
       setPreviousContextChars(data.previous_context_chars || 200);
       setEnableStreaming(data.enable_streaming ?? false);
+      setPromptGroq(data.prompt_groq || '');
+      setPromptOpenai(data.prompt_openai || '');
+      setPromptOpenaiMini(data.prompt_openai_mini || '');
     }
 
     setLoading(false);
@@ -158,6 +169,9 @@ export default function WhisperConfigPage() {
         use_previous_context: usePreviousContext,
         previous_context_chars: previousContextChars,
         enable_streaming: enableStreaming,
+        prompt_groq: promptGroq || null,
+        prompt_openai: promptOpenai || null,
+        prompt_openai_mini: promptOpenaiMini || null,
       })
       .eq('id', config.id);
 
@@ -570,22 +584,107 @@ export default function WhisperConfigPage() {
           </Card>
         </div>
 
-        {/* System Prompt */}
+        {/* Provider-Specific Prompts */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Settings2 className="h-5 w-5 text-cyan-500" />
-              Prompt de Sistema Médico
+              <MessageSquare className="h-5 w-5 text-cyan-500" />
+              Prompts por Provider
             </CardTitle>
             <CardDescription>
-              Instruções para o modelo de transcrição. OpenAI gpt-4o-transcribe aceita prompt ilimitado; Groq limitado a ~850 caracteres.
+              Cada provider tem limite e otimização diferente. Groq: ~850 chars (hints apenas). OpenAI: ilimitado (instruções completas).
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue="groq" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="groq" className="gap-1">
+                  <span>🔴</span> Groq
+                </TabsTrigger>
+                <TabsTrigger value="openai" className="gap-1">
+                  <span>⭐</span> OpenAI Pro
+                </TabsTrigger>
+                <TabsTrigger value="openai_mini" className="gap-1">
+                  <span>🟢</span> OpenAI Mini
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="groq" className="space-y-3 mt-4">
+                <div className="flex items-center justify-between">
+                  <Label>Prompt Groq (whisper-large-v3-turbo)</Label>
+                  <Badge variant="outline" className="text-yellow-600">
+                    {promptGroq.length}/850 chars
+                  </Badge>
+                </div>
+                <Textarea
+                  value={promptGroq}
+                  onChange={(e) => setPromptGroq(e.target.value)}
+                  rows={8}
+                  className="font-mono text-sm"
+                  placeholder="Terminologia apenas como hints..."
+                />
+                <p className="text-xs text-muted-foreground">
+                  ⚠️ Groq limita prompt a ~224 tokens (~850 chars). Use apenas terminologia como hints, sem instruções detalhadas.
+                </p>
+              </TabsContent>
+              
+              <TabsContent value="openai" className="space-y-3 mt-4">
+                <div className="flex items-center justify-between">
+                  <Label>Prompt OpenAI Pro (gpt-4o-transcribe)</Label>
+                  <Badge variant="outline" className="text-green-600">
+                    {promptOpenai.length} chars ✓
+                  </Badge>
+                </div>
+                <Textarea
+                  value={promptOpenai}
+                  onChange={(e) => setPromptOpenai(e.target.value)}
+                  rows={12}
+                  className="font-mono text-sm"
+                  placeholder="Instruções detalhadas para transcrição médica..."
+                />
+                <p className="text-xs text-muted-foreground">
+                  ✅ Sem limite de caracteres. Pode incluir instruções detalhadas de formatação, regras e terminologia completa.
+                </p>
+              </TabsContent>
+              
+              <TabsContent value="openai_mini" className="space-y-3 mt-4">
+                <div className="flex items-center justify-between">
+                  <Label>Prompt OpenAI Mini (gpt-4o-mini-transcribe)</Label>
+                  <Badge variant="outline" className="text-blue-600">
+                    {promptOpenaiMini.length} chars
+                  </Badge>
+                </div>
+                <Textarea
+                  value={promptOpenaiMini}
+                  onChange={(e) => setPromptOpenaiMini(e.target.value)}
+                  rows={10}
+                  className="font-mono text-sm"
+                  placeholder="Instruções moderadas para transcrição..."
+                />
+                <p className="text-xs text-muted-foreground">
+                  Instruções intermediárias. Mais completo que Groq, mais conciso que Pro para melhor performance.
+                </p>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+
+        {/* Legacy System Prompt (Fallback) */}
+        <Card className="opacity-75">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Settings2 className="h-5 w-5 text-muted-foreground" />
+              Prompt Fallback (Legado)
+            </CardTitle>
+            <CardDescription>
+              Usado apenas se prompt específico do provider estiver vazio. Mantido para compatibilidade.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Textarea
               value={systemPrompt}
               onChange={(e) => setSystemPrompt(e.target.value)}
-              rows={12}
+              rows={8}
               className="font-mono text-sm"
               placeholder="Instruções para transcrição médica..."
             />
