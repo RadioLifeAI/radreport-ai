@@ -126,25 +126,27 @@ export function formatVariableValue(value: string | number | boolean): string {
 
 /**
  * Process text by replacing {{variable}} placeholders with actual values
- * Empty placeholders are removed completely (not left as {{variable}})
+ * Empty placeholders are replaced with *** for manual filling
  */
 export function processTemplateText(
   text: string, 
-  values: TemplateVariableValues
+  values: TemplateVariableValues,
+  options?: { placeholderSymbol?: string }
 ): string {
+  const placeholder = options?.placeholderSymbol ?? '***'
+  
   let result = text.replace(/\{\{(\w+)\}\}/g, (match, varName) => {
     const value = values[varName]
     // If value exists and is not empty, use formatted value
-    // Otherwise, remove the placeholder entirely
+    // Otherwise, replace with placeholder for manual filling
     if (value !== undefined && value !== null && value !== '') {
       return formatVariableValue(value)
     }
-    return '' // Remove empty/undefined placeholders
+    return placeholder // Placeholder for manual filling
   })
   
-  // Clean up empty lines left after removing placeholders
+  // Clean up excessive newlines (but keep placeholder lines - radiologist needs them)
   result = result
-    .replace(/^\s*[-•]\s*$/gm, '') // Remove lines with only "- " or "• "
     .replace(/\n{3,}/g, '\n\n')    // Max 2 consecutive newlines
     .replace(/^\n+/, '')          // Remove leading newlines
   

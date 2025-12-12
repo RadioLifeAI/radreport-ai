@@ -385,7 +385,10 @@ export function useTemplates(): UseTemplatesReturn {
     setModalidade(template.modalidade)
     setRegiao(template.regiao || '')  // ✨ FASE 3: Salvar região ao aplicar template com variáveis
     
-    // Process variable substitution
+    // Placeholder symbol for unfilled variables (radiologist fills manually)
+    const PLACEHOLDER_SYMBOL = '***'
+    
+    // Process variable substitution - unfilled variables become *** for manual filling
     const processText = (text: string) => {
       let result = text.replace(/\{\{(\w+)\}\}/g, (match, varName) => {
         const value = variableValues[varName]
@@ -398,12 +401,13 @@ export function useTemplates(): UseTemplatesReturn {
           }
           return value.toString()
         }
-        return '' // Return empty string instead of placeholder
+        // Return placeholder for manual filling instead of empty string
+        return PLACEHOLDER_SYMBOL
       })
       
-      // Clean up empty lines after placeholder removal
+      // Clean up lines that are ONLY placeholder (optional - keep if radiologist needs to fill)
+      // Do NOT remove placeholder lines - radiologist needs them
       result = result
-        .replace(/^\s*[-•]\s*$/gm, '') // Remove lines with only bullet points
         .replace(/\n{3,}/g, '\n\n')    // Max 2 consecutive line breaks
         .replace(/^\n+/, '')           // Remove leading line breaks
       
@@ -415,9 +419,10 @@ export function useTemplates(): UseTemplatesReturn {
     // Build section map with generated HTML
     const sectionMap: Record<string, string> = {}
     
-    // Título centralizado e em maiúsculas
+    // Título centralizado e em maiúsculas - process variables in title
     if (!removed.includes('titulo')) {
-      sectionMap.titulo = `<h2 style="text-align: center; text-transform: uppercase;">${template.titulo}</h2>`
+      const processedTitulo = processText(template.titulo)
+      sectionMap.titulo = `<h2 style="text-align: center; text-transform: uppercase;">${processedTitulo}</h2>`
     }
     
     // Técnica - combine selected techniques

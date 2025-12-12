@@ -328,10 +328,13 @@ export function TemplateVariablesModal({
     // Build sections array with ids for removal tracking
     const sections: { id: string; html: string; label: string }[] = []
     
+    // Process title with variables (e.g., {{LATERALIDADE_TEXTO}})
+    const processedTitulo = processTemplateText(template.titulo, processedValues)
+    
     sections.push({
       id: 'titulo',
       label: 'Título',
-      html: `<h2 style="text-align: center; text-transform: uppercase; font-weight: bold; margin-bottom: 12pt;">${template.titulo}</h2>`
+      html: `<h2 style="text-align: center; text-transform: uppercase; font-weight: bold; margin-bottom: 12pt;">${processedTitulo}</h2>`
     })
     
     if (tecnicaText) {
