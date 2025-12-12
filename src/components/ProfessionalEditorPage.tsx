@@ -22,6 +22,7 @@ import { useVariableProcessor } from '@/hooks/useVariableProcessor'
 import { useChat } from '@/hooks/useChat'
 import { ChatPanel } from '@/components/chat'
 import { insertContent } from '@/editor/commands'
+import { smartInsertConclusion } from '@/editor/sectionUtils'
 import { useInternalCheckout } from '@/hooks/useInternalCheckout'
 import { PlansSelectionSheet } from '@/components/subscription'
 import { useFavoriteCalculators } from '@/hooks/useFavoriteCalculators'
@@ -251,7 +252,6 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
     } else {
       // Aplicar diretamente usando hookApplyFrase (sem modal)
       if (editorInstance) {
-        // Campo correto é 'frase' (não 'texto') conforme interface FraseModelo
         const texto = frase.frase || ''
         const conclusao = frase.conclusao
         
@@ -261,34 +261,13 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
           editorInstance.commands.insertContent(wrapInParagraph(texto))
         }
         
-        // FASE 3: Inserção correta de conclusão na seção IMPRESSÃO
+        // Usar smartInsertConclusion para inserção inteligente
         if (conclusao) {
-          const html = editorInstance.getHTML()
-          
-          // Buscar posição exata da seção IMPRESSÃO
-          const impressaoMatch = html.match(/<h[1-6][^>]*>\s*(IMPRESSÃO|CONCLUSÃO|Impressão|Conclusão)\s*<\/h[1-6]>/i)
-          
-          if (impressaoMatch) {
-            // Encontrar próximo heading ou fim do documento
-            const impressaoIndex = html.indexOf(impressaoMatch[0])
-            const afterImpressao = html.substring(impressaoIndex + impressaoMatch[0].length)
-            const nextHeadingMatch = afterImpressao.match(/<h[1-6][^>]*>/)
-            
-            if (nextHeadingMatch) {
-              // Inserir antes do próximo heading
-              const insertPos = impressaoIndex + impressaoMatch[0].length + afterImpressao.indexOf(nextHeadingMatch[0])
-              const newHtml = html.slice(0, insertPos) + `<p>- ${conclusao}</p>` + html.slice(insertPos)
-              editorInstance.commands.setContent(newHtml)
-            } else {
-              // Sem próximo heading, adicionar ao final da seção
-              editorInstance.commands.insertContent(`<p>- ${conclusao}</p>`)
-            }
-          } else {
-            // Criar seção IMPRESSÃO se não existir
-            editorInstance.commands.insertContent(`<h3>IMPRESSÃO</h3>`)
-            editorInstance.commands.insertContent(`<p>- ${conclusao}</p>`)
-          }
+          const currentHtml = editorInstance.getHTML()
+          const newHtml = smartInsertConclusion(currentHtml, conclusao)
+          editorInstance.commands.setContent(newHtml)
         }
+        
         hookApplyFrase(frase) // Registrar uso
       }
     }
@@ -334,7 +313,7 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
           setSelectedFraseForVariables(fullFrase)
           setVariablesModalOpen(true)
         } else {
-          // Aplicar diretamente
+          // Aplicar diretamente com smartInsertConclusion
           if (editorInstance) {
             const texto = fullFrase.frase || ''
             const conclusao = fullFrase.conclusao
@@ -345,27 +324,13 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
               editorInstance.commands.insertContent(wrapInParagraph(texto))
             }
             
+            // Usar smartInsertConclusion para inserção inteligente
             if (conclusao) {
-              const html = editorInstance.getHTML()
-              const impressaoMatch = html.match(/<h[1-6][^>]*>\s*(IMPRESSÃO|CONCLUSÃO|Impressão|Conclusão)\s*<\/h[1-6]>/i)
-              
-              if (impressaoMatch) {
-                const impressaoIndex = html.indexOf(impressaoMatch[0])
-                const afterImpressao = html.substring(impressaoIndex + impressaoMatch[0].length)
-                const nextHeadingMatch = afterImpressao.match(/<h[1-6][^>]*>/)
-                
-                if (nextHeadingMatch) {
-                  const insertPos = impressaoIndex + impressaoMatch[0].length + afterImpressao.indexOf(nextHeadingMatch[0])
-                  const newHtml = html.slice(0, insertPos) + `<p>- ${conclusao}</p>` + html.slice(insertPos)
-                  editorInstance.commands.setContent(newHtml)
-                } else {
-                  editorInstance.commands.insertContent(`<p>- ${conclusao}</p>`)
-                }
-              } else {
-                editorInstance.commands.insertContent(`<h3>IMPRESSÃO</h3>`)
-                editorInstance.commands.insertContent(`<p>- ${conclusao}</p>`)
-              }
+              const currentHtml = editorInstance.getHTML()
+              const newHtml = smartInsertConclusion(currentHtml, conclusao)
+              editorInstance.commands.setContent(newHtml)
             }
+            
             hookApplyFrase(fullFrase)
           }
         }

@@ -433,10 +433,23 @@ export async function processVoiceInputWithEngine(text: string, editor: Editor):
     // Importar módulos de segurança
     const { getVoiceEngine } = await import('@/lib/voiceEngine')
     const { getRecommendedAction } = await import('@/modules/voice-command-engine/safetyGuard')
+    const { detectIntent } = await import('@/modules/voice-command-engine')
     
     const engine = getVoiceEngine()
     
     if (engine.getState().isReady) {
+      // CRÍTICO: Detectar intent ANTES de processar
+      // Se é TEMPLATE ou FRASE, a engine delega via callbacks
+      // NÃO devemos inserir o texto do comando como fallback!
+      const intent = detectIntent(text)
+      
+      if (intent.type === 'TEMPLATE' || intent.type === 'FRASE') {
+        console.log(`📨 Delegando ${intent.type} para callback - NÃO inserir texto do comando`)
+        await engine.processTranscript(text) // Chama callbacks registrados
+        return true // ⬅️ IMPORTANTE: retorna TRUE para evitar fallback que inseriria o texto
+      }
+      
+      // Para SYSTEM/TEXT, comportamento normal com validação de segurança
       const result = await engine.processTranscript(text)
       
       // Usar sistema de segurança para decidir ação
