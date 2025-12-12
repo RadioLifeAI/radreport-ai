@@ -2,17 +2,18 @@
  * Voice Command Engine - Dynamic Search
  * Busca lazy de templates e frases sob demanda
  * 
- * v3.0 - Sistema robusto de priorização:
- * - Prioriza templates NORMAIS sem variáveis (~100% dos casos)
- * - Detecção de intent "alterado" via keywords de patologias/procedimentos
- * - Cascade de fallback: normal+sem vars → normal+com vars → alterado
- * - Boost contextual por modalidade/região/categoria
+ * v4.0 - Sistema robusto com pré-filtragem inteligente:
+ * - Pré-filtragem por modalidade/região ANTES do Fuse.js
+ * - Busca exata no título (prioridade máxima)
+ * - Qualificadores de intensidade para diferenciação
+ * - Fuse.js com threshold restritivo 0.35
+ * - Cascade de fallback com logs detalhados
  */
 
 import Fuse from 'fuse.js';
 
 // ============================================
-// INTERFACES - Expandidas com categoria e variáveis
+// INTERFACES
 // ============================================
 
 export interface TemplateSearchItem {
@@ -23,13 +24,13 @@ export interface TemplateSearchItem {
   tags?: string[];
   categoria?: string;           // 'normal' | 'alterado'
   conteudo_template?: string;
-  variaveis?: any[];            // Para filtrar sem/com variáveis
+  variaveis?: any[];
 }
 
 export interface FraseSearchItem {
   id: string;
   codigo: string;
-  titulo?: string;       // ✨ Campo principal de busca (igual templates)
+  titulo?: string;
   texto?: string;
   frase?: string;
   categoria?: string;
@@ -45,10 +46,9 @@ export interface FraseSearchItem {
 export interface SearchContext {
   modalidade?: string | null;
   regiao?: string | null;
-  // ✨ NOVOS FILTROS
   preferCategoria?: 'normal' | 'alterado' | 'any';
   preferSemVariaveis?: boolean;
-  wantsAltered?: boolean;       // Detectado automaticamente por keywords
+  wantsAltered?: boolean;
 }
 
 export interface SearchResult<T> {
@@ -58,11 +58,76 @@ export interface SearchResult<T> {
 }
 
 // ============================================
+// QUALIFICADORES DE INTENSIDADE
+// ============================================
+
+/**
+ * Qualificadores para diferenciar frases similares
+ * Ex: "esteatose leve" vs "esteatose moderada" vs "esteatose acentuada"
+ */
+const INTENSITY_QUALIFIERS: Record<string, string[]> = {
+  'leve': ['leve', 'discreta', 'pequena', 'minima', 'mínima', 'inicial', 'incipiente'],
+  'moderada': ['moderada', 'media', 'média', 'moderado'],
+  'acentuada': ['acentuada', 'grave', 'severa', 'intensa', 'importante', 'avancada', 'avançada', 'marcada'],
+  'difusa': ['difusa', 'difuso', 'generalizada', 'generalizado', 'extensa', 'extenso'],
+  'focal': ['focal', 'localizada', 'localizado', 'segmentar', 'parcial'],
+  'bilateral': ['bilateral', 'bilaterais', 'ambos', 'ambas'],
+  'unilateral': ['unilateral', 'direita', 'esquerda', 'direito', 'esquerdo'],
+  'aguda': ['aguda', 'agudo', 'recente', 'nova', 'novo'],
+  'cronica': ['cronica', 'crônica', 'cronico', 'crônico', 'antiga', 'antigo'],
+};
+
+/**
+ * Verifica se a query tem qualificador que o título deve ter
+ */
+function matchIntensityQualifier(query: string, titulo: string): boolean {
+  const queryNorm = normalizeTitle(query);
+  const tituloNorm = normalizeTitle(titulo);
+  
+  for (const [key, synonyms] of Object.entries(INTENSITY_QUALIFIERS)) {
+    // Query pede esse qualificador?
+    const queryHasQualifier = synonyms.some(s => queryNorm.includes(s)) || queryNorm.includes(key);
+    
+    // Título tem esse qualificador?
+    const tituloHasQualifier = synonyms.some(s => tituloNorm.includes(s)) || tituloNorm.includes(key);
+    
+    // Se query pede mas título não tem → rejeitar
+    if (queryHasQualifier && !tituloHasQualifier) {
+      return false;
+    }
+    
+    // Se query pede e título tem → match perfeito
+    if (queryHasQualifier && tituloHasQualifier) {
+      return true;
+    }
+  }
+  
+  // Sem qualificador na query → aceitar qualquer título
+  return true;
+}
+
+/**
+ * Extrai qualificadores da query para scoring
+ */
+function extractQualifiers(text: string): string[] {
+  const normalized = normalizeTitle(text);
+  const found: string[] = [];
+  
+  for (const [key, synonyms] of Object.entries(INTENSITY_QUALIFIERS)) {
+    if (synonyms.some(s => normalized.includes(s)) || normalized.includes(key)) {
+      found.push(key);
+    }
+  }
+  
+  return found;
+}
+
+// ============================================
 // KEYWORDS PARA DETECÇÃO DE INTENT "ALTERADO"
 // ============================================
 
 const ALTERED_KEYWORDS = [
-  // Procedimentos cirúrgicos (~35)
+  // Procedimentos cirúrgicos
   'gastrectomia', 'colecistectomia', 'nefrectomia', 'histerectomia',
   'mastectomia', 'prostatectomia', 'hepatectomia', 'esplenectomia',
   'pancreatectomia', 'lobectomia', 'pneumonectomia', 'cistectomia',
@@ -72,52 +137,49 @@ const ALTERED_KEYWORDS = [
   'bypass', 'derivacao', 'anastomose', 'resseccao', 'amputacao',
   'shunt', 'cateter', 'dreno', 'ostomia', 'colostomia', 'ileostomia',
   
-  // Patologias oncológicas (~25)
+  // Patologias oncológicas
   'tumor', 'neoplasia', 'carcinoma', 'adenocarcinoma', 'linfoma',
   'sarcoma', 'melanoma', 'metastase', 'metástase', 'metastatico',
   'maligno', 'malignidade', 'cancer', 'câncer', 'oncologico',
   'adenoma', 'lipoma', 'hemangioma', 'papiloma', 'polipose',
   'displasia', 'hiperplasia', 'atipia', 'lesao', 'lesão',
   
-  // Patologias hepáticas (~12)
+  // Patologias hepáticas
   'cirrose', 'hepatopatia', 'esteatose', 'hepatomegalia',
   'hepatocarcinoma', 'hcc', 'colangiocarcinoma', 'hepatite',
   'fibrose', 'hipertensao portal', 'ascite', 'varizes',
   
-  // Patologias renais (~10)
+  // Patologias renais
   'hidronefrose', 'litiase', 'litíase', 'calculo', 'cálculo',
   'nefrolitiase', 'ureterolitiase', 'insuficiencia renal',
   'nefropatia', 'rim policistico', 'doenca renal',
   
-  // Patologias pulmonares (~12)
+  // Patologias pulmonares
   'pneumotorax', 'pneumotórax', 'derrame', 'consolidacao', 'consolidação',
   'atelectasia', 'enfisema', 'fibrose pulmonar', 'bronquiectasia',
   'tuberculose', 'pneumonia', 'covid', 'sars',
   
-  // Patologias vasculares (~10)
+  // Patologias vasculares
   'aneurisma', 'disseccao', 'trombose', 'embolia', 'estenose',
   'oclusao', 'oclusão', 'ateromatose', 'calcificacao', 'varizes',
   
-  // Patologias ginecológicas (~10)
+  // Patologias ginecológicas
   'mioma', 'miomatose', 'endometriose', 'adenomiose',
   'cisto ovariano', 'teratoma', 'endometrial', 'polipose',
   'malformacao', 'malformação',
   
-  // Patologias mamárias (~8)
+  // Patologias mamárias
   'nodulo', 'nódulo', 'massa', 'calcificacao', 'calcificação',
   'birads', 'bi-rads', 'fibroadenoma',
   
-  // Patologias tireoidianas (~6)
+  // Patologias tireoidianas
   'tirads', 'ti-rads', 'bocio', 'bócio', 'tireoidite', 'hashimoto',
   
-  // Outros (~8)
+  // Outros
   'fratura', 'luxacao', 'luxação', 'hernia', 'hérnia',
   'abcesso', 'absesso', 'fistula', 'fístula',
 ];
 
-/**
- * Detecta se a query indica busca por template ALTERADO
- */
 function detectAlteredIntent(query: string): boolean {
   const normalized = query
     .toLowerCase()
@@ -134,7 +196,7 @@ function detectAlteredIntent(query: string): boolean {
 }
 
 // ============================================
-// SINÔNIMOS E NORMALIZAÇÃO
+// MAPAS DE SINÔNIMOS
 // ============================================
 
 const MODALITY_MAP: Record<string, string> = {
@@ -163,16 +225,38 @@ const REGION_MAP: Record<string, string> = {
   'abdome': 'abdome',
   'abdominal': 'abdome',
   'abd': 'abdome',
+  'figado': 'abdome',
+  'fígado': 'abdome',
+  'hepatico': 'abdome',
+  'hepático': 'abdome',
+  'vesicula': 'abdome',
+  'vesícula': 'abdome',
+  'baco': 'abdome',
+  'baço': 'abdome',
+  'pancreas': 'abdome',
+  'pâncreas': 'abdome',
+  'rim': 'abdome',
+  'renal': 'abdome',
   
   // Tórax
   'torax': 'torax',
   'tórax': 'torax',
   'toracico': 'torax',
+  'pulmao': 'torax',
+  'pulmão': 'torax',
+  'pulmonar': 'torax',
   
   // Pelve
   'pelve': 'pelve',
   'pelvico': 'pelve',
   'pélvico': 'pelve',
+  'utero': 'pelve',
+  'útero': 'pelve',
+  'ovario': 'pelve',
+  'ovário': 'pelve',
+  'prostata': 'pelve',
+  'próstata': 'pelve',
+  'bexiga': 'pelve',
   
   // Crânio
   'cranio': 'cranio',
@@ -192,7 +276,7 @@ const REGION_MAP: Record<string, string> = {
   'sacroiliaca': 'coluna',
   'coccix': 'coluna',
   
-  // Cervical (pescoço/tireoide)
+  // Cervical
   'cervical': 'cervical',
   'pescoco': 'cervical',
   'pescoço': 'cervical',
@@ -219,7 +303,7 @@ const REGION_MAP: Record<string, string> = {
   'vascular': 'vascular',
   'doppler': 'vascular',
   
-  // ✨ EXTREMIDADES SUPERIORES
+  // Extremidades superiores
   'mao': 'ext_superior',
   'mão': 'ext_superior',
   'punho': 'ext_superior',
@@ -238,11 +322,10 @@ const REGION_MAP: Record<string, string> = {
   'radio': 'ext_superior',
   'rádio': 'ext_superior',
   'ulna': 'ext_superior',
-  'dedos mao': 'ext_superior',
   'carpo': 'ext_superior',
   'metacarpo': 'ext_superior',
   
-  // ✨ EXTREMIDADES INFERIORES
+  // Extremidades inferiores
   'pe': 'ext_inferior',
   'pé': 'ext_inferior',
   'tornozelo': 'ext_inferior',
@@ -258,16 +341,12 @@ const REGION_MAP: Record<string, string> = {
   'tíbia': 'ext_inferior',
   'fibula': 'ext_inferior',
   'fíbula': 'ext_inferior',
-  'dedos pe': 'ext_inferior',
   'calcaneo': 'ext_inferior',
   'calcâneo': 'ext_inferior',
   'tarso': 'ext_inferior',
   'metatarso': 'ext_inferior',
 };
 
-/**
- * Mapa de expansão de abreviações para busca no título
- */
 const MODALITY_FULL_NAMES: Record<string, string[]> = {
   'rx': ['radiografia', 'raio', 'raios'],
   'tc': ['tomografia', 'computadorizada'],
@@ -277,9 +356,10 @@ const MODALITY_FULL_NAMES: Record<string, string[]> = {
   'mg': ['mamografia'],
 };
 
-/**
- * Normaliza título para comparação (remove preposições e sufixos)
- */
+// ============================================
+// FUNÇÕES DE NORMALIZAÇÃO
+// ============================================
+
 function normalizeTitle(titulo: string): string {
   return titulo
     .toLowerCase()
@@ -290,24 +370,42 @@ function normalizeTitle(titulo: string): string {
     .replace(/\s+de\s+/g, ' ')
     .replace(/\s+das\s+/g, ' ')
     .replace(/\s+dos\s+/g, ' ')
-    .replace(/\s+—\s+.*$/g, '')      // Remove "— Direita (Normal)"
-    .replace(/\s*\(.*?\)\s*/g, ' ')  // Remove "(Normal)", "(Alterado)"
+    .replace(/\s+—\s+.*$/g, '')
+    .replace(/\s*\(.*?\)\s*/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 }
 
-/**
- * Expande abreviações da query para match no título
- * "rx mao" → ["radiografia", "mao"]
- */
+function normalizeQuery(query: string): string {
+  return query
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\bmodelos?\b/g, '')
+    .replace(/\bfrases?\b/g, '')
+    .replace(/\binserir\b/g, '')
+    .replace(/\baplicar\b/g, '')
+    .replace(/\badicionar\b/g, '')
+    .replace(/\bcolocar\b/g, '')
+    .replace(/\busar\b/g, '')
+    .replace(/\s+de\s+/g, ' ')
+    .replace(/\s+do\s+/g, ' ')
+    .replace(/\s+da\s+/g, ' ')
+    .replace(/\s+total\b/g, '')
+    .replace(/\s+completo\b/g, '')
+    .replace(/\s+normal\b/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function expandQueryWords(query: string): string[] {
-  const words = query.split(' ').filter(w => w.length >= 2);
+  const normalized = normalizeTitle(query);
+  const words = normalized.split(' ').filter(w => w.length >= 2);
   const expanded: string[] = [];
   
   for (const word of words) {
     const expansion = MODALITY_FULL_NAMES[word];
     if (expansion) {
-      // Adicionar apenas a primeira expansão (a mais comum)
       expanded.push(expansion[0]);
     } else {
       expanded.push(word);
@@ -317,84 +415,6 @@ function expandQueryWords(query: string): string[] {
   return expanded;
 }
 
-/**
- * ✨ BUSCA DIRETA NO TÍTULO - Prioridade máxima
- * Antes do Fuse.js, busca por substring no título normalizado
- */
-function searchDirectInTitle(
-  query: string,
-  templates: TemplateSearchItem[]
-): TemplateSearchItem | null {
-  const normalizedQuery = normalizeTitle(query);
-  const queryWords = expandQueryWords(normalizedQuery);
-  
-  console.log(`[DirectSearch] 🔤 Query words: [${queryWords.join(', ')}]`);
-  
-  if (queryWords.length === 0) return null;
-  
-  // FASE 1: Busca EXATA - todas as palavras no título
-  for (const template of templates) {
-    const tituloNorm = normalizeTitle(template.titulo || '');
-    
-    const allMatch = queryWords.every(word => tituloNorm.includes(word));
-    
-    if (allMatch) {
-      console.log(`[DirectSearch] ✅ Match EXATO: "${template.titulo}" (titulo norm: "${tituloNorm}")`);
-      return template;
-    }
-  }
-  
-  // FASE 2: Busca PARCIAL - pelo menos 60% das palavras (mínimo 1)
-  const minMatches = Math.max(1, Math.ceil(queryWords.length * 0.6));
-  let bestMatch: TemplateSearchItem | null = null;
-  let bestScore = 0;
-  
-  for (const template of templates) {
-    const tituloNorm = normalizeTitle(template.titulo || '');
-    
-    const matchCount = queryWords.filter(word => tituloNorm.includes(word)).length;
-    
-    // Deve ter pelo menos 2 palavras ou 60% de match
-    if (matchCount >= minMatches && matchCount > bestScore) {
-      bestScore = matchCount;
-      bestMatch = template;
-    }
-  }
-  
-  if (bestMatch) {
-    console.log(`[DirectSearch] ✅ Match PARCIAL (${bestScore}/${queryWords.length}): "${bestMatch.titulo}"`);
-  }
-  
-  return bestMatch;
-}
-
-/**
- * Normaliza query removendo acentos, preposições e expandindo abreviações
- */
-function normalizeQuery(query: string): string {
-  let normalized = query
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/\bmodelo\b/g, '')
-    .replace(/\bfrase\b/g, '')
-    .replace(/\binserir\b/g, '')
-    .replace(/\baplicar\b/g, '')
-    .replace(/\s+de\s+/g, ' ')
-    .replace(/\s+do\s+/g, ' ')
-    .replace(/\s+da\s+/g, ' ')
-    .replace(/\s+total\b/g, '')
-    .replace(/\s+completo\b/g, '')
-    .replace(/\s+normal\b/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-  
-  return normalized;
-}
-
-/**
- * Extrai modalidade e região da query normalizada
- */
 function extractModalityAndRegion(query: string): { modality?: string; region?: string } {
   let modality: string | undefined;
   let region: string | undefined;
@@ -418,9 +438,6 @@ function extractModalityAndRegion(query: string): { modality?: string; region?: 
   return { modality, region };
 }
 
-/**
- * Expande query com sinônimos de modalidade para melhor match
- */
 function expandQueryWithSynonyms(query: string): string {
   let expanded = query;
   
@@ -436,44 +453,228 @@ function expandQueryWithSynonyms(query: string): string {
 }
 
 // ============================================
-// CONFIGURAÇÃO FUSE.JS - Otimizada
+// PRÉ-FILTRAGEM POR MODALIDADE/REGIÃO
+// ============================================
+
+interface PreFilterResult<T> {
+  filtered: T[];
+  all: T[];
+}
+
+/**
+ * PRÉ-FILTRA frases por modalidade e região ANTES da busca fuzzy
+ * Reduz 400+ frases para ~30-80 candidatos relevantes
+ */
+function preFilterFrases(
+  frases: FraseSearchItem[],
+  context: SearchContext
+): PreFilterResult<FraseSearchItem> {
+  const { modalidade, regiao } = context;
+  
+  if (!modalidade && !regiao) {
+    return { filtered: frases, all: frases };
+  }
+  
+  // FASE 1: Filtrar por modalidade
+  let filtered = modalidade 
+    ? frases.filter(f => {
+        const mod = (f.modalidade_codigo || '').toUpperCase();
+        // Aceita match exato OU frases sem modalidade específica
+        return mod === modalidade.toUpperCase() || mod === '' || !mod;
+      })
+    : frases;
+  
+  // FASE 2: Filtrar por região (se aplicável e ainda tiver candidatos suficientes)
+  if (regiao && filtered.length > 15) {
+    const byRegion = filtered.filter(f => {
+      const reg = (f.regiao_codigo || '').toLowerCase();
+      return reg.includes(regiao.toLowerCase()) || reg === '' || !reg;
+    });
+    
+    // Só aplicar filtro de região se sobrar candidatos suficientes
+    if (byRegion.length >= 5) {
+      filtered = byRegion;
+    }
+  }
+  
+  console.log(`[PreFilter] ${frases.length} → ${filtered.length} frases (mod: ${modalidade || 'any'}, reg: ${regiao || 'any'})`);
+  
+  return { filtered, all: frases };
+}
+
+/**
+ * PRÉ-FILTRA templates por modalidade e região
+ */
+function preFilterTemplates(
+  templates: TemplateSearchItem[],
+  context: SearchContext
+): PreFilterResult<TemplateSearchItem> {
+  const { modalidade, regiao } = context;
+  
+  if (!modalidade && !regiao) {
+    return { filtered: templates, all: templates };
+  }
+  
+  let filtered = modalidade 
+    ? templates.filter(t => {
+        const mod = (t.modalidade || '').toUpperCase();
+        return mod === modalidade.toUpperCase() || mod === '' || !mod;
+      })
+    : templates;
+  
+  if (regiao && filtered.length > 10) {
+    const byRegion = filtered.filter(t => {
+      const reg = (t.regiao || '').toLowerCase();
+      return reg.includes(regiao.toLowerCase()) || reg === '' || !reg;
+    });
+    
+    if (byRegion.length >= 3) {
+      filtered = byRegion;
+    }
+  }
+  
+  console.log(`[PreFilter] ${templates.length} → ${filtered.length} templates (mod: ${modalidade || 'any'}, reg: ${regiao || 'any'})`);
+  
+  return { filtered, all: templates };
+}
+
+// ============================================
+// BUSCA EXATA NO TÍTULO
+// ============================================
+
+/**
+ * BUSCA EXATA no título - Prioridade máxima
+ * Verifica qualificadores de intensidade para diferenciação
+ */
+function searchExactInTitle<T extends { titulo?: string; categoria?: string; codigo?: string }>(
+  query: string,
+  items: T[]
+): T | null {
+  const normalizedQuery = normalizeTitle(query);
+  const queryWords = expandQueryWords(normalizedQuery);
+  
+  if (queryWords.length === 0) return null;
+  
+  console.log(`[ExactSearch] 🔤 Query words: [${queryWords.join(', ')}]`);
+  
+  // PRIORIDADE 1: Match COMPLETO + qualificadores corretos
+  for (const item of items) {
+    const titulo = item.titulo || item.categoria || '';
+    const tituloNorm = normalizeTitle(titulo);
+    
+    if (!tituloNorm) continue;
+    
+    const allMatch = queryWords.every(word => tituloNorm.includes(word));
+    
+    if (allMatch && matchIntensityQualifier(query, titulo)) {
+      console.log(`[ExactSearch] ✅ Match EXATO + qualificador: "${titulo}"`);
+      return item;
+    }
+  }
+  
+  // PRIORIDADE 2: Match COMPLETO sem verificar qualificadores
+  for (const item of items) {
+    const titulo = item.titulo || item.categoria || '';
+    const tituloNorm = normalizeTitle(titulo);
+    
+    if (!tituloNorm) continue;
+    
+    const allMatch = queryWords.every(word => tituloNorm.includes(word));
+    
+    if (allMatch) {
+      console.log(`[ExactSearch] ✅ Match EXATO: "${titulo}"`);
+      return item;
+    }
+  }
+  
+  // PRIORIDADE 3: Match por SEQUÊNCIA (palavras na ordem)
+  const querySequence = queryWords.join('.*');
+  const sequenceRegex = new RegExp(querySequence, 'i');
+  
+  for (const item of items) {
+    const titulo = item.titulo || item.categoria || '';
+    const tituloNorm = normalizeTitle(titulo);
+    
+    if (!tituloNorm) continue;
+    
+    if (sequenceRegex.test(tituloNorm) && matchIntensityQualifier(query, titulo)) {
+      console.log(`[ExactSearch] ✅ Match SEQUÊNCIA: "${titulo}"`);
+      return item;
+    }
+  }
+  
+  // PRIORIDADE 4: Match PARCIAL (60% das palavras)
+  const minMatches = Math.max(1, Math.ceil(queryWords.length * 0.6));
+  let bestMatch: T | null = null;
+  let bestScore = 0;
+  
+  for (const item of items) {
+    const titulo = item.titulo || item.categoria || '';
+    const tituloNorm = normalizeTitle(titulo);
+    
+    if (!tituloNorm) continue;
+    
+    const matchCount = queryWords.filter(word => tituloNorm.includes(word)).length;
+    
+    // Verificar qualificadores para desempate
+    const hasCorrectQualifier = matchIntensityQualifier(query, titulo);
+    const adjustedScore = hasCorrectQualifier ? matchCount + 0.5 : matchCount;
+    
+    if (matchCount >= minMatches && adjustedScore > bestScore) {
+      bestScore = adjustedScore;
+      bestMatch = item;
+    }
+  }
+  
+  if (bestMatch) {
+    const titulo = bestMatch.titulo || (bestMatch as any).categoria || '';
+    console.log(`[ExactSearch] ✅ Match PARCIAL (${Math.floor(bestScore)}/${queryWords.length}): "${titulo}"`);
+  }
+  
+  return bestMatch;
+}
+
+// ============================================
+// CONFIGURAÇÃO FUSE.JS - Threshold Restritivo
 // ============================================
 
 const TEMPLATE_FUSE_OPTIONS = {
   keys: [
-    { name: 'titulo', weight: 0.40 },      // ↑ Título mais importante
-    { name: 'modalidade', weight: 0.25 },
-    { name: 'regiao', weight: 0.20 },
+    { name: 'titulo', weight: 0.50 },
+    { name: 'modalidade', weight: 0.20 },
+    { name: 'regiao', weight: 0.15 },
     { name: 'tags', weight: 0.10 },
     { name: 'categoria', weight: 0.05 },
   ],
-  threshold: 0.55,          // ↓ Mais restritivo
+  threshold: 0.40,
+  distance: 100,
   includeScore: true,
   ignoreLocation: true,
-  minMatchCharLength: 2,
-  findAllMatches: true,
-  useExtendedSearch: true,
+  minMatchCharLength: 3,
+  findAllMatches: false,
+  shouldSort: true,
 };
 
 const FRASE_FUSE_OPTIONS = {
   keys: [
-    { name: 'titulo', weight: 0.45 },          // ✨ DOMINANTE - campo principal (igual templates)
-    { name: 'categoria', weight: 0.20 },       // Backup do título
-    { name: 'texto', weight: 0.15 },           // Conteúdo descritivo
-    { name: 'codigo', weight: 0.10 },
+    { name: 'titulo', weight: 0.55 },
+    { name: 'categoria', weight: 0.15 },
+    { name: 'conclusao', weight: 0.10 },
+    { name: 'texto', weight: 0.10 },
+    { name: 'codigo', weight: 0.05 },
     { name: 'sinônimos', weight: 0.05 },
-    { name: 'modalidade_codigo', weight: 0.05 },
   ],
-  threshold: 0.50,
+  threshold: 0.35,
+  distance: 100,
   includeScore: true,
   ignoreLocation: true,
-  minMatchCharLength: 2,
-  findAllMatches: true,
-  useExtendedSearch: true,
+  minMatchCharLength: 3,
+  findAllMatches: false,
+  shouldSort: true,
 };
 
 // ============================================
-// CONTEXT BOOST - Com categoria
+// CONTEXT BOOST
 // ============================================
 
 interface BoostableItem {
@@ -484,15 +685,14 @@ interface BoostableItem {
   regiao_codigo?: string;
   categoria?: string;
   variaveis?: any[];
+  titulo?: string;
 }
 
-/**
- * Aplica boost contextual ao score baseado em modalidade/região/categoria
- */
 function applyContextBoost<T extends BoostableItem>(
   item: T,
   baseScore: number,
-  context: SearchContext
+  context: SearchContext,
+  query?: string
 ): number {
   let boostedScore = baseScore;
   
@@ -515,16 +715,23 @@ function applyContextBoost<T extends BoostableItem>(
     boostedScore *= 0.85;
   }
   
-  // ✨ Boost de categoria (quando não busca alterado)
+  // Boost de categoria
   if (!context.wantsAltered && itemCat === 'normal') {
-    boostedScore *= 0.8; // 20% boost para normais
+    boostedScore *= 0.8;
   }
   
-  // ✨ Boost para templates sem variáveis
+  // Boost para sem variáveis
   if (context.preferSemVariaveis !== false) {
     const hasVars = item.variaveis && item.variaveis.length > 0;
     if (!hasVars) {
-      boostedScore *= 0.85; // 15% boost para sem variáveis
+      boostedScore *= 0.85;
+    }
+  }
+  
+  // ✨ Boost para qualificadores corretos
+  if (query && item.titulo) {
+    if (matchIntensityQualifier(query, item.titulo)) {
+      boostedScore *= 0.75; // 25% boost
     }
   }
   
@@ -532,7 +739,7 @@ function applyContextBoost<T extends BoostableItem>(
 }
 
 // ============================================
-// BUSCA COM FUSE.JS - Função auxiliar
+// BUSCA COM FUSE.JS
 // ============================================
 
 function searchWithFuse<T extends BoostableItem>(
@@ -540,7 +747,7 @@ function searchWithFuse<T extends BoostableItem>(
   query: string,
   context: SearchContext,
   options: any,
-  acceptThreshold: number = 0.65
+  acceptThreshold: number = 0.55
 ): T | null {
   if (items.length === 0) return null;
   
@@ -552,31 +759,27 @@ function searchWithFuse<T extends BoostableItem>(
   const boostedResults = results.map(result => ({
     item: result.item,
     score: result.score ?? 1,
-    boostedScore: applyContextBoost(result.item, result.score ?? 1, context),
+    boostedScore: applyContextBoost(result.item, result.score ?? 1, context, query),
   }));
   
   boostedResults.sort((a, b) => a.boostedScore - b.boostedScore);
   
   const best = boostedResults[0];
   
+  console.log(`[Fuse] Top result: "${(best.item as any).titulo || (best.item as any).categoria}" (score: ${best.score.toFixed(3)}, boosted: ${best.boostedScore.toFixed(3)})`);
+  
   if (best.boostedScore <= acceptThreshold) {
     return best.item;
   }
   
+  console.log(`[Fuse] Rejected: score ${best.boostedScore.toFixed(3)} > threshold ${acceptThreshold}`);
   return null;
 }
 
 // ============================================
-// BUSCA PRINCIPAL - Templates com Priorização
+// BUSCA PRINCIPAL - Templates
 // ============================================
 
-/**
- * Busca templates com priorização:
- * 0. ✨ BUSCA DIRETA NO TÍTULO (PRIORIDADE MÁXIMA)
- * 1. Normal + Sem variáveis (Fuse.js)
- * 2. Normal + Com variáveis (fallback)
- * 3. Alterado (apenas se keyword detectado)
- */
 export function searchTemplates(
   query: string,
   templates: TemplateSearchItem[],
@@ -586,22 +789,25 @@ export function searchTemplates(
     return null;
   }
   
-  // Detectar se quer template alterado
   const wantsAltered = detectAlteredIntent(query);
-  const enhancedContext: SearchContext = { ...context, wantsAltered };
-  
-  // Normalizar query
   const normalizedQuery = normalizeQuery(query);
   const expandedQuery = expandQueryWithSynonyms(normalizedQuery);
+  const { modality, region } = extractModalityAndRegion(normalizedQuery);
   
-  console.log(`[DynamicSearch] ========================================`);
-  console.log(`[DynamicSearch] 📥 Query: "${query}"`);
-  console.log(`[DynamicSearch] 📝 Normalizada: "${normalizedQuery}"`);
-  console.log(`[DynamicSearch] 🔤 Expandida Fuse: "${expandedQuery}"`);
-  console.log(`[DynamicSearch] 🎯 Modo: ${wantsAltered ? '🔴 ALTERADO' : '🟢 NORMAL'}`);
-  console.log(`[DynamicSearch] 📊 Total templates: ${templates.length}`);
+  // Enriquecer contexto
+  const enhancedContext: SearchContext = { 
+    ...context, 
+    wantsAltered,
+    modalidade: context.modalidade || modality,
+    regiao: context.regiao || region,
+  };
   
-  // Estatísticas de templates
+  console.log(`[SearchTemplates] ========================================`);
+  console.log(`[SearchTemplates] 📥 Query: "${query}" → "${normalizedQuery}"`);
+  console.log(`[SearchTemplates] 🎯 Modo: ${wantsAltered ? '🔴 ALTERADO' : '🟢 NORMAL'}`);
+  console.log(`[SearchTemplates] 📊 Total: ${templates.length}, Context: mod=${enhancedContext.modalidade}, reg=${enhancedContext.regiao}`);
+  
+  // Separar por categoria
   const normaisSemVars = templates.filter(t => 
     (t.categoria === 'normal' || !t.categoria) && (!t.variaveis || t.variaveis.length === 0)
   );
@@ -610,223 +816,86 @@ export function searchTemplates(
   );
   const alterados = templates.filter(t => t.categoria === 'alterado');
   
-  console.log(`[DynamicSearch] 📄 Normais sem vars: ${normaisSemVars.length}`);
-  console.log(`[DynamicSearch] 📋 Normais com vars: ${normaisComVars.length}`);
-  console.log(`[DynamicSearch] 🔴 Alterados: ${alterados.length}`);
-  
-  // =============================================
-  // ✨ FASE 0: BUSCA DIRETA NO TÍTULO (PRIORIDADE MÁXIMA)
-  // =============================================
-  
-  // Definir candidatos baseado no modo
+  // PRÉ-FILTRAR por modalidade/região
   const candidatosDiretos = wantsAltered 
     ? alterados 
     : [...normaisSemVars, ...normaisComVars];
   
-  console.log(`[DynamicSearch] 🔍 FASE 0: Busca DIRETA no título...`);
-  const directMatch = searchDirectInTitle(normalizedQuery, candidatosDiretos);
-  if (directMatch) {
-    console.log(`[DynamicSearch] ✅ FASE 0: Match DIRETO no título: "${directMatch.titulo}"`);
-    return directMatch;
+  const { filtered: candidatosFiltrados } = preFilterTemplates(candidatosDiretos, enhancedContext);
+  
+  // =============================================
+  // FASE 0: BUSCA EXATA NO TÍTULO (PRIORIDADE MÁXIMA)
+  // =============================================
+  console.log(`[SearchTemplates] 🔍 FASE 0: Busca EXATA em ${candidatosFiltrados.length} candidatos filtrados...`);
+  let match = searchExactInTitle(normalizedQuery, candidatosFiltrados);
+  if (match) {
+    console.log(`[SearchTemplates] ✅ FASE 0: Match EXATO: "${match.titulo}"`);
+    return match;
+  }
+  
+  // Fallback: busca exata em todos os candidatos sem filtro
+  if (candidatosFiltrados.length < candidatosDiretos.length) {
+    console.log(`[SearchTemplates] 🔄 FASE 0b: Busca EXATA em TODOS ${candidatosDiretos.length} candidatos...`);
+    match = searchExactInTitle(normalizedQuery, candidatosDiretos);
+    if (match) {
+      console.log(`[SearchTemplates] ✅ FASE 0b: Match EXATO (sem filtro): "${match.titulo}"`);
+      return match;
+    }
   }
   
   // =============================================
-  // CASCADE DE BUSCA COM FUSE.JS
+  // FASE 1: FUSE.JS NOS CANDIDATOS FILTRADOS
   // =============================================
-  
-  if (wantsAltered) {
-    // Modo ALTERADO: buscar em alterados primeiro, depois normais
-    console.log(`[DynamicSearch] 🔍 FASE 1: Fuse.js em alterados...`);
-    
-    // 1º Alterados
-    let match = searchWithFuse(alterados, expandedQuery, enhancedContext, TEMPLATE_FUSE_OPTIONS);
-    if (match) {
-      console.log(`[DynamicSearch] ✅ Encontrado ALTERADO: "${match.titulo}"`);
-      return match;
-    }
-    
-    // 2º Fallback para normais sem vars
-    console.log(`[DynamicSearch] 🔍 FASE 2: Fuse.js normais sem variáveis...`);
-    match = searchWithFuse(normaisSemVars, expandedQuery, enhancedContext, TEMPLATE_FUSE_OPTIONS);
-    if (match) {
-      console.log(`[DynamicSearch] ✅ Encontrado NORMAL sem vars: "${match.titulo}"`);
-      return match;
-    }
-    
-    // 3º Fallback para normais com vars
-    console.log(`[DynamicSearch] 🔍 FASE 3: Fuse.js normais com variáveis...`);
-    match = searchWithFuse(normaisComVars, expandedQuery, enhancedContext, TEMPLATE_FUSE_OPTIONS);
-    if (match) {
-      console.log(`[DynamicSearch] ✅ Encontrado NORMAL com vars: "${match.titulo}"`);
-      return match;
-    }
-    
-  } else {
-    // Modo NORMAL: buscar APENAS em normais, priorizar sem variáveis
-    
-    // 1º Normais sem variáveis
-    console.log(`[DynamicSearch] 🔍 FASE 1: Fuse.js normais SEM variáveis...`);
-    let match = searchWithFuse(normaisSemVars, expandedQuery, enhancedContext, TEMPLATE_FUSE_OPTIONS);
-    if (match) {
-      console.log(`[DynamicSearch] ✅ Encontrado NORMAL sem vars: "${match.titulo}"`);
-      return match;
-    }
-    
-    // 2º Normais com variáveis (fallback)
-    console.log(`[DynamicSearch] 🔍 FASE 2: Fuse.js normais COM variáveis...`);
-    match = searchWithFuse(normaisComVars, expandedQuery, enhancedContext, TEMPLATE_FUSE_OPTIONS);
-    if (match) {
-      console.log(`[DynamicSearch] ✅ Encontrado NORMAL com vars: "${match.titulo}"`);
-      return match;
-    }
-    
-    // NÃO buscar em alterados no modo normal!
+  console.log(`[SearchTemplates] 🔍 FASE 1: Fuse.js em ${candidatosFiltrados.length} candidatos filtrados...`);
+  match = searchWithFuse(candidatosFiltrados, expandedQuery, enhancedContext, TEMPLATE_FUSE_OPTIONS, 0.50);
+  if (match) {
+    console.log(`[SearchTemplates] ✅ FASE 1: Fuse match: "${match.titulo}"`);
+    return match;
   }
   
   // =============================================
-  // FALLBACK FINAL: Busca por modalidade + região
+  // FASE 2: FUSE.JS EM TODOS OS CANDIDATOS
   // =============================================
+  if (candidatosFiltrados.length < candidatosDiretos.length) {
+    console.log(`[SearchTemplates] 🔍 FASE 2: Fuse.js em TODOS ${candidatosDiretos.length} candidatos...`);
+    match = searchWithFuse(candidatosDiretos, expandedQuery, enhancedContext, TEMPLATE_FUSE_OPTIONS, 0.55);
+    if (match) {
+      console.log(`[SearchTemplates] ✅ FASE 2: Fuse match (todos): "${match.titulo}"`);
+      return match;
+    }
+  }
   
-  const { modality, region } = extractModalityAndRegion(normalizedQuery);
-  
+  // =============================================
+  // FASE 3: FALLBACK POR MODALIDADE/REGIÃO
+  // =============================================
   if (modality || region) {
-    console.log(`[DynamicSearch] 🔍 Fallback modalidade/região: mod=${modality}, reg=${region}`);
+    console.log(`[SearchTemplates] 🔍 FASE 3: Fallback modalidade/região...`);
     
-    // Candidatos por modalidade/região
-    const candidatos = wantsAltered ? alterados : [...normaisSemVars, ...normaisComVars];
-    
-    const fallbackMatches = candidatos.filter(t => {
+    const fallbackMatches = candidatosDiretos.filter(t => {
       const modMatch = !modality || t.modalidade?.toUpperCase() === modality.toUpperCase();
       const regMatch = !region || t.regiao?.toLowerCase().includes(region);
       return modMatch && regMatch;
     });
     
     if (fallbackMatches.length > 0) {
-      // Priorizar sem variáveis no fallback também
       const semVars = fallbackMatches.filter(t => !t.variaveis || t.variaveis.length === 0);
       const prioritized = semVars.length > 0 ? semVars : fallbackMatches;
-      
-      // Se múltiplos matches, preferir título mais curto (mais genérico)
       prioritized.sort((a, b) => (a.titulo?.length || 0) - (b.titulo?.length || 0));
       
       const fallbackMatch = prioritized[0];
-      console.log(`[DynamicSearch] ✅ Fallback match: "${fallbackMatch.titulo}"`);
+      console.log(`[SearchTemplates] ✅ FASE 3: Fallback match: "${fallbackMatch.titulo}"`);
       return fallbackMatch;
     }
   }
   
-  console.log(`[DynamicSearch] ❌ Nenhum template encontrado`);
+  console.log(`[SearchTemplates] ❌ Nenhum template encontrado`);
   return null;
 }
 
 // ============================================
-// BUSCA DIRETA - Título (para Frases)
+// BUSCA PRINCIPAL - Frases (com Pipeline Robusto)
 // ============================================
 
-/**
- * Busca DIRETA no campo titulo das frases (PRIORIDADE MÁXIMA)
- * Similar a searchDirectInTitle para templates - agora usando campo titulo
- */
-function searchDirectInTitulo(
-  query: string,
-  frases: FraseSearchItem[]
-): FraseSearchItem | null {
-  if (!query || frases.length === 0) return null;
-  
-  // Normalizar query
-  const normalizedQuery = normalizeTitle(query);
-  const queryWords = expandQueryWords(query);
-  
-  console.log(`[DirectSearch-Frase] 🔍 Query: "${query}"`);
-  console.log(`[DirectSearch-Frase] 📝 Normalizada: "${normalizedQuery}"`);
-  console.log(`[DirectSearch-Frase] 🔤 Palavras expandidas: [${queryWords.join(', ')}]`);
-  
-  // FASE 1: Busca EXATA no titulo - todas as palavras devem estar presentes
-  for (const frase of frases) {
-    const tituloNorm = normalizeTitle(frase.titulo || '');
-    
-    if (!tituloNorm) continue;
-    
-    // Verificar se TODAS as palavras da query estão no título
-    const allMatch = queryWords.length > 0 && queryWords.every(word => 
-      tituloNorm.includes(word)
-    );
-    
-    if (allMatch) {
-      console.log(`[DirectSearch-Frase] ✅ Match EXATO titulo: "${frase.titulo}" (código: ${frase.codigo})`);
-      return frase;
-    }
-  }
-  
-  // FASE 2: Busca na categoria como fallback
-  for (const frase of frases) {
-    const categoriaNorm = normalizeTitle(frase.categoria || '');
-    
-    if (!categoriaNorm) continue;
-    
-    const allMatch = queryWords.length > 0 && queryWords.every(word => 
-      categoriaNorm.includes(word)
-    );
-    
-    if (allMatch) {
-      console.log(`[DirectSearch-Frase] ✅ Match EXATO categoria: "${frase.categoria}" (código: ${frase.codigo})`);
-      return frase;
-    }
-  }
-  
-  // FASE 3: Busca PARCIAL no titulo/categoria (60% das palavras)
-  const minMatches = Math.max(1, Math.ceil(queryWords.length * 0.6));
-  let bestMatch: FraseSearchItem | null = null;
-  let bestScore = 0;
-  
-  for (const frase of frases) {
-    const tituloNorm = normalizeTitle(frase.titulo || frase.categoria || '');
-    
-    if (!tituloNorm) continue;
-    
-    const matchCount = queryWords.filter(word => 
-      tituloNorm.includes(word)
-    ).length;
-    
-    if (matchCount >= minMatches && matchCount > bestScore) {
-      bestScore = matchCount;
-      bestMatch = frase;
-    }
-  }
-  
-  if (bestMatch) {
-    console.log(`[DirectSearch-Frase] ✅ Match PARCIAL titulo (${bestScore}/${queryWords.length}): "${bestMatch.titulo || bestMatch.categoria}" (código: ${bestMatch.codigo})`);
-    return bestMatch;
-  }
-  
-  // FASE 4: Busca no texto (conteúdo da frase) como fallback final
-  for (const frase of frases) {
-    const textoNorm = normalizeTitle(frase.texto || '');
-    
-    // Buscar palavras-chave no início do texto
-    const textWords = textoNorm.split(' ').slice(0, 10); // Primeiras 10 palavras
-    
-    const matchCount = queryWords.filter(word => 
-      textWords.some(tw => tw.includes(word) || word.includes(tw))
-    ).length;
-    
-    if (matchCount >= minMatches) {
-      console.log(`[DirectSearch-Frase] ✅ Match no TEXTO: "${frase.titulo || frase.categoria || frase.codigo}"`);
-      return frase;
-    }
-  }
-  
-  console.log(`[DirectSearch-Frase] ❌ Nenhum match direto encontrado`);
-  return null;
-}
-
-// ============================================
-// BUSCA PRINCIPAL - Frases
-// ============================================
-
-/**
- * Busca frases dinamicamente com normalização e fallback
- */
 export function searchFrases(
   query: string,
   frases: FraseSearchItem[],
@@ -837,40 +906,82 @@ export function searchFrases(
   }
   
   const normalizedQuery = normalizeQuery(query);
+  const { modality, region } = extractModalityAndRegion(normalizedQuery);
   
-  console.log(`[DynamicSearch] ========================================`);
-  console.log(`[DynamicSearch] 📥 Frase query original: "${query}"`);
-  console.log(`[DynamicSearch] 📝 Frase query normalizada: "${normalizedQuery}"`);
-  console.log(`[DynamicSearch] 📊 Total frases disponíveis: ${frases.length}`);
+  // Enriquecer contexto
+  const enhancedContext: SearchContext = {
+    ...context,
+    modalidade: context.modalidade || modality,
+    regiao: context.regiao || region,
+  };
   
-  // ✨ FASE 0: Busca DIRETA no titulo (PRIORIDADE MÁXIMA)
-  const directMatch = searchDirectInTitulo(normalizedQuery, frases);
-  if (directMatch) {
-    console.log(`[DynamicSearch] ✅ Frase encontrada via BUSCA DIRETA: "${directMatch.titulo || directMatch.categoria}" (${directMatch.codigo})`);
-    return directMatch;
-  }
+  console.log(`[SearchFrases] ========================================`);
+  console.log(`[SearchFrases] 📥 Query: "${query}" → "${normalizedQuery}"`);
+  console.log(`[SearchFrases] 📊 Total: ${frases.length}, Context: mod=${enhancedContext.modalidade}, reg=${enhancedContext.regiao}`);
+  console.log(`[SearchFrases] 🏷️ Qualificadores detectados: [${extractQualifiers(query).join(', ')}]`);
   
-  // FASE 1: Buscar com Fuse.js (fallback)
-  console.log(`[DynamicSearch] 🔄 Tentando Fuse.js como fallback...`);
-  const match = searchWithFuse(frases, normalizedQuery, context, FRASE_FUSE_OPTIONS);
+  // ========================================
+  // FASE 1: PRÉ-FILTRO POR MODALIDADE/REGIÃO
+  // ========================================
+  const { filtered: candidatos, all: todasFrases } = preFilterFrases(frases, enhancedContext);
+  console.log(`[SearchFrases] 📋 Candidatos pré-filtrados: ${candidatos.length}/${frases.length}`);
   
+  // ========================================
+  // FASE 2: BUSCA EXATA NO TÍTULO (PRIORIDADE MÁXIMA)
+  // ========================================
+  console.log(`[SearchFrases] 🔍 FASE 2: Busca EXATA em ${candidatos.length} candidatos...`);
+  let match = searchExactInTitle(normalizedQuery, candidatos);
   if (match) {
-    console.log(`[DynamicSearch] ✅ Frase encontrada via Fuse.js: "${match.categoria}" (${match.codigo})`);
+    console.log(`[SearchFrases] ✅ FASE 2: Match EXATO em candidatos: "${match.titulo || match.categoria}" (${match.codigo})`);
     return match;
   }
   
-  // FASE 2: Fallback final - busca parcial no código
+  // ========================================
+  // FASE 3: FUSE.JS NOS CANDIDATOS PRÉ-FILTRADOS
+  // ========================================
+  console.log(`[SearchFrases] 🔍 FASE 3: Fuse.js em ${candidatos.length} candidatos...`);
+  match = searchWithFuse(candidatos, normalizedQuery, enhancedContext, FRASE_FUSE_OPTIONS, 0.45);
+  if (match) {
+    console.log(`[SearchFrases] ✅ FASE 3: Fuse match candidatos: "${match.titulo || match.categoria}" (${match.codigo})`);
+    return match;
+  }
+  
+  // ========================================
+  // FASE 4: FALLBACK - BUSCA EM TODAS AS FRASES
+  // ========================================
+  if (candidatos.length < todasFrases.length) {
+    console.log(`[SearchFrases] 🔄 FASE 4: Fallback em TODAS ${todasFrases.length} frases...`);
+    
+    // 4a: Busca exata em todas
+    match = searchExactInTitle(normalizedQuery, todasFrases);
+    if (match) {
+      console.log(`[SearchFrases] ✅ FASE 4a: Match EXATO (todas): "${match.titulo || match.categoria}" (${match.codigo})`);
+      return match;
+    }
+    
+    // 4b: Fuse.js em todas
+    match = searchWithFuse(todasFrases, normalizedQuery, enhancedContext, FRASE_FUSE_OPTIONS, 0.50);
+    if (match) {
+      console.log(`[SearchFrases] ✅ FASE 4b: Fuse match (todas): "${match.titulo || match.categoria}" (${match.codigo})`);
+      return match;
+    }
+  }
+  
+  // ========================================
+  // FASE 5: FALLBACK FINAL - BUSCA NO CÓDIGO
+  // ========================================
+  const codeQuery = normalizedQuery.replace(/\s+/g, '_');
   const fallbackMatch = frases.find(f => 
-    f.codigo?.toLowerCase().includes(normalizedQuery.replace(/\s+/g, '_')) ||
+    f.codigo?.toLowerCase().includes(codeQuery) ||
     f.codigo?.toLowerCase().includes(normalizedQuery.replace(/\s+/g, ''))
   );
   
   if (fallbackMatch) {
-    console.log(`[DynamicSearch] ✅ Fallback frase (código): "${fallbackMatch.codigo}"`);
+    console.log(`[SearchFrases] ✅ FASE 5: Fallback código: "${fallbackMatch.codigo}"`);
     return fallbackMatch;
   }
   
-  console.log(`[DynamicSearch] ❌ Nenhuma frase encontrada para: "${query}"`);
+  console.log(`[SearchFrases] ❌ Nenhuma frase encontrada para: "${query}"`);
   return null;
 }
 
@@ -878,9 +989,6 @@ export function searchFrases(
 // BUSCA MÚLTIPLA - Para sugestões
 // ============================================
 
-/**
- * Busca múltiplos resultados de templates (para sugestões)
- */
 export function searchTemplatesMultiple(
   query: string,
   templates: TemplateSearchItem[],
@@ -897,41 +1005,39 @@ export function searchTemplatesMultiple(
   const normalizedQuery = normalizeQuery(query);
   const expandedQuery = expandQueryWithSynonyms(normalizedQuery);
   
-  // Filtrar candidatos baseado no modo
   let candidatos: TemplateSearchItem[];
   
   if (wantsAltered) {
     candidatos = templates.filter(t => t.categoria === 'alterado');
-    // Incluir normais também se poucos alterados
     if (candidatos.length < limit) {
       const normais = templates.filter(t => t.categoria !== 'alterado');
       candidatos = [...candidatos, ...normais];
     }
   } else {
-    // Modo normal: apenas normais, priorizar sem variáveis
     candidatos = templates.filter(t => t.categoria === 'normal' || !t.categoria);
   }
   
-  const fuse = new Fuse(candidatos, TEMPLATE_FUSE_OPTIONS);
+  // Pré-filtrar
+  const { filtered } = preFilterTemplates(candidatos, enhancedContext);
+  const searchSet = filtered.length >= limit ? filtered : candidatos;
+  
+  const fuse = new Fuse(searchSet, TEMPLATE_FUSE_OPTIONS);
   const results = fuse.search(expandedQuery, { limit: limit * 2 });
   
   const boostedResults = results.map(result => ({
     item: result.item,
     score: result.score ?? 1,
-    boostedScore: applyContextBoost(result.item, result.score ?? 1, enhancedContext),
+    boostedScore: applyContextBoost(result.item, result.score ?? 1, enhancedContext, query),
   }));
   
   boostedResults.sort((a, b) => a.boostedScore - b.boostedScore);
   
   return boostedResults
-    .filter(r => r.boostedScore <= 0.7)
+    .filter(r => r.boostedScore <= 0.60)
     .slice(0, limit)
     .map(r => r.item);
 }
 
-/**
- * Busca múltiplos resultados de frases (para sugestões)
- */
 export function searchFrasesMultiple(
   query: string,
   frases: FraseSearchItem[],
@@ -943,26 +1049,43 @@ export function searchFrasesMultiple(
   }
   
   const normalizedQuery = normalizeQuery(query);
+  const { modality, region } = extractModalityAndRegion(normalizedQuery);
   
-  const fuse = new Fuse(frases, FRASE_FUSE_OPTIONS);
+  const enhancedContext: SearchContext = {
+    ...context,
+    modalidade: context.modalidade || modality,
+    regiao: context.regiao || region,
+  };
+  
+  // Pré-filtrar
+  const { filtered } = preFilterFrases(frases, enhancedContext);
+  const searchSet = filtered.length >= limit ? filtered : frases;
+  
+  const fuse = new Fuse(searchSet, FRASE_FUSE_OPTIONS);
   const results = fuse.search(normalizedQuery, { limit: limit * 2 });
   
   const boostedResults = results.map(result => ({
     item: result.item,
     score: result.score ?? 1,
-    boostedScore: applyContextBoost(result.item, result.score ?? 1, context),
+    boostedScore: applyContextBoost(result.item, result.score ?? 1, enhancedContext, query),
   }));
   
   boostedResults.sort((a, b) => a.boostedScore - b.boostedScore);
   
   return boostedResults
-    .filter(r => r.boostedScore <= 0.7)
+    .filter(r => r.boostedScore <= 0.55)
     .slice(0, limit)
     .map(r => r.item);
 }
 
 // ============================================
-// EXPORTS AUXILIARES
+// EXPORTS
 // ============================================
 
-export { detectAlteredIntent, ALTERED_KEYWORDS };
+export { 
+  detectAlteredIntent, 
+  ALTERED_KEYWORDS,
+  INTENSITY_QUALIFIERS,
+  matchIntensityQualifier,
+  extractQualifiers,
+};

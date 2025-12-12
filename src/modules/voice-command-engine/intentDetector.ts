@@ -24,11 +24,16 @@ export interface DetectedIntent {
  * Ordenados por especificidade (maior primeiro)
  */
 const TEMPLATE_PREFIXES = [
+  'aplicar modelos',
   'aplicar modelo',
+  'usar modelos',
   'usar modelo',
   'laudo de',
+  'modelos de',
   'modelo de',
+  'templates',
   'template',
+  'modelos',
   'modelo',
   'laudo',
 ];
@@ -36,15 +41,21 @@ const TEMPLATE_PREFIXES = [
 /**
  * Prefixos que indicam intenção de buscar FRASE
  * Ordenados por especificidade (maior primeiro)
+ * Inclui plurais e variações semânticas
  */
 const FRASE_PREFIXES = [
+  'inserir frases',
   'inserir frase',
+  'adicionar frases',
   'adicionar frase',
+  'colocar frases',
   'colocar frase',
+  'frases de',
   'frase de',
   'inserir',
   'adicionar',
   'colocar',
+  'frases',
   'frase',
 ];
 
