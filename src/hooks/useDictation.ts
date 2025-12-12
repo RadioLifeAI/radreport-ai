@@ -430,8 +430,17 @@ export function useDictation(editor: Editor | null, options?: UseDictationOption
                 console.warn('⚠️ Whisper returned empty text')
                 setStats(prev => ({ ...prev, total: prev.total + 1, failed: prev.failed + 1 }))
               }
-            } catch (err) {
+            } catch (err: any) {
               console.error('❌ Whisper processing error:', err)
+              
+              // Tratar erro 402 (créditos insuficientes)
+              if (err?.message?.includes('INSUFFICIENT_CREDITS') || err?.status === 402 || err?.statusCode === 402) {
+                toast.error('Créditos Whisper insuficientes', {
+                  description: 'Faça upgrade do seu plano para continuar usando.'
+                })
+                setIsWhisperEnabled(false) // Desativar automaticamente
+              }
+              
               setStats(prev => ({ ...prev, total: prev.total + 1, failed: prev.failed + 1 }))
             } finally {
               setIsTranscribing(false)
