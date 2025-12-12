@@ -56,12 +56,27 @@ export interface FraseSearchItem {
   variaveis?: any[];
 }
 
+// Dados de histórico de uso para boost inteligente
+export interface UsageDataItem {
+  usageCount: number;
+  lastUsed: Date;
+}
+
+export interface UserUsageData {
+  templateUsage?: Map<string, UsageDataItem>;
+  fraseUsage?: Map<string, UsageDataItem>;
+  favoriteTemplates?: Set<string>;
+  favoriteFrases?: Set<string>;
+}
+
 export interface SearchContext {
   modalidade?: string | null;
   regiao?: string | null;
   preferCategoria?: 'normal' | 'alterado' | 'any';
   preferSemVariaveis?: boolean;
   wantsAltered?: boolean;
+  // ✨ Histórico de uso para priorização inteligente
+  userUsageData?: UserUsageData;
 }
 
 export interface SearchResult<T> {
@@ -133,6 +148,54 @@ function extractQualifiers(text: string): string[] {
   }
   
   return found;
+}
+
+// ============================================
+// BOOST DE HISTÓRICO DE USO
+// ============================================
+
+/**
+ * Calcula boost de score baseado no histórico de uso do usuário
+ * Favoritos e itens mais usados recebem prioridade
+ */
+function applyUsageBoost(
+  itemId: string,
+  baseScore: number,
+  usageData?: UserUsageData,
+  type: 'template' | 'frase' = 'template'
+): number {
+  if (!usageData || !itemId) return baseScore;
+  
+  let boost = 0;
+  
+  // Verificar se é favorito
+  const isFavorite = type === 'template' 
+    ? usageData.favoriteTemplates?.has(itemId)
+    : usageData.favoriteFrases?.has(itemId);
+  
+  if (isFavorite) {
+    boost += 100; // Favorito = boost máximo
+  }
+  
+  // Verificar histórico de uso
+  const usageMap = type === 'template' 
+    ? usageData.templateUsage 
+    : usageData.fraseUsage;
+  
+  const usage = usageMap?.get(itemId);
+  
+  if (usage) {
+    // Boost por frequência (logarítmico)
+    boost += Math.min(30, Math.log10(usage.usageCount + 1) * 15);
+    
+    // Boost adicional para uso recente (últimos 7 dias)
+    const daysSinceUse = (Date.now() - usage.lastUsed.getTime()) / (1000 * 60 * 60 * 24);
+    if (daysSinceUse <= 7) {
+      boost += Math.max(0, 20 - (daysSinceUse * 2));
+    }
+  }
+  
+  return baseScore + boost;
 }
 
 // ============================================
@@ -645,10 +708,13 @@ function getCombinations<T>(arr: T[], size: number): T[][] {
  * 3. Se não achar → tenta com N-1 palavras (cascata)
  * 4. Continua até 50% das palavras ou mínimo 2 palavras
  * 5. Usa scoring para desempate (sub-região correta, mais palavras)
+ * 6. ✨ NOVO: Aplica boost de histórico de uso (favoritos + frequência + recência)
  */
-function searchByKeywordCascade<T extends { titulo?: string; modalidade?: string; categoria?: string }>(
+function searchByKeywordCascade<T extends { id?: string; titulo?: string; modalidade?: string; categoria?: string }>(
   query: string,
-  items: T[]
+  items: T[],
+  usageData?: UserUsageData,
+  itemType: 'template' | 'frase' = 'template'
 ): T | null {
   const queryKeywords = extractKeywords(query);
   
@@ -716,6 +782,12 @@ function searchByKeywordCascade<T extends { titulo?: string; modalidade?: string
             score += 5;
           }
           
+          // ✨ BOOST: Histórico de uso (favoritos + frequência + recência)
+          const itemId = (item as any).id as string | undefined;
+          if (itemId && usageData) {
+            score = applyUsageBoost(itemId, score, usageData, itemType);
+          }
+          
           matches.push({ item, score, matchedWords: combo.length });
         }
       }
@@ -746,10 +818,12 @@ function searchByKeywordCascade<T extends { titulo?: string; modalidade?: string
  * BUSCA ESTRITA com prioridade ABSOLUTA para modalidade + sub-região
  * Usa cascata de palavras-chave internamente
  */
-function searchStrictTitleMatch<T extends { titulo?: string; modalidade?: string; categoria?: string }>(
+function searchStrictTitleMatch<T extends { id?: string; titulo?: string; modalidade?: string; categoria?: string }>(
   query: string,
   items: T[],
-  requiredModality?: string
+  requiredModality?: string,
+  usageData?: UserUsageData,
+  itemType: 'template' | 'frase' = 'template'
 ): T | null {
   console.log(`[StrictMatch] 🎯 Modalidade requerida: ${requiredModality || 'any'}`);
   
@@ -766,7 +840,7 @@ function searchStrictTitleMatch<T extends { titulo?: string; modalidade?: string
   }
   
   // PASSO 2: Usar busca em cascata nos items filtrados
-  const cascadeResult = searchByKeywordCascade(query, validModalityItems);
+  const cascadeResult = searchByKeywordCascade(query, validModalityItems, usageData, itemType);
   
   if (cascadeResult) {
     return cascadeResult;
@@ -1045,6 +1119,7 @@ export function searchTemplates(
   console.log(`[SearchTemplates] 🎯 Modalidade da query: ${queryModality || 'não detectada'}`);
   console.log(`[SearchTemplates] 🎯 Modo: ${wantsAltered ? '🔴 ALTERADO' : '🟢 NORMAL'}`);
   console.log(`[SearchTemplates] 📊 Total: ${templates.length}, Context: mod=${enhancedContext.modalidade}, reg=${enhancedContext.regiao}`);
+  console.log(`[SearchTemplates] ⭐ Histórico de uso: ${enhancedContext.userUsageData ? 'disponível' : 'não disponível'}`);
   
   // Separar por categoria
   const normaisSemVars = templates.filter(t => 
@@ -1064,7 +1139,7 @@ export function searchTemplates(
   // FASE 0: BUSCA ESTRITA COM MODALIDADE OBRIGATÓRIA
   // =============================================
   console.log(`[SearchTemplates] 🔍 FASE 0: Busca ESTRITA (modalidade: ${queryModality || 'any'})...`);
-  let match = searchStrictTitleMatch(normalizedQuery, candidatosDiretos, queryModality);
+  let match = searchStrictTitleMatch(normalizedQuery, candidatosDiretos, queryModality, enhancedContext.userUsageData, 'template');
   if (match) {
     console.log(`[SearchTemplates] ✅ FASE 0: Match ESTRITO: "${match.titulo}"`);
     return match;
@@ -1075,7 +1150,7 @@ export function searchTemplates(
   // =============================================
   if (queryModality) {
     console.log(`[SearchTemplates] 🔍 FASE 0b: Busca ESTRITA sem filtro modalidade...`);
-    match = searchStrictTitleMatch(normalizedQuery, candidatosDiretos, undefined);
+    match = searchStrictTitleMatch(normalizedQuery, candidatosDiretos, undefined, enhancedContext.userUsageData, 'template');
     if (match) {
       // Verificar se a modalidade pelo menos é compatível
       if (validateModalityMatch(queryModality, match.modalidade)) {
@@ -1190,6 +1265,7 @@ export function searchFrases(
   console.log(`[SearchFrases] 📥 Query: "${query}" → "${normalizedQuery}"`);
   console.log(`[SearchFrases] 📊 Total: ${frases.length}, Context: mod=${enhancedContext.modalidade}, reg=${enhancedContext.regiao}`);
   console.log(`[SearchFrases] 🏷️ Qualificadores detectados: [${extractQualifiers(query).join(', ')}]`);
+  console.log(`[SearchFrases] ⭐ Histórico de uso: ${enhancedContext.userUsageData ? 'disponível' : 'não disponível'}`);
   
   // ========================================
   // FASE 0: BUSCA EM CASCATA (NOVA - PRIORIDADE MÁXIMA)
@@ -1202,7 +1278,7 @@ export function searchFrases(
     titulo: f.titulo || f.categoria || f.conclusao || '',
   }));
   
-  let match = searchByKeywordCascade(normalizedQuery, frasesAdaptadas) as FraseSearchItem | null;
+  let match = searchByKeywordCascade(normalizedQuery, frasesAdaptadas, enhancedContext.userUsageData, 'frase') as FraseSearchItem | null;
   if (match) {
     console.log(`[SearchFrases] ✅ FASE 0: Match CASCATA: "${match.titulo || match.categoria}" (${match.codigo})`);
     return match;

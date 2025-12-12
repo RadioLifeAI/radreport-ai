@@ -74,10 +74,24 @@ export interface VoiceEngineState {
   loadedAt: Date | null;
 }
 
+// Dados de histórico de uso para boost inteligente
+export interface UsageDataItem {
+  usageCount: number;
+  lastUsed: Date;
+}
+
+export interface UserUsageData {
+  templateUsage?: Map<string, UsageDataItem>;
+  fraseUsage?: Map<string, UsageDataItem>;
+  favoriteTemplates?: Set<string>;
+  favoriteFrases?: Set<string>;
+}
+
 // Contexto para busca dinâmica
 export interface SearchContext {
   modalidade?: string | null;
   regiao?: string | null;
+  userUsageData?: UserUsageData;
 }
 
 // Callbacks do engine
