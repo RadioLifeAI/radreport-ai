@@ -2,15 +2,28 @@
  * Voice Command Engine - Dynamic Search
  * Busca lazy de templates e frases sob demanda
  * 
- * v4.0 - Sistema robusto com pré-filtragem inteligente:
- * - Pré-filtragem por modalidade/região ANTES do Fuse.js
- * - Busca exata no título (prioridade máxima)
- * - Qualificadores de intensidade para diferenciação
- * - Fuse.js com threshold restritivo 0.35
- * - Cascade de fallback com logs detalhados
+ * v5.0 - BUSCA DINÂMICA 100% BASEADA NO TÍTULO COM CASCATA:
+ * - Extrai palavras-chave do comando do usuário
+ * - Busca primeiro por 100% das palavras no título
+ * - Cascata: reduz palavras progressivamente (100% → 90% → 80%...)
+ * - Prioriza match exato no título antes de qualquer fuzzy
+ * - Zero dependência de MAPs estáticos para busca primária
+ * - Fuse.js apenas como fallback final
  */
 
 import Fuse from 'fuse.js';
+
+// ============================================
+// STOP WORDS - Palavras ignoradas na extração
+// ============================================
+
+const STOP_WORDS = new Set([
+  'de', 'do', 'da', 'dos', 'das', 'em', 'no', 'na', 'nos', 'nas',
+  'o', 'a', 'os', 'as', 'um', 'uma', 'uns', 'umas',
+  'e', 'ou', 'com', 'para', 'por', 'que', 'se',
+  'modelo', 'modelos', 'template', 'templates',
+  'frase', 'frases', 'inserir', 'aplicar', 'adicionar', 'colocar', 'usar',
+]);
 
 // ============================================
 // INTERFACES
@@ -591,26 +604,156 @@ function validateModalityMatch(
 }
 
 // ============================================
-// BUSCA ESTRITA NO TÍTULO (FASE 0)
+// BUSCA EM CASCATA POR PALAVRAS-CHAVE (FASE 0)
 // ============================================
 
 /**
+ * Extrai palavras-chave do texto (3+ caracteres, sem stop words)
+ */
+function extractKeywords(text: string): string[] {
+  const normalized = normalizeTitle(text);
+  return normalized
+    .split(' ')
+    .filter(word => word.length >= 3 && !STOP_WORDS.has(word));
+}
+
+/**
+ * Gera todas as combinações de tamanho 'size' de um array
+ */
+function getCombinations<T>(arr: T[], size: number): T[][] {
+  if (size === arr.length) return [arr];
+  if (size === 0) return [[]];
+  if (size > arr.length) return [];
+  
+  const result: T[][] = [];
+  for (let i = 0; i <= arr.length - size; i++) {
+    const head = arr[i];
+    const tailCombos = getCombinations(arr.slice(i + 1), size - 1);
+    for (const tail of tailCombos) {
+      result.push([head, ...tail]);
+    }
+  }
+  return result;
+}
+
+/**
+ * BUSCA EM CASCATA DINÂMICA 100% BASEADA EM PALAVRAS-CHAVE
+ * 
+ * Algoritmo:
+ * 1. Extrai todas palavras-chave do comando (3+ chars, sem stop words)
+ * 2. Busca templates onde título contém 100% das palavras
+ * 3. Se não achar → tenta com N-1 palavras (cascata)
+ * 4. Continua até 50% das palavras ou mínimo 2 palavras
+ * 5. Usa scoring para desempate (sub-região correta, mais palavras)
+ */
+function searchByKeywordCascade<T extends { titulo?: string; modalidade?: string; categoria?: string }>(
+  query: string,
+  items: T[]
+): T | null {
+  const queryKeywords = extractKeywords(query);
+  
+  if (queryKeywords.length === 0) {
+    console.log(`[Cascade] ⚠️ Nenhuma palavra-chave extraída`);
+    return null;
+  }
+  
+  console.log(`[Cascade] ========================================`);
+  console.log(`[Cascade] 🎯 Query: "${query}"`);
+  console.log(`[Cascade] 🔤 Palavras-chave: [${queryKeywords.join(', ')}] (${queryKeywords.length} palavras)`);
+  
+  // Detectar sub-região na query (total, superior, inferior, etc.)
+  const querySubregion = extractSubregion(normalizeTitle(query));
+  if (querySubregion) {
+    console.log(`[Cascade] 📍 Sub-região detectada: "${querySubregion}"`);
+  }
+  
+  // Mínimo de palavras para match (50% ou no mínimo 1)
+  const minRequired = Math.max(1, Math.ceil(queryKeywords.length * 0.5));
+  
+  // CASCATA: De 100% até minRequired
+  for (let required = queryKeywords.length; required >= minRequired; required--) {
+    const percentage = Math.round((required / queryKeywords.length) * 100);
+    console.log(`[Cascade] 🔍 Tentando ${required}/${queryKeywords.length} palavras (${percentage}%)...`);
+    
+    // Gerar combinações apenas se não for 100%
+    const wordCombinations = required === queryKeywords.length 
+      ? [queryKeywords]
+      : getCombinations(queryKeywords, required);
+    
+    // Para cada combinação, buscar matches
+    interface ScoredMatch { item: T; score: number; matchedWords: number }
+    const matches: ScoredMatch[] = [];
+    
+    for (const combo of wordCombinations) {
+      for (const item of items) {
+        const titulo = item.titulo || '';
+        const tituloNorm = normalizeTitle(titulo);
+        
+        if (!tituloNorm) continue;
+        
+        // Verificar se TODAS as palavras da combinação estão no título
+        const allMatch = combo.every(word => tituloNorm.includes(word));
+        
+        if (allMatch) {
+          // Calcular score para desempate
+          let score = combo.length * 10; // Base: mais palavras = melhor
+          
+          // BOOST: Sub-região correta
+          if (querySubregion) {
+            const tituloSubregion = extractSubregion(tituloNorm);
+            if (tituloSubregion === querySubregion) {
+              score += 50; // Boost significativo para sub-região correta
+            } else if (tituloSubregion && tituloSubregion !== querySubregion) {
+              score -= 100; // Penalização severa para sub-região ERRADA
+            }
+          }
+          
+          // BOOST: Título mais curto = mais específico
+          score -= tituloNorm.length * 0.1;
+          
+          // BOOST: Categoria 'normal' preferida (se não for busca de alterado)
+          if (item.categoria === 'normal' || !item.categoria) {
+            score += 5;
+          }
+          
+          matches.push({ item, score, matchedWords: combo.length });
+        }
+      }
+    }
+    
+    // Se encontrou matches nesta fase, retornar o melhor
+    if (matches.length > 0) {
+      // Ordenar por score (maior = melhor)
+      matches.sort((a, b) => b.score - a.score);
+      
+      const best = matches[0];
+      console.log(`[Cascade] ✅ Match ${required}/${queryKeywords.length} (${percentage}%): "${best.item.titulo}" (score: ${best.score.toFixed(1)})`);
+      
+      // Log de alternativas se houver
+      if (matches.length > 1) {
+        console.log(`[Cascade] 📊 Alternativas: ${matches.slice(1, 4).map(m => `"${m.item.titulo}" (${m.score.toFixed(1)})`).join(', ')}`);
+      }
+      
+      return best.item;
+    }
+  }
+  
+  console.log(`[Cascade] ❌ Nenhum match encontrado com cascata`);
+  return null;
+}
+
+/**
  * BUSCA ESTRITA com prioridade ABSOLUTA para modalidade + sub-região
- * Garante que "ultrassonografia abdome total" encontre exatamente isso
+ * Usa cascata de palavras-chave internamente
  */
 function searchStrictTitleMatch<T extends { titulo?: string; modalidade?: string; categoria?: string }>(
   query: string,
   items: T[],
   requiredModality?: string
 ): T | null {
-  const normalizedQuery = normalizeTitle(query);
-  const querySubregion = extractSubregion(normalizedQuery);
-  const queryWords = normalizedQuery.split(' ').filter(w => w.length >= 3);
+  console.log(`[StrictMatch] 🎯 Modalidade requerida: ${requiredModality || 'any'}`);
   
-  console.log(`[StrictMatch] 🎯 Query: "${normalizedQuery}", Modalidade: ${requiredModality || 'any'}, Sub-região: ${querySubregion || 'none'}`);
-  console.log(`[StrictMatch] 🔤 Query words: [${queryWords.join(', ')}]`);
-  
-  // PASSO 1: Filtrar por modalidade OBRIGATÓRIA
+  // PASSO 1: Filtrar por modalidade OBRIGATÓRIA se especificada
   const validModalityItems = requiredModality
     ? items.filter(t => validateModalityMatch(requiredModality, t.modalidade))
     : items;
@@ -622,81 +765,11 @@ function searchStrictTitleMatch<T extends { titulo?: string; modalidade?: string
     return null;
   }
   
-  // PRIORIDADE 1: Match EXATO de todas palavras + sub-região correta
-  for (const item of validModalityItems) {
-    const titulo = item.titulo || '';
-    const tituloNorm = normalizeTitle(titulo);
-    
-    if (!tituloNorm) continue;
-    
-    const allWordsMatch = queryWords.every(word => tituloNorm.includes(word));
-    
-    if (allWordsMatch) {
-      // Se query tem sub-região, título DEVE ter a mesma
-      if (querySubregion) {
-        if (tituloNorm.includes(querySubregion)) {
-          console.log(`[StrictMatch] ✅ P1: Match EXATO + sub-região "${querySubregion}": "${titulo}"`);
-          return item;
-        }
-      } else {
-        console.log(`[StrictMatch] ✅ P1: Match EXATO (sem sub-região): "${titulo}"`);
-        return item;
-      }
-    }
-  }
+  // PASSO 2: Usar busca em cascata nos items filtrados
+  const cascadeResult = searchByKeywordCascade(query, validModalityItems);
   
-  // PRIORIDADE 2: Match com sub-região correta (mesmo sem todas palavras)
-  if (querySubregion) {
-    for (const item of validModalityItems) {
-      const titulo = item.titulo || '';
-      const tituloNorm = normalizeTitle(titulo);
-      
-      if (!tituloNorm) continue;
-      
-      // Título contém sub-região + pelo menos 60% das palavras
-      const matchCount = queryWords.filter(word => tituloNorm.includes(word)).length;
-      const matchRatio = matchCount / queryWords.length;
-      
-      if (tituloNorm.includes(querySubregion) && matchRatio >= 0.6) {
-        console.log(`[StrictMatch] ✅ P2: Match sub-região + ${Math.round(matchRatio*100)}%: "${titulo}"`);
-        return item;
-      }
-    }
-  }
-  
-  // PRIORIDADE 3: Match parcial (70%+ das palavras)
-  let bestMatch: T | null = null;
-  let bestScore = 0;
-  
-  for (const item of validModalityItems) {
-    const titulo = item.titulo || '';
-    const tituloNorm = normalizeTitle(titulo);
-    
-    if (!tituloNorm) continue;
-    
-    const matchCount = queryWords.filter(word => tituloNorm.includes(word)).length;
-    const matchRatio = matchCount / queryWords.length;
-    
-    // Penalizar se sub-região não bate
-    let score = matchRatio;
-    if (querySubregion) {
-      const tituloSubregion = extractSubregion(tituloNorm);
-      if (tituloSubregion && tituloSubregion !== querySubregion) {
-        score *= 0.5; // Penalizar sub-região errada
-      } else if (tituloSubregion === querySubregion) {
-        score *= 1.2; // Boost sub-região correta
-      }
-    }
-    
-    if (score > bestScore && matchRatio >= 0.7) {
-      bestScore = score;
-      bestMatch = item;
-    }
-  }
-  
-  if (bestMatch) {
-    console.log(`[StrictMatch] ✅ P3: Match parcial (${Math.round(bestScore*100)}%): "${bestMatch.titulo}"`);
-    return bestMatch;
+  if (cascadeResult) {
+    return cascadeResult;
   }
   
   console.log(`[StrictMatch] ❌ Nenhum match estrito encontrado`);
@@ -1119,16 +1192,33 @@ export function searchFrases(
   console.log(`[SearchFrases] 🏷️ Qualificadores detectados: [${extractQualifiers(query).join(', ')}]`);
   
   // ========================================
+  // FASE 0: BUSCA EM CASCATA (NOVA - PRIORIDADE MÁXIMA)
+  // ========================================
+  console.log(`[SearchFrases] 🔍 FASE 0: Busca em CASCATA por palavras-chave...`);
+  
+  // Adaptar frases para interface compatível
+  const frasesAdaptadas = frases.map(f => ({
+    ...f,
+    titulo: f.titulo || f.categoria || f.conclusao || '',
+  }));
+  
+  let match = searchByKeywordCascade(normalizedQuery, frasesAdaptadas) as FraseSearchItem | null;
+  if (match) {
+    console.log(`[SearchFrases] ✅ FASE 0: Match CASCATA: "${match.titulo || match.categoria}" (${match.codigo})`);
+    return match;
+  }
+  
+  // ========================================
   // FASE 1: PRÉ-FILTRO POR MODALIDADE/REGIÃO
   // ========================================
   const { filtered: candidatos, all: todasFrases } = preFilterFrases(frases, enhancedContext);
   console.log(`[SearchFrases] 📋 Candidatos pré-filtrados: ${candidatos.length}/${frases.length}`);
   
   // ========================================
-  // FASE 2: BUSCA EXATA NO TÍTULO (PRIORIDADE MÁXIMA)
+  // FASE 2: BUSCA EXATA NO TÍTULO (Legacy)
   // ========================================
   console.log(`[SearchFrases] 🔍 FASE 2: Busca EXATA em ${candidatos.length} candidatos...`);
-  let match = searchExactInTitle(normalizedQuery, candidatos);
+  match = searchExactInTitle(normalizedQuery, candidatos);
   if (match) {
     console.log(`[SearchFrases] ✅ FASE 2: Match EXATO em candidatos: "${match.titulo || match.categoria}" (${match.codigo})`);
     return match;
