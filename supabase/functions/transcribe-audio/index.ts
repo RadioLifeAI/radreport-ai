@@ -47,6 +47,9 @@ interface WhisperConfig {
   provider: string;
   model: string;
   system_prompt: string;
+  prompt_groq: string | null;
+  prompt_openai: string | null;
+  prompt_openai_mini: string | null;
   language: string;
   temperature: number;
   response_format: string;
@@ -65,6 +68,20 @@ interface WhisperConfig {
   previous_context_chars: number;
   enable_streaming: boolean;
   version: number;
+}
+
+// Get provider-specific prompt with fallback to system_prompt
+function getPromptForProvider(config: WhisperConfig, providerKey: string): string {
+  switch (providerKey) {
+    case 'groq':
+      return config.prompt_groq || config.system_prompt;
+    case 'openai':
+      return config.prompt_openai || config.system_prompt;
+    case 'openai_mini':
+      return config.prompt_openai_mini || config.system_prompt;
+    default:
+      return config.system_prompt;
+  }
 }
 
 const DEFAULT_CONFIG: WhisperConfig = {
@@ -89,6 +106,9 @@ adenopatia, ascite, derrame pleural, pneumotórax, consolidação,
 atelectasia, bronquiectasia, enfisema, fibrose, metástase
 
 FORMATO: Português BR, pronto para inserção direta no laudo.`,
+  prompt_groq: null,
+  prompt_openai: null,
+  prompt_openai_mini: null,
   language: 'pt',
   temperature: 0.0,
   response_format: 'verbose_json',
@@ -240,6 +260,9 @@ Deno.serve(async (req) => {
       provider: configData.provider,
       model: configData.model,
       system_prompt: configData.system_prompt,
+      prompt_groq: configData.prompt_groq || null,
+      prompt_openai: configData.prompt_openai || null,
+      prompt_openai_mini: configData.prompt_openai_mini || null,
       language: configData.language || 'pt',
       temperature: Number(configData.temperature) || 0.0,
       response_format: configData.response_format || 'verbose_json',
@@ -341,12 +364,17 @@ Deno.serve(async (req) => {
 
     // ============= PREPARE REQUEST =============
     const hasPreviousContext = config.use_previous_context && previous_context && previous_context.length > 10;
+    
+    // Get provider-specific prompt
+    const basePrompt = getPromptForProvider(config, providerKey);
     const prompt = preparePrompt(
-      config.system_prompt, 
+      basePrompt, 
       provider, 
       hasPreviousContext ? previous_context : undefined,
       config.previous_context_chars
     );
+    
+    console.log('📝 Using prompt for', providerKey, '- length:', basePrompt.length);
     
     let effectiveApiKey = Deno.env.get(provider.apiKeyEnv);
     let effectiveProvider = provider;
