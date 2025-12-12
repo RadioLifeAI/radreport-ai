@@ -34,7 +34,7 @@ import {
   calculateEllipsoidVolume,
   getTechniquePattern
 } from '@/utils/templateVariableProcessor'
-import { dividirEmSentencas } from '@/utils/templateFormatter'
+import { dividirEmSentencas, cleanTitleForInsertion } from '@/utils/templateFormatter'
 import {
   calculateIGFromDUM,
   calculateDPP,
@@ -328,8 +328,9 @@ export function TemplateVariablesModal({
     // Build sections array with ids for removal tracking
     const sections: { id: string; html: string; label: string }[] = []
     
-    // Process title with variables (e.g., {{LATERALIDADE_TEXTO}})
-    const processedTitulo = processTemplateText(template.titulo, processedValues)
+    // Clean title (remove text after hyphen, content in parentheses) then process variables
+    const cleanedTitulo = cleanTitleForInsertion(template.titulo)
+    const processedTitulo = processTemplateText(cleanedTitulo, processedValues)
     
     sections.push({
       id: 'titulo',

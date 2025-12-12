@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { supabaseService } from '../services/SupabaseService'
 import { useReportStore } from '../store'
-import { formatarAchadosParagrafos, formatarAchadosMedicos, formatarTecnica, dividirEmSentencas } from '@/utils/templateFormatter'
+import { formatarAchadosParagrafos, formatarAchadosMedicos, formatarTecnica, dividirEmSentencas, cleanTitleForInsertion } from '@/utils/templateFormatter'
 import { normalizeTemplateVariables, hasTemplateVariables, hasMultipleTechniques } from '@/utils/templateVariableProcessor'
 
 export interface Template {
@@ -419,9 +419,10 @@ export function useTemplates(): UseTemplatesReturn {
     // Build section map with generated HTML
     const sectionMap: Record<string, string> = {}
     
-    // Título centralizado e em maiúsculas - process variables in title
+    // Título centralizado e em maiúsculas - clean and process variables in title
     if (!removed.includes('titulo')) {
-      const processedTitulo = processText(template.titulo)
+      const cleanedTitulo = cleanTitleForInsertion(template.titulo)
+      const processedTitulo = processText(cleanedTitulo)
       sectionMap.titulo = `<h2 style="text-align: center; text-transform: uppercase;">${processedTitulo}</h2>`
     }
     
