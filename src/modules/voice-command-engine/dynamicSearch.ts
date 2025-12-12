@@ -158,40 +158,214 @@ const MODALITY_MAP: Record<string, string> = {
 };
 
 const REGION_MAP: Record<string, string> = {
+  // Abdome
   'abdome': 'abdome',
   'abdominal': 'abdome',
   'abd': 'abdome',
+  
+  // Tórax
   'torax': 'torax',
   'tórax': 'torax',
   'toracico': 'torax',
+  
+  // Pelve
   'pelve': 'pelve',
   'pelvico': 'pelve',
   'pélvico': 'pelve',
+  
+  // Crânio
   'cranio': 'cranio',
   'crânio': 'cranio',
   'cabeca': 'cranio',
   'cabeça': 'cranio',
   'cerebro': 'cranio',
   'encefalo': 'cranio',
+  
+  // Coluna
   'coluna': 'coluna',
+  'lombar': 'coluna',
+  'lombossacra': 'coluna',
+  'toracica': 'coluna',
+  'dorsal': 'coluna',
+  'sacro': 'coluna',
+  'sacroiliaca': 'coluna',
+  'coccix': 'coluna',
+  
+  // Cervical (pescoço/tireoide)
   'cervical': 'cervical',
   'pescoco': 'cervical',
   'pescoço': 'cervical',
+  'tireoide': 'cervical',
+  'tireóide': 'cervical',
+  
+  // Mama
   'mama': 'mama',
   'mamas': 'mama',
   'mamario': 'mama',
   'mamária': 'mama',
-  'tireoide': 'cervical',
-  'tireóide': 'cervical',
+  
+  // Obstétrico
   'obstetrico': 'obstetrico',
   'obstetríco': 'obstetrico',
   'gestacao': 'obstetrico',
   'fetal': 'obstetrico',
+  
+  // Escroto
   'escroto': 'escroto',
   'testicular': 'escroto',
+  
+  // Vascular
   'vascular': 'vascular',
   'doppler': 'vascular',
+  
+  // ✨ EXTREMIDADES SUPERIORES
+  'mao': 'ext_superior',
+  'mão': 'ext_superior',
+  'punho': 'ext_superior',
+  'antebraco': 'ext_superior',
+  'antebraço': 'ext_superior',
+  'cotovelo': 'ext_superior',
+  'braco': 'ext_superior',
+  'braço': 'ext_superior',
+  'ombro': 'ext_superior',
+  'clavicula': 'ext_superior',
+  'clavícula': 'ext_superior',
+  'escapula': 'ext_superior',
+  'escápula': 'ext_superior',
+  'umero': 'ext_superior',
+  'úmero': 'ext_superior',
+  'radio': 'ext_superior',
+  'rádio': 'ext_superior',
+  'ulna': 'ext_superior',
+  'dedos mao': 'ext_superior',
+  'carpo': 'ext_superior',
+  'metacarpo': 'ext_superior',
+  
+  // ✨ EXTREMIDADES INFERIORES
+  'pe': 'ext_inferior',
+  'pé': 'ext_inferior',
+  'tornozelo': 'ext_inferior',
+  'perna': 'ext_inferior',
+  'joelho': 'ext_inferior',
+  'coxa': 'ext_inferior',
+  'femur': 'ext_inferior',
+  'fêmur': 'ext_inferior',
+  'quadril': 'ext_inferior',
+  'bacia': 'ext_inferior',
+  'patela': 'ext_inferior',
+  'tibia': 'ext_inferior',
+  'tíbia': 'ext_inferior',
+  'fibula': 'ext_inferior',
+  'fíbula': 'ext_inferior',
+  'dedos pe': 'ext_inferior',
+  'calcaneo': 'ext_inferior',
+  'calcâneo': 'ext_inferior',
+  'tarso': 'ext_inferior',
+  'metatarso': 'ext_inferior',
 };
+
+/**
+ * Mapa de expansão de abreviações para busca no título
+ */
+const MODALITY_FULL_NAMES: Record<string, string[]> = {
+  'rx': ['radiografia', 'raio', 'raios'],
+  'tc': ['tomografia', 'computadorizada'],
+  'rm': ['ressonancia', 'magnetica'],
+  'usg': ['ultrassonografia', 'ultrassom', 'ecografia'],
+  'us': ['ultrassonografia', 'ultrassom'],
+  'mg': ['mamografia'],
+};
+
+/**
+ * Normaliza título para comparação (remove preposições e sufixos)
+ */
+function normalizeTitle(titulo: string): string {
+  return titulo
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+da\s+/g, ' ')
+    .replace(/\s+do\s+/g, ' ')
+    .replace(/\s+de\s+/g, ' ')
+    .replace(/\s+das\s+/g, ' ')
+    .replace(/\s+dos\s+/g, ' ')
+    .replace(/\s+—\s+.*$/g, '')      // Remove "— Direita (Normal)"
+    .replace(/\s*\(.*?\)\s*/g, ' ')  // Remove "(Normal)", "(Alterado)"
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
+ * Expande abreviações da query para match no título
+ * "rx mao" → ["radiografia", "mao"]
+ */
+function expandQueryWords(query: string): string[] {
+  const words = query.split(' ').filter(w => w.length >= 2);
+  const expanded: string[] = [];
+  
+  for (const word of words) {
+    const expansion = MODALITY_FULL_NAMES[word];
+    if (expansion) {
+      // Adicionar apenas a primeira expansão (a mais comum)
+      expanded.push(expansion[0]);
+    } else {
+      expanded.push(word);
+    }
+  }
+  
+  return expanded;
+}
+
+/**
+ * ✨ BUSCA DIRETA NO TÍTULO - Prioridade máxima
+ * Antes do Fuse.js, busca por substring no título normalizado
+ */
+function searchDirectInTitle(
+  query: string,
+  templates: TemplateSearchItem[]
+): TemplateSearchItem | null {
+  const normalizedQuery = normalizeTitle(query);
+  const queryWords = expandQueryWords(normalizedQuery);
+  
+  console.log(`[DirectSearch] 🔤 Query words: [${queryWords.join(', ')}]`);
+  
+  if (queryWords.length === 0) return null;
+  
+  // FASE 1: Busca EXATA - todas as palavras no título
+  for (const template of templates) {
+    const tituloNorm = normalizeTitle(template.titulo || '');
+    
+    const allMatch = queryWords.every(word => tituloNorm.includes(word));
+    
+    if (allMatch) {
+      console.log(`[DirectSearch] ✅ Match EXATO: "${template.titulo}" (titulo norm: "${tituloNorm}")`);
+      return template;
+    }
+  }
+  
+  // FASE 2: Busca PARCIAL - pelo menos 60% das palavras (mínimo 1)
+  const minMatches = Math.max(1, Math.ceil(queryWords.length * 0.6));
+  let bestMatch: TemplateSearchItem | null = null;
+  let bestScore = 0;
+  
+  for (const template of templates) {
+    const tituloNorm = normalizeTitle(template.titulo || '');
+    
+    const matchCount = queryWords.filter(word => tituloNorm.includes(word)).length;
+    
+    // Deve ter pelo menos 2 palavras ou 60% de match
+    if (matchCount >= minMatches && matchCount > bestScore) {
+      bestScore = matchCount;
+      bestMatch = template;
+    }
+  }
+  
+  if (bestMatch) {
+    console.log(`[DirectSearch] ✅ Match PARCIAL (${bestScore}/${queryWords.length}): "${bestMatch.titulo}"`);
+  }
+  
+  return bestMatch;
+}
 
 /**
  * Normaliza query removendo acentos, preposições e expandindo abreviações
@@ -398,7 +572,8 @@ function searchWithFuse<T extends BoostableItem>(
 
 /**
  * Busca templates com priorização:
- * 1. Normal + Sem variáveis (prioritário)
+ * 0. ✨ BUSCA DIRETA NO TÍTULO (PRIORIDADE MÁXIMA)
+ * 1. Normal + Sem variáveis (Fuse.js)
  * 2. Normal + Com variáveis (fallback)
  * 3. Alterado (apenas se keyword detectado)
  */
@@ -421,7 +596,8 @@ export function searchTemplates(
   
   console.log(`[DynamicSearch] ========================================`);
   console.log(`[DynamicSearch] 📥 Query: "${query}"`);
-  console.log(`[DynamicSearch] 📝 Normalizada: "${expandedQuery}"`);
+  console.log(`[DynamicSearch] 📝 Normalizada: "${normalizedQuery}"`);
+  console.log(`[DynamicSearch] 🔤 Expandida Fuse: "${expandedQuery}"`);
   console.log(`[DynamicSearch] 🎯 Modo: ${wantsAltered ? '🔴 ALTERADO' : '🟢 NORMAL'}`);
   console.log(`[DynamicSearch] 📊 Total templates: ${templates.length}`);
   
@@ -439,12 +615,28 @@ export function searchTemplates(
   console.log(`[DynamicSearch] 🔴 Alterados: ${alterados.length}`);
   
   // =============================================
-  // CASCADE DE BUSCA COM PRIORIZAÇÃO
+  // ✨ FASE 0: BUSCA DIRETA NO TÍTULO (PRIORIDADE MÁXIMA)
+  // =============================================
+  
+  // Definir candidatos baseado no modo
+  const candidatosDiretos = wantsAltered 
+    ? alterados 
+    : [...normaisSemVars, ...normaisComVars];
+  
+  console.log(`[DynamicSearch] 🔍 FASE 0: Busca DIRETA no título...`);
+  const directMatch = searchDirectInTitle(normalizedQuery, candidatosDiretos);
+  if (directMatch) {
+    console.log(`[DynamicSearch] ✅ FASE 0: Match DIRETO no título: "${directMatch.titulo}"`);
+    return directMatch;
+  }
+  
+  // =============================================
+  // CASCADE DE BUSCA COM FUSE.JS
   // =============================================
   
   if (wantsAltered) {
     // Modo ALTERADO: buscar em alterados primeiro, depois normais
-    console.log(`[DynamicSearch] 🔍 Buscando em alterados primeiro...`);
+    console.log(`[DynamicSearch] 🔍 FASE 1: Fuse.js em alterados...`);
     
     // 1º Alterados
     let match = searchWithFuse(alterados, expandedQuery, enhancedContext, TEMPLATE_FUSE_OPTIONS);
@@ -454,7 +646,7 @@ export function searchTemplates(
     }
     
     // 2º Fallback para normais sem vars
-    console.log(`[DynamicSearch] 🔍 Fallback: normais sem variáveis...`);
+    console.log(`[DynamicSearch] 🔍 FASE 2: Fuse.js normais sem variáveis...`);
     match = searchWithFuse(normaisSemVars, expandedQuery, enhancedContext, TEMPLATE_FUSE_OPTIONS);
     if (match) {
       console.log(`[DynamicSearch] ✅ Encontrado NORMAL sem vars: "${match.titulo}"`);
@@ -462,7 +654,7 @@ export function searchTemplates(
     }
     
     // 3º Fallback para normais com vars
-    console.log(`[DynamicSearch] 🔍 Fallback: normais com variáveis...`);
+    console.log(`[DynamicSearch] 🔍 FASE 3: Fuse.js normais com variáveis...`);
     match = searchWithFuse(normaisComVars, expandedQuery, enhancedContext, TEMPLATE_FUSE_OPTIONS);
     if (match) {
       console.log(`[DynamicSearch] ✅ Encontrado NORMAL com vars: "${match.titulo}"`);
@@ -472,8 +664,8 @@ export function searchTemplates(
   } else {
     // Modo NORMAL: buscar APENAS em normais, priorizar sem variáveis
     
-    // 1º Normais sem variáveis (PRIORIDADE MÁXIMA)
-    console.log(`[DynamicSearch] 🔍 Buscando em normais SEM variáveis...`);
+    // 1º Normais sem variáveis
+    console.log(`[DynamicSearch] 🔍 FASE 1: Fuse.js normais SEM variáveis...`);
     let match = searchWithFuse(normaisSemVars, expandedQuery, enhancedContext, TEMPLATE_FUSE_OPTIONS);
     if (match) {
       console.log(`[DynamicSearch] ✅ Encontrado NORMAL sem vars: "${match.titulo}"`);
@@ -481,7 +673,7 @@ export function searchTemplates(
     }
     
     // 2º Normais com variáveis (fallback)
-    console.log(`[DynamicSearch] 🔍 Fallback: normais COM variáveis...`);
+    console.log(`[DynamicSearch] 🔍 FASE 2: Fuse.js normais COM variáveis...`);
     match = searchWithFuse(normaisComVars, expandedQuery, enhancedContext, TEMPLATE_FUSE_OPTIONS);
     if (match) {
       console.log(`[DynamicSearch] ✅ Encontrado NORMAL com vars: "${match.titulo}"`);
