@@ -199,76 +199,91 @@ function applyUsageBoost(
 }
 
 // ============================================
-// KEYWORDS PARA DETECÇÃO DE INTENT "ALTERADO"
+// DETECÇÃO DINÂMICA DE PATOLOGIA (v6.0)
 // ============================================
 
-const ALTERED_KEYWORDS = [
-  // Procedimentos cirúrgicos
-  'gastrectomia', 'colecistectomia', 'nefrectomia', 'histerectomia',
-  'mastectomia', 'prostatectomia', 'hepatectomia', 'esplenectomia',
-  'pancreatectomia', 'lobectomia', 'pneumonectomia', 'cistectomia',
-  'orquiectomia', 'salpingectomia', 'ooforectomia', 'apendicectomia',
-  'pos operatorio', 'posoperatorio', 'pós-operatório', 'cirurgia',
-  'protese', 'prótese', 'stent', 'transplante', 'enxerto',
-  'bypass', 'derivacao', 'anastomose', 'resseccao', 'amputacao',
-  'shunt', 'cateter', 'dreno', 'ostomia', 'colostomia', 'ileostomia',
-  
-  // Patologias oncológicas
-  'tumor', 'neoplasia', 'carcinoma', 'adenocarcinoma', 'linfoma',
-  'sarcoma', 'melanoma', 'metastase', 'metástase', 'metastatico',
-  'maligno', 'malignidade', 'cancer', 'câncer', 'oncologico',
-  'adenoma', 'lipoma', 'hemangioma', 'papiloma', 'polipose',
-  'displasia', 'hiperplasia', 'atipia', 'lesao', 'lesão',
-  
-  // Patologias hepáticas
-  'cirrose', 'hepatopatia', 'esteatose', 'hepatomegalia',
-  'hepatocarcinoma', 'hcc', 'colangiocarcinoma', 'hepatite',
-  'fibrose', 'hipertensao portal', 'ascite', 'varizes',
-  
-  // Patologias renais
-  'hidronefrose', 'litiase', 'litíase', 'calculo', 'cálculo',
-  'nefrolitiase', 'ureterolitiase', 'insuficiencia renal',
-  'nefropatia', 'rim policistico', 'doenca renal',
-  
-  // Patologias pulmonares
-  'pneumotorax', 'pneumotórax', 'derrame', 'consolidacao', 'consolidação',
-  'atelectasia', 'enfisema', 'fibrose pulmonar', 'bronquiectasia',
-  'tuberculose', 'pneumonia', 'covid', 'sars',
-  
-  // Patologias vasculares
-  'aneurisma', 'disseccao', 'trombose', 'embolia', 'estenose',
-  'oclusao', 'oclusão', 'ateromatose', 'calcificacao', 'varizes',
-  
-  // Patologias ginecológicas
-  'mioma', 'miomatose', 'endometriose', 'adenomiose',
-  'cisto ovariano', 'teratoma', 'endometrial', 'polipose',
-  'malformacao', 'malformação',
-  
-  // Patologias mamárias
-  'nodulo', 'nódulo', 'massa', 'calcificacao', 'calcificação',
-  'birads', 'bi-rads', 'fibroadenoma',
-  
-  // Patologias tireoidianas
-  'tirads', 'ti-rads', 'bocio', 'bócio', 'tireoidite', 'hashimoto',
-  
-  // Outros
-  'fratura', 'luxacao', 'luxação', 'hernia', 'hérnia',
-  'abcesso', 'absesso', 'fistula', 'fístula',
-];
+/**
+ * Palavras funcionais que NÃO indicam patologia - ignoradas na detecção
+ */
+const FUNCTIONAL_WORDS = new Set([
+  // Complementos estruturais
+  'total', 'completo', 'completa', 'parcial',
+  'superior', 'inferior', 'anterior', 'posterior',
+  'direito', 'direita', 'esquerdo', 'esquerda',
+  'bilateral', 'unilateral',
+  // Conectores
+  'com', 'sem', 'por', 'para',
+  // Qualificadores de exame (não patologia)
+  'contraste', 'contrastado', 'simples',
+  'morfologico', 'morfológico', 'morfologica', 'morfológica',
+  'doppler', 'colorido',
+]);
 
-function detectAlteredIntent(query: string): boolean {
+/**
+ * Extrai palavras "extras" que não são modalidade, região nem palavras funcionais
+ * Estas palavras extras indicam que o usuário quer um template alterado específico
+ * 
+ * Exemplos:
+ * - "rm crânio" → [] (sem extras = template normal)
+ * - "rm crânio idoso" → ["idoso"] (extra = busca alterado)
+ * - "rm crânio esclerose múltipla" → ["esclerose", "múltipla"]
+ */
+function extractExtraWords(query: string): string[] {
   const normalized = query
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '');
   
-  return ALTERED_KEYWORDS.some(keyword => {
-    const normalizedKeyword = keyword
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '');
-    return normalized.includes(normalizedKeyword);
-  });
+  // Remover prefixos de comando
+  const cleaned = normalized
+    .replace(/^(inserir|modelo|template|aplicar|usar)\s+/g, '')
+    .trim();
+  
+  const words = cleaned.split(/\s+/).filter(w => w.length >= 3);
+  const extraWords: string[] = [];
+  
+  for (const word of words) {
+    // Pular se é modalidade
+    if (MODALITY_MAP[word]) continue;
+    
+    // Pular se é região
+    if (REGION_MAP[word]) continue;
+    
+    // Pular se é palavra funcional
+    if (FUNCTIONAL_WORDS.has(word)) continue;
+    
+    // Pular stop words
+    if (STOP_WORDS.has(word)) continue;
+    
+    // É palavra extra! Potencial indicador de patologia/contexto
+    extraWords.push(word);
+  }
+  
+  return extraWords;
+}
+
+/**
+ * Detecta dinamicamente se o usuário quer um template alterado
+ * Baseado na presença de palavras extras (não modalidade/região)
+ * 
+ * Retorna objeto com:
+ * - wantsAltered: boolean - se deve buscar em alterados
+ * - extraWords: string[] - palavras extras detectadas (patologia)
+ */
+interface AlteredIntentResult {
+  wantsAltered: boolean;
+  extraWords: string[];
+}
+
+function detectAlteredIntent(query: string): AlteredIntentResult {
+  const extraWords = extractExtraWords(query);
+  const wantsAltered = extraWords.length > 0;
+  
+  if (extraWords.length > 0) {
+    console.log(`[detectAlteredIntent] 🦠 Palavras extras detectadas: [${extraWords.join(', ')}] → wantsAltered: ${wantsAltered}`);
+  }
+  
+  return { wantsAltered, extraWords };
 }
 
 // ============================================
@@ -1101,7 +1116,9 @@ export function searchTemplates(
     return null;
   }
   
-  const wantsAltered = detectAlteredIntent(query);
+  const alteredResult = detectAlteredIntent(query);
+  const wantsAltered = alteredResult.wantsAltered;
+  const extraWords = alteredResult.extraWords;
   const normalizedQuery = normalizeQuery(query);
   const expandedQuery = expandQueryWithSynonyms(normalizedQuery);
   const { modality: queryModality, region } = extractModalityAndRegion(normalizedQuery);
@@ -1117,10 +1134,10 @@ export function searchTemplates(
   console.log(`[SearchTemplates] ========================================`);
   console.log(`[SearchTemplates] 📥 Query: "${query}" → "${normalizedQuery}"`);
   console.log(`[SearchTemplates] 🎯 Modalidade da query: ${queryModality || 'não detectada'}`);
-  console.log(`[SearchTemplates] 🎯 Modo: ${wantsAltered ? '🔴 ALTERADO' : '🟢 NORMAL'}`);
+  console.log(`[SearchTemplates] 🎯 Modo: ${wantsAltered ? '🔴 ALTERADO' : '🟢 NORMAL'}${extraWords.length > 0 ? ` (patologia: [${extraWords.join(', ')}])` : ''}`);
   console.log(`[SearchTemplates] 📊 Total: ${templates.length}, Context: mod=${enhancedContext.modalidade}, reg=${enhancedContext.regiao}`);
   console.log(`[SearchTemplates] ⭐ Histórico de uso: ${enhancedContext.userUsageData ? 'disponível' : 'não disponível'}`);
-  
+
   // Separar por categoria
   const normaisSemVars = templates.filter(t => 
     (t.categoria === 'normal' || !t.categoria) && (!t.variaveis || t.variaveis.length === 0)
@@ -1231,6 +1248,40 @@ export function searchTemplates(
       const fallbackMatch = prioritized[0];
       console.log(`[SearchTemplates] ✅ FASE 4: Fallback match: "${fallbackMatch.titulo}"`);
       return fallbackMatch;
+    }
+  }
+  
+  // =============================================
+  // FASE 5: FALLBACK - Tentar templates NORMAIS sem a patologia
+  // Se buscou em alterados mas não encontrou, tentar em normais
+  // =============================================
+  if (wantsAltered && extraWords.length > 0) {
+    console.log(`[SearchTemplates] 🔄 FASE 5: FALLBACK - Tentando templates NORMAIS sem patologia...`);
+    
+    // Reconstruir query sem as palavras extras (patologia)
+    let queryBase = normalizedQuery;
+    for (const ew of extraWords) {
+      queryBase = queryBase.replace(new RegExp(`\\b${ew}\\b`, 'gi'), '').trim();
+    }
+    queryBase = queryBase.replace(/\s+/g, ' ').trim();
+    
+    console.log(`[SearchTemplates] 🔄 Query base (sem patologia): "${queryBase}"`);
+    
+    const candidatosNormais = [...normaisSemVars, ...normaisComVars];
+    
+    // Tentar busca estrita com query base
+    match = searchStrictTitleMatch(queryBase, candidatosNormais, queryModality, enhancedContext.userUsageData, 'template');
+    if (match) {
+      console.log(`[SearchTemplates] ✅ FASE 5: Fallback NORMAL: "${match.titulo}"`);
+      return match;
+    }
+    
+    // Tentar busca exata com query base
+    const { filtered: candidatosNormaisFiltrados } = preFilterTemplates(candidatosNormais, { ...enhancedContext, wantsAltered: false });
+    match = searchExactInTitle(queryBase, candidatosNormaisFiltrados);
+    if (match && validateModalityMatch(queryModality, match.modalidade)) {
+      console.log(`[SearchTemplates] ✅ FASE 5: Fallback EXATO normal: "${match.titulo}"`);
+      return match;
     }
   }
   
@@ -1363,7 +1414,8 @@ export function searchTemplatesMultiple(
     return [];
   }
   
-  const wantsAltered = detectAlteredIntent(query);
+  const alteredResult = detectAlteredIntent(query);
+  const wantsAltered = alteredResult.wantsAltered;
   const enhancedContext: SearchContext = { ...context, wantsAltered };
   
   const normalizedQuery = normalizeQuery(query);
@@ -1448,7 +1500,7 @@ export function searchFrasesMultiple(
 
 export { 
   detectAlteredIntent, 
-  ALTERED_KEYWORDS,
+  extractExtraWords,
   INTENSITY_QUALIFIERS,
   matchIntensityQualifier,
   extractQualifiers,
