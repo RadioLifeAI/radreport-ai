@@ -388,12 +388,16 @@ function normalizeQuery(query: string): string {
     .replace(/\badicionar\b/g, '')
     .replace(/\bcolocar\b/g, '')
     .replace(/\busar\b/g, '')
-    .replace(/\s+de\s+/g, ' ')
-    .replace(/\s+do\s+/g, ' ')
-    .replace(/\s+da\s+/g, ' ')
-    .replace(/\s+total\b/g, '')
-    .replace(/\s+completo\b/g, '')
-    .replace(/\s+normal\b/g, '')
+    // Preposições - remover para normalização
+    .replace(/\bde\b/g, ' ')
+    .replace(/\bdo\b/g, ' ')
+    .replace(/\bda\b/g, ' ')
+    .replace(/\bdos\b/g, ' ')
+    .replace(/\bdas\b/g, ' ')
+    // ❌ NÃO REMOVER: total, completo, superior, inferior - são DIFERENCIADORES CRÍTICOS!
+    // .replace(/\s+total\b/g, '')     // REMOVIDO - diferenciador
+    // .replace(/\s+completo\b/g, '')  // REMOVIDO - diferenciador
+    // .replace(/\s+normal\b/g, '')    // REMOVIDO - diferenciador
     .replace(/\s+/g, ' ')
     .trim();
 }
@@ -539,7 +543,168 @@ function preFilterTemplates(
 }
 
 // ============================================
-// BUSCA EXATA NO TÍTULO
+// SUB-REGIÕES DIFERENCIADORES
+// ============================================
+
+/**
+ * Mapa de sub-regiões que diferenciam templates similares
+ * Ex: "abdome total" vs "abdome superior"
+ */
+const SUBREGION_KEYWORDS = [
+  'total', 'completo', 'completa',
+  'superior', 'inferior',
+  'direito', 'direita', 'esquerdo', 'esquerda',
+  'bilateral', 'bilaterais',
+  'anterior', 'posterior',
+  'proximal', 'distal',
+  'medial', 'lateral',
+];
+
+/**
+ * Extrai sub-região da query (ex: "total", "superior")
+ */
+function extractSubregion(text: string): string | null {
+  const normalized = normalizeTitle(text);
+  for (const keyword of SUBREGION_KEYWORDS) {
+    if (normalized.includes(keyword)) {
+      return keyword;
+    }
+  }
+  return null;
+}
+
+/**
+ * Valida se a modalidade do item corresponde à modalidade exigida
+ * Se query tem modalidade explícita, EXCLUI resultados de outras modalidades
+ */
+function validateModalityMatch(
+  queryModality: string | undefined,
+  itemModality: string | undefined
+): boolean {
+  if (!queryModality) return true; // Sem modalidade na query = aceita qualquer
+  if (!itemModality) return true;  // Item sem modalidade = aceita
+  
+  const queryMod = queryModality.toUpperCase();
+  const itemMod = itemModality.toUpperCase();
+  
+  return queryMod === itemMod;
+}
+
+// ============================================
+// BUSCA ESTRITA NO TÍTULO (FASE 0)
+// ============================================
+
+/**
+ * BUSCA ESTRITA com prioridade ABSOLUTA para modalidade + sub-região
+ * Garante que "ultrassonografia abdome total" encontre exatamente isso
+ */
+function searchStrictTitleMatch<T extends { titulo?: string; modalidade?: string; categoria?: string }>(
+  query: string,
+  items: T[],
+  requiredModality?: string
+): T | null {
+  const normalizedQuery = normalizeTitle(query);
+  const querySubregion = extractSubregion(normalizedQuery);
+  const queryWords = normalizedQuery.split(' ').filter(w => w.length >= 3);
+  
+  console.log(`[StrictMatch] 🎯 Query: "${normalizedQuery}", Modalidade: ${requiredModality || 'any'}, Sub-região: ${querySubregion || 'none'}`);
+  console.log(`[StrictMatch] 🔤 Query words: [${queryWords.join(', ')}]`);
+  
+  // PASSO 1: Filtrar por modalidade OBRIGATÓRIA
+  const validModalityItems = requiredModality
+    ? items.filter(t => validateModalityMatch(requiredModality, t.modalidade))
+    : items;
+  
+  console.log(`[StrictMatch] 📋 Após filtro modalidade: ${validModalityItems.length}/${items.length} items`);
+  
+  if (validModalityItems.length === 0) {
+    console.log(`[StrictMatch] ⚠️ Nenhum item com modalidade ${requiredModality}`);
+    return null;
+  }
+  
+  // PRIORIDADE 1: Match EXATO de todas palavras + sub-região correta
+  for (const item of validModalityItems) {
+    const titulo = item.titulo || '';
+    const tituloNorm = normalizeTitle(titulo);
+    
+    if (!tituloNorm) continue;
+    
+    const allWordsMatch = queryWords.every(word => tituloNorm.includes(word));
+    
+    if (allWordsMatch) {
+      // Se query tem sub-região, título DEVE ter a mesma
+      if (querySubregion) {
+        if (tituloNorm.includes(querySubregion)) {
+          console.log(`[StrictMatch] ✅ P1: Match EXATO + sub-região "${querySubregion}": "${titulo}"`);
+          return item;
+        }
+      } else {
+        console.log(`[StrictMatch] ✅ P1: Match EXATO (sem sub-região): "${titulo}"`);
+        return item;
+      }
+    }
+  }
+  
+  // PRIORIDADE 2: Match com sub-região correta (mesmo sem todas palavras)
+  if (querySubregion) {
+    for (const item of validModalityItems) {
+      const titulo = item.titulo || '';
+      const tituloNorm = normalizeTitle(titulo);
+      
+      if (!tituloNorm) continue;
+      
+      // Título contém sub-região + pelo menos 60% das palavras
+      const matchCount = queryWords.filter(word => tituloNorm.includes(word)).length;
+      const matchRatio = matchCount / queryWords.length;
+      
+      if (tituloNorm.includes(querySubregion) && matchRatio >= 0.6) {
+        console.log(`[StrictMatch] ✅ P2: Match sub-região + ${Math.round(matchRatio*100)}%: "${titulo}"`);
+        return item;
+      }
+    }
+  }
+  
+  // PRIORIDADE 3: Match parcial (70%+ das palavras)
+  let bestMatch: T | null = null;
+  let bestScore = 0;
+  
+  for (const item of validModalityItems) {
+    const titulo = item.titulo || '';
+    const tituloNorm = normalizeTitle(titulo);
+    
+    if (!tituloNorm) continue;
+    
+    const matchCount = queryWords.filter(word => tituloNorm.includes(word)).length;
+    const matchRatio = matchCount / queryWords.length;
+    
+    // Penalizar se sub-região não bate
+    let score = matchRatio;
+    if (querySubregion) {
+      const tituloSubregion = extractSubregion(tituloNorm);
+      if (tituloSubregion && tituloSubregion !== querySubregion) {
+        score *= 0.5; // Penalizar sub-região errada
+      } else if (tituloSubregion === querySubregion) {
+        score *= 1.2; // Boost sub-região correta
+      }
+    }
+    
+    if (score > bestScore && matchRatio >= 0.7) {
+      bestScore = score;
+      bestMatch = item;
+    }
+  }
+  
+  if (bestMatch) {
+    console.log(`[StrictMatch] ✅ P3: Match parcial (${Math.round(bestScore*100)}%): "${bestMatch.titulo}"`);
+    return bestMatch;
+  }
+  
+  console.log(`[StrictMatch] ❌ Nenhum match estrito encontrado`);
+  return null;
+}
+
+// ============================================
+// BUSCA EXATA NO TÍTULO (Legacy - usado por frases)
 // ============================================
 
 /**
@@ -792,18 +957,19 @@ export function searchTemplates(
   const wantsAltered = detectAlteredIntent(query);
   const normalizedQuery = normalizeQuery(query);
   const expandedQuery = expandQueryWithSynonyms(normalizedQuery);
-  const { modality, region } = extractModalityAndRegion(normalizedQuery);
+  const { modality: queryModality, region } = extractModalityAndRegion(normalizedQuery);
   
   // Enriquecer contexto
   const enhancedContext: SearchContext = { 
     ...context, 
     wantsAltered,
-    modalidade: context.modalidade || modality,
+    modalidade: context.modalidade || queryModality,
     regiao: context.regiao || region,
   };
   
   console.log(`[SearchTemplates] ========================================`);
   console.log(`[SearchTemplates] 📥 Query: "${query}" → "${normalizedQuery}"`);
+  console.log(`[SearchTemplates] 🎯 Modalidade da query: ${queryModality || 'não detectada'}`);
   console.log(`[SearchTemplates] 🎯 Modo: ${wantsAltered ? '🔴 ALTERADO' : '🟢 NORMAL'}`);
   console.log(`[SearchTemplates] 📊 Total: ${templates.length}, Context: mod=${enhancedContext.modalidade}, reg=${enhancedContext.regiao}`);
   
@@ -821,58 +987,90 @@ export function searchTemplates(
     ? alterados 
     : [...normaisSemVars, ...normaisComVars];
   
+  // =============================================
+  // FASE 0: BUSCA ESTRITA COM MODALIDADE OBRIGATÓRIA
+  // =============================================
+  console.log(`[SearchTemplates] 🔍 FASE 0: Busca ESTRITA (modalidade: ${queryModality || 'any'})...`);
+  let match = searchStrictTitleMatch(normalizedQuery, candidatosDiretos, queryModality);
+  if (match) {
+    console.log(`[SearchTemplates] ✅ FASE 0: Match ESTRITO: "${match.titulo}"`);
+    return match;
+  }
+  
+  // =============================================
+  // FASE 0b: BUSCA ESTRITA SEM FILTRO DE MODALIDADE
+  // =============================================
+  if (queryModality) {
+    console.log(`[SearchTemplates] 🔍 FASE 0b: Busca ESTRITA sem filtro modalidade...`);
+    match = searchStrictTitleMatch(normalizedQuery, candidatosDiretos, undefined);
+    if (match) {
+      // Verificar se a modalidade pelo menos é compatível
+      if (validateModalityMatch(queryModality, match.modalidade)) {
+        console.log(`[SearchTemplates] ✅ FASE 0b: Match ESTRITO (sem filtro): "${match.titulo}"`);
+        return match;
+      }
+    }
+  }
+  
+  // PRÉ-FILTRAR por contexto (menos restritivo que busca estrita)
   const { filtered: candidatosFiltrados } = preFilterTemplates(candidatosDiretos, enhancedContext);
   
   // =============================================
-  // FASE 0: BUSCA EXATA NO TÍTULO (PRIORIDADE MÁXIMA)
+  // FASE 1: BUSCA EXATA (legacy) NOS CANDIDATOS FILTRADOS
   // =============================================
-  console.log(`[SearchTemplates] 🔍 FASE 0: Busca EXATA em ${candidatosFiltrados.length} candidatos filtrados...`);
-  let match = searchExactInTitle(normalizedQuery, candidatosFiltrados);
+  console.log(`[SearchTemplates] 🔍 FASE 1: Busca EXATA em ${candidatosFiltrados.length} candidatos filtrados...`);
+  match = searchExactInTitle(normalizedQuery, candidatosFiltrados);
   if (match) {
-    console.log(`[SearchTemplates] ✅ FASE 0: Match EXATO: "${match.titulo}"`);
+    // Validar modalidade antes de aceitar
+    if (validateModalityMatch(queryModality, match.modalidade)) {
+      console.log(`[SearchTemplates] ✅ FASE 1: Match EXATO: "${match.titulo}"`);
+      return match;
+    } else {
+      console.log(`[SearchTemplates] ⚠️ FASE 1: Match rejeitado por modalidade incorreta: "${match.titulo}" (${match.modalidade} != ${queryModality})`);
+    }
+  }
+  
+  // =============================================
+  // FASE 2: FUSE.JS NOS CANDIDATOS FILTRADOS
+  // =============================================
+  console.log(`[SearchTemplates] 🔍 FASE 2: Fuse.js em ${candidatosFiltrados.length} candidatos filtrados...`);
+  
+  // Se há modalidade na query, filtrar resultados do Fuse também
+  const fuseCandidates = queryModality
+    ? candidatosFiltrados.filter(t => validateModalityMatch(queryModality, t.modalidade))
+    : candidatosFiltrados;
+  
+  match = searchWithFuse(fuseCandidates, expandedQuery, enhancedContext, TEMPLATE_FUSE_OPTIONS, 0.50);
+  if (match) {
+    console.log(`[SearchTemplates] ✅ FASE 2: Fuse match: "${match.titulo}"`);
     return match;
   }
   
-  // Fallback: busca exata em todos os candidatos sem filtro
-  if (candidatosFiltrados.length < candidatosDiretos.length) {
-    console.log(`[SearchTemplates] 🔄 FASE 0b: Busca EXATA em TODOS ${candidatosDiretos.length} candidatos...`);
-    match = searchExactInTitle(normalizedQuery, candidatosDiretos);
+  // =============================================
+  // FASE 3: FUSE.JS EM TODOS OS CANDIDATOS
+  // =============================================
+  if (fuseCandidates.length < candidatosDiretos.length) {
+    console.log(`[SearchTemplates] 🔍 FASE 3: Fuse.js em TODOS ${candidatosDiretos.length} candidatos...`);
+    
+    const allFuseCandidates = queryModality
+      ? candidatosDiretos.filter(t => validateModalityMatch(queryModality, t.modalidade))
+      : candidatosDiretos;
+    
+    match = searchWithFuse(allFuseCandidates, expandedQuery, enhancedContext, TEMPLATE_FUSE_OPTIONS, 0.55);
     if (match) {
-      console.log(`[SearchTemplates] ✅ FASE 0b: Match EXATO (sem filtro): "${match.titulo}"`);
+      console.log(`[SearchTemplates] ✅ FASE 3: Fuse match (todos): "${match.titulo}"`);
       return match;
     }
   }
   
   // =============================================
-  // FASE 1: FUSE.JS NOS CANDIDATOS FILTRADOS
+  // FASE 4: FALLBACK POR MODALIDADE/REGIÃO
   // =============================================
-  console.log(`[SearchTemplates] 🔍 FASE 1: Fuse.js em ${candidatosFiltrados.length} candidatos filtrados...`);
-  match = searchWithFuse(candidatosFiltrados, expandedQuery, enhancedContext, TEMPLATE_FUSE_OPTIONS, 0.50);
-  if (match) {
-    console.log(`[SearchTemplates] ✅ FASE 1: Fuse match: "${match.titulo}"`);
-    return match;
-  }
-  
-  // =============================================
-  // FASE 2: FUSE.JS EM TODOS OS CANDIDATOS
-  // =============================================
-  if (candidatosFiltrados.length < candidatosDiretos.length) {
-    console.log(`[SearchTemplates] 🔍 FASE 2: Fuse.js em TODOS ${candidatosDiretos.length} candidatos...`);
-    match = searchWithFuse(candidatosDiretos, expandedQuery, enhancedContext, TEMPLATE_FUSE_OPTIONS, 0.55);
-    if (match) {
-      console.log(`[SearchTemplates] ✅ FASE 2: Fuse match (todos): "${match.titulo}"`);
-      return match;
-    }
-  }
-  
-  // =============================================
-  // FASE 3: FALLBACK POR MODALIDADE/REGIÃO
-  // =============================================
-  if (modality || region) {
-    console.log(`[SearchTemplates] 🔍 FASE 3: Fallback modalidade/região...`);
+  if (queryModality || region) {
+    console.log(`[SearchTemplates] 🔍 FASE 4: Fallback modalidade/região...`);
     
     const fallbackMatches = candidatosDiretos.filter(t => {
-      const modMatch = !modality || t.modalidade?.toUpperCase() === modality.toUpperCase();
+      const modMatch = !queryModality || validateModalityMatch(queryModality, t.modalidade);
       const regMatch = !region || t.regiao?.toLowerCase().includes(region);
       return modMatch && regMatch;
     });
@@ -883,7 +1081,7 @@ export function searchTemplates(
       prioritized.sort((a, b) => (a.titulo?.length || 0) - (b.titulo?.length || 0));
       
       const fallbackMatch = prioritized[0];
-      console.log(`[SearchTemplates] ✅ FASE 3: Fallback match: "${fallbackMatch.titulo}"`);
+      console.log(`[SearchTemplates] ✅ FASE 4: Fallback match: "${fallbackMatch.titulo}"`);
       return fallbackMatch;
     }
   }
