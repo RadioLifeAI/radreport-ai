@@ -147,26 +147,41 @@ function isValidWebM(bytes: Uint8Array): boolean {
 }
 
 // Prepare prompt with optional previous context
+// CRITICAL: Groq has 224 token limit ≈ 850 chars - must calculate BEFORE adding context
 function preparePrompt(
   systemPrompt: string, 
   provider: ProviderConfig, 
   previousContext?: string,
   contextChars?: number
 ): string {
-  let finalPrompt = systemPrompt;
+  const GROQ_MAX_CHARS = 850;
+  const CONTEXT_OVERHEAD = 35; // "Contexto anterior do laudo: "" + "\n\n"
   
-  // Add previous context if available
+  // For Groq: Calculate available space for context BEFORE building prompt
+  if (provider.maxPromptTokens) {
+    const promptLength = systemPrompt.length;
+    const availableForContext = GROQ_MAX_CHARS - promptLength - CONTEXT_OVERHEAD;
+    
+    // Only add context if we have meaningful space (at least 30 chars)
+    if (previousContext && previousContext.trim().length > 10 && availableForContext > 30) {
+      // Take last N chars of context that fit
+      const truncatedContext = previousContext.trim().slice(-availableForContext);
+      const finalPrompt = `Contexto anterior do laudo: "${truncatedContext}"\n\n${systemPrompt}`;
+      // Final safety truncation (should rarely trigger)
+      return finalPrompt.substring(0, GROQ_MAX_CHARS);
+    }
+    
+    // No context or no space - just ensure prompt fits
+    return systemPrompt.substring(0, GROQ_MAX_CHARS);
+  }
+  
+  // For OpenAI (no limit): add full context
   if (previousContext && previousContext.trim().length > 10) {
     const contextToUse = previousContext.slice(-(contextChars || 200));
-    finalPrompt = `Contexto anterior do laudo: "${contextToUse}"\n\n${systemPrompt}`;
+    return `Contexto anterior do laudo: "${contextToUse}"\n\n${systemPrompt}`;
   }
   
-  // Truncate for Groq (224 token limit ≈ 850 chars)
-  if (provider.maxPromptTokens && finalPrompt.length > 850) {
-    return finalPrompt.substring(0, 850);
-  }
-  
-  return finalPrompt;
+  return systemPrompt;
 }
 
 // Select provider based on user plan
@@ -409,12 +424,18 @@ Deno.serve(async (req) => {
       formData.append('stream', 'true');
     }
 
+    // Add logprobs for quality metrics (OpenAI only, not Groq)
+    if (effectiveProvider.supportsLogprobs) {
+      formData.append('include[]', 'logprobs');
+    }
+
     console.log(`📤 Calling ${effectiveProviderKey}:`, {
       url: effectiveProvider.url,
       model: effectiveProvider.model,
       responseFormat,
       hasContext: !!hasPreviousContext,
-      streaming: useStreaming
+      streaming: useStreaming,
+      logprobs: effectiveProvider.supportsLogprobs
     });
 
     // ============= CALL TRANSCRIPTION API =============
