@@ -19,6 +19,7 @@ import type { Json } from '@/integrations/supabase/types';
 interface FraseModelo {
   id: string;
   codigo: string;
+  titulo?: string | null;
   texto: string;
   modalidade_codigo?: string | null;
   categoria?: string | null;
@@ -63,6 +64,7 @@ const FrasesPage = () => {
   // Form state
   const [formData, setFormData] = useState({
     codigo: '',
+    titulo: '',
     texto: '',
     modalidade_codigo: '',
     categoria: '',
@@ -137,6 +139,7 @@ const FrasesPage = () => {
       setEditingFrase(frase);
       setFormData({
         codigo: frase.codigo,
+        titulo: frase.titulo || '',
         texto: frase.texto,
         modalidade_codigo: frase.modalidade_codigo || '',
         categoria: frase.categoria || '',
@@ -152,6 +155,7 @@ const FrasesPage = () => {
       setEditingFrase(null);
       setFormData({
         codigo: '',
+        titulo: '',
         texto: '',
         modalidade_codigo: '',
         categoria: '',
@@ -186,6 +190,7 @@ const FrasesPage = () => {
 
       const fraseData = {
         codigo: formData.codigo,
+        titulo: formData.titulo || formData.categoria || null,
         texto: sanitizeNewlines(formData.texto) || '',
         modalidade_codigo: formData.modalidade_codigo || null,
         categoria: formData.categoria || null,
@@ -469,10 +474,22 @@ const FrasesPage = () => {
                     placeholder="US_ABD_FIGADO_ESTEATOSE_LEVE"
                   />
                   <p className="text-xs text-muted-foreground">
-                    💡 Formato: MODALIDADE_REGIÃO_ORGÃO_DESCRIÇÃO (maiúsculas, underscores).<br/>
-                    Ex: US_ABD_FIGADO_NORMAL, TC_TORAX_NODULO_PULMONAR, RM_CRANIO_ISQUEMIA
+                    💡 Formato: MODALIDADE_REGIÃO_ORGÃO_DESCRIÇÃO (maiúsculas, underscores).
                   </p>
                 </div>
+                <div className="space-y-2">
+                  <Label>Título (busca por voz)</Label>
+                  <Input
+                    value={formData.titulo}
+                    onChange={(e) => setFormData(p => ({ ...p, titulo: e.target.value }))}
+                    placeholder="Ex: Esteatose Hepática Leve"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    💡 Nome descritivo para busca por voz. Se vazio, usa Categoria.
+                  </p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Modalidade</Label>
                   <Select value={formData.modalidade_codigo} onValueChange={(v) => setFormData(p => ({ ...p, modalidade_codigo: v }))}>
@@ -487,8 +504,6 @@ const FrasesPage = () => {
                     💡 US=Ultrassom | TC=Tomografia | RM=Ressonância | RX=Radiografia | MM=Mamografia
                   </p>
                 </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Categoria</Label>
                   <Input
@@ -497,10 +512,11 @@ const FrasesPage = () => {
                     placeholder="Ex: Fígado, Tireoide, Pulmão"
                   />
                   <p className="text-xs text-muted-foreground">
-                    💡 Órgão ou região anatômica principal. Agrupa frases similares.<br/>
-                    Ex: Fígado, Vesícula, Rins, Tireoide, Mama, Pulmão, Coluna
+                    💡 Órgão ou região anatômica principal. Agrupa frases similares.
                   </p>
                 </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Tags (separadas por vírgula)</Label>
                   <Input
@@ -512,13 +528,13 @@ const FrasesPage = () => {
                     💡 Palavras-chave para busca rápida. Ex: esteatose, cisto, nódulo, calcificação, normal
                   </p>
                 </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Switch
-                  checked={formData.ativa}
-                  onCheckedChange={(checked) => setFormData(p => ({ ...p, ativa: checked }))}
-                />
-                <Label>Frase ativa</Label>
+                <div className="flex items-center gap-2 pt-8">
+                  <Switch
+                    checked={formData.ativa}
+                    onCheckedChange={(checked) => setFormData(p => ({ ...p, ativa: checked }))}
+                  />
+                  <Label>Frase ativa</Label>
+                </div>
               </div>
             </TabsContent>
             
