@@ -3370,6 +3370,87 @@ export type Database = {
           },
         ]
       }
+      whisper_config: {
+        Row: {
+          avg_logprob_threshold: number | null
+          config_name: string
+          created_at: string | null
+          credit_cost_per_minute: number | null
+          display_name: string
+          id: string
+          is_active: boolean | null
+          language: string | null
+          max_credits_per_audio: number | null
+          min_audio_seconds: number | null
+          model: string
+          no_speech_prob_threshold: number | null
+          normalize_measurements: boolean | null
+          provider: string
+          provider_basico: string | null
+          provider_gratuito: string | null
+          provider_premium: string | null
+          provider_profissional: string | null
+          remove_fillers: boolean | null
+          response_format: string | null
+          system_prompt: string
+          temperature: number | null
+          updated_at: string | null
+          version: number | null
+        }
+        Insert: {
+          avg_logprob_threshold?: number | null
+          config_name?: string
+          created_at?: string | null
+          credit_cost_per_minute?: number | null
+          display_name?: string
+          id?: string
+          is_active?: boolean | null
+          language?: string | null
+          max_credits_per_audio?: number | null
+          min_audio_seconds?: number | null
+          model?: string
+          no_speech_prob_threshold?: number | null
+          normalize_measurements?: boolean | null
+          provider?: string
+          provider_basico?: string | null
+          provider_gratuito?: string | null
+          provider_premium?: string | null
+          provider_profissional?: string | null
+          remove_fillers?: boolean | null
+          response_format?: string | null
+          system_prompt: string
+          temperature?: number | null
+          updated_at?: string | null
+          version?: number | null
+        }
+        Update: {
+          avg_logprob_threshold?: number | null
+          config_name?: string
+          created_at?: string | null
+          credit_cost_per_minute?: number | null
+          display_name?: string
+          id?: string
+          is_active?: boolean | null
+          language?: string | null
+          max_credits_per_audio?: number | null
+          min_audio_seconds?: number | null
+          model?: string
+          no_speech_prob_threshold?: number | null
+          normalize_measurements?: boolean | null
+          provider?: string
+          provider_basico?: string | null
+          provider_gratuito?: string | null
+          provider_premium?: string | null
+          provider_profissional?: string | null
+          remove_fillers?: boolean | null
+          response_format?: string | null
+          system_prompt?: string
+          temperature?: number | null
+          updated_at?: string | null
+          version?: number | null
+        }
+        Relationships: []
+      }
       whisper_credits_ledger: {
         Row: {
           amount: number
@@ -3410,33 +3491,39 @@ export type Database = {
         Row: {
           audio_duration_seconds: number
           audio_size_bytes: number | null
+          config_version: number | null
           created_at: string
           credits_consumed: number
           error_message: string | null
           id: string
           metadata: Json | null
+          provider: string | null
           transcription_status: string
           user_id: string
         }
         Insert: {
           audio_duration_seconds: number
           audio_size_bytes?: number | null
+          config_version?: number | null
           created_at?: string
           credits_consumed: number
           error_message?: string | null
           id?: string
           metadata?: Json | null
+          provider?: string | null
           transcription_status: string
           user_id: string
         }
         Update: {
           audio_duration_seconds?: number
           audio_size_bytes?: number | null
+          config_version?: number | null
           created_at?: string
           credits_consumed?: number
           error_message?: string | null
           id?: string
           metadata?: Json | null
+          provider?: string | null
           transcription_status?: string
           user_id?: string
         }
