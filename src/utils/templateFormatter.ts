@@ -4,6 +4,35 @@
  */
 
 /**
+ * Clean template title for insertion in editor
+ * Removes: text after " - " or " — " (em-dash), and content in parentheses
+ * Preserves: {{variables}} for later processing
+ * 
+ * Examples:
+ * - "Ultrassonografia do Punho — Direito (Normal)" → "Ultrassonografia do Punho"
+ * - "RM do Crânio - Esclerose Múltipla" → "RM do Crânio"
+ * - "TC Abdome (Alterado)" → "TC Abdome"
+ * - "US Ombro {{LATERALIDADE_TEXTO}}" → "US Ombro {{LATERALIDADE_TEXTO}}" (preserved)
+ */
+export function cleanTitleForInsertion(titulo: string): string {
+  if (!titulo) return titulo
+  
+  let cleaned = titulo
+  
+  // 1. Remove everything after " — " (em-dash), " – " (en-dash), or " - " (hyphen with spaces)
+  // This removes: "- Esclerose Múltipla", "— Direito (Normal)", etc.
+  cleaned = cleaned.replace(/\s*[—–-]\s+.+$/, '')
+  
+  // 2. Remove content in parentheses: (Normal), (Alterado), etc.
+  cleaned = cleaned.replace(/\s*\([^)]*\)/g, '')
+  
+  // 3. Trim whitespace
+  cleaned = cleaned.trim()
+  
+  return cleaned
+}
+
+/**
  * Normaliza quebras de linha literais (\n) para quebras reais
  * Corrige templates com \n armazenado como texto literal no banco
  */
