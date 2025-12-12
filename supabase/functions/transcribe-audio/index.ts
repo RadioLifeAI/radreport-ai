@@ -9,6 +9,7 @@ interface ProviderConfig {
   maxPromptTokens: number | null; // null = unlimited
   supportsVerboseJson: boolean;
   supportsLogprobs: boolean;
+  supportsStreaming: boolean;
 }
 
 const PROVIDERS: Record<string, ProviderConfig> = {
@@ -19,6 +20,7 @@ const PROVIDERS: Record<string, ProviderConfig> = {
     maxPromptTokens: 224, // ~850 chars
     supportsVerboseJson: true,
     supportsLogprobs: false,
+    supportsStreaming: false,
   },
   openai: {
     url: 'https://api.openai.com/v1/audio/transcriptions',
@@ -27,6 +29,7 @@ const PROVIDERS: Record<string, ProviderConfig> = {
     maxPromptTokens: null, // Unlimited
     supportsVerboseJson: false, // Uses 'json' or 'text'
     supportsLogprobs: true,
+    supportsStreaming: true,
   },
   openai_mini: {
     url: 'https://api.openai.com/v1/audio/transcriptions',
@@ -35,6 +38,7 @@ const PROVIDERS: Record<string, ProviderConfig> = {
     maxPromptTokens: null,
     supportsVerboseJson: false,
     supportsLogprobs: true,
+    supportsStreaming: true,
   },
 };
 
@@ -57,13 +61,34 @@ interface WhisperConfig {
   provider_basico: string;
   provider_profissional: string;
   provider_premium: string;
+  use_previous_context: boolean;
+  previous_context_chars: number;
+  enable_streaming: boolean;
   version: number;
 }
 
 const DEFAULT_CONFIG: WhisperConfig = {
   provider: 'groq',
   model: 'whisper-large-v3-turbo',
-  system_prompt: 'Laudo radiológico brasileiro. Termos: hepatomegalia, esplenomegalia, esteatose, colecistite, colelitíase, pancreatite, hidronefrose, hipoecogênico, hiperecogênico, heterogêneo, linfonodomegalia, BI-RADS, TI-RADS, PI-RADS, LI-RADS, parênquima, neoplasia, nódulo, cisto, lesão, dilatação, estenose, trombose, edema, hematoma. Medidas em cm/mm/ml.',
+  system_prompt: `Você é um transcritor médico radiológico brasileiro de alta precisão.
+
+REGRAS CRÍTICAS:
+1. Remova TODAS hesitações e vícios de fala: é, ééé, hã, hmm, né, tipo, assim, então, é isso, ahn, ah
+2. Mantenha apenas conteúdo médico significativo
+3. Use vírgula como separador decimal (3,2 não 3.2)
+4. Separador de medidas: "x" (10 x 8 x 6 cm)
+5. Unidades: mm, cm, ml, HU
+
+TERMINOLOGIA MÉDICA (transcreva exatamente):
+hepatomegalia, esplenomegalia, esteatose, colecistite, colelitíase,
+pancreatite, hidronefrose, hipoecogênico, hiperecogênico, heterogêneo,
+linfonodomegalia, BI-RADS, TI-RADS, PI-RADS, LI-RADS, O-RADS,
+parênquima, neoplasia, nódulo, cisto, lesão, dilatação, estenose,
+trombose, edema, hematoma, calcificação, aneurisma, ateromatose,
+adenopatia, ascite, derrame pleural, pneumotórax, consolidação,
+atelectasia, bronquiectasia, enfisema, fibrose, metástase
+
+FORMATO: Português BR, pronto para inserção direta no laudo.`,
   language: 'pt',
   temperature: 0.0,
   response_format: 'verbose_json',
@@ -78,6 +103,9 @@ const DEFAULT_CONFIG: WhisperConfig = {
   provider_basico: 'openai_mini',
   provider_profissional: 'openai',
   provider_premium: 'openai',
+  use_previous_context: true,
+  previous_context_chars: 200,
+  enable_streaming: false,
   version: 1,
 };
 
@@ -98,12 +126,27 @@ function isValidWebM(bytes: Uint8Array): boolean {
          bytes[2] === 0xDF && bytes[3] === 0xA3;
 }
 
-// Truncate prompt for Groq (224 token limit)
-function preparePrompt(prompt: string, provider: ProviderConfig): string {
-  if (provider.maxPromptTokens && prompt.length > 850) {
-    return prompt.substring(0, 850);
+// Prepare prompt with optional previous context
+function preparePrompt(
+  systemPrompt: string, 
+  provider: ProviderConfig, 
+  previousContext?: string,
+  contextChars?: number
+): string {
+  let finalPrompt = systemPrompt;
+  
+  // Add previous context if available
+  if (previousContext && previousContext.trim().length > 10) {
+    const contextToUse = previousContext.slice(-(contextChars || 200));
+    finalPrompt = `Contexto anterior do laudo: "${contextToUse}"\n\n${systemPrompt}`;
   }
-  return prompt;
+  
+  // Truncate for Groq (224 token limit ≈ 850 chars)
+  if (provider.maxPromptTokens && finalPrompt.length > 850) {
+    return finalPrompt.substring(0, 850);
+  }
+  
+  return finalPrompt;
 }
 
 // Select provider based on user plan
@@ -114,7 +157,7 @@ function selectProvider(config: WhisperConfig, userPlan: string): string {
 }
 
 // Remove speech fillers (ééé, hã, né, tipo, etc.)
-const FILLERS_REGEX = /\b(é+|ééé+|hã+|né|tipo|assim|então|é isso|hmm+|ãh+|ah+|ahn+|uhm+)\b/gi;
+const FILLERS_REGEX = /\b(é+|ééé+|hã+|né|tipo|assim|então|é isso|hmm+|ãh+|ah+|ahn+|uhm+|tá|ok|bom|pronto|vamos lá)\b/gi;
 
 function removeFillers(text: string, shouldRemove: boolean): string {
   if (!shouldRemove) return text;
@@ -134,6 +177,16 @@ function normalizeMeasurements(text: string, shouldNormalize: boolean): string {
     .replace(/(\d+,?\d*)\s*(?:por|x)\s*(\d+,?\d*)/gi, '$1 x $2')
     // Ensure lowercase "x"
     .replace(/(\d)\s*X\s*(\d)/g, '$1 x $2');
+}
+
+// Get correct response format based on provider
+function getResponseFormat(provider: ProviderConfig): string {
+  // Groq supports verbose_json (returns segments with confidence)
+  if (provider.supportsVerboseJson) {
+    return 'verbose_json';
+  }
+  // OpenAI gpt-4o-transcribe only supports 'json' or 'text'
+  return 'json';
 }
 
 // ============= MAIN HANDLER =============
@@ -164,7 +217,7 @@ Deno.serve(async (req) => {
     }
 
     const userId = user.id;
-    const { audio, language = 'pt' } = await req.json();
+    const { audio, language = 'pt', previous_context, stream = false } = await req.json();
     
     if (!audio) {
       throw new Error('No audio data provided');
@@ -201,6 +254,9 @@ Deno.serve(async (req) => {
       provider_basico: configData.provider_basico || 'openai_mini',
       provider_profissional: configData.provider_profissional || 'openai',
       provider_premium: configData.provider_premium || 'openai',
+      use_previous_context: configData.use_previous_context ?? true,
+      previous_context_chars: configData.previous_context_chars || 200,
+      enable_streaming: configData.enable_streaming ?? false,
       version: configData.version || 1,
     } : DEFAULT_CONFIG;
 
@@ -284,7 +340,14 @@ Deno.serve(async (req) => {
     }
 
     // ============= PREPARE REQUEST =============
-    const prompt = preparePrompt(config.system_prompt, provider);
+    const hasPreviousContext = config.use_previous_context && previous_context && previous_context.length > 10;
+    const prompt = preparePrompt(
+      config.system_prompt, 
+      provider, 
+      hasPreviousContext ? previous_context : undefined,
+      config.previous_context_chars
+    );
+    
     const apiKey = Deno.env.get(provider.apiKeyEnv);
     
     if (!apiKey) {
@@ -308,14 +371,23 @@ Deno.serve(async (req) => {
     formData.append('prompt', prompt);
     formData.append('temperature', String(config.temperature));
     
-    // Set response format based on provider
-    if (provider.supportsVerboseJson) {
-      formData.append('response_format', 'verbose_json');
-    } else {
-      formData.append('response_format', 'json');
+    // Set correct response format based on provider capability
+    const responseFormat = getResponseFormat(provider);
+    formData.append('response_format', responseFormat);
+
+    // Check if streaming is requested and supported
+    const useStreaming = stream && config.enable_streaming && provider.supportsStreaming;
+    if (useStreaming) {
+      formData.append('stream', 'true');
     }
 
-    console.log(`📤 Calling ${providerKey}:`, provider.url);
+    console.log(`📤 Calling ${providerKey}:`, {
+      url: provider.url,
+      model: provider.model,
+      responseFormat,
+      hasContext: !!hasPreviousContext,
+      streaming: useStreaming
+    });
 
     // ============= CALL TRANSCRIPTION API =============
     const response = await fetch(provider.url, {
@@ -332,6 +404,22 @@ Deno.serve(async (req) => {
       throw new Error(`${providerKey} API error: ${errorText}`);
     }
 
+    // ============= HANDLE STREAMING RESPONSE =============
+    if (useStreaming && response.body) {
+      console.log('📡 Streaming response started');
+      
+      // Return SSE stream directly to client
+      return new Response(response.body, {
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive',
+        }
+      });
+    }
+
+    // ============= HANDLE STANDARD RESPONSE =============
     const result = await response.json();
 
     // ============= POST-PROCESSING =============
@@ -339,7 +427,7 @@ Deno.serve(async (req) => {
     let segmentsFiltered = 0;
     let avgConfidence = null;
     
-    // Filter segments by confidence (for verbose_json responses)
+    // Filter segments by confidence (only for verbose_json responses from Groq)
     if (result.segments && Array.isArray(result.segments)) {
       const validSegments = result.segments.filter((segment: any) => {
         const noSpeechOk = segment.no_speech_prob < config.no_speech_prob_threshold;
@@ -381,6 +469,9 @@ Deno.serve(async (req) => {
       segments_total: result.segments?.length || 0,
       provider: providerKey,
       config_version: config.version,
+      has_previous_context: hasPreviousContext,
+      streaming_used: useStreaming,
+      response_format: responseFormat,
     });
 
     return new Response(
@@ -392,6 +483,7 @@ Deno.serve(async (req) => {
         credits_consumed: creditsToConsume,
         credits_remaining: creditsRemaining,
         provider: providerKey,
+        has_context: hasPreviousContext,
       }),
       { headers: { ...getAllHeaders(req), 'Content-Type': 'application/json' } }
     );
