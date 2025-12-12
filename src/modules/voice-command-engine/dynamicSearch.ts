@@ -451,6 +451,10 @@ const MODALITY_FULL_NAMES: Record<string, string[]> = {
 // FUNÇÕES DE NORMALIZAÇÃO
 // ============================================
 
+/**
+ * Normalização PADRÃO - remove patologia após "—"
+ * Usada para templates normais
+ */
 function normalizeTitle(titulo: string): string {
   return titulo
     .toLowerCase()
@@ -463,6 +467,27 @@ function normalizeTitle(titulo: string): string {
     .replace(/\s+dos\s+/g, ' ')
     .replace(/\s+—\s+.*$/g, '')
     .replace(/\s*\(.*?\)\s*/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
+ * Normalização para templates ALTERADOS - PRESERVA patologia após "—"
+ * "RM Crânio — Idoso (Alterado)" → "rm cranio idoso"
+ */
+function normalizeTitleForAltered(titulo: string): string {
+  return titulo
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+da\s+/g, ' ')
+    .replace(/\s+do\s+/g, ' ')
+    .replace(/\s+de\s+/g, ' ')
+    .replace(/\s+das\s+/g, ' ')
+    .replace(/\s+dos\s+/g, ' ')
+    // ✅ NÃO remove o travessão - substitui por espaço para preservar patologia
+    .replace(/\s*—\s*/g, ' ')
+    .replace(/\s*\(.*?\)\s*/g, ' ')  // Remove apenas parênteses
     .replace(/\s+/g, ' ')
     .trim();
 }
@@ -768,7 +793,10 @@ function searchByKeywordCascade<T extends { id?: string; titulo?: string; modali
     for (const combo of wordCombinations) {
       for (const item of items) {
         const titulo = item.titulo || '';
-        const tituloNorm = normalizeTitle(titulo);
+        // ✅ Usar normalização apropriada: alterados preservam patologia
+        const tituloNorm = item.categoria === 'alterado' 
+          ? normalizeTitleForAltered(titulo)
+          : normalizeTitle(titulo);
         
         if (!tituloNorm) continue;
         
@@ -1177,6 +1205,39 @@ export function searchTemplates(
     }
   }
   
+  // =============================================
+  // FASE 0c: FALLBACK IMEDIATO - Se buscou alterado mas não achou patologia exata
+  // NÃO continuar buscando em alterados - ir direto para normais
+  // =============================================
+  if (wantsAltered && extraWords.length > 0) {
+    console.log(`[SearchTemplates] 🔄 FASE 0c: Patologia "${extraWords.join(', ')}" não encontrada → FALLBACK para templates NORMAIS...`);
+    
+    // Reconstruir query sem as palavras extras (patologia)
+    let queryBase = normalizedQuery;
+    for (const ew of extraWords) {
+      queryBase = queryBase.replace(new RegExp(`\\b${ew}\\b`, 'gi'), '').trim();
+    }
+    queryBase = queryBase.replace(/\s+/g, ' ').trim();
+    
+    console.log(`[SearchTemplates] 🔄 Query base (sem patologia): "${queryBase}"`);
+    
+    const candidatosNormais = [...normaisSemVars, ...normaisComVars];
+    
+    // Tentar busca estrita em normais com query base
+    match = searchStrictTitleMatch(queryBase, candidatosNormais, queryModality, enhancedContext.userUsageData, 'template');
+    if (match) {
+      console.log(`[SearchTemplates] ✅ FASE 0c: Fallback NORMAL: "${match.titulo}"`);
+      return match;
+    }
+    
+    // Tentar sem filtro de modalidade
+    match = searchStrictTitleMatch(queryBase, candidatosNormais, undefined, enhancedContext.userUsageData, 'template');
+    if (match && validateModalityMatch(queryModality, match.modalidade)) {
+      console.log(`[SearchTemplates] ✅ FASE 0c: Fallback NORMAL (sem filtro mod): "${match.titulo}"`);
+      return match;
+    }
+  }
+  
   // PRÉ-FILTRAR por contexto (menos restritivo que busca estrita)
   const { filtered: candidatosFiltrados } = preFilterTemplates(candidatosDiretos, enhancedContext);
   
@@ -1251,39 +1312,8 @@ export function searchTemplates(
     }
   }
   
-  // =============================================
-  // FASE 5: FALLBACK - Tentar templates NORMAIS sem a patologia
-  // Se buscou em alterados mas não encontrou, tentar em normais
-  // =============================================
-  if (wantsAltered && extraWords.length > 0) {
-    console.log(`[SearchTemplates] 🔄 FASE 5: FALLBACK - Tentando templates NORMAIS sem patologia...`);
-    
-    // Reconstruir query sem as palavras extras (patologia)
-    let queryBase = normalizedQuery;
-    for (const ew of extraWords) {
-      queryBase = queryBase.replace(new RegExp(`\\b${ew}\\b`, 'gi'), '').trim();
-    }
-    queryBase = queryBase.replace(/\s+/g, ' ').trim();
-    
-    console.log(`[SearchTemplates] 🔄 Query base (sem patologia): "${queryBase}"`);
-    
-    const candidatosNormais = [...normaisSemVars, ...normaisComVars];
-    
-    // Tentar busca estrita com query base
-    match = searchStrictTitleMatch(queryBase, candidatosNormais, queryModality, enhancedContext.userUsageData, 'template');
-    if (match) {
-      console.log(`[SearchTemplates] ✅ FASE 5: Fallback NORMAL: "${match.titulo}"`);
-      return match;
-    }
-    
-    // Tentar busca exata com query base
-    const { filtered: candidatosNormaisFiltrados } = preFilterTemplates(candidatosNormais, { ...enhancedContext, wantsAltered: false });
-    match = searchExactInTitle(queryBase, candidatosNormaisFiltrados);
-    if (match && validateModalityMatch(queryModality, match.modalidade)) {
-      console.log(`[SearchTemplates] ✅ FASE 5: Fallback EXATO normal: "${match.titulo}"`);
-      return match;
-    }
-  }
+  // NOTA: FASE 5 movida para FASE 0c (fallback imediato após busca estrita)
+  // Não continuar buscando em alterados aleatórios se patologia não encontrada
   
   console.log(`[SearchTemplates] ❌ Nenhum template encontrado`);
   return null;
