@@ -10,7 +10,8 @@ import {
   ChevronLeft,
   CreditCard,
   ListChecks,
-  Activity
+  Activity,
+  Mic
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -18,6 +19,7 @@ import { cn } from '@/lib/utils';
 const navItems = [
   { to: '/admin', icon: LayoutDashboard, label: 'Dashboard', end: true },
   { to: '/admin/ai-config', icon: Cpu, label: 'Configurações IA' },
+  { to: '/admin/whisper-config', icon: Mic, label: 'Whisper Config' },
   { to: '/admin/templates', icon: Database, label: 'Templates' },
   { to: '/admin/frases', icon: FileText, label: 'Frases Modelo' },
   { to: '/admin/rads-options', icon: Activity, label: 'RADS Options' },
