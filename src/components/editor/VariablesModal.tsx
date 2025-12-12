@@ -20,6 +20,7 @@ import {
 import { FraseVariable, VariableValues } from '@/types/fraseVariables'
 import { useVariableProcessor } from '@/hooks/useVariableProcessor'
 import { splitIntoParagraphs, findAnatomicalLine, ParsedParagraph } from '@/utils/anatomicalMapping'
+import { smartInsertConclusion, findImpressionSection, isImpressionHeader } from '@/editor/sectionUtils'
 import { ChevronDown, ChevronRight, MapPin, MousePointer, AlertCircle, Check, Plus, RefreshCw, TextCursorInput, ArrowUp, ArrowDown, Trash2, CalendarIcon, GripVertical } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { format, parse } from 'date-fns'
@@ -102,9 +103,8 @@ export function VariablesModal({
       if (editorHtml) {
         const paras = splitIntoParagraphs(editorHtml)
         setParagraphs(paras)
-        // Initialize order with conclusão and observação at end
+        // Initialize order - NÃO incluir CONCLUSAO_INDEX (conclusão vai para IMPRESSÃO automaticamente)
         const order = paras.map((_, idx) => idx)
-        if (conclusao) order.push(CONCLUSAO_INDEX)
         if (observacao) order.push(OBSERVACAO_INDEX)
         setParagraphOrder(order)
         setShowConclusao(!!conclusao)
@@ -145,6 +145,17 @@ export function VariablesModal({
   const processedObservacao = useMemo(() => {
     return observacao ? processText(observacao, values) : undefined
   }, [observacao, values, processText])
+
+  // Calcular informação da seção IMPRESSÃO para preview inteligente
+  const impressionInfo = useMemo(() => {
+    if (!editorHtml) return null
+    return findImpressionSection(editorHtml)
+  }, [editorHtml])
+
+  // Identificar índice do parágrafo que é o header IMPRESSÃO
+  const impressionHeaderIndex = useMemo(() => {
+    return paragraphs.findIndex(p => p.isHeader && isImpressionHeader(p.text))
+  }, [paragraphs])
 
   // Calcular progresso das variáveis
   const variableStats = useMemo(() => {
@@ -237,8 +248,8 @@ export function VariablesModal({
     if (paragraphs.length === 0) {
       // Sem parágrafos do editor, retornar texto simples
       let result = `<p>${processedTexto}</p>`
-      if (processedConclusao) {
-        result += `\n<h3>IMPRESSÃO</h3>\n<p>- ${processedConclusao}</p>`
+      if (processedConclusao && showConclusao) {
+        result += `\n<h3 style="text-transform: uppercase; text-align: center; margin-top: 18pt; margin-bottom: 8pt;">IMPRESSÃO</h3>\n<p>- ${processedConclusao}</p>`
       }
       if (processedObservacao && showObservacao) {
         result += `\n<p></p>\n<p><em>Obs.: ${processedObservacao}</em></p>`
@@ -248,28 +259,10 @@ export function VariablesModal({
 
     const resultParts: string[] = []
     
+    // Iterar pelos parágrafos na ordem definida (exceto índices especiais)
     paragraphOrder.forEach((originalIdx) => {
-      // Conclusão (índice especial)
-      if (originalIdx === CONCLUSAO_INDEX) {
-        if (processedConclusao && showConclusao) {
-          // Encontrar se já existe uma seção IMPRESSÃO nos parágrafos
-          const hasImpressao = paragraphs.some(p => 
-            p.isHeader && /impress[ãa]o|conclus[ãa]o/i.test(p.text)
-          )
-          if (!hasImpressao) {
-            resultParts.push('<h3>IMPRESSÃO</h3>')
-          }
-          resultParts.push(`<p>- ${processedConclusao}</p>`)
-        }
-        return
-      }
-      
-      // Observação (índice especial)
-      if (originalIdx === OBSERVACAO_INDEX) {
-        if (processedObservacao && showObservacao) {
-          resultParts.push('<p></p>') // Linha em branco antes
-          resultParts.push(`<p><em>Obs.: ${processedObservacao}</em></p>`)
-        }
+      // Pular índices especiais - conclusão será tratada depois via smartInsertConclusion
+      if (originalIdx === CONCLUSAO_INDEX || originalIdx === OBSERVACAO_INDEX) {
         return
       }
       
@@ -316,7 +309,20 @@ export function VariablesModal({
       }
     })
     
-    return resultParts.join('\n')
+    // Construir HTML base
+    let finalHtml = resultParts.join('\n')
+    
+    // Inserir conclusão de forma inteligente na seção IMPRESSÃO
+    if (processedConclusao && showConclusao) {
+      finalHtml = smartInsertConclusion(finalHtml, processedConclusao)
+    }
+    
+    // Adicionar observação no final
+    if (processedObservacao && showObservacao) {
+      finalHtml += '\n<p></p>\n<p><em>Obs.: ' + processedObservacao + '</em></p>'
+    }
+    
+    return finalHtml
   }, [paragraphs, paragraphOrder, selectedLineIndex, insertionMode, processedTexto, processedConclusao, processedObservacao, showConclusao, showObservacao, CONCLUSAO_INDEX, OBSERVACAO_INDEX])
 
   const handleSubmit = () => {
@@ -512,59 +518,51 @@ export function VariablesModal({
       )
     }
 
+    // Função auxiliar para renderizar a conclusão após header IMPRESSÃO
+    const renderConclusaoAfterImpressao = () => {
+      if (!processedConclusao || !showConclusao) return null
+      
+      return (
+        <div className="flex items-center gap-2 mt-0.5">
+          <div className="mr-1.5 w-4" /> {/* Placeholder para alinhar com outros */}
+          <div className={cn(
+            "flex-1 px-2 py-1 rounded text-sm",
+            "bg-emerald-500/20 border-l-4 border-emerald-500 pl-3"
+          )}>
+            <div className="flex items-center gap-2">
+              <span className="text-foreground font-medium">- {processedConclusao}</span>
+              <Badge 
+                variant="outline" 
+                className={cn(
+                  "text-[10px] px-1 py-0 h-4 shrink-0",
+                  impressionInfo?.isNormal 
+                    ? "border-amber-500/50 text-amber-600 bg-amber-500/10" 
+                    : "border-emerald-500/50 text-emerald-600 bg-emerald-500/10"
+                )}
+              >
+                {impressionInfo?.isNormal ? 'Substituir' : 'Adicionar'}
+              </Badge>
+            </div>
+          </div>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-6 w-6 opacity-40 hover:opacity-100 transition-opacity"
+            onClick={() => setShowConclusao(false)}
+          >
+            <Trash2 className="h-3.5 w-3.5 text-destructive" />
+          </Button>
+        </div>
+      )
+    }
 
     return (
       <div className="space-y-0.5">
         {paragraphOrder.map((originalIdx, displayIndex) => {
-          // Check if this is the conclusion (special index)
-          const isConclusao = originalIdx === CONCLUSAO_INDEX
           const isObservacao = originalIdx === OBSERVACAO_INDEX
           
-          if (isConclusao && processedConclusao && showConclusao) {
-            return (
-              <div
-                key="conclusao"
-                draggable
-                onDragStart={(e) => handleParagraphDragStart(e, CONCLUSAO_INDEX)}
-                onDragOver={handleParagraphDragOver}
-                onDrop={(e) => handleParagraphDrop(e, CONCLUSAO_INDEX)}
-                onDragEnd={handleParagraphDragEnd}
-                className={cn(
-                  "group relative flex items-center",
-                  draggedParagraph === CONCLUSAO_INDEX && "opacity-50 scale-95"
-                )}
-              >
-                <div className="mr-1.5 cursor-grab active:cursor-grabbing">
-                  <GripVertical className={cn(
-                    "h-4 w-4 text-muted-foreground/60 transition-all",
-                    draggedParagraph === CONCLUSAO_INDEX && "text-emerald-500"
-                  )} />
-                </div>
-                <div className={cn(
-                  "flex-1 px-2 py-1 rounded text-sm transition-all cursor-grab active:cursor-grabbing",
-                  "bg-emerald-500/20 border-l-4 border-emerald-500 pl-3",
-                  draggedParagraph === CONCLUSAO_INDEX && "border border-emerald-500 bg-emerald-500/10"
-                )}>
-                  <span className="text-foreground font-medium">- {processedConclusao}</span>
-                </div>
-                {/* Botão remover conclusão */}
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-6 w-6 ml-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                  onClick={() => {
-                    setShowConclusao(false)
-                    setParagraphOrder(prev => prev.filter(idx => idx !== CONCLUSAO_INDEX))
-                  }}
-                >
-                  <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                </Button>
-              </div>
-            )
-          }
-          
-          // Skip if conclusao is hidden
-          if (isConclusao) return null
+          // Pular CONCLUSAO_INDEX antigo (não deve mais existir no array)
+          if (originalIdx === CONCLUSAO_INDEX) return null
           
           // Observação (special index)
           if (isObservacao && processedObservacao && showObservacao) {
@@ -765,11 +763,39 @@ export function VariablesModal({
                   </div>
                 </div>
               )}
+              
+              {/* Renderizar conclusão APÓS o header IMPRESSÃO */}
+              {para.isHeader && isImpressionHeader(para.text) && renderConclusaoAfterImpressao()}
             </div>
           )
         })}
         
-        {/* Conclusão agora é renderizada dentro do loop ordenado */}
+        {/* Se não houver header IMPRESSÃO, mostrar conclusão no final com indicador */}
+        {impressionHeaderIndex === -1 && processedConclusao && showConclusao && (
+          <div className="mt-2 pt-2 border-t border-border/30">
+            <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+              <AlertCircle className="h-3 w-3" />
+              Seção IMPRESSÃO será criada:
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="mr-1.5 w-4" />
+              <div className={cn(
+                "flex-1 px-2 py-1 rounded text-sm",
+                "bg-emerald-500/20 border-l-4 border-emerald-500 pl-3"
+              )}>
+                <span className="text-foreground font-medium">- {processedConclusao}</span>
+              </div>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-6 w-6 opacity-40 hover:opacity-100 transition-opacity"
+                onClick={() => setShowConclusao(false)}
+              >
+                <Trash2 className="h-3.5 w-3.5 text-destructive" />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     )
   }
