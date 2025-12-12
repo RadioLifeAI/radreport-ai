@@ -456,15 +456,14 @@ const TEMPLATE_FUSE_OPTIONS = {
 
 const FRASE_FUSE_OPTIONS = {
   keys: [
-    { name: 'codigo', weight: 0.25 },
-    { name: 'categoria', weight: 0.20 },
-    { name: 'sinônimos', weight: 0.20 },
-    { name: 'modalidade_codigo', weight: 0.15 },
-    { name: 'tags', weight: 0.10 },
-    { name: 'texto', weight: 0.05 },
-    { name: 'conclusao', weight: 0.05 },
+    { name: 'categoria', weight: 0.40 },       // ↑ DOMINANTE - equivalente ao titulo
+    { name: 'texto', weight: 0.20 },           // ↑ Aumentado - conteúdo descritivo
+    { name: 'codigo', weight: 0.15 },          // ↓ Reduzido
+    { name: 'sinônimos', weight: 0.15 },
+    { name: 'modalidade_codigo', weight: 0.05 },
+    { name: 'tags', weight: 0.05 },
   ],
-  threshold: 0.55,
+  threshold: 0.50,  // Mais restritivo
   includeScore: true,
   ignoreLocation: true,
   minMatchCharLength: 2,
@@ -720,6 +719,91 @@ export function searchTemplates(
 }
 
 // ============================================
+// BUSCA DIRETA - Categoria (para Frases)
+// ============================================
+
+/**
+ * Busca DIRETA no campo categoria das frases (PRIORIDADE MÁXIMA)
+ * Similar a searchDirectInTitle para templates
+ */
+function searchDirectInCategoria(
+  query: string,
+  frases: FraseSearchItem[]
+): FraseSearchItem | null {
+  if (!query || frases.length === 0) return null;
+  
+  // Normalizar query
+  const normalizedQuery = normalizeTitle(query);
+  const queryWords = expandQueryWords(query);
+  
+  console.log(`[DirectSearch-Frase] 🔍 Query: "${query}"`);
+  console.log(`[DirectSearch-Frase] 📝 Normalizada: "${normalizedQuery}"`);
+  console.log(`[DirectSearch-Frase] 🔤 Palavras expandidas: [${queryWords.join(', ')}]`);
+  
+  // FASE 1: Busca EXATA na categoria - todas as palavras devem estar presentes
+  for (const frase of frases) {
+    const categoriaNorm = normalizeTitle(frase.categoria || '');
+    
+    if (!categoriaNorm) continue;
+    
+    // Verificar se TODAS as palavras da query estão na categoria
+    const allMatch = queryWords.length > 0 && queryWords.every(word => 
+      categoriaNorm.includes(word)
+    );
+    
+    if (allMatch) {
+      console.log(`[DirectSearch-Frase] ✅ Match EXATO categoria: "${frase.categoria}" (código: ${frase.codigo})`);
+      return frase;
+    }
+  }
+  
+  // FASE 2: Busca PARCIAL na categoria (60% das palavras)
+  const minMatches = Math.max(1, Math.ceil(queryWords.length * 0.6));
+  let bestMatch: FraseSearchItem | null = null;
+  let bestScore = 0;
+  
+  for (const frase of frases) {
+    const categoriaNorm = normalizeTitle(frase.categoria || '');
+    
+    if (!categoriaNorm) continue;
+    
+    const matchCount = queryWords.filter(word => 
+      categoriaNorm.includes(word)
+    ).length;
+    
+    if (matchCount >= minMatches && matchCount > bestScore) {
+      bestScore = matchCount;
+      bestMatch = frase;
+    }
+  }
+  
+  if (bestMatch) {
+    console.log(`[DirectSearch-Frase] ✅ Match PARCIAL categoria (${bestScore}/${queryWords.length}): "${bestMatch.categoria}" (código: ${bestMatch.codigo})`);
+    return bestMatch;
+  }
+  
+  // FASE 3: Busca no texto (conteúdo da frase) como fallback
+  for (const frase of frases) {
+    const textoNorm = normalizeTitle(frase.texto || '');
+    
+    // Buscar palavras-chave no início do texto
+    const textWords = textoNorm.split(' ').slice(0, 10); // Primeiras 10 palavras
+    
+    const matchCount = queryWords.filter(word => 
+      textWords.some(tw => tw.includes(word) || word.includes(tw))
+    ).length;
+    
+    if (matchCount >= minMatches) {
+      console.log(`[DirectSearch-Frase] ✅ Match no TEXTO: "${frase.categoria || frase.codigo}"`);
+      return frase;
+    }
+  }
+  
+  console.log(`[DirectSearch-Frase] ❌ Nenhum match direto encontrado`);
+  return null;
+}
+
+// ============================================
 // BUSCA PRINCIPAL - Frases
 // ============================================
 
@@ -737,28 +821,39 @@ export function searchFrases(
   
   const normalizedQuery = normalizeQuery(query);
   
-  console.log(`[DynamicSearch] 📥 Frase query: "${query}" → "${normalizedQuery}"`);
+  console.log(`[DynamicSearch] ========================================`);
+  console.log(`[DynamicSearch] 📥 Frase query original: "${query}"`);
+  console.log(`[DynamicSearch] 📝 Frase query normalizada: "${normalizedQuery}"`);
+  console.log(`[DynamicSearch] 📊 Total frases disponíveis: ${frases.length}`);
   
-  // Buscar com Fuse.js
+  // ✨ FASE 0: Busca DIRETA na categoria (PRIORIDADE MÁXIMA)
+  const directMatch = searchDirectInCategoria(normalizedQuery, frases);
+  if (directMatch) {
+    console.log(`[DynamicSearch] ✅ Frase encontrada via BUSCA DIRETA: "${directMatch.categoria}" (${directMatch.codigo})`);
+    return directMatch;
+  }
+  
+  // FASE 1: Buscar com Fuse.js (fallback)
+  console.log(`[DynamicSearch] 🔄 Tentando Fuse.js como fallback...`);
   const match = searchWithFuse(frases, normalizedQuery, context, FRASE_FUSE_OPTIONS);
   
   if (match) {
-    console.log(`[DynamicSearch] ✅ Frase encontrada: "${match.codigo}"`);
+    console.log(`[DynamicSearch] ✅ Frase encontrada via Fuse.js: "${match.categoria}" (${match.codigo})`);
     return match;
   }
   
-  // Fallback: busca parcial no código
+  // FASE 2: Fallback final - busca parcial no código
   const fallbackMatch = frases.find(f => 
     f.codigo?.toLowerCase().includes(normalizedQuery.replace(/\s+/g, '_')) ||
     f.codigo?.toLowerCase().includes(normalizedQuery.replace(/\s+/g, ''))
   );
   
   if (fallbackMatch) {
-    console.log(`[DynamicSearch] ✅ Fallback frase: "${fallbackMatch.codigo}"`);
+    console.log(`[DynamicSearch] ✅ Fallback frase (código): "${fallbackMatch.codigo}"`);
     return fallbackMatch;
   }
   
-  console.log(`[DynamicSearch] ❌ Nenhuma frase encontrada`);
+  console.log(`[DynamicSearch] ❌ Nenhuma frase encontrada para: "${query}"`);
   return null;
 }
 
