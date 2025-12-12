@@ -1341,6 +1341,7 @@ export type Database = {
           tecnica: string | null
           texto: string
           tipo_template_id: string | null
+          titulo: string | null
           updated_at: string | null
           variaveis: Json | null
         }
@@ -1365,6 +1366,7 @@ export type Database = {
           tecnica?: string | null
           texto: string
           tipo_template_id?: string | null
+          titulo?: string | null
           updated_at?: string | null
           variaveis?: Json | null
         }
@@ -1389,6 +1391,7 @@ export type Database = {
           tecnica?: string | null
           texto?: string
           tipo_template_id?: string | null
+          titulo?: string | null
           updated_at?: string | null
           variaveis?: Json | null
         }

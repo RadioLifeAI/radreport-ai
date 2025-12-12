@@ -257,7 +257,7 @@ export function useFrasesModelo() {
       const transformedFrases: FraseModelo[] = data.map((item: any) => ({
         id: item.id,
         codigo: item.codigo,
-        titulo: extractTituloFromCodigo(item.codigo) || item.categoria || '',
+        titulo: item.titulo || item.categoria || extractTituloFromCodigo(item.codigo) || '',
         frase: item.texto || '',
         conclusao: item.conclusao || '',
         categoria: item.categoria || '',
@@ -369,7 +369,7 @@ export function useFrasesModelo() {
         const mapped: FraseModelo[] = raw.map((item: any) => ({
           id: item.id,
           codigo: item.codigo,
-          titulo: extractTituloFromCodigo(item.codigo) || item.categoria || '',
+          titulo: item.titulo || item.categoria || extractTituloFromCodigo(item.codigo) || '',
           frase: item.texto || '',
           conclusao: item.conclusao || '',
           categoria: item.categoria || '',
