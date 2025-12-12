@@ -3500,6 +3500,7 @@ export type Database = {
         Row: {
           audio_duration_seconds: number
           audio_size_bytes: number | null
+          avg_confidence: number | null
           config_version: number | null
           created_at: string
           credits_consumed: number
@@ -3509,13 +3510,17 @@ export type Database = {
           metadata: Json | null
           provider: string | null
           response_format: string | null
+          segments_filtered: number | null
+          segments_total: number | null
           streaming_used: boolean | null
+          text_length: number | null
           transcription_status: string
           user_id: string
         }
         Insert: {
           audio_duration_seconds: number
           audio_size_bytes?: number | null
+          avg_confidence?: number | null
           config_version?: number | null
           created_at?: string
           credits_consumed: number
@@ -3525,13 +3530,17 @@ export type Database = {
           metadata?: Json | null
           provider?: string | null
           response_format?: string | null
+          segments_filtered?: number | null
+          segments_total?: number | null
           streaming_used?: boolean | null
+          text_length?: number | null
           transcription_status: string
           user_id: string
         }
         Update: {
           audio_duration_seconds?: number
           audio_size_bytes?: number | null
+          avg_confidence?: number | null
           config_version?: number | null
           created_at?: string
           credits_consumed?: number
@@ -3541,7 +3550,10 @@ export type Database = {
           metadata?: Json | null
           provider?: string | null
           response_format?: string | null
+          segments_filtered?: number | null
+          segments_total?: number | null
           streaming_used?: boolean | null
+          text_length?: number | null
           transcription_status?: string
           user_id?: string
         }

@@ -348,60 +348,60 @@ Deno.serve(async (req) => {
       config.previous_context_chars
     );
     
-    const apiKey = Deno.env.get(provider.apiKeyEnv);
+    let effectiveApiKey = Deno.env.get(provider.apiKeyEnv);
+    let effectiveProvider = provider;
+    let effectiveProviderKey = providerKey;
     
-    if (!apiKey) {
-      console.error('Missing API key:', provider.apiKeyEnv);
-      // Fallback to Groq if primary provider key is missing
-      const fallbackProvider = PROVIDERS.groq;
-      const fallbackKey = Deno.env.get(fallbackProvider.apiKeyEnv);
+    if (!effectiveApiKey) {
+      console.log('⚠️ Missing API key for', providerKey, '- falling back to Groq');
+      effectiveProvider = PROVIDERS.groq;
+      effectiveProviderKey = 'groq';
+      effectiveApiKey = Deno.env.get(effectiveProvider.apiKeyEnv);
       
-      if (!fallbackKey) {
+      if (!effectiveApiKey) {
         throw new Error('No transcription API keys configured');
       }
-      
-      console.log('⚠️ Falling back to Groq');
     }
 
     const formData = new FormData();
     const blob = new Blob([binaryAudio.buffer as ArrayBuffer], { type: 'audio/webm' });
     formData.append('file', blob, 'audio.webm');
-    formData.append('model', provider.model);
+    formData.append('model', effectiveProvider.model);
     formData.append('language', language || config.language);
     formData.append('prompt', prompt);
     formData.append('temperature', String(config.temperature));
     
     // Set correct response format based on provider capability
-    const responseFormat = getResponseFormat(provider);
+    const responseFormat = getResponseFormat(effectiveProvider);
     formData.append('response_format', responseFormat);
 
     // Check if streaming is requested and supported
-    const useStreaming = stream && config.enable_streaming && provider.supportsStreaming;
+    const useStreaming = stream && config.enable_streaming && effectiveProvider.supportsStreaming;
     if (useStreaming) {
       formData.append('stream', 'true');
     }
 
-    console.log(`📤 Calling ${providerKey}:`, {
-      url: provider.url,
-      model: provider.model,
+    console.log(`📤 Calling ${effectiveProviderKey}:`, {
+      url: effectiveProvider.url,
+      model: effectiveProvider.model,
       responseFormat,
       hasContext: !!hasPreviousContext,
       streaming: useStreaming
     });
 
     // ============= CALL TRANSCRIPTION API =============
-    const response = await fetch(provider.url, {
+    const response = await fetch(effectiveProvider.url, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${apiKey || Deno.env.get('GROQ_API_KEY')}`,
+        'Authorization': `Bearer ${effectiveApiKey}`,
       },
       body: formData,
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(`${providerKey} API error:`, errorText);
-      throw new Error(`${providerKey} API error: ${errorText}`);
+      console.error(`${effectiveProviderKey} API error:`, errorText);
+      throw new Error(`${effectiveProviderKey} API error: ${errorText}`);
     }
 
     // ============= HANDLE STREAMING RESPONSE =============
