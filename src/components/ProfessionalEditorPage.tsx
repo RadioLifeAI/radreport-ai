@@ -1,10 +1,10 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
 import { useReportStore } from '@/store'
 import { useTemplates } from '@/hooks/useTemplates'
 import { useFrasesModelo, FraseModelo } from '@/hooks/useFrasesModelo'
 import { useDictation } from '@/hooks/useDictation'
 import { useVoiceEngine } from '@/hooks/useVoiceEngine'
-import { searchTemplates, searchFrases, SearchContext } from '@/modules/voice-command-engine/dynamicSearch'
+import { searchTemplates, searchFrases, SearchContext, UserUsageData } from '@/modules/voice-command-engine/dynamicSearch'
 import { useNavigate } from 'react-router-dom'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { SimpleEditor } from '@/components/tiptap-templates/simple/simple-editor'
@@ -274,12 +274,27 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
     toast.success(`Frase "${frase.codigo}" inserida por voz`)
   }, [frases, needsFraseVariableInput, editorInstance, hookApplyFrase])
 
+  // ✨ Construir dados de uso para priorização inteligente de busca por voz
+  const userUsageData = useMemo<UserUsageData>(() => ({
+    templateUsage: new Map(recentTemplates.map(t => [
+      t.id,
+      { usageCount: t.usageCount || 1, lastUsed: t.lastUsed ? new Date(t.lastUsed) : new Date() }
+    ])),
+    fraseUsage: new Map(recentFrases.map(f => [
+      f.id,
+      { usageCount: 1, lastUsed: new Date() }
+    ])),
+    favoriteTemplates: new Set(favoriteTemplates.map(t => t.id)),
+    favoriteFrases: new Set(favoriteFrases.map(f => f.id)),
+  }), [recentTemplates, recentFrases, favoriteTemplates, favoriteFrases])
+
   // Intent Detection: Callback para busca dinâmica de templates por query
   const handleSearchTemplate = useCallback((query: string, context: SearchContext) => {
     console.log('[VoiceEngine] Buscando template:', query, context)
     
-    // Busca dinâmica com boost contextual
-    const match = searchTemplates(query, templates as any, context)
+    // Busca dinâmica com boost de histórico de uso
+    const enhancedContext: SearchContext = { ...context, userUsageData }
+    const match = searchTemplates(query, templates as any, enhancedContext)
     
     if (match) {
       // Encontrar template completo para verificar variáveis
@@ -296,14 +311,15 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
     } else {
       toast.info(`Nenhum template encontrado para: "${query}"`)
     }
-  }, [templates, needsVariableInput, hookApplyTemplate])
+  }, [templates, needsVariableInput, hookApplyTemplate, userUsageData])
 
   // Intent Detection: Callback para busca dinâmica de frases por query
   const handleSearchFrase = useCallback((query: string, context: SearchContext) => {
     console.log('[VoiceEngine] Buscando frase:', query, context)
     
-    // Busca dinâmica com boost contextual
-    const match = searchFrases(query, frases as any, context)
+    // Busca dinâmica com boost de histórico de uso
+    const enhancedContext: SearchContext = { ...context, userUsageData }
+    const match = searchFrases(query, frases as any, enhancedContext)
     
     if (match) {
       // Encontrar frase completa
@@ -339,7 +355,7 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
     } else {
       toast.info(`Nenhuma frase encontrada para: "${query}"`)
     }
-  }, [frases, needsFraseVariableInput, editorInstance, hookApplyFrase])
+  }, [frases, needsFraseVariableInput, editorInstance, hookApplyFrase, userUsageData])
 
   // Voice Command Engine - integra com templates e frases para comandos avançados
   const { isReady: voiceEngineReady, stats: voiceStats } = useVoiceEngine({
