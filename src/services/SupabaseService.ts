@@ -201,7 +201,7 @@ class SupabaseService {
         .from('frases_modelo')
         .select('*')
         .eq('ativa', true)
-        .or(`codigo.ilike.%${searchTerm}%,texto.ilike.%${searchTerm}%,tags.cs.{${searchTerm}}`)
+        .or(`codigo.ilike.%${searchTerm}%,titulo.ilike.%${searchTerm}%,texto.ilike.%${searchTerm}%,tags.cs.{${searchTerm}}`)
         .limit(20);
 
       if (error) throw error;

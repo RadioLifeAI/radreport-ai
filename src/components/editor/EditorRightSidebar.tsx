@@ -223,7 +223,7 @@ export function EditorRightSidebar({
                               onClick={() => handleFraseClick(frase)}
                               className="w-full px-2 py-2 text-xs hover:bg-muted rounded transition-colors text-left space-y-1"
                             >
-                              <div className="font-medium">{frase.codigo}</div>
+                              <div className="font-medium">{frase.titulo || frase.codigo}</div>
                               <div className="text-muted-foreground line-clamp-2">{frase.frase}</div>
                               {frase.categoria && (
                                 <Badge variant="secondary" className="text-[10px] mt-1">
@@ -246,7 +246,7 @@ export function EditorRightSidebar({
                               onClick={() => handleFraseClick(frase)}
                               className="w-full px-2 py-2 text-xs hover:bg-muted rounded transition-colors text-left space-y-1"
                             >
-                              <div className="font-medium">{frase.codigo}</div>
+                              <div className="font-medium">{frase.titulo || frase.codigo}</div>
                               <div className="text-muted-foreground line-clamp-2">{frase.frase}</div>
                               {frase.categoria && (
                                 <Badge variant="secondary" className="text-[10px] mt-1">
