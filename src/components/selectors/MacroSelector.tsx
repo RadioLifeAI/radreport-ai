@@ -466,6 +466,7 @@ export const MacroSelector: React.FC<MacroSelectorProps> = ({
         onOpenChange={setShowUserModal}
         type="frase"
         editItem={editingFrase}
+        duplicateFrom={duplicateFromFrase}
       />
     </div>
   )

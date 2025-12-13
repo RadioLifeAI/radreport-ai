@@ -301,9 +301,9 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
       id: ut.id,
       titulo: ut.titulo,
       modalidade: ut.modalidade_codigo,
-      regiao: '',
-      categoria: 'normal',
-      conteudo_template: ut.texto,
+      regiao: ut.regiao_codigo || '',
+      categoria: ut.categoria || 'normal',
+      conteudo_template: ut.modo === 'profissional' ? (ut.conteudo_template || ut.texto) : ut.texto,
       variaveis: [],
       isUserContent: true,
     }))
@@ -319,7 +319,11 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
       if (match.isUserContent) {
         const userTemplate = userTemplates.find(ut => ut.id === match.id)
         if (userTemplate && editorInstance) {
-          editorInstance.commands.setContent(userTemplate.texto)
+          // Usar conteudo_template formatado se modo profissional, senão texto simples
+          const content = userTemplate.modo === 'profissional' && userTemplate.conteudo_template
+            ? userTemplate.conteudo_template
+            : userTemplate.texto
+          editorInstance.commands.setContent(content)
           toast.success(`Seu template "${userTemplate.titulo}" aplicado por voz`)
         }
         return
