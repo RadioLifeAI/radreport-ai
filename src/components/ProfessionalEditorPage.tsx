@@ -2,9 +2,10 @@ import { useState, useCallback, useEffect, useMemo } from 'react'
 import { useReportStore } from '@/store'
 import { useTemplates } from '@/hooks/useTemplates'
 import { useFrasesModelo, FraseModelo } from '@/hooks/useFrasesModelo'
+import { useUserContent } from '@/hooks/useUserContent'
 import { useDictation } from '@/hooks/useDictation'
 import { useVoiceEngine } from '@/hooks/useVoiceEngine'
-import { searchTemplates, searchFrases, SearchContext, UserUsageData } from '@/modules/voice-command-engine/dynamicSearch'
+import { searchTemplates, searchFrases, SearchContext, UserUsageData, TemplateSearchItem, FraseSearchItem } from '@/modules/voice-command-engine/dynamicSearch'
 import { useNavigate } from 'react-router-dom'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { SimpleEditor } from '@/components/tiptap-templates/simple/simple-editor'
@@ -208,6 +209,9 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
     needsFraseVariableInput,
   } = useFrasesModelo()
 
+  // User content hook (templates e frases personalizadas)
+  const { userTemplates, userFrases } = useUserContent()
+
   // Convert FraseModelo to Macro - moved before voice callbacks
   const convertFraseToMacro = useCallback((frase: any): Macro => ({
     id: frase.id,
@@ -292,12 +296,36 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
   const handleSearchTemplate = useCallback((query: string, context: SearchContext) => {
     console.log('[VoiceEngine] Buscando template:', query, context)
     
+    // ✨ Converter e mesclar user templates (prioridade máxima)
+    const userTemplatesConverted: TemplateSearchItem[] = userTemplates.map(ut => ({
+      id: ut.id,
+      titulo: ut.titulo,
+      modalidade: ut.modalidade_codigo,
+      regiao: '',
+      categoria: 'normal',
+      conteudo_template: ut.texto,
+      variaveis: [],
+      isUserContent: true,
+    }))
+    
+    const allTemplates = [...userTemplatesConverted, ...(templates as TemplateSearchItem[])]
+    
     // Busca dinâmica com boost de histórico de uso
     const enhancedContext: SearchContext = { ...context, userUsageData }
-    const match = searchTemplates(query, templates as any, enhancedContext)
+    const match = searchTemplates(query, allTemplates, enhancedContext)
     
     if (match) {
-      // Encontrar template completo para verificar variáveis
+      // Verificar se é user content
+      if (match.isUserContent) {
+        const userTemplate = userTemplates.find(ut => ut.id === match.id)
+        if (userTemplate && editorInstance) {
+          editorInstance.commands.setContent(userTemplate.texto)
+          toast.success(`Seu template "${userTemplate.titulo}" aplicado por voz`)
+        }
+        return
+      }
+      
+      // Template do sistema
       const fullTemplate = templates.find(t => t.id === match.id)
       if (fullTemplate) {
         if (needsVariableInput(fullTemplate)) {
@@ -311,18 +339,55 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
     } else {
       toast.info(`Nenhum template encontrado para: "${query}"`)
     }
-  }, [templates, needsVariableInput, hookApplyTemplate, userUsageData])
+  }, [templates, userTemplates, needsVariableInput, hookApplyTemplate, userUsageData, editorInstance])
 
   // Intent Detection: Callback para busca dinâmica de frases por query
   const handleSearchFrase = useCallback((query: string, context: SearchContext) => {
     console.log('[VoiceEngine] Buscando frase:', query, context)
     
+    // ✨ Converter e mesclar user frases (prioridade máxima)
+    const userFrasesConverted: FraseSearchItem[] = userFrases.map(uf => ({
+      id: uf.id,
+      codigo: `USER_${uf.modalidade_codigo}_${uf.id.slice(0, 8)}`,
+      titulo: uf.titulo,
+      texto: uf.texto,
+      frase: uf.texto,
+      conclusao: uf.conclusao,
+      categoria: 'normal',
+      modalidade_codigo: uf.modalidade_codigo,
+      variaveis: [],
+      isUserContent: true,
+    }))
+    
+    const allFrases = [...userFrasesConverted, ...(frases as FraseSearchItem[])]
+    
     // Busca dinâmica com boost de histórico de uso
     const enhancedContext: SearchContext = { ...context, userUsageData }
-    const match = searchFrases(query, frases as any, enhancedContext)
+    const match = searchFrases(query, allFrases, enhancedContext)
     
     if (match) {
-      // Encontrar frase completa
+      // Verificar se é user content
+      if (match.isUserContent) {
+        const userFrase = userFrases.find(uf => uf.id === match.id)
+        if (userFrase && editorInstance) {
+          const wrapInParagraph = (t: string) => t.startsWith('<p>') || t.startsWith('<h') ? t : `<p>${t}</p>`
+          
+          if (userFrase.texto) {
+            editorInstance.commands.insertContent(wrapInParagraph(userFrase.texto))
+          }
+          
+          if (userFrase.conclusao) {
+            const currentHtml = editorInstance.getHTML()
+            const newHtml = smartInsertConclusion(currentHtml, userFrase.conclusao)
+            editorInstance.commands.setContent(newHtml)
+          }
+          
+          toast.success(`Sua frase "${userFrase.titulo}" inserida por voz`)
+        }
+        return
+      }
+      
+      // Frase do sistema
       const fullFrase = frases.find(f => f.id === match.id)
       if (fullFrase) {
         if (needsFraseVariableInput(fullFrase)) {
@@ -355,7 +420,7 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
     } else {
       toast.info(`Nenhuma frase encontrada para: "${query}"`)
     }
-  }, [frases, needsFraseVariableInput, editorInstance, hookApplyFrase, userUsageData])
+  }, [frases, userFrases, needsFraseVariableInput, editorInstance, hookApplyFrase, userUsageData])
 
   // Voice Command Engine - integra com templates e frases para comandos avançados
   const { isReady: voiceEngineReady, stats: voiceStats } = useVoiceEngine({

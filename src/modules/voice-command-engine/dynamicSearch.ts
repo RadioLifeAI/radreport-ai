@@ -38,6 +38,7 @@ export interface TemplateSearchItem {
   categoria?: string;           // 'normal' | 'alterado'
   conteudo_template?: string;
   variaveis?: any[];
+  isUserContent?: boolean;      // ✨ User-created content (priority boost)
 }
 
 export interface FraseSearchItem {
@@ -54,6 +55,7 @@ export interface FraseSearchItem {
   sinônimos?: string[];
   conclusao?: string;
   variaveis?: any[];
+  isUserContent?: boolean;      // ✨ User-created content (priority boost)
 }
 
 // Dados de histórico de uso para boost inteligente
@@ -823,6 +825,12 @@ function searchByKeywordCascade<T extends { id?: string; titulo?: string; modali
           // BOOST: Categoria 'normal' preferida (se não for busca de alterado)
           if (item.categoria === 'normal' || !item.categoria) {
             score += 5;
+          }
+          
+          // ✨ BOOST: User content (prioridade máxima)
+          if ((item as any).isUserContent) {
+            score += 200;
+            console.log(`[Cascade] 👤 User content boost: +200 para "${item.titulo}"`);
           }
           
           // ✨ BOOST: Histórico de uso (favoritos + frequência + recência)
