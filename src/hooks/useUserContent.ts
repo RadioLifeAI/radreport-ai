@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useSubscription } from './useSubscription';
 import { toast } from 'sonner';
+import { useState, useEffect, useCallback } from 'react';
 
 export interface UserTemplate {
   id: string;
@@ -77,12 +78,56 @@ export interface AddFraseData {
   tecnica?: string;
 }
 
+// LocalStorage keys for usage history
+const RECENT_USER_TEMPLATES_KEY = 'recent-user-templates';
+const RECENT_USER_FRASES_KEY = 'recent-user-frases';
+const MAX_RECENT_ITEMS = 10;
+
 export function useUserContent() {
   const { user } = useAuth();
   const { subscription } = useSubscription();
   const queryClient = useQueryClient();
 
-  // Buscar templates do usuário
+  // Recent usage tracking (localStorage)
+  const [recentUserTemplateIds, setRecentUserTemplateIds] = useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem(RECENT_USER_TEMPLATES_KEY) || '[]');
+    } catch {
+      return [];
+    }
+  });
+
+  const [recentUserFraseIds, setRecentUserFraseIds] = useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem(RECENT_USER_FRASES_KEY) || '[]');
+    } catch {
+      return [];
+    }
+  });
+
+  // Persist recent to localStorage
+  useEffect(() => {
+    localStorage.setItem(RECENT_USER_TEMPLATES_KEY, JSON.stringify(recentUserTemplateIds));
+  }, [recentUserTemplateIds]);
+
+  useEffect(() => {
+    localStorage.setItem(RECENT_USER_FRASES_KEY, JSON.stringify(recentUserFraseIds));
+  }, [recentUserFraseIds]);
+
+  // Track usage functions
+  const trackUserTemplateUsage = useCallback((templateId: string) => {
+    setRecentUserTemplateIds(prev => 
+      [templateId, ...prev.filter(id => id !== templateId)].slice(0, MAX_RECENT_ITEMS)
+    );
+  }, []);
+
+  const trackUserFraseUsage = useCallback((fraseId: string) => {
+    setRecentUserFraseIds(prev => 
+      [fraseId, ...prev.filter(id => id !== fraseId)].slice(0, MAX_RECENT_ITEMS)
+    );
+  }, []);
+
+  // Buscar templates do usuário (ativos)
   const { data: userTemplates = [], isLoading: loadingTemplates, refetch: refetchTemplates } = useQuery({
     queryKey: ['user-templates', user?.id],
     queryFn: async (): Promise<UserTemplate[]> => {
@@ -106,7 +151,31 @@ export function useUserContent() {
     staleTime: 30 * 1000,
   });
 
-  // Buscar frases do usuário
+  // Buscar templates deletados (lixeira)
+  const { data: deletedTemplates = [], isLoading: loadingDeletedTemplates, refetch: refetchDeletedTemplates } = useQuery({
+    queryKey: ['user-templates-deleted', user?.id],
+    queryFn: async (): Promise<UserTemplate[]> => {
+      if (!user) return [];
+      
+      const { data, error } = await supabase
+        .from('user_templates')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('ativo', false)
+        .order('updated_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching deleted templates:', error);
+        return [];
+      }
+      
+      return (data || []) as UserTemplate[];
+    },
+    enabled: !!user,
+    staleTime: 30 * 1000,
+  });
+
+  // Buscar frases do usuário (ativas)
   const { data: userFrases = [], isLoading: loadingFrases, refetch: refetchFrases } = useQuery({
     queryKey: ['user-frases', user?.id],
     queryFn: async (): Promise<UserFrase[]> => {
@@ -121,6 +190,30 @@ export function useUserContent() {
       
       if (error) {
         console.error('Error fetching user frases:', error);
+        return [];
+      }
+      
+      return (data || []) as UserFrase[];
+    },
+    enabled: !!user,
+    staleTime: 30 * 1000,
+  });
+
+  // Buscar frases deletadas (lixeira)
+  const { data: deletedFrases = [], isLoading: loadingDeletedFrases, refetch: refetchDeletedFrases } = useQuery({
+    queryKey: ['user-frases-deleted', user?.id],
+    queryFn: async (): Promise<UserFrase[]> => {
+      if (!user) return [];
+      
+      const { data, error } = await supabase
+        .from('user_frases')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('ativo', false)
+        .order('updated_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching deleted frases:', error);
         return [];
       }
       
@@ -231,6 +324,7 @@ export function useUserContent() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-templates'] });
+      queryClient.invalidateQueries({ queryKey: ['user-templates-deleted'] });
       toast.success('Template atualizado!');
     },
     onError: (error: Error) => {
@@ -256,6 +350,7 @@ export function useUserContent() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-frases'] });
+      queryClient.invalidateQueries({ queryKey: ['user-frases-deleted'] });
       toast.success('Frase atualizada!');
     },
     onError: (error: Error) => {
@@ -263,7 +358,7 @@ export function useUserContent() {
     },
   });
 
-  // Mutation: Deletar template (soft delete)
+  // Mutation: Deletar template (soft delete - mover para lixeira)
   const deleteTemplateMutation = useMutation({
     mutationFn: async (id: string) => {
       if (!user) throw new Error('Usuário não autenticado');
@@ -278,14 +373,15 @@ export function useUserContent() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-templates'] });
-      toast.success('Template removido');
+      queryClient.invalidateQueries({ queryKey: ['user-templates-deleted'] });
+      toast.success('Template movido para lixeira');
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Erro ao remover template');
     },
   });
 
-  // Mutation: Deletar frase (soft delete)
+  // Mutation: Deletar frase (soft delete - mover para lixeira)
   const deleteFraseMutation = useMutation({
     mutationFn: async (id: string) => {
       if (!user) throw new Error('Usuário não autenticado');
@@ -300,22 +396,125 @@ export function useUserContent() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-frases'] });
-      toast.success('Frase removida');
+      queryClient.invalidateQueries({ queryKey: ['user-frases-deleted'] });
+      toast.success('Frase movida para lixeira');
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Erro ao remover frase');
     },
   });
 
+  // Mutation: Restaurar template
+  const restoreTemplateMutation = useMutation({
+    mutationFn: async (id: string) => {
+      if (!user) throw new Error('Usuário não autenticado');
+      if (!canAddTemplate) throw new Error(`Limite de ${limits.templates} templates atingido. Exclua um template antes de restaurar.`);
+      
+      const { error } = await supabase
+        .from('user_templates')
+        .update({ ativo: true })
+        .eq('id', id)
+        .eq('user_id', user.id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-templates'] });
+      queryClient.invalidateQueries({ queryKey: ['user-templates-deleted'] });
+      toast.success('Template restaurado!');
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Erro ao restaurar template');
+    },
+  });
+
+  // Mutation: Restaurar frase
+  const restoreFraseMutation = useMutation({
+    mutationFn: async (id: string) => {
+      if (!user) throw new Error('Usuário não autenticado');
+      if (!canAddFrase) throw new Error(`Limite de ${limits.frases} frases atingido. Exclua uma frase antes de restaurar.`);
+      
+      const { error } = await supabase
+        .from('user_frases')
+        .update({ ativo: true })
+        .eq('id', id)
+        .eq('user_id', user.id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-frases'] });
+      queryClient.invalidateQueries({ queryKey: ['user-frases-deleted'] });
+      toast.success('Frase restaurada!');
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Erro ao restaurar frase');
+    },
+  });
+
+  // Mutation: Excluir permanentemente template
+  const permanentDeleteTemplateMutation = useMutation({
+    mutationFn: async (id: string) => {
+      if (!user) throw new Error('Usuário não autenticado');
+      
+      const { error } = await supabase
+        .from('user_templates')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-templates-deleted'] });
+      toast.success('Template excluído permanentemente');
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Erro ao excluir template');
+    },
+  });
+
+  // Mutation: Excluir permanentemente frase
+  const permanentDeleteFraseMutation = useMutation({
+    mutationFn: async (id: string) => {
+      if (!user) throw new Error('Usuário não autenticado');
+      
+      const { error } = await supabase
+        .from('user_frases')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-frases-deleted'] });
+      toast.success('Frase excluída permanentemente');
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Erro ao excluir frase');
+    },
+  });
+
+  // Get recent user templates (filtered by existing ids)
+  const recentUserTemplates = userTemplates.filter(t => recentUserTemplateIds.includes(t.id));
+  const recentUserFrases = userFrases.filter(f => recentUserFraseIds.includes(f.id));
+
   return {
     // Data
     userTemplates,
     userFrases,
+    deletedTemplates,
+    deletedFrases,
+    recentUserTemplates,
+    recentUserFrases,
     limits,
     
     // Loading states
     loadingTemplates,
     loadingFrases,
+    loadingDeletedTemplates,
+    loadingDeletedFrases,
     
     // Permissions
     canAddTemplate,
@@ -328,13 +527,25 @@ export function useUserContent() {
     updateFrase: updateFraseMutation.mutate,
     deleteTemplate: deleteTemplateMutation.mutate,
     deleteFrase: deleteFraseMutation.mutate,
+    restoreTemplate: restoreTemplateMutation.mutate,
+    restoreFrase: restoreFraseMutation.mutate,
+    permanentDeleteTemplate: permanentDeleteTemplateMutation.mutate,
+    permanentDeleteFrase: permanentDeleteFraseMutation.mutate,
+    
+    // Usage tracking
+    trackUserTemplateUsage,
+    trackUserFraseUsage,
     
     // Loading states for mutations
     isAddingTemplate: addTemplateMutation.isPending,
     isAddingFrase: addFraseMutation.isPending,
+    isRestoringTemplate: restoreTemplateMutation.isPending,
+    isRestoringFrase: restoreFraseMutation.isPending,
     
     // Refetch
     refetchTemplates,
     refetchFrases,
+    refetchDeletedTemplates,
+    refetchDeletedFrases,
   };
 }

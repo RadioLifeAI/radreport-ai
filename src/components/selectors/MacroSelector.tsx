@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react'
-import { Star, FileText, Edit3, Plus, Trash2, User, Copy } from 'lucide-react'
+import { Star, FileText, Edit3, Plus, Trash2, User, Copy, RotateCcw, Trash, Clock } from 'lucide-react'
 import { Portal } from '@/components/ui/portal'
 import { useUserContent, UserFrase } from '@/hooks/useUserContent'
 import { UserContentModal } from '@/components/editor/UserContentModal'
@@ -42,7 +42,7 @@ export interface MacroSelectorProps {
   needsVariableInput?: (macro: Macro) => boolean
 }
 
-type SourceFilter = 'all' | 'system' | 'user';
+type SourceFilter = 'all' | 'system' | 'user' | 'trash';
 
 export const MacroSelector: React.FC<MacroSelectorProps> = ({
   selectedMacro,
@@ -69,7 +69,16 @@ export const MacroSelector: React.FC<MacroSelectorProps> = ({
   modalities,
   needsVariableInput
 }) => {
-  const { userFrases, limits, deleteFrase } = useUserContent();
+  const { 
+    userFrases, 
+    limits, 
+    deleteFrase,
+    deletedFrases,
+    restoreFrase,
+    permanentDeleteFrase,
+    recentUserFrases,
+    trackUserFraseUsage
+  } = useUserContent();
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');
   const [showUserModal, setShowUserModal] = useState(false);
   const [editingFrase, setEditingFrase] = useState<UserFrase | null>(null);
@@ -88,8 +97,42 @@ export const MacroSelector: React.FC<MacroSelectorProps> = ({
     }
   }, [dropdownVisible])
 
+  // Fechar dropdown ao abrir modal (fix z-index overlap)
+  const handleOpenModal = (editing: UserFrase | null, duplicateFrom: any) => {
+    setDropdownVisible(false); // Fechar dropdown primeiro
+    setEditingFrase(editing);
+    setDuplicateFromFrase(duplicateFrom);
+    setShowUserModal(true);
+  };
+
   // Convert user frases to Macro format
   const userFrasesAsMacros: Macro[] = userFrases.map(uf => ({
+    id: uf.id,
+    codigo: `USER_${uf.modalidade_codigo}_${uf.id.slice(0, 8)}`,
+    titulo: uf.titulo,
+    frase: uf.texto,
+    conclusao: uf.conclusao,
+    categoria: uf.categoria || 'normal',
+    modalidade_id: uf.modalidade_codigo,
+    ativo: true,
+    isUserContent: true,
+  }));
+
+  // Convert deleted frases to Macro format
+  const deletedFrasesAsMacros: Macro[] = deletedFrases.map(uf => ({
+    id: uf.id,
+    codigo: `USER_${uf.modalidade_codigo}_${uf.id.slice(0, 8)}`,
+    titulo: uf.titulo,
+    frase: uf.texto,
+    conclusao: uf.conclusao,
+    categoria: uf.categoria || 'normal',
+    modalidade_id: uf.modalidade_codigo,
+    ativo: false,
+    isUserContent: true,
+  }));
+
+  // Convert recent user frases to Macro format
+  const recentUserFrasesAsMacros: Macro[] = recentUserFrases.map(uf => ({
     id: uf.id,
     codigo: `USER_${uf.modalidade_codigo}_${uf.id.slice(0, 8)}`,
     titulo: uf.titulo,
@@ -107,7 +150,6 @@ export const MacroSelector: React.FC<MacroSelectorProps> = ({
     if (selectedModality && selectedModality !== 'TODOS') {
       filtered = filtered.filter(f => f.modalidade_id === selectedModality);
     }
-    // ✨ Filtrar também por searchTerm para busca unificada
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(f => 
@@ -119,10 +161,11 @@ export const MacroSelector: React.FC<MacroSelectorProps> = ({
     return filtered;
   };
 
-  const MacroItem = ({ macro, isRecent = false, isFavoriteMacro = false }: { 
+  const MacroItem = ({ macro, isRecent = false, isFavoriteMacro = false, isTrash = false }: { 
     macro: Macro
     isRecent?: boolean
     isFavoriteMacro?: boolean
+    isTrash?: boolean
   }) => {
     const hasVariables = needsVariableInput?.(macro) ?? false
     const isUserMacro = macro.isUserContent === true;
@@ -146,16 +189,21 @@ export const MacroSelector: React.FC<MacroSelectorProps> = ({
     
     return (
       <div 
-        className="template-item group"
+        className={`template-item group ${isTrash ? 'opacity-60' : ''}`}
         onClick={() => {
-          onMacroSelect(macro)
-          setDropdownVisible(false)
+          if (!isTrash) {
+            if (isUserMacro) {
+              trackUserFraseUsage(macro.id);
+            }
+            onMacroSelect(macro)
+            setDropdownVisible(false)
+          }
         }}
       >
         {/* Badge MEUS ou modalidade */}
         {isUserMacro ? (
-          <div className="template-modality-badge bg-emerald-500/20 text-emerald-400 border-emerald-500/40">
-            MEUS
+          <div className={`template-modality-badge ${isTrash ? 'bg-red-500/20 text-red-400 border-red-500/40' : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'}`}>
+            {isTrash ? '🗑️' : 'MEUS'}
           </div>
         ) : (
           <div className="template-modality-badge">{modality || 'GERAL'}</div>
@@ -163,114 +211,148 @@ export const MacroSelector: React.FC<MacroSelectorProps> = ({
         <div className="template-title flex-1">{macro.titulo || macro.codigo}</div>
         
         <div className="flex items-center gap-1">
-          {hasVariables && !isUserMacro && (
-            <>
-              <span className="text-[9px] px-1.5 py-0.5 bg-indigo-500/20 text-indigo-400 rounded font-medium">
-                VAR
-              </span>
-              
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onMacroSelectDirect?.(macro)
-                  setDropdownVisible(false)
-                }}
-                className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors opacity-0 group-hover:opacity-100"
-                title="Inserir completo (com placeholders)"
-              >
-                <FileText size={14} />
-              </button>
-              
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onMacroSelectWithVariables?.(macro)
-                  setDropdownVisible(false)
-                }}
-                className="p-1.5 text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/20 rounded transition-colors"
-                title="Preencher variáveis"
-              >
-                <Edit3 size={14} />
-              </button>
-            </>
-          )}
-
-          {/* Ações para frases do usuário */}
-          {isUserMacro && (
+          {/* Ações para lixeira */}
+          {isTrash && isUserMacro && (
             <>
               <button
                 onClick={(e) => {
                   e.stopPropagation()
-                  const userFrase = userFrases.find(uf => uf.id === macro.id);
-                  if (userFrase) {
-                    setEditingFrase(userFrase);
-                    setDuplicateFromFrase(null);
-                    setShowUserModal(true);
-                  }
+                  restoreFrase(macro.id);
                 }}
-                className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors opacity-0 group-hover:opacity-100"
-                title="Editar"
+                className="p-1.5 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/20 rounded transition-colors"
+                title="Restaurar"
               >
-                <Edit3 size={14} />
+                <RotateCcw size={14} />
               </button>
               <button
                 onClick={(e) => {
                   e.stopPropagation()
-                  if (confirm('Remover esta frase?')) {
-                    deleteFrase(macro.id);
+                  if (confirm('Excluir permanentemente? Esta ação não pode ser desfeita.')) {
+                    permanentDeleteFrase(macro.id);
                   }
                 }}
-                className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors opacity-0 group-hover:opacity-100"
-                title="Remover"
+                className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded transition-colors"
+                title="Excluir permanentemente"
               >
-                <Trash2 size={14} />
+                <Trash size={14} />
               </button>
             </>
           )}
 
-          {/* Botão duplicar (para sistema) */}
-          {!isUserMacro && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                setDuplicateFromFrase(macro)
-                setEditingFrase(null)
-                setShowUserModal(true)
-              }}
-              className="p-1.5 text-muted-foreground hover:text-emerald-400 hover:bg-emerald-500/10 rounded transition-colors opacity-0 group-hover:opacity-100"
-              title="Criar minha versão"
-            >
-              <Copy size={14} />
-            </button>
+          {/* Ações normais (não lixeira) */}
+          {!isTrash && (
+            <>
+              {hasVariables && !isUserMacro && (
+                <>
+                  <span className="text-[9px] px-1.5 py-0.5 bg-indigo-500/20 text-indigo-400 rounded font-medium">
+                    VAR
+                  </span>
+                  
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onMacroSelectDirect?.(macro)
+                      setDropdownVisible(false)
+                    }}
+                    className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors opacity-0 group-hover:opacity-100"
+                    title="Inserir completo (com placeholders)"
+                  >
+                    <FileText size={14} />
+                  </button>
+                  
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onMacroSelectWithVariables?.(macro)
+                      setDropdownVisible(false)
+                    }}
+                    className="p-1.5 text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/20 rounded transition-colors"
+                    title="Preencher variáveis"
+                  >
+                    <Edit3 size={14} />
+                  </button>
+                </>
+              )}
+
+              {/* Ações para frases do usuário */}
+              {isUserMacro && (
+                <>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      const userFrase = userFrases.find(uf => uf.id === macro.id);
+                      if (userFrase) {
+                        handleOpenModal(userFrase, null);
+                      }
+                    }}
+                    className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors opacity-0 group-hover:opacity-100"
+                    title="Editar"
+                  >
+                    <Edit3 size={14} />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      if (confirm('Mover para lixeira?')) {
+                        deleteFrase(macro.id);
+                      }
+                    }}
+                    className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors opacity-0 group-hover:opacity-100"
+                    title="Mover para lixeira"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </>
+              )}
+
+              {/* Botão duplicar (para sistema) */}
+              {!isUserMacro && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleOpenModal(null, macro);
+                  }}
+                  className="p-1.5 text-muted-foreground hover:text-emerald-400 hover:bg-emerald-500/10 rounded transition-colors opacity-0 group-hover:opacity-100"
+                  title="Criar minha versão"
+                >
+                  <Copy size={14} />
+                </button>
+              )}
+              
+              {/* Botão favorito (para todos) */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  const favoriteId = isUserMacro ? `user_${macro.id}` : macro.id
+                  onFavoriteToggle(favoriteId)
+                }}
+                className={`template-star ${isFavorite(isUserMacro ? `user_${macro.id}` : macro.id) ? 'favorited' : ''}`}
+              >
+                <Star size={14} />
+              </button>
+            </>
           )}
-          
-          {/* Botão favorito (para todos) */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation()
-              const favoriteId = isUserMacro ? `user_${macro.id}` : macro.id
-              onFavoriteToggle(favoriteId)
-            }}
-            className={`template-star ${isFavorite(isUserMacro ? `user_${macro.id}` : macro.id) ? 'favorited' : ''}`}
-          >
-            <Star size={14} />
-          </button>
         </div>
       </div>
     )
   }
 
-  const MacroSection = ({ title, macros, isRecent = false, isFavoriteMacro = false }: {
+  const MacroSection = ({ title, macros, isRecent = false, isFavoriteMacro = false, isTrash = false, icon }: {
     title: string
     macros: Macro[]
     isRecent?: boolean
     isFavoriteMacro?: boolean
+    isTrash?: boolean
+    icon?: React.ReactNode
   }) => {
     if (macros.length === 0) return null
 
     return (
       <div className="template-section">
-        <div className="template-section-title">{title}</div>
+        <div className="template-section-title flex items-center gap-1.5">
+          {icon}
+          {title}
+        </div>
         <div className="template-list">
           {macros.map(macro => (
             <MacroItem 
@@ -278,6 +360,7 @@ export const MacroSelector: React.FC<MacroSelectorProps> = ({
               macro={macro} 
               isRecent={isRecent}
               isFavoriteMacro={isFavoriteMacro}
+              isTrash={isTrash}
             />
           ))}
         </div>
@@ -315,10 +398,7 @@ export const MacroSelector: React.FC<MacroSelectorProps> = ({
             <div className="flex items-center justify-between p-2 border-b border-border/40 bg-muted/50">
               <span className="text-sm font-medium text-foreground">Frases</span>
               <button
-                onClick={() => {
-                  setEditingFrase(null);
-                  setShowUserModal(true);
-                }}
+                onClick={() => handleOpenModal(null, null)}
                 className="p-1.5 text-muted-foreground hover:text-indigo-400 hover:bg-indigo-500/10 rounded transition-colors"
                 title="Criar nova frase"
               >
@@ -360,6 +440,19 @@ export const MacroSelector: React.FC<MacroSelectorProps> = ({
                 <User size={12} />
                 Minhas ({userFrases.length}/{limits.frases})
               </button>
+              {deletedFrases.length > 0 && (
+                <button
+                  onClick={() => setSourceFilter('trash')}
+                  className={`px-2 py-1 text-xs font-medium rounded-lg transition-all flex items-center gap-1 ${
+                    sourceFilter === 'trash' 
+                      ? 'bg-red-500/20 text-red-400 border border-red-500/40' 
+                      : 'hover:bg-muted text-muted-foreground'
+                  }`}
+                >
+                  <Trash size={12} />
+                  Lixeira ({deletedFrases.length})
+                </button>
+              )}
             </div>
 
             {/* Modality Tabs */}
@@ -390,20 +483,54 @@ export const MacroSelector: React.FC<MacroSelectorProps> = ({
                 <div className="p-4 text-center text-sm text-destructive">Erro: {error}</div>
               )}
 
-              {!loading && !error && filteredMacros.length === 0 && searchTerm && (
+              {!loading && !error && filteredMacros.length === 0 && searchTerm && sourceFilter !== 'trash' && (
                 <div className="p-4 text-center text-sm text-muted-foreground">Nenhuma frase encontrada</div>
               )}
 
+              {/* Lixeira */}
+              {sourceFilter === 'trash' && (
+                <>
+                  {deletedFrasesAsMacros.length > 0 ? (
+                    <>
+                      <MacroSection 
+                        title="Lixeira"
+                        macros={deletedFrasesAsMacros}
+                        isTrash={true}
+                        icon={<Trash size={14} className="text-red-400" />}
+                      />
+                      <div className="p-3 text-xs text-muted-foreground text-center border-t border-border/40 bg-muted/20">
+                        💡 Itens na lixeira podem ser restaurados ou excluídos permanentemente.
+                      </div>
+                    </>
+                  ) : (
+                    <div className="p-4 text-center text-sm text-muted-foreground">
+                      Lixeira vazia
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* Minhas Recentes (quando filtro user ou all) */}
+              {sourceFilter !== 'system' && sourceFilter !== 'trash' && recentUserFrasesAsMacros.length > 0 && (
+                <MacroSection 
+                  title="Minhas Recentes"
+                  macros={recentUserFrasesAsMacros.slice(0, 5)}
+                  isRecent={true}
+                  icon={<Clock size={14} className="text-amber-400" />}
+                />
+              )}
+
               {/* Minhas Frases (quando filtro user ou all) */}
-              {sourceFilter !== 'system' && getFilteredUserFrases().length > 0 && (
+              {sourceFilter !== 'system' && sourceFilter !== 'trash' && getFilteredUserFrases().length > 0 && (
                 <MacroSection 
                   title={`Minhas Frases (${userFrases.length}/${limits.frases})`}
                   macros={getFilteredUserFrases()} 
+                  icon={<User size={14} className="text-emerald-400" />}
                 />
               )}
 
               {/* Frases do Sistema */}
-              {sourceFilter !== 'user' && !loading && !error && filteredMacros.length > 0 && (
+              {sourceFilter !== 'user' && sourceFilter !== 'trash' && !loading && !error && filteredMacros.length > 0 && (
                 <>
                   {searchTerm && (
                     <MacroSection 
@@ -417,6 +544,7 @@ export const MacroSelector: React.FC<MacroSelectorProps> = ({
                       title="Favoritos" 
                       macros={filteredMacros.filter(m => isFavorite(m.id))}
                       isFavoriteMacro={true}
+                      icon={<Star size={14} className="text-yellow-400" />}
                     />
                   )}
 
@@ -425,6 +553,7 @@ export const MacroSelector: React.FC<MacroSelectorProps> = ({
                       title="Recentes" 
                       macros={filteredMacros.filter(m => recentMacros.some(rm => rm.id === m.id))}
                       isRecent={true}
+                      icon={<Clock size={14} className="text-blue-400" />}
                     />
                   )}
                   
@@ -445,10 +574,7 @@ export const MacroSelector: React.FC<MacroSelectorProps> = ({
                 <div className="p-4 text-center text-sm text-muted-foreground">
                   <p>Você ainda não criou frases.</p>
                   <button 
-                    onClick={() => {
-                      setEditingFrase(null);
-                      setShowUserModal(true);
-                    }}
+                    onClick={() => handleOpenModal(null, null)}
                     className="mt-2 text-indigo-400 hover:underline"
                   >
                     Criar primeira frase
