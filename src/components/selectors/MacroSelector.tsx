@@ -77,7 +77,10 @@ export const MacroSelector: React.FC<MacroSelectorProps> = ({
     restoreFrase,
     permanentDeleteFrase,
     recentUserFrases,
-    trackUserFraseUsage
+    trackUserFraseUsage,
+    toggleFavoriteUserFrase,
+    isUserFraseFavorite,
+    favoriteUserFrases
   } = useUserContent();
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');
   const [showUserModal, setShowUserModal] = useState(false);
@@ -133,6 +136,18 @@ export const MacroSelector: React.FC<MacroSelectorProps> = ({
 
   // Convert recent user frases to Macro format
   const recentUserFrasesAsMacros: Macro[] = recentUserFrases.map(uf => ({
+    id: uf.id,
+    codigo: `USER_${uf.modalidade_codigo}_${uf.id.slice(0, 8)}`,
+    titulo: uf.titulo,
+    frase: uf.texto,
+    conclusao: uf.conclusao,
+    categoria: uf.categoria || 'normal',
+    modalidade_id: uf.modalidade_codigo,
+    ativo: true,
+    isUserContent: true,
+  }));
+
+  const favoriteUserFrasesAsMacros: Macro[] = favoriteUserFrases.map(uf => ({
     id: uf.id,
     codigo: `USER_${uf.modalidade_codigo}_${uf.id.slice(0, 8)}`,
     titulo: uf.titulo,
@@ -323,10 +338,13 @@ export const MacroSelector: React.FC<MacroSelectorProps> = ({
               <button
                 onClick={(e) => {
                   e.stopPropagation()
-                  const favoriteId = isUserMacro ? `user_${macro.id}` : macro.id
-                  onFavoriteToggle(favoriteId)
+                  if (isUserMacro) {
+                    toggleFavoriteUserFrase(macro.id);
+                  } else {
+                    onFavoriteToggle(macro.id);
+                  }
                 }}
-                className={`template-star ${isFavorite(isUserMacro ? `user_${macro.id}` : macro.id) ? 'favorited' : ''}`}
+                className={`template-star ${isUserMacro ? (isUserFraseFavorite(macro.id) ? 'favorited' : '') : (isFavorite(macro.id) ? 'favorited' : '')}`}
               >
                 <Star size={14} />
               </button>
@@ -508,6 +526,16 @@ export const MacroSelector: React.FC<MacroSelectorProps> = ({
                     </div>
                   )}
                 </>
+              )}
+
+              {/* Meus Favoritos (quando filtro user ou all) */}
+              {sourceFilter !== 'system' && sourceFilter !== 'trash' && favoriteUserFrasesAsMacros.length > 0 && (
+                <MacroSection 
+                  title="Meus Favoritos"
+                  macros={favoriteUserFrasesAsMacros}
+                  isFavoriteMacro={true}
+                  icon={<Star size={14} className="text-yellow-400" />}
+                />
               )}
 
               {/* Minhas Recentes (quando filtro user ou all) */}
