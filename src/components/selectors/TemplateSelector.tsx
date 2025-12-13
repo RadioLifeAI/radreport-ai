@@ -81,7 +81,10 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
     restoreTemplate,
     permanentDeleteTemplate,
     recentUserTemplates,
-    trackUserTemplateUsage
+    trackUserTemplateUsage,
+    toggleFavoriteUserTemplate,
+    isUserTemplateFavorite,
+    favoriteUserTemplates
   } = useUserContent();
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');
   const [showUserModal, setShowUserModal] = useState(false);
@@ -134,6 +137,17 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   }));
 
   const recentUserTemplatesAsTemplates: Template[] = recentUserTemplates.map(ut => ({
+    id: ut.id,
+    titulo: ut.titulo,
+    modalidade: ut.modalidade_codigo,
+    categoria: ut.categoria || 'normal',
+    isDefault: false,
+    conteudo: ut.modo === 'profissional' ? ut.conteudo_template : ut.texto,
+    variaveis: [],
+    isUserContent: true,
+  }));
+
+  const favoriteUserTemplatesAsTemplates: Template[] = favoriteUserTemplates.map(ut => ({
     id: ut.id,
     titulo: ut.titulo,
     modalidade: ut.modalidade_codigo,
@@ -217,7 +231,19 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                 <button onClick={(e) => { e.stopPropagation(); handleOpenModal(null, template); }} className="p-1.5 text-muted-foreground hover:text-emerald-400 hover:bg-emerald-500/10 rounded transition-colors opacity-0 group-hover:opacity-100" title="Criar minha versão"><Copy size={14} /></button>
               )}
               
-              <button onClick={(e) => { e.stopPropagation(); onFavoriteToggle(isUserTemplate ? `user_${template.id}` : template.id); }} className={`template-star ${isFavorite(isUserTemplate ? `user_${template.id}` : template.id) ? 'favorited' : ''}`}><Star size={14} /></button>
+              <button 
+                onClick={(e) => { 
+                  e.stopPropagation(); 
+                  if (isUserTemplate) {
+                    toggleFavoriteUserTemplate(template.id);
+                  } else {
+                    onFavoriteToggle(template.id); 
+                  }
+                }} 
+                className={`template-star ${isUserTemplate ? (isUserTemplateFavorite(template.id) ? 'favorited' : '') : (isFavorite(template.id) ? 'favorited' : '')}`}
+              >
+                <Star size={14} />
+              </button>
             </>
           )}
         </div>
@@ -275,6 +301,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
 
               {sourceFilter === 'trash' && (deletedTemplatesAsTemplates.length > 0 ? (<><TemplateSection title="Lixeira" templates={deletedTemplatesAsTemplates} isTrash={true} icon={<Trash size={14} className="text-red-400" />} /><div className="p-3 text-xs text-muted-foreground text-center border-t border-border/40 bg-muted/20">💡 Itens podem ser restaurados ou excluídos permanentemente.</div></>) : <div className="p-4 text-center text-sm text-muted-foreground">Lixeira vazia</div>)}
 
+              {sourceFilter !== 'system' && sourceFilter !== 'trash' && favoriteUserTemplatesAsTemplates.length > 0 && <TemplateSection title="Meus Favoritos" templates={favoriteUserTemplatesAsTemplates} isFavoriteTemplate={true} icon={<Star size={14} className="text-yellow-400" />} />}
               {sourceFilter !== 'system' && sourceFilter !== 'trash' && recentUserTemplatesAsTemplates.length > 0 && <TemplateSection title="Meus Recentes" templates={recentUserTemplatesAsTemplates.slice(0, 5)} isRecent={true} icon={<Clock size={14} className="text-amber-400" />} />}
               {sourceFilter !== 'system' && sourceFilter !== 'trash' && getFilteredUserTemplates().length > 0 && <TemplateSection title={`Meus Templates (${userTemplates.length}/${limits.templates})`} templates={getFilteredUserTemplates()} icon={<User size={14} className="text-emerald-400" />} />}
 

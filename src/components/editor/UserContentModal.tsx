@@ -24,7 +24,9 @@ import {
 } from '@/components/ui/select';
 import { useUserContent, UserTemplate, UserFrase } from '@/hooks/useUserContent';
 import { formatUserTemplateToHTML } from '@/utils/templateFormatter';
-import { AlertCircle, Sparkles, FileText, Layers, Eye, EyeOff } from 'lucide-react';
+import { AlertCircle, Sparkles, FileText, Layers, Eye, EyeOff, X, Plus } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 interface UserContentModalProps {
   open: boolean;
@@ -73,6 +75,20 @@ export function UserContentModal({ open, onOpenChange, type, editItem, duplicate
     isAddingFrase,
   } = useUserContent();
 
+  // Buscar regiões anatômicas
+  const { data: regioes = [] } = useQuery({
+    queryKey: ['regioes-anatomicas'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('regioes_anatomicas')
+        .select('codigo, nome')
+        .eq('ativa', true)
+        .order('nome');
+      return data || [];
+    },
+    staleTime: 1000 * 60 * 30, // 30 min cache
+  });
+
   // Modo do editor
   const [mode, setMode] = useState<EditorMode>('simples');
   const [showPreview, setShowPreview] = useState(true);
@@ -81,6 +97,9 @@ export function UserContentModal({ open, onOpenChange, type, editItem, duplicate
   const [titulo, setTitulo] = useState('');
   const [modalidade, setModalidade] = useState('US');
   const [categoria, setCategoria] = useState<'normal' | 'alterado'>('normal');
+  const [regiao, setRegiao] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState('');
   
   // Modo simples
   const [texto, setTexto] = useState('');
@@ -110,6 +129,26 @@ export function UserContentModal({ open, onOpenChange, type, editItem, duplicate
   const canAdd = isTemplate ? canAddTemplate : canAddFrase;
   const isLoading = isTemplate ? isAddingTemplate : isAddingFrase;
 
+  // Tag management
+  const addTag = () => {
+    const trimmed = tagInput.trim().toLowerCase();
+    if (trimmed && !tags.includes(trimmed)) {
+      setTags([...tags, trimmed]);
+      setTagInput('');
+    }
+  };
+
+  const removeTag = (tagToRemove: string) => {
+    setTags(tags.filter(t => t !== tagToRemove));
+  };
+
+  const handleTagKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      addTag();
+    }
+  };
+
   // Reset form when opening/closing or when editItem changes
   useEffect(() => {
     if (open) {
@@ -118,6 +157,8 @@ export function UserContentModal({ open, onOpenChange, type, editItem, duplicate
         setTitulo(editItem.titulo);
         setModalidade(editItem.modalidade_codigo);
         setCategoria((editItem as any).categoria || 'normal');
+        setRegiao((editItem as any).regiao_codigo || '');
+        setTags((editItem as any).tags || []);
         
         if (isTemplate) {
           const ut = editItem as UserTemplate;
@@ -146,6 +187,8 @@ export function UserContentModal({ open, onOpenChange, type, editItem, duplicate
         setTitulo(`${title} (Minha Versão)`);
         setModalidade(duplicateFrom.modalidade_codigo || duplicateFrom.modalidade || 'US');
         setCategoria(duplicateFrom.categoria || 'normal');
+        setRegiao(duplicateFrom.regiao_codigo || '');
+        setTags(duplicateFrom.tags || []);
         
         if (isTemplate) {
           // Tentar extrair conteúdo estruturado
@@ -183,6 +226,9 @@ export function UserContentModal({ open, onOpenChange, type, editItem, duplicate
     setConclusao('');
     setModalidade('US');
     setCategoria('normal');
+    setRegiao('');
+    setTags([]);
+    setTagInput('');
     setMode('simples');
     setIndicacaoClinica('');
     setTecnicaTexto('');
@@ -243,6 +289,8 @@ export function UserContentModal({ open, onOpenChange, type, editItem, duplicate
         titulo: titulo.trim(),
         modalidade_codigo: modalidade,
         categoria,
+        regiao_codigo: regiao || undefined,
+        tags: tags.length > 0 ? tags : undefined,
         modo: mode,
         texto: mode === 'simples' ? texto : undefined,
         indicacao_clinica: mode === 'profissional' && sections.indicacao ? indicacaoClinica : undefined,
@@ -268,6 +316,8 @@ export function UserContentModal({ open, onOpenChange, type, editItem, duplicate
         conclusao: conclusao || undefined,
         modalidade_codigo: modalidade,
         categoria,
+        regiao_codigo: regiao || undefined,
+        tags: tags.length > 0 ? tags : undefined,
       };
       
       if (isEditing && editItem) {
@@ -410,6 +460,64 @@ export function UserContentModal({ open, onOpenChange, type, editItem, duplicate
                         </SelectContent>
                       </Select>
                     </div>
+                  </div>
+                </div>
+
+                {/* Região Anatômica e Tags */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="regiao">Região Anatômica</Label>
+                    <Select value={regiao} onValueChange={setRegiao}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Nenhuma</SelectItem>
+                        {regioes.map((r: any) => (
+                          <SelectItem key={r.codigo} value={r.codigo}>
+                            {r.nome}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="tags">Tags</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="tags"
+                        placeholder="Adicionar tag..."
+                        value={tagInput}
+                        onChange={(e) => setTagInput(e.target.value)}
+                        onKeyDown={handleTagKeyDown}
+                        className="flex-1"
+                      />
+                      <Button 
+                        type="button" 
+                        size="sm" 
+                        variant="outline"
+                        onClick={addTag}
+                        disabled={!tagInput.trim()}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    {tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {tags.map((tag) => (
+                          <Badge 
+                            key={tag} 
+                            variant="secondary" 
+                            className="text-xs gap-1 cursor-pointer hover:bg-destructive/20"
+                            onClick={() => removeTag(tag)}
+                          >
+                            {tag}
+                            <X className="h-3 w-3" />
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
 

@@ -78,9 +78,11 @@ export interface AddFraseData {
   tecnica?: string;
 }
 
-// LocalStorage keys for usage history
+// LocalStorage keys for usage history and favorites
 const RECENT_USER_TEMPLATES_KEY = 'recent-user-templates';
 const RECENT_USER_FRASES_KEY = 'recent-user-frases';
+const FAV_USER_TEMPLATES_KEY = 'fav-user-templates';
+const FAV_USER_FRASES_KEY = 'fav-user-frases';
 const MAX_RECENT_ITEMS = 10;
 
 export function useUserContent() {
@@ -105,6 +107,23 @@ export function useUserContent() {
     }
   });
 
+  // Favorites (localStorage)
+  const [favoriteUserTemplateIds, setFavoriteUserTemplateIds] = useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem(FAV_USER_TEMPLATES_KEY) || '[]');
+    } catch {
+      return [];
+    }
+  });
+
+  const [favoriteUserFraseIds, setFavoriteUserFraseIds] = useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem(FAV_USER_FRASES_KEY) || '[]');
+    } catch {
+      return [];
+    }
+  });
+
   // Persist recent to localStorage
   useEffect(() => {
     localStorage.setItem(RECENT_USER_TEMPLATES_KEY, JSON.stringify(recentUserTemplateIds));
@@ -113,6 +132,15 @@ export function useUserContent() {
   useEffect(() => {
     localStorage.setItem(RECENT_USER_FRASES_KEY, JSON.stringify(recentUserFraseIds));
   }, [recentUserFraseIds]);
+
+  // Persist favorites to localStorage
+  useEffect(() => {
+    localStorage.setItem(FAV_USER_TEMPLATES_KEY, JSON.stringify(favoriteUserTemplateIds));
+  }, [favoriteUserTemplateIds]);
+
+  useEffect(() => {
+    localStorage.setItem(FAV_USER_FRASES_KEY, JSON.stringify(favoriteUserFraseIds));
+  }, [favoriteUserFraseIds]);
 
   // Track usage functions
   const trackUserTemplateUsage = useCallback((templateId: string) => {
@@ -126,6 +154,31 @@ export function useUserContent() {
       [fraseId, ...prev.filter(id => id !== fraseId)].slice(0, MAX_RECENT_ITEMS)
     );
   }, []);
+
+  // Favorite toggle functions
+  const toggleFavoriteUserTemplate = useCallback((templateId: string) => {
+    setFavoriteUserTemplateIds(prev => 
+      prev.includes(templateId) 
+        ? prev.filter(id => id !== templateId)
+        : [...prev, templateId]
+    );
+  }, []);
+
+  const toggleFavoriteUserFrase = useCallback((fraseId: string) => {
+    setFavoriteUserFraseIds(prev => 
+      prev.includes(fraseId) 
+        ? prev.filter(id => id !== fraseId)
+        : [...prev, fraseId]
+    );
+  }, []);
+
+  const isUserTemplateFavorite = useCallback((templateId: string) => {
+    return favoriteUserTemplateIds.includes(templateId);
+  }, [favoriteUserTemplateIds]);
+
+  const isUserFraseFavorite = useCallback((fraseId: string) => {
+    return favoriteUserFraseIds.includes(fraseId);
+  }, [favoriteUserFraseIds]);
 
   // Buscar templates do usuário (ativos)
   const { data: userTemplates = [], isLoading: loadingTemplates, refetch: refetchTemplates } = useQuery({
@@ -500,6 +553,10 @@ export function useUserContent() {
   const recentUserTemplates = userTemplates.filter(t => recentUserTemplateIds.includes(t.id));
   const recentUserFrases = userFrases.filter(f => recentUserFraseIds.includes(f.id));
 
+  // Get favorite user templates (filtered by existing ids)
+  const favoriteUserTemplates = userTemplates.filter(t => favoriteUserTemplateIds.includes(t.id));
+  const favoriteUserFrases = userFrases.filter(f => favoriteUserFraseIds.includes(f.id));
+
   return {
     // Data
     userTemplates,
@@ -508,6 +565,8 @@ export function useUserContent() {
     deletedFrases,
     recentUserTemplates,
     recentUserFrases,
+    favoriteUserTemplates,
+    favoriteUserFrases,
     limits,
     
     // Loading states
@@ -535,6 +594,12 @@ export function useUserContent() {
     // Usage tracking
     trackUserTemplateUsage,
     trackUserFraseUsage,
+    
+    // Favorites
+    toggleFavoriteUserTemplate,
+    toggleFavoriteUserFrase,
+    isUserTemplateFavorite,
+    isUserFraseFavorite,
     
     // Loading states for mutations
     isAddingTemplate: addTemplateMutation.isPending,
