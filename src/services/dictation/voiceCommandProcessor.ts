@@ -342,6 +342,41 @@ export function processFormattingCommand(text: string, editor: Editor): boolean 
 /**
  * Processa comandos de navegação - exigir frases completas
  */
+/**
+ * Navega para uma seção do documento pelo nome do heading
+ */
+export function goToSectionByName(editor: Editor, sectionName: string): boolean {
+  const doc = editor.state.doc;
+  const normalizedName = sectionName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  
+  let targetPos = -1;
+  
+  // Iterar sobre todos os nós do documento usando ProseMirror
+  doc.descendants((node, pos) => {
+    // Verificar se é um heading (h1-h6)
+    if (node.type.name === 'heading' && targetPos === -1) {
+      const text = node.textContent.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      
+      // Verificar se o heading contém o nome da seção
+      if (text.includes(normalizedName)) {
+        // Posicionar APÓS o heading (início do conteúdo da seção)
+        targetPos = pos + node.nodeSize;
+        return false; // Parar iteração
+      }
+    }
+    return true; // Continuar iteração
+  });
+  
+  if (targetPos > 0) {
+    editor.chain().focus().setTextSelection(targetPos).run();
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Processa comandos de navegação - exigir frases completas
+ */
 export function processNavigationCommand(text: string, editor: Editor): boolean {
   const lower = text.toLowerCase().trim()
   
@@ -368,6 +403,25 @@ export function processNavigationCommand(text: string, editor: Editor): boolean 
   
   if (lower === 'selecionar tudo') {
     editor.chain().focus().selectAll().run()
+    return true
+  }
+  
+  // === Navegação para Seções ===
+  if (lower === 'ir para impressão' || lower === 'ir para conclusão' || lower === 'seção impressão' || lower === 'seção conclusão') {
+    goToSectionByName(editor, 'impressao')
+    return true
+  }
+  
+  if (lower === 'ir para técnica' || lower === 'seção técnica') {
+    goToSectionByName(editor, 'tecnica')
+    return true
+  }
+  
+  if (lower === 'ir para relatório' || lower === 'ir para achados' || lower === 'seção relatório' || lower === 'seção achados') {
+    // Tentar RELATÓRIO primeiro, depois ACHADOS
+    if (!goToSectionByName(editor, 'relatorio')) {
+      goToSectionByName(editor, 'achados')
+    }
     return true
   }
   
