@@ -96,10 +96,12 @@ export function EditorLeftSidebar({
                   className="w-full text-left p-2 rounded-lg hover:bg-muted/50 transition-colors group"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-sm truncate">{frase.codigo}</span>
-              {frase.modalidade_id && (() => {
-                const modalityMap = { 'US': 'USG', 'TC': 'TC', 'RM': 'RM', 'RX': 'RX', 'MM': 'MG' };
-                const modality = modalityMap[frase.modalidade_id as keyof typeof modalityMap] || frase.modalidade_id;
+                    <span className="text-sm truncate">{frase.titulo || frase.codigo}</span>
+              {frase.codigo && (() => {
+                const prefix = frase.codigo.split('_')[0]?.toUpperCase() || '';
+                const modalityMap: Record<string, string> = { 'US': 'USG', 'USG': 'USG', 'TC': 'TC', 'CT': 'TC', 'RM': 'RM', 'MR': 'RM', 'RX': 'RX', 'CR': 'RX', 'MM': 'MG', 'MG': 'MG' };
+                const modality = modalityMap[prefix] || '';
+                if (!modality) return null;
                 return (
                   <span className={`text-[10px] px-2 py-0.5 rounded-full ${
                     modality === 'RM' ? 'bg-purple-500/20 text-purple-300' :

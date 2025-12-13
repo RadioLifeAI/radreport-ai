@@ -85,20 +85,21 @@ export const MacroSelector: React.FC<MacroSelectorProps> = ({
   }) => {
     const hasVariables = needsVariableInput?.(macro) ?? false
     
-    // Get modality from modalidade_id
-    const getModality = (modalidadeId?: string) => {
-      if (!modalidadeId) return ''
-      const modalityMap = {
-        'US': 'USG',
-        'TC': 'TC', 
-        'RM': 'RM',
-        'RX': 'RX',
-        'MM': 'MG'
+    // Get modality from codigo prefix
+    const getModalityFromCode = (codigo?: string): string => {
+      if (!codigo) return ''
+      const prefix = codigo.split('_')[0]?.toUpperCase() || ''
+      const modalityMap: Record<string, string> = {
+        'US': 'USG', 'USG': 'USG',
+        'TC': 'TC', 'CT': 'TC',
+        'RM': 'RM', 'MR': 'RM',
+        'RX': 'RX', 'CR': 'RX',
+        'MM': 'MG', 'MG': 'MG'
       }
-      return modalityMap[modalidadeId as keyof typeof modalityMap] || ''
+      return modalityMap[prefix] || ''
     }
     
-    const modality = getModality(macro.modalidade_id)
+    const modality = getModalityFromCode(macro.codigo)
     
     return (
       <div 
@@ -110,7 +111,7 @@ export const MacroSelector: React.FC<MacroSelectorProps> = ({
         }}
       >
         <div className="template-modality-badge">{modality || 'GERAL'}</div>
-        <div className="template-title flex-1">{macro.codigo}</div>
+        <div className="template-title flex-1">{macro.titulo || macro.codigo}</div>
         
         <div className="flex items-center gap-1">
           {hasVariables && (
