@@ -104,11 +104,19 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
     isUserContent: true,
   }));
 
-  // Filter templates based on source filter and modality
+  // Filter templates based on source filter, modality, and search term
   const getFilteredUserTemplates = () => {
     let filtered = userTemplatesAsTemplates;
     if (selectedModality) {
       filtered = filtered.filter(t => t.modalidade === selectedModality);
+    }
+    // ✨ Filtrar também por searchTerm para busca unificada
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(t => 
+        t.titulo.toLowerCase().includes(term) ||
+        t.modalidade?.toLowerCase().includes(term)
+      );
     }
     return filtered;
   };

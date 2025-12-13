@@ -100,11 +100,20 @@ export const MacroSelector: React.FC<MacroSelectorProps> = ({
     isUserContent: true,
   }));
 
-  // Filter user frases based on modality
+  // Filter user frases based on modality and search term
   const getFilteredUserFrases = () => {
     let filtered = userFrasesAsMacros;
     if (selectedModality && selectedModality !== 'TODOS') {
       filtered = filtered.filter(f => f.modalidade_id === selectedModality);
+    }
+    // ✨ Filtrar também por searchTerm para busca unificada
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(f => 
+        f.titulo.toLowerCase().includes(term) ||
+        f.frase.toLowerCase().includes(term) ||
+        f.codigo.toLowerCase().includes(term)
+      );
     }
     return filtered;
   };

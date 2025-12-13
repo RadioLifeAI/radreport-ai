@@ -154,11 +154,12 @@ export function useVoiceEngine(options: UseVoiceEngineOptions = {}): UseVoiceEng
     });
   }, [onTemplateDetected, onFraseDetected, onSearchTemplate, onSearchFrase, onStopDictation, updateState]);
 
-  // Atualizar contagens quando templates/frases mudam
+  // Atualizar contagens quando templates/frases mudam (inclui user content)
   useEffect(() => {
     if (!isInitializedRef.current) return;
     
     const engine = getVoiceEngine();
+    // Templates e frases já incluem user content quando passados via props
     engine.updateDataCounts(templates?.length || 0, frases?.length || 0);
   }, [templates?.length, frases?.length]);
 
