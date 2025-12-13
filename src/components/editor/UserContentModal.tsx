@@ -467,12 +467,12 @@ export function UserContentModal({ open, onOpenChange, type, editItem, duplicate
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="regiao">Região Anatômica</Label>
-                    <Select value={regiao} onValueChange={setRegiao}>
+                    <Select value={regiao || 'none'} onValueChange={(v) => setRegiao(v === 'none' ? '' : v)}>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione..." />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Nenhuma</SelectItem>
+                        <SelectItem value="none">Nenhuma</SelectItem>
                         {regioes.map((r: any) => (
                           <SelectItem key={r.codigo} value={r.codigo}>
                             {r.nome}
