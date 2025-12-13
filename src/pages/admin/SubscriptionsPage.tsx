@@ -28,6 +28,8 @@ interface SubscriptionPlan {
   description: string | null;
   ai_tokens_monthly: number;
   whisper_credits_monthly: number;
+  max_user_templates: number;
+  max_user_frases: number;
   is_active: boolean;
   display_order: number;
 }
@@ -112,6 +114,7 @@ export default function SubscriptionsPage() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('settings');
   const [editingPrice, setEditingPrice] = useState<EditingPrice | null>(null);
+  const [editingPlan, setEditingPlan] = useState<SubscriptionPlan | null>(null);
   const [copiedWebhook, setCopiedWebhook] = useState(false);
   
   // Environment view state for prices tab
@@ -261,6 +264,31 @@ export default function SubscriptionsPage() {
     },
     onError: (error) => {
       toast.error('Erro ao atualizar: ' + error.message);
+    }
+  });
+
+  // Mutation to update plan limits
+  const updatePlanMutation = useMutation({
+    mutationFn: async (data: SubscriptionPlan) => {
+      const { error } = await supabase
+        .from('subscription_plans')
+        .update({
+          ai_tokens_monthly: data.ai_tokens_monthly,
+          whisper_credits_monthly: data.whisper_credits_monthly,
+          max_user_templates: data.max_user_templates,
+          max_user_frases: data.max_user_frases,
+        })
+        .eq('id', data.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['subscription-plans'] });
+      queryClient.invalidateQueries({ queryKey: ['platform-metrics'] });
+      toast.success('Plano atualizado com sucesso');
+      setEditingPlan(null);
+    },
+    onError: (error) => {
+      toast.error('Erro ao atualizar plano: ' + error.message);
     }
   });
 
@@ -896,7 +924,7 @@ export default function SubscriptionsPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Planos de Assinatura</CardTitle>
-                <CardDescription>Planos disponíveis no sistema</CardDescription>
+                <CardDescription>Planos disponíveis no sistema com limites configuráveis</CardDescription>
               </CardHeader>
               <CardContent>
                 {plansLoading ? (
@@ -907,9 +935,12 @@ export default function SubscriptionsPage() {
                       <TableRow>
                         <TableHead>Código</TableHead>
                         <TableHead>Nome</TableHead>
-                        <TableHead>Tokens AI</TableHead>
-                        <TableHead>Créditos Whisper</TableHead>
+                        <TableHead className="text-center">Tokens AI</TableHead>
+                        <TableHead className="text-center">Whisper</TableHead>
+                        <TableHead className="text-center">Templates</TableHead>
+                        <TableHead className="text-center">Frases</TableHead>
                         <TableHead>Status</TableHead>
+                        <TableHead className="text-center">Ações</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -919,12 +950,27 @@ export default function SubscriptionsPage() {
                             <code className="text-xs bg-muted px-2 py-1 rounded">{plan.code}</code>
                           </TableCell>
                           <TableCell className="font-medium">{plan.name}</TableCell>
-                          <TableCell>{plan.ai_tokens_monthly.toLocaleString()}</TableCell>
-                          <TableCell>{plan.whisper_credits_monthly}</TableCell>
+                          <TableCell className="text-center">{plan.ai_tokens_monthly.toLocaleString()}</TableCell>
+                          <TableCell className="text-center">{plan.whisper_credits_monthly}</TableCell>
+                          <TableCell className="text-center">
+                            {plan.max_user_templates >= 9999 ? '∞' : plan.max_user_templates}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {plan.max_user_frases >= 9999 ? '∞' : plan.max_user_frases}
+                          </TableCell>
                           <TableCell>
                             <Badge variant={plan.is_active ? 'default' : 'secondary'}>
                               {plan.is_active ? 'Ativo' : 'Inativo'}
                             </Badge>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setEditingPlan(plan)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -1440,6 +1486,92 @@ export default function SubscriptionsPage() {
             >
               <Save className="h-4 w-4 mr-2" />
               Salvar Mapeamento
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Plan Modal */}
+      <Dialog open={!!editingPlan} onOpenChange={(open) => !open && setEditingPlan(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Editar Plano: {editingPlan?.name}</DialogTitle>
+            <DialogDescription>
+              Configure os limites e créditos deste plano de assinatura
+            </DialogDescription>
+          </DialogHeader>
+          
+          {editingPlan && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="ai_tokens">Tokens IA mensais</Label>
+                  <Input
+                    id="ai_tokens"
+                    type="number"
+                    value={editingPlan.ai_tokens_monthly}
+                    onChange={(e) => setEditingPlan({
+                      ...editingPlan,
+                      ai_tokens_monthly: parseInt(e.target.value) || 0
+                    })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="whisper_credits">Créditos Whisper mensais</Label>
+                  <Input
+                    id="whisper_credits"
+                    type="number"
+                    value={editingPlan.whisper_credits_monthly}
+                    onChange={(e) => setEditingPlan({
+                      ...editingPlan,
+                      whisper_credits_monthly: parseInt(e.target.value) || 0
+                    })}
+                  />
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="max_templates">Templates personalizados</Label>
+                  <Input
+                    id="max_templates"
+                    type="number"
+                    value={editingPlan.max_user_templates}
+                    onChange={(e) => setEditingPlan({
+                      ...editingPlan,
+                      max_user_templates: parseInt(e.target.value) || 0
+                    })}
+                  />
+                  <p className="text-xs text-muted-foreground">Use 9999 para ilimitado</p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="max_frases">Frases personalizadas</Label>
+                  <Input
+                    id="max_frases"
+                    type="number"
+                    value={editingPlan.max_user_frases}
+                    onChange={(e) => setEditingPlan({
+                      ...editingPlan,
+                      max_user_frases: parseInt(e.target.value) || 0
+                    })}
+                  />
+                  <p className="text-xs text-muted-foreground">Use 9999 para ilimitado</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingPlan(null)}>
+              <X className="h-4 w-4 mr-2" />
+              Cancelar
+            </Button>
+            <Button 
+              onClick={() => editingPlan && updatePlanMutation.mutate(editingPlan)}
+              disabled={updatePlanMutation.isPending}
+            >
+              <Save className="h-4 w-4 mr-2" />
+              Salvar
             </Button>
           </DialogFooter>
         </DialogContent>
