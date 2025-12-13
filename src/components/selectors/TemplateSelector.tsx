@@ -1,8 +1,11 @@
 import React, { useRef, useEffect, useState } from 'react'
-import { ChevronDown, Star, FileText, Edit3 } from 'lucide-react'
+import { ChevronDown, Star, FileText, Edit3, Plus, Trash2, User } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { Portal } from '@/components/ui/portal'
+import { Badge } from '@/components/ui/badge'
 import type { VariableFilter } from '@/hooks/useTemplates'
+import { useUserContent, UserTemplate } from '@/hooks/useUserContent'
+import { UserContentModal } from '@/components/editor/UserContentModal'
 
 export interface Template {
   id: string
@@ -12,6 +15,7 @@ export interface Template {
   isDefault?: boolean
   conteudo?: any
   variaveis?: any[]
+  isUserContent?: boolean
 }
 
 export interface TemplateSelectorProps {
@@ -41,6 +45,8 @@ export interface TemplateSelectorProps {
   needsVariableInput?: (template: Template) => boolean
 }
 
+type SourceFilter = 'all' | 'system' | 'user';
+
 export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   selectedTemplate,
   onTemplateSearch,
@@ -67,6 +73,10 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   modalities,
   needsVariableInput
 }) => {
+  const { userTemplates, limits, deleteTemplate } = useUserContent();
+  const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');
+  const [showUserModal, setShowUserModal] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState<UserTemplate | null>(null);
   const { theme } = useTheme()
   const inputRef = useRef<HTMLInputElement>(null)
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 })
@@ -82,34 +92,60 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
     }
   }, [dropdownVisible])
 
+  // Convert user templates to Template format
+  const userTemplatesAsTemplates: Template[] = userTemplates.map(ut => ({
+    id: ut.id,
+    titulo: ut.titulo,
+    modalidade: ut.modalidade_codigo,
+    categoria: 'normal',
+    isDefault: false,
+    conteudo: ut.texto,
+    variaveis: [],
+    isUserContent: true,
+  }));
+
+  // Filter templates based on source filter and modality
+  const getFilteredUserTemplates = () => {
+    let filtered = userTemplatesAsTemplates;
+    if (selectedModality) {
+      filtered = filtered.filter(t => t.modalidade === selectedModality);
+    }
+    return filtered;
+  };
+
   const TemplateItem = ({ template, isRecent = false, isFavoriteTemplate = false }: { 
     template: Template
     isRecent?: boolean
     isFavoriteTemplate?: boolean
   }) => {
     const hasVariables = needsVariableInput?.(template) ?? false
+    const isUserTemplate = template.isUserContent === true;
     
     return (
       <div 
         className="template-item group"
         onClick={() => {
-          // Default click: auto-detect (will open modal if has variables)
           onTemplateSelect(template)
           setDropdownVisible(false)
         }}
       >
-        <div className="template-modality-badge">{template.modalidade}</div>
+        {/* Badge MEUS ou modalidade */}
+        {isUserTemplate ? (
+          <div className="template-modality-badge bg-emerald-500/20 text-emerald-400 border-emerald-500/40">
+            MEUS
+          </div>
+        ) : (
+          <div className="template-modality-badge">{template.modalidade}</div>
+        )}
         <div className="template-title flex-1">{template.titulo}</div>
         
         <div className="flex items-center gap-1">
-          {hasVariables && (
+          {hasVariables && !isUserTemplate && (
             <>
-              {/* Badge indicator */}
               <span className="text-[9px] px-1.5 py-0.5 bg-cyan-500/20 text-cyan-400 rounded font-medium">
                 VAR
               </span>
               
-              {/* Completo button */}
               <button
                 onClick={(e) => {
                   e.stopPropagation()
@@ -122,7 +158,6 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                 <FileText size={14} />
               </button>
               
-              {/* Variáveis button */}
               <button
                 onClick={(e) => {
                   e.stopPropagation()
@@ -136,17 +171,51 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
               </button>
             </>
           )}
+
+          {/* Ações para templates do usuário */}
+          {isUserTemplate && (
+            <>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  const userTemplate = userTemplates.find(ut => ut.id === template.id);
+                  if (userTemplate) {
+                    setEditingTemplate(userTemplate);
+                    setShowUserModal(true);
+                  }
+                }}
+                className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors opacity-0 group-hover:opacity-100"
+                title="Editar"
+              >
+                <Edit3 size={14} />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  if (confirm('Remover este template?')) {
+                    deleteTemplate(template.id);
+                  }
+                }}
+                className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors opacity-0 group-hover:opacity-100"
+                title="Remover"
+              >
+                <Trash2 size={14} />
+              </button>
+            </>
+          )}
           
-          {/* Botão favorito SEMPRE visível */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation()
-              onFavoriteToggle(template.id)
-            }}
-            className={`template-star ${isFavorite(template.id) ? 'favorited' : ''}`}
-          >
-            <Star size={14} />
-          </button>
+          {/* Botão favorito (só para sistema) */}
+          {!isUserTemplate && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                onFavoriteToggle(template.id)
+              }}
+              className={`template-star ${isFavorite(template.id) ? 'favorited' : ''}`}
+            >
+              <Star size={14} />
+            </button>
+          )}
         </div>
       </div>
     )
@@ -203,8 +272,58 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
               minWidth: `${dropdownPosition.width}px`
             }}
           >
-            {/* Category + Variable Filter Row */}
-            <div className="flex flex-wrap items-center gap-1 p-2 border-b border-border/40 bg-muted/50">
+            {/* Header com botão + */}
+            <div className="flex items-center justify-between p-2 border-b border-border/40 bg-muted/50">
+              <span className="text-sm font-medium text-foreground">Templates</span>
+              <button
+                onClick={() => {
+                  setEditingTemplate(null);
+                  setShowUserModal(true);
+                }}
+                className="p-1.5 text-muted-foreground hover:text-cyan-400 hover:bg-cyan-500/10 rounded transition-colors"
+                title="Criar novo template"
+              >
+                <Plus size={16} />
+              </button>
+            </div>
+
+            {/* Source Filter Row */}
+            <div className="flex flex-wrap items-center gap-1 p-2 border-b border-border/40 bg-muted/30">
+              <span className="text-xs text-muted-foreground mr-1">Fonte:</span>
+              <button
+                onClick={() => setSourceFilter('all')}
+                className={`px-2 py-1 text-xs font-medium rounded-lg transition-all ${
+                  sourceFilter === 'all' 
+                    ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40' 
+                    : 'hover:bg-muted text-muted-foreground'
+                }`}
+              >
+                Todos
+              </button>
+              <button
+                onClick={() => setSourceFilter('system')}
+                className={`px-2 py-1 text-xs font-medium rounded-lg transition-all ${
+                  sourceFilter === 'system' 
+                    ? 'bg-blue-500/20 text-blue-400 border border-blue-500/40' 
+                    : 'hover:bg-muted text-muted-foreground'
+                }`}
+              >
+                Sistema
+              </button>
+              <button
+                onClick={() => setSourceFilter('user')}
+                className={`px-2 py-1 text-xs font-medium rounded-lg transition-all flex items-center gap-1 ${
+                  sourceFilter === 'user' 
+                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' 
+                    : 'hover:bg-muted text-muted-foreground'
+                }`}
+              >
+                <User size={12} />
+                Meus ({userTemplates.length}/{limits.templates})
+              </button>
+
+              <div className="w-px h-4 bg-border/60 mx-1" />
+
               <span className="text-xs text-muted-foreground mr-1">Categoria:</span>
               <button
                 onClick={() => onCategoriaClick(null)}
@@ -235,40 +354,6 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                 }`}
               >
                 📕 Alterado
-              </button>
-
-              <div className="w-px h-4 bg-border/60 mx-1" />
-
-              <span className="text-xs text-muted-foreground mr-1">Variáveis:</span>
-              <button
-                onClick={() => onVariableFilterClick('all')}
-                className={`px-2 py-1 text-xs font-medium rounded-lg transition-all ${
-                  selectedVariableFilter === 'all' 
-                    ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40' 
-                    : 'hover:bg-muted text-muted-foreground'
-                }`}
-              >
-                Todos
-              </button>
-              <button
-                onClick={() => onVariableFilterClick('with')}
-                className={`px-2 py-1 text-xs font-medium rounded-lg transition-all ${
-                  selectedVariableFilter === 'with' 
-                    ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40' 
-                    : 'hover:bg-muted text-muted-foreground'
-                }`}
-              >
-                🔧 Com VAR
-              </button>
-              <button
-                onClick={() => onVariableFilterClick('without')}
-                className={`px-2 py-1 text-xs font-medium rounded-lg transition-all ${
-                  selectedVariableFilter === 'without' 
-                    ? 'bg-purple-500/20 text-purple-400 border border-purple-500/40' 
-                    : 'hover:bg-muted text-muted-foreground'
-                }`}
-              >
-                📄 Sem VAR
               </button>
             </div>
 
@@ -305,7 +390,16 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                 <div className="p-4 text-center text-sm text-muted-foreground">Nenhum template encontrado</div>
               )}
 
-              {!loading && !error && filteredTemplates.length > 0 && (
+              {/* Meus Templates (quando filtro user ou all) */}
+              {sourceFilter !== 'system' && getFilteredUserTemplates().length > 0 && (
+                <TemplateSection 
+                  title={`Meus Templates (${userTemplates.length}/${limits.templates})`}
+                  templates={getFilteredUserTemplates()} 
+                />
+              )}
+
+              {/* Templates do Sistema */}
+              {sourceFilter !== 'user' && !loading && !error && filteredTemplates.length > 0 && (
                 <>
                   {searchTerm && (
                     <TemplateSection 
@@ -342,15 +436,33 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                 </>
               )}
 
-              <div className="p-2 border-t border-border/40">
-                <button className="w-full px-3 py-2 text-xs text-cyan-400 hover:bg-cyan-500/10 rounded-lg transition-colors">
-                  Busca Avançada
-                </button>
-              </div>
+              {/* Mensagem quando só tem user filter e está vazio */}
+              {sourceFilter === 'user' && getFilteredUserTemplates().length === 0 && (
+                <div className="p-4 text-center text-sm text-muted-foreground">
+                  <p>Você ainda não criou templates.</p>
+                  <button 
+                    onClick={() => {
+                      setEditingTemplate(null);
+                      setShowUserModal(true);
+                    }}
+                    className="mt-2 text-cyan-400 hover:underline"
+                  >
+                    Criar primeiro template
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </Portal>
       )}
+
+      {/* Modal de criação/edição */}
+      <UserContentModal
+        open={showUserModal}
+        onOpenChange={setShowUserModal}
+        type="template"
+        editItem={editingTemplate}
+      />
     </div>
   )
 }

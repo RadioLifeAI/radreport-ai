@@ -22,6 +22,8 @@ export interface SubscriptionStatus {
     feature_templates: boolean;
     feature_export: boolean;
     feature_priority_support: boolean;
+    max_user_templates?: number;
+    max_user_frases?: number;
   } | null;
 }
 
@@ -44,6 +46,8 @@ const FREE_PLAN: SubscriptionStatus = {
     feature_templates: true,
     feature_export: true,
     feature_priority_support: false,
+    max_user_templates: 5,
+    max_user_frases: 10,
   },
 };
 
