@@ -108,6 +108,9 @@ export interface VoiceEngineCallbacks {
   // Callbacks Intent Detection - busca dinâmica
   onSearchTemplate?: (query: string, context: SearchContext) => void;
   onSearchFrase?: (query: string, context: SearchContext) => void;
+  
+  // Callback para parar ditado (delegado ao useDictation)
+  onStopDictation?: () => void;
 }
 
 // Interface do Engine completo

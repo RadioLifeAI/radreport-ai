@@ -449,6 +449,32 @@ export class VoiceCommandEngine implements IVoiceCommandEngine {
       case 'lowercase':
         this.transformSelectedText(text => text.toLowerCase());
         break;
+      // Comandos de lista
+      case 'bullet_list':
+        this.editor.chain().focus().toggleBulletList().run();
+        break;
+      case 'ordered_list':
+        this.editor.chain().focus().toggleOrderedList().run();
+        break;
+      // Limpar formatação
+      case 'clear_format':
+        this.editor.chain().focus().unsetAllMarks().run();
+        break;
+      // Alinhamentos
+      case 'align_left':
+        this.editor.chain().focus().setTextAlign('left').run();
+        break;
+      case 'align_center':
+        this.editor.chain().focus().setTextAlign('center').run();
+        break;
+      case 'align_right':
+        this.editor.chain().focus().setTextAlign('right').run();
+        break;
+      case 'align_justify':
+        this.editor.chain().focus().setTextAlign('justify').run();
+        break;
+      default:
+        this.log(`Comando de formatação desconhecido: ${payload}`);
     }
   }
 
@@ -530,7 +556,18 @@ export class VoiceCommandEngine implements IVoiceCommandEngine {
         return true;
 
       case 'stop_dictation':
-        // Este comando é tratado externamente pelo useDictation
+      case 'cancel':
+        // Delegar para useDictation via callback
+        if (this.callbacks.onStopDictation) {
+          this.callbacks.onStopDictation();
+          this.log('🛑 Ditado parado via callback');
+          return true;
+        }
+        this.log('⚠️ onStopDictation callback não registrado');
+        return false;
+
+      case 'delete_all':
+        this.editor.chain().focus().clearContent().run();
         return true;
 
       default:

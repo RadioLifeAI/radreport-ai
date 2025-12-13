@@ -369,6 +369,8 @@ export function ProfessionalEditorPage({ onGenerateConclusion }: ProfessionalEdi
     // Intent Detection: Callbacks de busca dinâmica (por query)
     onSearchTemplate: handleSearchTemplate,
     onSearchFrase: handleSearchFrase,
+    // Callback para parar ditado
+    onStopDictation: stopDictation,
   })
 
   const frasesAsMacros = frases.map(convertFraseToMacro)

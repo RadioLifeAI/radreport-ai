@@ -32,6 +32,8 @@ export interface UseVoiceEngineOptions {
   // Callbacks Intent Detection
   onSearchTemplate?: (query: string, context: SearchContext) => void;
   onSearchFrase?: (query: string, context: SearchContext) => void;
+  // Callback para parar ditado
+  onStopDictation?: () => void;
 }
 
 export interface UseVoiceEngineReturn {
@@ -62,7 +64,7 @@ export interface UseVoiceEngineReturn {
 }
 
 export function useVoiceEngine(options: UseVoiceEngineOptions = {}): UseVoiceEngineReturn {
-  const { autoInit = true, debug = false, editor, templates, frases, onTemplateDetected, onFraseDetected, onSearchTemplate, onSearchFrase } = options;
+  const { autoInit = true, debug = false, editor, templates, frases, onTemplateDetected, onFraseDetected, onSearchTemplate, onSearchFrase, onStopDictation } = options;
   
   // ✨ FASE 6: Obter modalidade e região do store
   const { modalidade, regiao } = useReportStore();
@@ -119,6 +121,7 @@ export function useVoiceEngine(options: UseVoiceEngineOptions = {}): UseVoiceEng
             onFraseDetected,
             onSearchTemplate,
             onSearchFrase,
+            onStopDictation,
           });
           
           isInitializedRef.current = true;
@@ -147,8 +150,9 @@ export function useVoiceEngine(options: UseVoiceEngineOptions = {}): UseVoiceEng
       onFraseDetected,
       onSearchTemplate,
       onSearchFrase,
+      onStopDictation,
     });
-  }, [onTemplateDetected, onFraseDetected, onSearchTemplate, onSearchFrase, updateState]);
+  }, [onTemplateDetected, onFraseDetected, onSearchTemplate, onSearchFrase, onStopDictation, updateState]);
 
   // Atualizar contagens quando templates/frases mudam
   useEffect(() => {
