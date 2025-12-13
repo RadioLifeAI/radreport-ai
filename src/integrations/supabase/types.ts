@@ -3106,10 +3106,15 @@ export type Database = {
       user_frases: {
         Row: {
           ativo: boolean | null
+          categoria: string | null
           conclusao: string | null
           created_at: string | null
           id: string
+          indicacao_clinica: string | null
           modalidade_codigo: string
+          regiao_codigo: string | null
+          tags: string[] | null
+          tecnica: string | null
           texto: string
           titulo: string
           updated_at: string | null
@@ -3117,10 +3122,15 @@ export type Database = {
         }
         Insert: {
           ativo?: boolean | null
+          categoria?: string | null
           conclusao?: string | null
           created_at?: string | null
           id?: string
+          indicacao_clinica?: string | null
           modalidade_codigo: string
+          regiao_codigo?: string | null
+          tags?: string[] | null
+          tecnica?: string | null
           texto: string
           titulo: string
           updated_at?: string | null
@@ -3128,10 +3138,15 @@ export type Database = {
         }
         Update: {
           ativo?: boolean | null
+          categoria?: string | null
           conclusao?: string | null
           created_at?: string | null
           id?: string
+          indicacao_clinica?: string | null
           modalidade_codigo?: string
+          regiao_codigo?: string | null
+          tags?: string[] | null
+          tecnica?: string | null
           texto?: string
           titulo?: string
           updated_at?: string | null
@@ -3304,30 +3319,60 @@ export type Database = {
       }
       user_templates: {
         Row: {
+          achados: string | null
+          adicionais: string | null
           ativo: boolean | null
+          categoria: string | null
+          conteudo_template: string | null
           created_at: string | null
           id: string
+          impressao: string | null
+          indicacao_clinica: string | null
           modalidade_codigo: string
+          modo: string | null
+          regiao_codigo: string | null
+          tags: string[] | null
+          tecnica: Json | null
           texto: string
           titulo: string
           updated_at: string | null
           user_id: string
         }
         Insert: {
+          achados?: string | null
+          adicionais?: string | null
           ativo?: boolean | null
+          categoria?: string | null
+          conteudo_template?: string | null
           created_at?: string | null
           id?: string
+          impressao?: string | null
+          indicacao_clinica?: string | null
           modalidade_codigo: string
+          modo?: string | null
+          regiao_codigo?: string | null
+          tags?: string[] | null
+          tecnica?: Json | null
           texto: string
           titulo: string
           updated_at?: string | null
           user_id: string
         }
         Update: {
+          achados?: string | null
+          adicionais?: string | null
           ativo?: boolean | null
+          categoria?: string | null
+          conteudo_template?: string | null
           created_at?: string | null
           id?: string
+          impressao?: string | null
+          indicacao_clinica?: string | null
           modalidade_codigo?: string
+          modo?: string | null
+          regiao_codigo?: string | null
+          tags?: string[] | null
+          tecnica?: Json | null
           texto?: string
           titulo?: string
           updated_at?: string | null
