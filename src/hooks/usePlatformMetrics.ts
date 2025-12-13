@@ -42,6 +42,8 @@ export interface PlanData {
   display_order: number;
   ai_tokens_monthly: number;
   whisper_credits_monthly: number;
+  max_user_templates: number;
+  max_user_frases: number;
   feature_ai_conclusion: boolean;
   feature_ai_suggestions: boolean;
   feature_ai_rads: boolean;
