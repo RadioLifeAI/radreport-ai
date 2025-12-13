@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react'
-import { Star, FileText, Edit3, Plus, Trash2, User } from 'lucide-react'
+import { Star, FileText, Edit3, Plus, Trash2, User, Copy } from 'lucide-react'
 import { Portal } from '@/components/ui/portal'
 import { useUserContent, UserFrase } from '@/hooks/useUserContent'
 import { UserContentModal } from '@/components/editor/UserContentModal'
@@ -73,6 +73,7 @@ export const MacroSelector: React.FC<MacroSelectorProps> = ({
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');
   const [showUserModal, setShowUserModal] = useState(false);
   const [editingFrase, setEditingFrase] = useState<UserFrase | null>(null);
+  const [duplicateFromFrase, setDuplicateFromFrase] = useState<any>(null);
   const inputRef = useRef<HTMLInputElement>(null)
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 })
 
@@ -94,7 +95,7 @@ export const MacroSelector: React.FC<MacroSelectorProps> = ({
     titulo: uf.titulo,
     frase: uf.texto,
     conclusao: uf.conclusao,
-    categoria: 'normal',
+    categoria: uf.categoria || 'normal',
     modalidade_id: uf.modalidade_codigo,
     ativo: true,
     isUserContent: true,
@@ -203,6 +204,7 @@ export const MacroSelector: React.FC<MacroSelectorProps> = ({
                   const userFrase = userFrases.find(uf => uf.id === macro.id);
                   if (userFrase) {
                     setEditingFrase(userFrase);
+                    setDuplicateFromFrase(null);
                     setShowUserModal(true);
                   }
                 }}
@@ -225,19 +227,34 @@ export const MacroSelector: React.FC<MacroSelectorProps> = ({
               </button>
             </>
           )}
-          
-          {/* Botão favorito (só para sistema) */}
+
+          {/* Botão duplicar (para sistema) */}
           {!isUserMacro && (
             <button
               onClick={(e) => {
                 e.stopPropagation()
-                onFavoriteToggle(macro.id)
+                setDuplicateFromFrase(macro)
+                setEditingFrase(null)
+                setShowUserModal(true)
               }}
-              className={`template-star ${isFavorite(macro.id) ? 'favorited' : ''}`}
+              className="p-1.5 text-muted-foreground hover:text-emerald-400 hover:bg-emerald-500/10 rounded transition-colors opacity-0 group-hover:opacity-100"
+              title="Criar minha versão"
             >
-              <Star size={14} />
+              <Copy size={14} />
             </button>
           )}
+          
+          {/* Botão favorito (para todos) */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              const favoriteId = isUserMacro ? `user_${macro.id}` : macro.id
+              onFavoriteToggle(favoriteId)
+            }}
+            className={`template-star ${isFavorite(isUserMacro ? `user_${macro.id}` : macro.id) ? 'favorited' : ''}`}
+          >
+            <Star size={14} />
+          </button>
         </div>
       </div>
     )

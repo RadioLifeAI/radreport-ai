@@ -215,3 +215,69 @@ export function formatarTecnica(tecnica: any, variantKey?: string): string {
   
   return ''
 }
+
+/**
+ * Formata user template para HTML igual ao system_templates
+ * Usado para modo profissional do UserContentModal
+ */
+export function formatUserTemplateToHTML(template: {
+  titulo?: string;
+  indicacao_clinica?: string;
+  tecnica?: Record<string, string> | null;
+  achados?: string;
+  impressao?: string;
+  adicionais?: string;
+  texto?: string;
+  modo?: string;
+}): string {
+  const sections: string[] = [];
+  
+  // Título centralizado
+  if (template.titulo) {
+    sections.push(`<h2 style="text-align: center; text-transform: uppercase; font-weight: bold; margin-bottom: 1em;">${template.titulo}</h2>`);
+  }
+  
+  // Indicação Clínica
+  if (template.indicacao_clinica?.trim()) {
+    sections.push(`<h3 style="text-transform: uppercase; font-weight: bold; margin-top: 1em;">INDICAÇÃO CLÍNICA</h3>`);
+    sections.push(dividirEmSentencas(template.indicacao_clinica));
+  }
+  
+  // Técnica
+  if (template.tecnica) {
+    const tecnicaHTML = formatarTecnica(template.tecnica);
+    if (tecnicaHTML) {
+      sections.push(tecnicaHTML);
+    }
+  }
+  
+  // Achados
+  if (template.achados?.trim()) {
+    sections.push(`<h3 style="text-transform: uppercase; font-weight: bold; margin-top: 1em;">ACHADOS</h3>`);
+    sections.push(dividirEmSentencas(template.achados));
+  }
+  
+  // Impressão
+  if (template.impressao?.trim()) {
+    sections.push(`<h3 style="text-transform: uppercase; font-weight: bold; margin-top: 1em;">IMPRESSÃO</h3>`);
+    sections.push(dividirEmSentencas(template.impressao));
+  }
+  
+  // Adicionais
+  if (template.adicionais?.trim()) {
+    sections.push(`<h3 style="text-transform: uppercase; font-weight: bold; margin-top: 1em;">ADICIONAIS</h3>`);
+    sections.push(dividirEmSentencas(template.adicionais));
+  }
+  
+  // Se nenhum campo estruturado preenchido, usar texto legado
+  if (sections.length <= 1 && template.texto) {
+    sections.push(dividirEmSentencas(template.texto));
+  }
+  
+  // Se ainda vazio, placeholder
+  if (sections.length === 0) {
+    return '<p style="color: var(--muted-foreground);">(Preencha os campos para ver o preview)</p>';
+  }
+  
+  return sections.join('');
+}

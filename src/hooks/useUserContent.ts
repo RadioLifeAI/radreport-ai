@@ -8,11 +8,22 @@ export interface UserTemplate {
   id: string;
   user_id: string;
   titulo: string;
-  texto: string;
+  texto?: string;
   modalidade_codigo: string;
   ativo: boolean;
   created_at: string;
   updated_at: string;
+  // Campos expandidos
+  indicacao_clinica?: string;
+  tecnica?: Record<string, string> | null;
+  achados?: string;
+  impressao?: string;
+  adicionais?: string;
+  regiao_codigo?: string;
+  categoria?: 'normal' | 'alterado';
+  tags?: string[];
+  conteudo_template?: string;
+  modo?: 'simples' | 'profissional';
 }
 
 export interface UserFrase {
@@ -25,11 +36,45 @@ export interface UserFrase {
   ativo: boolean;
   created_at: string;
   updated_at: string;
+  // Campos expandidos
+  categoria?: 'normal' | 'alterado';
+  regiao_codigo?: string;
+  tags?: string[];
+  indicacao_clinica?: string;
+  tecnica?: string;
 }
 
 export interface UserContentLimits {
   templates: number;
   frases: number;
+}
+
+export interface AddTemplateData {
+  titulo: string;
+  texto?: string;
+  modalidade_codigo: string;
+  indicacao_clinica?: string;
+  tecnica?: Record<string, string> | null;
+  achados?: string;
+  impressao?: string;
+  adicionais?: string;
+  regiao_codigo?: string;
+  categoria?: 'normal' | 'alterado';
+  tags?: string[];
+  conteudo_template?: string;
+  modo?: 'simples' | 'profissional';
+}
+
+export interface AddFraseData {
+  titulo: string;
+  texto: string;
+  conclusao?: string;
+  modalidade_codigo: string;
+  categoria?: 'normal' | 'alterado';
+  regiao_codigo?: string;
+  tags?: string[];
+  indicacao_clinica?: string;
+  tecnica?: string;
 }
 
 export function useUserContent() {
@@ -55,7 +100,7 @@ export function useUserContent() {
         return [];
       }
       
-      return data || [];
+      return (data || []) as UserTemplate[];
     },
     enabled: !!user,
     staleTime: 30 * 1000,
@@ -79,7 +124,7 @@ export function useUserContent() {
         return [];
       }
       
-      return data || [];
+      return (data || []) as UserFrase[];
     },
     enabled: !!user,
     staleTime: 30 * 1000,
@@ -96,7 +141,7 @@ export function useUserContent() {
 
   // Mutation: Adicionar template
   const addTemplateMutation = useMutation({
-    mutationFn: async (data: { titulo: string; texto: string; modalidade_codigo: string }) => {
+    mutationFn: async (data: AddTemplateData) => {
       if (!user) throw new Error('Usuário não autenticado');
       if (!canAddTemplate) throw new Error(`Limite de ${limits.templates} templates atingido`);
       
@@ -107,6 +152,16 @@ export function useUserContent() {
           titulo: data.titulo,
           texto: data.texto,
           modalidade_codigo: data.modalidade_codigo,
+          indicacao_clinica: data.indicacao_clinica,
+          tecnica: data.tecnica,
+          achados: data.achados,
+          impressao: data.impressao,
+          adicionais: data.adicionais,
+          regiao_codigo: data.regiao_codigo,
+          categoria: data.categoria || 'normal',
+          tags: data.tags || [],
+          conteudo_template: data.conteudo_template,
+          modo: data.modo || 'simples',
         })
         .select()
         .single();
@@ -125,7 +180,7 @@ export function useUserContent() {
 
   // Mutation: Adicionar frase
   const addFraseMutation = useMutation({
-    mutationFn: async (data: { titulo: string; texto: string; conclusao?: string; modalidade_codigo: string }) => {
+    mutationFn: async (data: AddFraseData) => {
       if (!user) throw new Error('Usuário não autenticado');
       if (!canAddFrase) throw new Error(`Limite de ${limits.frases} frases atingido`);
       
@@ -137,6 +192,11 @@ export function useUserContent() {
           texto: data.texto,
           conclusao: data.conclusao || null,
           modalidade_codigo: data.modalidade_codigo,
+          categoria: data.categoria || 'normal',
+          regiao_codigo: data.regiao_codigo,
+          tags: data.tags || [],
+          indicacao_clinica: data.indicacao_clinica,
+          tecnica: data.tecnica,
         })
         .select()
         .single();
@@ -155,7 +215,7 @@ export function useUserContent() {
 
   // Mutation: Atualizar template
   const updateTemplateMutation = useMutation({
-    mutationFn: async ({ id, ...data }: { id: string; titulo?: string; texto?: string; modalidade_codigo?: string }) => {
+    mutationFn: async ({ id, ...data }: Partial<UserTemplate> & { id: string }) => {
       if (!user) throw new Error('Usuário não autenticado');
       
       const { data: result, error } = await supabase
@@ -180,7 +240,7 @@ export function useUserContent() {
 
   // Mutation: Atualizar frase
   const updateFraseMutation = useMutation({
-    mutationFn: async ({ id, ...data }: { id: string; titulo?: string; texto?: string; conclusao?: string; modalidade_codigo?: string }) => {
+    mutationFn: async ({ id, ...data }: Partial<UserFrase> & { id: string }) => {
       if (!user) throw new Error('Usuário não autenticado');
       
       const { data: result, error } = await supabase

@@ -160,7 +160,9 @@ export function useVoiceEngine(options: UseVoiceEngineOptions = {}): UseVoiceEng
     
     const engine = getVoiceEngine();
     // Templates e frases já incluem user content quando passados via props
-    engine.updateDataCounts(templates?.length || 0, frases?.length || 0);
+    const totalTemplates = templates?.length || 0;
+    const totalFrases = frases?.length || 0;
+    engine.updateDataCounts(totalTemplates, totalFrases);
   }, [templates?.length, frases?.length]);
 
   // ✨ FASE 6: Sincronizar contexto (modalidade + região) quando mudam

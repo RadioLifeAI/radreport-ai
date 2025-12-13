@@ -1,12 +1,11 @@
 import React, { useRef, useEffect, useState } from 'react'
-import { ChevronDown, Star, FileText, Edit3, Plus, Trash2, User } from 'lucide-react'
+import { ChevronDown, Star, FileText, Edit3, Plus, Trash2, User, Copy } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { Portal } from '@/components/ui/portal'
 import { Badge } from '@/components/ui/badge'
 import type { VariableFilter } from '@/hooks/useTemplates'
 import { useUserContent, UserTemplate } from '@/hooks/useUserContent'
 import { UserContentModal } from '@/components/editor/UserContentModal'
-
 export interface Template {
   id: string
   titulo: string
@@ -77,6 +76,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');
   const [showUserModal, setShowUserModal] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<UserTemplate | null>(null);
+  const [duplicateFromTemplate, setDuplicateFromTemplate] = useState<any>(null);
   const { theme } = useTheme()
   const inputRef = useRef<HTMLInputElement>(null)
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 })
@@ -97,9 +97,9 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
     id: ut.id,
     titulo: ut.titulo,
     modalidade: ut.modalidade_codigo,
-    categoria: 'normal',
+    categoria: ut.categoria || 'normal',
     isDefault: false,
-    conteudo: ut.texto,
+    conteudo: ut.modo === 'profissional' ? ut.conteudo_template : ut.texto,
     variaveis: [],
     isUserContent: true,
   }));
@@ -189,6 +189,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                   const userTemplate = userTemplates.find(ut => ut.id === template.id);
                   if (userTemplate) {
                     setEditingTemplate(userTemplate);
+                    setDuplicateFromTemplate(null);
                     setShowUserModal(true);
                   }
                 }}
@@ -211,19 +212,35 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
               </button>
             </>
           )}
-          
-          {/* Botão favorito (só para sistema) */}
+
+          {/* Botão duplicar (para sistema) */}
           {!isUserTemplate && (
             <button
               onClick={(e) => {
                 e.stopPropagation()
-                onFavoriteToggle(template.id)
+                setDuplicateFromTemplate(template)
+                setEditingTemplate(null)
+                setShowUserModal(true)
               }}
-              className={`template-star ${isFavorite(template.id) ? 'favorited' : ''}`}
+              className="p-1.5 text-muted-foreground hover:text-emerald-400 hover:bg-emerald-500/10 rounded transition-colors opacity-0 group-hover:opacity-100"
+              title="Criar minha versão"
             >
-              <Star size={14} />
+              <Copy size={14} />
             </button>
           )}
+          
+          {/* Botão favorito (para todos) */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              // User content usa prefixo "user_" para diferenciar
+              const favoriteId = isUserTemplate ? `user_${template.id}` : template.id
+              onFavoriteToggle(favoriteId)
+            }}
+            className={`template-star ${isFavorite(isUserTemplate ? `user_${template.id}` : template.id) ? 'favorited' : ''}`}
+          >
+            <Star size={14} />
+          </button>
         </div>
       </div>
     )
@@ -467,9 +484,16 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
       {/* Modal de criação/edição */}
       <UserContentModal
         open={showUserModal}
-        onOpenChange={setShowUserModal}
+        onOpenChange={(open) => {
+          setShowUserModal(open);
+          if (!open) {
+            setEditingTemplate(null);
+            setDuplicateFromTemplate(null);
+          }
+        }}
         type="template"
         editItem={editingTemplate}
+        duplicateFrom={duplicateFromTemplate}
       />
     </div>
   )
