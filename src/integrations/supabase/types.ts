@@ -1885,6 +1885,111 @@ export type Database = {
         }
         Relationships: []
       }
+      radiology_calculators: {
+        Row: {
+          ativo: boolean | null
+          category: string
+          code: string
+          created_at: string | null
+          description: string | null
+          display_order: number | null
+          id: string
+          info_grading: Json | null
+          info_purpose: string | null
+          info_usage: Json | null
+          name: string
+          output_template: string | null
+          reference_text: string | null
+          reference_url: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          category: string
+          code: string
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          info_grading?: Json | null
+          info_purpose?: string | null
+          info_usage?: Json | null
+          name: string
+          output_template?: string | null
+          reference_text?: string | null
+          reference_url?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          ativo?: boolean | null
+          category?: string
+          code?: string
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          info_grading?: Json | null
+          info_purpose?: string | null
+          info_usage?: Json | null
+          name?: string
+          output_template?: string | null
+          reference_text?: string | null
+          reference_url?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      radiology_tables: {
+        Row: {
+          ativo: boolean | null
+          category: string
+          code: string
+          created_at: string | null
+          display_order: number | null
+          html_content: string
+          id: string
+          modalities: string[] | null
+          name: string
+          reference_text: string | null
+          reference_url: string | null
+          subcategory: string | null
+          type: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          category: string
+          code: string
+          created_at?: string | null
+          display_order?: number | null
+          html_content: string
+          id?: string
+          modalities?: string[] | null
+          name: string
+          reference_text?: string | null
+          reference_url?: string | null
+          subcategory?: string | null
+          type?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          ativo?: boolean | null
+          category?: string
+          code?: string
+          created_at?: string | null
+          display_order?: number | null
+          html_content?: string
+          id?: string
+          modalities?: string[] | null
+          name?: string
+          reference_text?: string | null
+          reference_url?: string | null
+          subcategory?: string | null
+          type?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       rads_text_options: {
         Row: {
           ativo: boolean | null
@@ -1939,6 +2044,42 @@ export type Database = {
           usa_meses?: boolean | null
           valor?: string
           variaveis?: Json | null
+        }
+        Relationships: []
+      }
+      reference_categories: {
+        Row: {
+          ativo: boolean | null
+          code: string
+          created_at: string | null
+          display_order: number | null
+          icon: string | null
+          id: string
+          name: string
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          code: string
+          created_at?: string | null
+          display_order?: number | null
+          icon?: string | null
+          id?: string
+          name: string
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          ativo?: boolean | null
+          code?: string
+          created_at?: string | null
+          display_order?: number | null
+          icon?: string | null
+          id?: string
+          name?: string
+          type?: string
+          updated_at?: string | null
         }
         Relationships: []
       }

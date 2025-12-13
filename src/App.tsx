@@ -33,6 +33,8 @@ import UsersPage from "./pages/admin/UsersPage";
 import SettingsPage from "./pages/admin/SettingsPage";
 import RADSOptionsPage from "./pages/admin/RADSOptionsPage";
 import WhisperConfigPage from "./pages/admin/WhisperConfigPage";
+import TablesAdminPage from "./pages/admin/TablesAdminPage";
+import CalculatorsAdminPage from "./pages/admin/CalculatorsAdminPage";
 import Precos from "./pages/Precos";
 import MobileMic from "./pages/MobileMic";
 
@@ -77,6 +79,8 @@ const App = () => (
             <Route path="/admin/frases" element={<AdminProtectedRoute><FrasesPage /></AdminProtectedRoute>} />
             <Route path="/admin/rads-options" element={<AdminProtectedRoute><RADSOptionsPage /></AdminProtectedRoute>} />
             <Route path="/admin/whisper-config" element={<AdminProtectedRoute><WhisperConfigPage /></AdminProtectedRoute>} />
+            <Route path="/admin/tables" element={<AdminProtectedRoute><TablesAdminPage /></AdminProtectedRoute>} />
+            <Route path="/admin/calculators" element={<AdminProtectedRoute><CalculatorsAdminPage /></AdminProtectedRoute>} />
             <Route path="/admin/subscriptions" element={<AdminProtectedRoute><SubscriptionsPage /></AdminProtectedRoute>} />
             <Route path="/admin/features" element={<AdminProtectedRoute><FeaturesPage /></AdminProtectedRoute>} />
             <Route path="/admin/users" element={<AdminProtectedRoute><UsersPage /></AdminProtectedRoute>} />
