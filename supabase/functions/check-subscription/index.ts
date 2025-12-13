@@ -30,7 +30,9 @@ const FREE_PLAN_RESPONSE = {
     feature_ai_chat: false,
     feature_voice_dictation: true,
     feature_templates: true,
-    feature_export: true
+    feature_export: true,
+    max_user_templates: 5,
+    max_user_frases: 10
   }
 };
 
@@ -119,7 +121,9 @@ Deno.serve(async (req) => {
           feature_ai_chat,
           feature_voice_dictation,
           feature_templates,
-          feature_export
+          feature_export,
+          max_user_templates,
+          max_user_frases
         )
       `)
       .eq('user_id', user.id)
@@ -148,7 +152,9 @@ Deno.serve(async (req) => {
           feature_ai_chat: plan.feature_ai_chat ?? false,
           feature_voice_dictation: plan.feature_voice_dictation ?? true,
           feature_templates: plan.feature_templates ?? true,
-          feature_export: plan.feature_export ?? true
+          feature_export: plan.feature_export ?? true,
+          max_user_templates: plan.max_user_templates ?? 5,
+          max_user_frases: plan.max_user_frases ?? 10
         }
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -200,7 +206,9 @@ Deno.serve(async (req) => {
                 feature_ai_chat: plan.feature_ai_chat ?? false,
                 feature_voice_dictation: plan.feature_voice_dictation ?? true,
                 feature_templates: plan.feature_templates ?? true,
-                feature_export: plan.feature_export ?? true
+                feature_export: plan.feature_export ?? true,
+                max_user_templates: plan.max_user_templates ?? 5,
+                max_user_frases: plan.max_user_frases ?? 10
               }
             }), {
               headers: { ...corsHeaders, 'Content-Type': 'application/json' },

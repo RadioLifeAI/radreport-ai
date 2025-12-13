@@ -2331,6 +2331,8 @@ export type Database = {
           id: string
           is_active: boolean | null
           is_highlighted: boolean | null
+          max_user_frases: number | null
+          max_user_templates: number | null
           name: string
           updated_at: string | null
           whisper_credits_monthly: number
@@ -2354,6 +2356,8 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           is_highlighted?: boolean | null
+          max_user_frases?: number | null
+          max_user_templates?: number | null
           name: string
           updated_at?: string | null
           whisper_credits_monthly?: number
@@ -2377,6 +2381,8 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           is_highlighted?: boolean | null
+          max_user_frases?: number | null
+          max_user_templates?: number | null
           name?: string
           updated_at?: string | null
           whisper_credits_monthly?: number
@@ -3097,6 +3103,42 @@ export type Database = {
           },
         ]
       }
+      user_frases: {
+        Row: {
+          ativo: boolean | null
+          conclusao: string | null
+          created_at: string | null
+          id: string
+          modalidade_codigo: string
+          texto: string
+          titulo: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          ativo?: boolean | null
+          conclusao?: string | null
+          created_at?: string | null
+          id?: string
+          modalidade_codigo: string
+          texto: string
+          titulo: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          ativo?: boolean | null
+          conclusao?: string | null
+          created_at?: string | null
+          id?: string
+          modalidade_codigo?: string
+          texto?: string
+          titulo?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -3259,6 +3301,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_templates: {
+        Row: {
+          ativo: boolean | null
+          created_at: string | null
+          id: string
+          modalidade_codigo: string
+          texto: string
+          titulo: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          ativo?: boolean | null
+          created_at?: string | null
+          id?: string
+          modalidade_codigo: string
+          texto: string
+          titulo: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          ativo?: boolean | null
+          created_at?: string | null
+          id?: string
+          modalidade_codigo?: string
+          texto?: string
+          titulo?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       user_whisper_balance: {
         Row: {
