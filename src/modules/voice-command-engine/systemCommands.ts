@@ -428,10 +428,19 @@ export const NAVIGATION_COMMANDS: VoiceCommand[] = [
   {
     id: 'nav_relatorio',
     name: 'ir para relatório',
-    phrases: ['ir para relatório', 'ir para achados', 'seção relatório', 'seção achados'],
+    phrases: ['ir para relatório', 'seção relatório'],
     category: 'navigation',
     actionType: 'navigate',
     payload: 'section_relatorio',
+    priority: 85,
+  },
+  {
+    id: 'nav_achados',
+    name: 'ir para achados',
+    phrases: ['ir para achados', 'seção achados', 'ir para análise', 'seção análise'],
+    category: 'navigation',
+    actionType: 'navigate',
+    payload: 'section_achados',
     priority: 85,
   },
 ];

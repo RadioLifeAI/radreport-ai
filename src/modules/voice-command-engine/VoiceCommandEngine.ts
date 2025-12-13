@@ -469,13 +469,16 @@ export class VoiceCommandEngine implements IVoiceCommandEngine {
         this.goToPrevField();
         break;
       case 'section_impressao':
-        this.goToSection('IMPRESSÃO');
+        this.goToSection('impressao');
         break;
       case 'section_tecnica':
-        this.goToSection('TÉCNICA');
+        this.goToSection('tecnica');
         break;
       case 'section_relatorio':
-        this.goToSection('RELATÓRIO');
+        this.goToSection('relatorio');
+        break;
+      case 'section_achados':
+        this.goToSection('achados');
         break;
     }
   }
@@ -614,16 +617,31 @@ export class VoiceCommandEngine implements IVoiceCommandEngine {
     if (!this.editor) return;
     
     const doc = this.editor.state.doc;
-    const text = doc.textContent;
+    const normalizedName = sectionName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     
-    // Buscar seção por nome
-    const regex = new RegExp(`(^|\\n)\\s*${sectionName}[:\\s]`, 'i');
-    const match = text.match(regex);
+    let targetPos = -1;
     
-    if (match && match.index !== undefined) {
-      // Posicionar no final da linha do título da seção
-      const afterTitle = match.index + match[0].length;
-      this.editor.chain().focus().setTextSelection(afterTitle).run();
+    // Iterar sobre todos os nós do documento usando ProseMirror
+    doc.descendants((node, pos) => {
+      // Verificar se é um heading (h1-h6)
+      if (node.type.name === 'heading' && targetPos === -1) {
+        const text = node.textContent.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        
+        // Verificar se o heading contém o nome da seção
+        if (text.includes(normalizedName)) {
+          // Posicionar APÓS o heading (início do conteúdo da seção)
+          targetPos = pos + node.nodeSize;
+          return false; // Parar iteração
+        }
+      }
+      return true; // Continuar iteração
+    });
+    
+    if (targetPos > 0) {
+      this.editor.chain().focus().setTextSelection(targetPos).run();
+      this.log(`📍 Navegado para seção: ${sectionName}`);
+    } else {
+      this.log(`⚠️ Seção não encontrada: ${sectionName}`);
     }
   }
 
